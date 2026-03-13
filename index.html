@@ -78,7 +78,7 @@ h2.sh.on-dark em{color:var(--steel-light)}
 }
 .hero-bg{
   position:absolute;inset:0;z-index:0;
-  background-size:cover;background-position:center 35%;
+  background-size:cover;background-position:30% 35%;
   filter:brightness(.52) saturate(.65);
 }
 /* left-side gradient so text stays crisp */
@@ -242,8 +242,9 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 }
 @media(max-width:580px){
   section{padding:70px 5%}
-  .serve-tiles{grid-template-columns:1fr}
-  .serve-tile{border-right:none}
+  .serve-tiles{grid-template-columns:1fr!important}
+  .serve-tile{border-right:none!important;grid-column:span 1!important}
+  .serve-tile[style*="span 3"]{grid-column:span 1!important}
 }
 </style>
 </head>
@@ -259,6 +260,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <li><a href="#services">Services</a></li>
     <li><a href="#founder">About</a></li>
     <li><a href="#testimonials">Testimonials</a></li>
+    <li><a href="https://www.linkedin.com/in/morgan-messick-856074233/" target="_blank" rel="noopener">LinkedIn</a></li>
     <li><a href="#contact" class="nav-cta">Let's Talk</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menu">
@@ -292,7 +294,6 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <span>Graphic Design</span><span class="dot">·</span>
     <span>Podcast Production</span><span class="dot">·</span>
     <span>Presentations &amp; Forms</span><span class="dot">·</span>
-    <span>Paid Advertising</span><span class="dot">·</span>
     <span>Social Media Management</span><span class="dot">·</span>
     <span>Blog &amp; SEO Content</span><span class="dot">·</span>
     <span>Email Marketing</span><span class="dot">·</span>
@@ -302,56 +303,64 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <span>Graphic Design</span><span class="dot">·</span>
     <span>Podcast Production</span><span class="dot">·</span>
     <span>Presentations &amp; Forms</span><span class="dot">·</span>
-    <span>Paid Advertising</span><span class="dot">·</span>
   </div>
 </div>
 
 <!-- VISIBILITY / WHY -->
 <section id="visibility">
   <div class="vis-grid">
-    <div class="vis-chart-wrap fu">
-      <div class="vis-chart-label">The Visibility Gap — Active vs. Inactive Brand</div>
-      <div class="vis-bars" id="visBars">
-        <div class="vis-bar-col">
-          <div class="vis-bar-pair">
-            <div class="vis-bar active" style="height:0" data-h="88%"></div>
-            <div class="vis-bar inactive" style="height:0" data-h="5%"></div>
+    <div class="vis-chart-wrap fu" style="background:linear-gradient(135deg,#2a5570 0%,#3a6b8a 45%,#2e7da8 100%);border:none;border-radius:12px;padding:2.4rem;box-shadow:0 20px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)">
+      <div class="vis-chart-label" style="color:rgba(255,255,255,.55);margin-bottom:1.8rem;font-size:.65rem;letter-spacing:.22em">THE CONTENT MARKETING GAP</div>
+
+      <div style="display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.8rem">
+
+        <!-- Stat row with animated progress bar -->
+        <div class="stat-row" style="background:rgba(255,255,255,.08);border-radius:8px;padding:1.2rem 1.4rem;cursor:default;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+          <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
+            <span style="font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1" class="count-up" data-target="91">0</span>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:rgba(255,255,255,.7)">%</span>
           </div>
-          <div class="vis-bar-name">Followers</div>
-        </div>
-        <div class="vis-bar-col">
-          <div class="vis-bar-pair">
-            <div class="vis-bar active" style="height:0" data-h="98%"></div>
-            <div class="vis-bar inactive" style="height:0" data-h="2%"></div>
+          <div style="height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-bottom:.7rem;overflow:hidden">
+            <div class="prog-bar" data-w="91" style="height:100%;width:0;background:rgba(255,255,255,.7);border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
           </div>
-          <div class="vis-bar-name">Views</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.5">of consumers search online before contacting a local business</div>
         </div>
-        <div class="vis-bar-col">
-          <div class="vis-bar-pair">
-            <div class="vis-bar active" style="height:0" data-h="68%"></div>
-            <div class="vis-bar inactive" style="height:0" data-h="3%"></div>
+
+        <div class="stat-row" style="background:rgba(255,255,255,.08);border-radius:8px;padding:1.2rem 1.4rem;cursor:default;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+          <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
+            <span style="font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1" class="count-up" data-target="73">0</span>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:rgba(255,255,255,.7)">%</span>
           </div>
-          <div class="vis-bar-name">Page Visits</div>
-        </div>
-        <div class="vis-bar-col">
-          <div class="vis-bar-pair">
-            <div class="vis-bar active" style="height:0" data-h="82%"></div>
-            <div class="vis-bar inactive" style="height:0" data-h="4%"></div>
+          <div style="height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-bottom:.7rem;overflow:hidden">
+            <div class="prog-bar" data-w="73" style="height:100%;width:0;background:rgba(255,255,255,.7);border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
           </div>
-          <div class="vis-bar-name">Content</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.5">will switch to a competitor if a brand doesn't respond on social</div>
         </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+          <div class="stat-row" style="background:rgba(255,255,255,.08);border-radius:8px;padding:1.2rem 1.4rem;cursor:default;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+            <div style="display:flex;align-items:baseline;gap:.3rem;margin-bottom:.4rem">
+              <span style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:#fff;line-height:1" class="count-up" data-target="62">0</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:rgba(255,255,255,.7)">%</span>
+            </div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.75);line-height:1.5">Content marketing costs 62% less than outbound marketing — and drives <strong style="color:#fff">6× more conversions.</strong></div>
+          </div>
+          <div class="stat-row" style="background:rgba(255,255,255,.08);border-radius:8px;padding:1.2rem 1.4rem;cursor:default;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+            <div style="display:flex;align-items:baseline;gap:.3rem;margin-bottom:.4rem">
+              <span style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:#fff;line-height:1" class="count-up" data-target="55">0</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:rgba(255,255,255,.7)">%</span>
+            </div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.75);line-height:1.5">Companies that blog consistently see 55% more website traffic and generate <strong style="color:#fff">67% more leads.</strong></div>
+          </div>
+        </div>
+
       </div>
-      <div class="vis-stats" style="grid-template-columns:repeat(4,1fr)">
-        <div class="vis-stat"><div class="vis-stat-n">456</div><div class="vis-stat-l">Followers</div></div>
-        <div class="vis-stat"><div class="vis-stat-n">493K</div><div class="vis-stat-l">Views</div></div>
-        <div class="vis-stat"><div class="vis-stat-n">1.6K</div><div class="vis-stat-l">Page Visits</div></div>
-        <div class="vis-stat"><div class="vis-stat-n">19</div><div class="vis-stat-l">Total Content</div></div>
-      </div>
-      <div class="vis-legend">
-        <div class="vis-legend-item"><div class="vis-legend-dot" style="background:var(--steel-light)"></div>Active Brand</div>
-        <div class="vis-legend-item"><div class="vis-legend-dot" style="background:rgba(255,255,255,.28)"></div>Inactive Brand</div>
+
+      <div style="border-top:1px solid rgba(255,255,255,.15);padding-top:1.2rem">
+        <p style="font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.7;font-style:italic">Only ~28% of companies say their content strategy actually works. That gap is exactly where our team helps businesses win.</p>
       </div>
     </div>
+
     <div class="vis-copy fu">
       <p class="eyebrow light">Why It Matters</p>
       <h2 class="vis-headline">
@@ -423,7 +432,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
   <div class="svc-layout">
     <div class="svc-sticky">
       <p class="eyebrow light fu">What We Do</p>
-      <h2 class="sh on-dark fu">Every piece of the <em>content puzzle.</em></h2>
+      <h2 class="sh on-dark fu">Everything you need <em>in one place.</em></h2>
       <p class="sub on-dark fu">Full-service content marketing from strategy through execution — so you never have to patch together a dozen vendors again.</p>
       <br><br>
       <a href="#contact" class="btn btn-steel fu">Let's Talk</a>
@@ -478,7 +487,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 <!-- CALLOUT -->
 <section id="callout">
   <div class="callout-inner">
-    <p class="callout-quote fu">"Your clients are searching for you right now.<br>The question is whether they find you — or someone else."</p>
+    <p class="callout-quote fu">"Your clients are searching right now.<br>The question is whether they find you — or someone else."</p>
     <p class="callout-body fu">Content is how trust gets built before anyone picks up the phone. It's how patients find you, donors choose you, and partners decide you're the right fit. We're here to make sure you show up at that moment.</p>
     <a href="#contact" class="btn btn-white fu">Start the Conversation</a>
   </div>
@@ -549,7 +558,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <div class="fu">
       <p class="eyebrow">Let's Work Together</p>
       <h2 class="contact-headline">If you've been searching for a partner who <em>gets it</em> — you found us.</h2>
-      <p class="contact-body">Tell us about your goals and let's figure out what's possible. We'll keep it simple, honest, and actually useful.</p>
+      <p class="contact-body">Tell us about your goals and let's figure out what's possible.</p>
       <div class="contact-email">
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a>
@@ -610,19 +619,41 @@ const io = new IntersectionObserver(entries => {
 }, {threshold: 0.1});
 document.querySelectorAll('.fu').forEach(el => io.observe(el));
 
-// Animated bars
-const barsEl = document.getElementById('visBars');
-const barsIO = new IntersectionObserver(entries => {
+// Count-up animation
+const countIO = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if(e.isIntersecting){
-      e.target.querySelectorAll('.vis-bar').forEach((b, i) => {
-        setTimeout(() => { b.style.height = b.dataset.h; }, i * 60);
+      e.target.querySelectorAll('.count-up').forEach(el => {
+        const target = +el.dataset.target;
+        const duration = 1400;
+        const step = 16;
+        const increment = target / (duration / step);
+        let current = 0;
+        const timer = setInterval(() => {
+          current = Math.min(current + increment, target);
+          el.textContent = Math.floor(current);
+          if(current >= target) clearInterval(timer);
+        }, step);
       });
-      barsIO.unobserve(e.target);
+      countIO.unobserve(e.target);
     }
   });
-}, {threshold: 0.3});
-if(barsEl) barsIO.observe(barsEl);
+}, {threshold: 0.4});
+const chartWrap = document.querySelector('.vis-chart-wrap');
+if(chartWrap) countIO.observe(chartWrap);
+
+// Progress bars
+const progIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.prog-bar').forEach((bar, i) => {
+        setTimeout(() => { bar.style.width = bar.dataset.w + '%'; }, 200 + i * 120);
+      });
+      progIO.unobserve(e.target);
+    }
+  });
+}, {threshold: 0.4});
+if(chartWrap) progIO.observe(chartWrap);
 
 // Testimonial carousel
 let cur = 0;
