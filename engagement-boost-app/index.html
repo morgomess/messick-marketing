@@ -321,7 +321,22 @@ const app = {
                                     type: isPDF ? 'document' : 'image',
                                     source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 }
                                 },
-                                { type: 'text', text: 'Extract these metrics from this social media analytics report. Look carefully for reach (accounts reached), impressions, followers, likes, comments, engagement rate, and any follower growth percentage. Return ONLY a JSON object with these keys (use 0 if not found): {"followers": number, "reach": number, "impressions": number, "likes": number, "comments": number, "engRate": number, "followerGrowth": number}. engRate should be a percentage number like 2.5 not 0.025. followerGrowth should be a percentage like 1.5 for +1.5% growth. Reach means total accounts or people reached, not impressions.' }
+                                { type: 'text', text: `You are extracting social media metrics from an analytics report (likely Metricool, but could be any platform).
+
+INSTRUCTIONS:
+1. Find the TOTAL/COMBINED followers across all platforms. Look for a summary number with a label like "Followers" that aggregates Facebook, Instagram, TikTok, YouTube, etc. Use the combined total, not individual platform numbers.
+2. Find TOTAL IMPRESSIONS across all platforms. Look for a section labeled "Impressions" with a combined total (e.g. "1.60M"). Convert abbreviations: 1.60M = 1600000, 177.38K = 177380.
+3. Find REACH if available. This may appear as "Accounts reached" or "Average reach per day." If only daily average reach is given, multiply by the number of days in the report period. If no reach metric exists, set reach to 0.
+4. Find TOTAL INTERACTIONS or sum up likes + comments + shares across all platforms from the combined "Interactions" section.
+5. For LIKES: use the total from the combined interactions section, or sum platform-level likes.
+6. For COMMENTS: use the total from the combined interactions section, or sum platform-level comments.
+7. ENGAGEMENT RATE: If explicitly stated, use it. Otherwise calculate as (total interactions / total followers) * 100.
+8. FOLLOWER GROWTH: Look for a percentage next to the total followers count (e.g. "+10.75%"). Report as a number like 10.75.
+
+Return ONLY a JSON object, no other text:
+{"followers": number, "reach": number, "impressions": number, "likes": number, "comments": number, "engRate": number, "followerGrowth": number}
+
+All values must be plain numbers. No abbreviations, no strings, no percent signs.` }
                             ]
                         }]
                     }
@@ -336,6 +351,8 @@ const app = {
             if (!raw) throw new Error('AI did not return valid JSON. Try a clearer screenshot.');
             const metrics = JSON.parse(raw[0]);
             metrics.postsWeek = postsWeek;
+            // If reach is 0 but impressions exist, use impressions as fallback for scoring
+            if (!metrics.reach && metrics.impressions) metrics.reach = metrics.impressions;
 
             const sc = this.calcScore(metrics);
             this.clients.push({ name, ...metrics, score: sc.total, date: new Date().toLocaleDateString() });
@@ -429,6 +446,7 @@ Rules:
         const circumference = 2 * Math.PI * 52;
         const offset = circumference * (1 - sc.total / 100);
         const reachPct = c.followers > 0 ? ((c.reach || 0) / c.followers * 100).toFixed(1) : '0';
+        const reachIsImp = (c.reach === c.impressions && c.reach > 0);
         const fmt = (n) => n != null ? Number(n).toLocaleString() : '\u2014';
 
         const breakdownHTML = Object.values(sc.breakdown).map(b => `
@@ -468,7 +486,7 @@ Rules:
                             <div class="kpi-value">${fmt(c.followers)}</div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Reach</div>
+                            <div class="kpi-label">Reach${reachIsImp ? ' (via impressions)' : ''}</div>
                             <div class="kpi-value">${fmt(c.reach)}</div>
                             <div class="kpi-benchmark">${reachPct}% of followers</div>
                         </div>
