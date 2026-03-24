@@ -162,7 +162,6 @@ const app = {
         const input = document.getElementById('file-input');
         zone.onclick = () => input.click();
 
-        // FIX: Added essential e.preventDefault() to drag/drop listeners
         ['dragover', 'dragenter'].forEach(name => {
             zone.addEventListener(name, (e) => {
                 e.preventDefault();
@@ -238,6 +237,15 @@ const app = {
             });
 
             const data = await resp.json();
+
+            // FIX #3: Validate API response structure before accessing nested properties
+            if (data.error) {
+                throw new Error(data.error.message || 'API returned an error. Check your API key in Settings.');
+            }
+            if (!data.content || !Array.isArray(data.content) || !data.content[0] || !data.content[0].text) {
+                throw new Error('Unexpected API response format. Check your API key and try again.');
+            }
+
             const raw = data.content[0].text.match(/\{.*\}/s);
             if (!raw) throw new Error("AI returned invalid data format.");
             
@@ -293,7 +301,11 @@ const app = {
 
     calcHealth(c) {
         const engScore = Math.min(100, (c.engRate / 4) * 100);
-        const growthScore = Math.min(100, (c.followerGrowth / 8) * 100);
+
+        // FIX #1: Default followerGrowth to 0 when the platform doesn't track it
+        const growth = c.followerGrowth || 0;
+        const growthScore = Math.min(100, (growth / 8) * 100);
+
         const freqScore = Math.min(100, ((c.postsPublished || 4) / 12) * 100);
         const total = Math.round((engScore * 0.4) + (growthScore * 0.3) + (freqScore * 0.3));
         return {
@@ -308,7 +320,8 @@ const app = {
 
     getGaps(c) {
         const gaps = [];
-        if (c.engRate < 2.5) gaps.push({ title: "Low Engagement", desc: `Current rate (${c.engRate}%) is under the 3% benchmark.` });
+        // FIX #2: Benchmark text now matches the condition threshold (2.5%)
+        if (c.engRate < 2.5) gaps.push({ title: "Low Engagement", desc: `Current rate (${c.engRate}%) is under the 2.5% benchmark.` });
         if (c.reach > c.followers * 2 && c.engRate < 2) gaps.push({ title: "Passive Audience", desc: "High reach but low interaction. Content needs stronger hooks." });
         return gaps;
     },
@@ -397,8 +410,15 @@ const app = {
 
     skipToManual() {
         const name = document.getElementById('client-name').value || 'New Audit';
+        const platforms = this.getSelectedPlatforms();
+
+        // FIX #4: Validate that at least one platform is selected
+        if (platforms.length === 0) {
+            return alert('Select at least one platform before continuing.');
+        }
+
         this.tempMetrics = { name };
-        this.currentPlatforms = this.getSelectedPlatforms();
+        this.currentPlatforms = platforms;
         this.view('confirm');
     }
 };
