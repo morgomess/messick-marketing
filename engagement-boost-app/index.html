@@ -218,6 +218,12 @@ const app = {
             el.innerHTML = '<div class="empty"><h3>No snapshots yet</h3><p>Click "+ New Snapshot" to analyze your first client report.</p></div>';
             return;
         }
+        const hasLegacy = this.clients.some(c => c.impressions === undefined || c.followerGrowth === undefined);
+        const refreshBanner = hasLegacy ? `
+            <div style="background:var(--primary-soft); border:1px solid var(--primary); border-radius:10px; padding:0.75rem 1rem; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <span style="font-size:0.85rem;">Some snapshots are missing new KPIs (impressions, follower growth). Re-upload reports to get full scoring.</span>
+                <button class="btn btn-primary btn-sm" onclick="app.clearAllData()">Clear &amp; Re-import All</button>
+            </div>` : '';
         const cards = this.clients.map((c, i) => {
             const sc = this.calcScore(c);
             return `
@@ -228,7 +234,16 @@ const app = {
                 <div class="card-score ${this.scoreClass(sc.total)}">${sc.total}<span style="font-size:0.9rem;opacity:0.6">/100</span></div>
             </div>`;
         }).join('');
-        el.innerHTML = '<h1 style="font-size:1.4rem; font-weight:800; margin-bottom:1.5rem;">Portfolio</h1><div class="grid">' + cards + '</div>';
+        el.innerHTML = '<h1 style="font-size:1.4rem; font-weight:800; margin-bottom:1.5rem;">Portfolio</h1>' + refreshBanner + '<div class="grid">' + cards + '</div>';
+    },
+
+    clearAllData() {
+        if (confirm('This will delete all existing snapshots so you can re-import with the updated format. Continue?')) {
+            this.clients = [];
+            this.recsCache = {};
+            localStorage.setItem('eb_data', '[]');
+            this.view('dashboard');
+        }
     },
 
     // ─── INPUT FORM ────────────────────────────────────────
@@ -238,20 +253,15 @@ const app = {
                 <h2 style="margin-bottom:1.25rem;">New Snapshot</h2>
                 <label>Client Name</label>
                 <input id="name" type="text" placeholder="e.g. Sound Vascular & Vein">
-                <div class="input-row">
-                    <div>
-                        <label>Posts / Week</label>
-                        <input id="posts-week" type="number" min="0" max="30" placeholder="e.g. 2" value="2">
-                    </div>
-                    <div>
-                        <label>Follower Growth % (est.)</label>
-                        <input id="follower-growth" type="number" step="0.1" placeholder="e.g. 1.5" value="0">
-                    </div>
-                </div>
+                <label>Posts / Week</label>
+                <input id="posts-week" type="number" min="0" max="30" placeholder="e.g. 2" value="2">
                 <label>Report File</label>
                 <div id="drop-zone" class="drop-zone">
                     <p id="drop-text">Drag & drop analytics export (PNG, JPG, PDF)</p>
                     <input type="file" id="file-input" hidden accept="image/*,application/pdf">
+                </div>
+                <div id="file-actions" style="display:none; margin:-0.5rem 0 1rem; text-align:right;">
+                    <button class="btn btn-danger btn-sm" onclick="app.clearFile()">Remove file</button>
                 </div>
                 <button class="btn btn-primary" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze & Generate Snapshot</button>
                 <div id="debug-log"></div>
@@ -264,15 +274,27 @@ const app = {
         const input = document.getElementById('file-input');
         zone.onclick = () => input.click();
         ['dragover', 'dragleave'].forEach(e => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.toggle('active', e === 'dragover'); }));
-        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('active'); if (e.dataTransfer.files.length) { this.currentFile = e.dataTransfer.files[0]; document.getElementById('drop-text').innerText = '\uD83D\uDCC4 ' + this.currentFile.name; } });
-        input.onchange = () => { if (input.files.length) { this.currentFile = input.files[0]; document.getElementById('drop-text').innerText = '\uD83D\uDCC4 ' + this.currentFile.name; } };
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('active'); if (e.dataTransfer.files.length) { this.setFile(e.dataTransfer.files[0]); } });
+        input.onchange = () => { if (input.files.length) { this.setFile(input.files[0]); } };
+    },
+
+    setFile(file) {
+        this.currentFile = file;
+        document.getElementById('drop-text').innerText = '\uD83D\uDCC4 ' + file.name;
+        document.getElementById('file-actions').style.display = 'block';
+    },
+
+    clearFile() {
+        this.currentFile = null;
+        document.getElementById('drop-text').innerText = 'Drag & drop analytics export (PNG, JPG, PDF)';
+        document.getElementById('file-actions').style.display = 'none';
+        document.getElementById('file-input').value = '';
     },
 
     // ─── PROCESS ───────────────────────────────────────────
     async handleProcess() {
         const name = document.getElementById('name').value.trim();
         const postsWeek = parseFloat(document.getElementById('posts-week').value) || 0;
-        const followerGrowth = parseFloat(document.getElementById('follower-growth').value) || 0;
         const btn = document.getElementById('sub-btn');
         const debug = document.getElementById('debug-log');
         if (!name || !this.currentFile) return alert('Need a name and file.');
@@ -299,7 +321,7 @@ const app = {
                                     type: isPDF ? 'document' : 'image',
                                     source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 }
                                 },
-                                { type: 'text', text: 'Extract these metrics from this social media analytics report. Return ONLY a JSON object with these keys (use 0 if not found): {"followers": number, "reach": number, "impressions": number, "likes": number, "comments": number, "engRate": number}. engRate should be a percentage number like 2.5 not 0.025.' }
+                                { type: 'text', text: 'Extract these metrics from this social media analytics report. Look carefully for reach (accounts reached), impressions, followers, likes, comments, engagement rate, and any follower growth percentage. Return ONLY a JSON object with these keys (use 0 if not found): {"followers": number, "reach": number, "impressions": number, "likes": number, "comments": number, "engRate": number, "followerGrowth": number}. engRate should be a percentage number like 2.5 not 0.025. followerGrowth should be a percentage like 1.5 for +1.5% growth. Reach means total accounts or people reached, not impressions.' }
                             ]
                         }]
                     }
@@ -310,9 +332,10 @@ const app = {
             if (!resp.ok || data.error) throw new Error(data.error ? data.error.message : 'Bridge Error. Check API credits/key.');
             if (!data.content || !data.content[0]) throw new Error('AI returned no content. Check API key/credits.');
 
-            const metrics = JSON.parse(data.content[0].text.match(/\{.*\}/s)[0]);
+            const raw = data.content[0].text.match(/\{.*\}/s);
+            if (!raw) throw new Error('AI did not return valid JSON. Try a clearer screenshot.');
+            const metrics = JSON.parse(raw[0]);
             metrics.postsWeek = postsWeek;
-            metrics.followerGrowth = followerGrowth;
 
             const sc = this.calcScore(metrics);
             this.clients.push({ name, ...metrics, score: sc.total, date: new Date().toLocaleDateString() });
