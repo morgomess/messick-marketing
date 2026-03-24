@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engagement Boost App</title>
+    <title>Engagement Boost App | Social Audit AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -17,124 +17,79 @@
 
         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 2rem; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
         .logo { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--primary); cursor: pointer; font-size: 1rem; letter-spacing: -0.5px; }
-        .nav-actions { display: flex; gap: 0.5rem; }
-
+        
         main { padding: 2rem; max-width: 900px; margin: 0 auto; }
 
-        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.15s; }
+        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #4A6EF0; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-        .btn-ghost:hover { background: var(--bg); }
         .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
-        .btn-danger { background: var(--red-bg); color: var(--red); border: none; }
+        .btn-danger { background: var(--red-bg); color: var(--red); }
 
-        .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
-        label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem; }
-        input[type="text"], input[type="password"], input[type="number"] { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; transition: border 0.15s; }
-        input:focus { outline: none; border-color: var(--primary); }
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem; }
+        input, select { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; }
+        
+        .drop-zone { border: 2px dashed var(--border); padding: 2.5rem 1rem; text-align: center; border-radius: 12px; cursor: pointer; background: #FAFBFC; transition: all 0.2s; }
+        .drop-zone.active { border-color: var(--primary); background: var(--primary-soft); }
 
-        .drop-zone { border: 2px dashed var(--border); padding: 2.5rem 1rem; text-align: center; border-radius: 12px; cursor: pointer; background: #FAFBFC; margin: 0.5rem 0 1rem; transition: all 0.2s; }
-        .drop-zone:hover, .drop-zone.active { border-color: var(--primary); background: var(--primary-soft); }
-        .drop-zone p { color: var(--text-muted); font-size: 0.85rem; }
-
-        .loader { border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
+        .loader { border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        #debug-log { background: var(--red-bg); color: var(--red); padding: 0.8rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.78rem; border: 1px solid #FECACA; word-break: break-all; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-        .card { background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
-        .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-1px); }
-        .card-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; }
-        .card-date { font-size: 0.75rem; color: var(--text-muted); }
-        .card-score { font-family: 'Space Mono', monospace; font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem; }
-
-        .score-high { color: var(--green); }
-        .score-mid { color: var(--amber); }
-        .score-low { color: var(--red); }
-
-        .profile-header h1 { font-size: 1.5rem; font-weight: 800; }
-        .profile-header .date-tag { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
-
-        .score-ring { width: 120px; height: 120px; position: relative; margin: 0 auto 1rem; }
-        .score-ring svg { transform: rotate(-90deg); }
-        .score-ring .score-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Space Mono', monospace; font-size: 1.6rem; font-weight: 700; }
-
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1.25rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
         .kpi-card { background: var(--bg); border-radius: 10px; padding: 1rem; }
-        .kpi-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
-        .kpi-value { font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700; }
-        .kpi-benchmark { font-size: 0.7rem; margin-top: 0.2rem; }
-        .bench-good { color: var(--green); }
-        .bench-ok { color: var(--amber); }
-        .bench-low { color: var(--red); }
+        .kpi-value { font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; }
 
-        .breakdown-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
-        .breakdown-row:last-child { border: none; }
-        .breakdown-label { font-size: 0.8rem; font-weight: 500; flex: 1; }
-        .breakdown-weight { font-size: 0.7rem; color: var(--text-muted); width: 40px; text-align: right; }
-        .breakdown-bar { flex: 2; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
-        .breakdown-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-        .breakdown-score { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; width: 30px; }
+        .gap-box { background: var(--red-bg); border-left: 4px solid var(--red); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; }
+        .pitch-box { background: var(--primary-soft); border: 1px solid var(--primary); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem; line-height: 1.6; display: none; }
 
-        .empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
-        .empty h3 { margin-bottom: 0.5rem; color: var(--text); }
+        .timeframe-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 4px; margin-bottom: 1rem; }
+        .timeframe-tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: none; background: transparent; }
+        .timeframe-tab.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
-
-        /* BOOST RECS */
-        .timeframe-tabs { display: flex; gap: 0.25rem; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 1rem; }
-        .timeframe-tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); font-family: inherit; transition: all 0.15s; }
-        .timeframe-tab.active { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .recs-content { font-size: 0.88rem; line-height: 1.65; min-height: 80px; }
-        .recs-content p { margin-bottom: 0.6rem; }
-        .recs-loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
-
-        @media (max-width: 600px) {
-            main { padding: 1rem; }
-            .input-row { grid-template-columns: 1fr; }
-            .kpi-grid { grid-template-columns: 1fr 1fr; }
-        }
+        .score-bar-bg { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin: 4px 0 12px; }
+        .score-bar-fill { height: 100%; transition: width 0.6s ease; }
     </style>
 </head>
 <body>
 
 <nav class="top-nav">
-    <div class="logo" onclick="app.view('dashboard')">Engagement Boost // AI</div>
+    <div class="logo" onclick="app.view('dashboard')">Social Audit // AI</div>
     <div class="nav-actions">
-        <button class="btn btn-ghost btn-sm" onclick="app.toggleSettings()">Settings</button>
-        <button class="btn btn-primary btn-sm" onclick="app.view('input')">+ New Snapshot</button>
+        <button class="btn btn-ghost btn-sm" onclick="app.toggleSettings()">API Key</button>
+        <button class="btn btn-primary btn-sm" onclick="app.view('input')">+ New Audit</button>
     </div>
 </nav>
 
 <main id="app-viewport"></main>
 
-<div id="settings-modal" class="modal-overlay">
-    <div class="form-container" style="max-width:400px; width:90%;">
-        <h3 style="margin-bottom:1rem;">API Configuration</h3>
-        <label>Anthropic API Key</label>
+<div id="settings-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
+    <div class="form-container" style="width:90%; max-width:400px;">
+        <h3>Anthropic API Key</h3>
+        <p style="font-size:0.8rem; margin-bottom:1rem; color:var(--text-muted);">Required for report extraction and content ideas.</p>
         <input type="password" id="api-key-input" placeholder="sk-ant-...">
-        <button class="btn btn-primary" onclick="app.saveSettings()" style="width:100%">Save & Close</button>
+        <button class="btn btn-primary" onclick="app.saveSettings()" style="width:100%">Save Configuration</button>
     </div>
 </div>
 
 <script>
-const BENCHMARKS = {
-    engRate:    { good: 3,    great: 6 },
-    reachRatio: { good: 0.15, great: 0.30 },
-    postsWeek:  { good: 3,    great: 5 },
-    likes:      { good: 50,   great: 200 },
-    comments:   { good: 10,   great: 50 },
+const PLATFORM_KPI_CONFIG = {
+    Instagram: ['followers', 'followerGrowth', 'reach', 'impressions', 'engRate', 'likes', 'comments', 'saves'],
+    TikTok: ['followers', 'followerGrowth', 'videoViews', 'shares', 'avgWatchTime', 'engRate'],
+    Facebook: ['followers', 'reach', 'impressions', 'engRate', 'shares'],
+    LinkedIn: ['followers', 'impressions', 'engRate', 'comments', 'shares'],
+    Mixed: ['followers', 'followerGrowth', 'reach', 'impressions', 'engRate', 'likes', 'comments', 'shares']
 };
 
 const app = {
-    clients: JSON.parse(localStorage.getItem('eb_data')) || [],
+    clients: JSON.parse(localStorage.getItem('eb_audit_data')) || [],
     apiKey: localStorage.getItem('eb_ant_key') || '',
+    currentPlatform: 'Mixed',
+    tempMetrics: null,
     currentFile: null,
-    recsCache: {},
 
     init() {
         if (!sessionStorage.getItem('eb_auth')) this.renderLogin();
@@ -146,8 +101,8 @@ const app = {
             <div style="max-width:340px; margin:100px auto;">
                 <div class="form-container" style="text-align:center;">
                     <h2 style="margin-bottom:1rem;">Agency Access</h2>
-                    <input type="password" id="pass-input" placeholder="Enter Password" onkeydown="if(event.key==='Enter')app.checkPass()">
-                    <button class="btn btn-primary" onclick="app.checkPass()" style="width:100%">Unlock</button>
+                    <input type="password" id="pass-input" placeholder="Access Code" onkeydown="if(event.key==='Enter')app.checkPass()">
+                    <button class="btn btn-primary" onclick="app.checkPass()" style="width:100%">Enter Dashboard</button>
                 </div>
             </div>`;
     },
@@ -156,241 +111,75 @@ const app = {
         if (document.getElementById('pass-input').value === 'Messick2026') {
             sessionStorage.setItem('eb_auth', 'true');
             this.view('dashboard');
-        } else alert('Incorrect Password');
-    },
-
-    toggleSettings() {
-        const m = document.getElementById('settings-modal');
-        document.getElementById('api-key-input').value = this.apiKey;
-        m.style.display = m.style.display === 'none' ? 'flex' : 'none';
-    },
-
-    saveSettings() {
-        this.apiKey = document.getElementById('api-key-input').value.trim();
-        localStorage.setItem('eb_ant_key', this.apiKey);
-        this.toggleSettings();
+        } else alert('Access Denied');
     },
 
     view(name, index = null) {
         const vp = document.getElementById('app-viewport');
         if (name === 'dashboard') this.renderDashboard(vp);
         if (name === 'input') this.renderInput(vp);
+        if (name === 'confirm') this.renderConfirm(vp);
         if (name === 'profile') this.renderProfile(vp, index);
         window.scrollTo(0, 0);
     },
 
-    // ─── SCORING ───────────────────────────────────────────
-    calcScore(m) {
-        const engScore   = Math.min(100, (m.engRate || 0) / 6 * 100);
-        const reachRatio = (m.followers > 0) ? (m.reach || 0) / m.followers : 0;
-        const reachScore = Math.min(100, reachRatio / 0.30 * 100);
-        const freqScore  = Math.min(100, (m.postsWeek || 0) / 5 * 100);
-        const volScore   = Math.min(100, ((m.likes || 0) + (m.comments || 0) * 3) / 300 * 100);
-        const growScore  = Math.min(100, Math.max(0, 50 + (m.followerGrowth || 0) * 10));
-
-        const weighted = engScore * 0.30 + reachScore * 0.25 + freqScore * 0.20 + volScore * 0.15 + growScore * 0.10;
-        return {
-            total: Math.round(Math.min(100, weighted)),
-            breakdown: {
-                engagement: { score: Math.round(engScore),   weight: 30, label: 'Engagement Rate' },
-                reach:      { score: Math.round(reachScore), weight: 25, label: 'Reach / Followers' },
-                frequency:  { score: Math.round(freqScore),  weight: 20, label: 'Post Frequency' },
-                volume:     { score: Math.round(volScore),   weight: 15, label: 'Interaction Volume' },
-                growth:     { score: Math.round(growScore),  weight: 10, label: 'Follower Growth' },
-            }
-        };
-    },
-
-    scoreClass(s) { return s >= 65 ? 'score-high' : s >= 40 ? 'score-mid' : 'score-low'; },
-    scoreColor(s) { return s >= 65 ? 'var(--green)' : s >= 40 ? 'var(--amber)' : 'var(--red)'; },
-
-    benchLabel(val, key) {
-        const b = BENCHMARKS[key];
-        if (!b) return '';
-        if (val >= b.great) return '<span class="bench-good">&#9679; Above avg</span>';
-        if (val >= b.good)  return '<span class="bench-ok">&#9679; Average</span>';
-        return '<span class="bench-low">&#9679; Below avg</span>';
-    },
-
-    // ─── DASHBOARD ─────────────────────────────────────────
-    renderDashboard(el) {
-        if (!this.clients.length) {
-            el.innerHTML = '<div class="empty"><h3>No snapshots yet</h3><p>Click "+ New Snapshot" to analyze your first client report.</p></div>';
-            return;
-        }
-        const hasLegacy = this.clients.some(c => c.impressions === undefined || c.followerGrowth === undefined);
-        const refreshBanner = hasLegacy ? `
-            <div style="background:var(--primary-soft); border:1px solid var(--primary); border-radius:10px; padding:0.75rem 1rem; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-                <span style="font-size:0.85rem;">Some snapshots are missing new KPIs (impressions, follower growth). Re-upload reports to get full scoring.</span>
-                <button class="btn btn-primary btn-sm" onclick="app.clearAllData()">Clear &amp; Re-import All</button>
-            </div>` : '';
-        const cards = this.clients.map((c, i) => {
-            const sc = this.calcScore(c);
-            return `
-            <div class="card" onclick="app.view('profile', ${i})">
-                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); app.deleteClient(${i})" style="position:absolute; top:10px; right:10px;">&#10005;</button>
-                <div class="card-name">${c.name}</div>
-                <div class="card-date">${c.date || ''}</div>
-                <div class="card-score ${this.scoreClass(sc.total)}">${sc.total}<span style="font-size:0.9rem;opacity:0.6">/100</span></div>
-            </div>`;
-        }).join('');
-        el.innerHTML = '<h1 style="font-size:1.4rem; font-weight:800; margin-bottom:1.5rem;">Portfolio</h1>' + refreshBanner + '<div class="grid">' + cards + '</div>';
-    },
-
-    clearAllData() {
-        if (confirm('This will delete all existing snapshots so you can re-import with the updated format. Continue?')) {
-            this.clients = [];
-            this.recsCache = {};
-            localStorage.setItem('eb_data', '[]');
-            this.view('dashboard');
-        }
-    },
-
-    // ─── INPUT FORM ────────────────────────────────────────
+    // ─── STAGE 1: INPUT ───
     renderInput(el) {
         el.innerHTML = `
-            <div class="form-container" style="max-width:560px; margin:0 auto;">
-                <h2 style="margin-bottom:1.25rem;">New Snapshot</h2>
-                <label>Client Name</label>
-                <input id="name" type="text" placeholder="e.g. Sound Vascular & Vein">
-                <label>Posts / Week</label>
-                <input id="posts-week" type="number" min="0" max="30" placeholder="e.g. 2" value="2">
+            <div class="form-container" style="max-width:500px; margin:0 auto;">
+                <h2 style="margin-bottom:1.5rem;">Create New Audit</h2>
+                
+                <label>Client / Profile Name</label>
+                <input id="client-name" type="text" placeholder="e.g. Dr. Smith Dental">
 
-                <div style="margin-top:0.5rem;">
-                    <label style="margin-bottom:0.75rem;">Data Source</label>
-                    <div class="timeframe-tabs" style="margin-bottom:1rem;">
-                        <button class="timeframe-tab active" id="tab-upload" onclick="app.switchInputMode('upload', this)">Upload Report</button>
-                        <button class="timeframe-tab" id="tab-manual" onclick="app.switchInputMode('manual', this)">Enter Manually</button>
-                    </div>
+                <label>Platform Type</label>
+                <select id="platform-select" onchange="app.currentPlatform = this.value">
+                    <option value="Instagram">Instagram</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Mixed" selected>Mixed / General</option>
+                </select>
+
+                <label>Upload Metricool/Platform Report</label>
+                <div id="drop-zone" class="drop-zone">
+                    <p id="drop-text">Drop PDF or Screenshot here</p>
+                    <input type="file" id="file-input" hidden accept="image/*,application/pdf">
                 </div>
-
-                <div id="mode-upload">
-                    <div id="drop-zone" class="drop-zone">
-                        <p id="drop-text">Drag & drop analytics export (PNG, JPG, PDF)</p>
-                        <input type="file" id="file-input" hidden accept="image/*,application/pdf">
-                    </div>
-                    <div id="file-actions" style="display:none; margin:-0.5rem 0 1rem; text-align:right;">
-                        <button class="btn btn-danger btn-sm" onclick="app.clearFile()">Remove file</button>
-                    </div>
-                </div>
-
-                <div id="mode-manual" style="display:none;">
-                    <div class="input-row">
-                        <div>
-                            <label>Followers</label>
-                            <input id="m-followers" type="number" min="0" placeholder="e.g. 2153">
-                        </div>
-                        <div>
-                            <label>Reach</label>
-                            <input id="m-reach" type="number" min="0" placeholder="e.g. 50000">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div>
-                            <label>Impressions</label>
-                            <input id="m-impressions" type="number" min="0" placeholder="e.g. 1600000">
-                        </div>
-                        <div>
-                            <label>Engagement Rate %</label>
-                            <input id="m-engrate" type="number" step="0.01" min="0" placeholder="e.g. 3.5">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div>
-                            <label>Likes</label>
-                            <input id="m-likes" type="number" min="0" placeholder="e.g. 911">
-                        </div>
-                        <div>
-                            <label>Comments</label>
-                            <input id="m-comments" type="number" min="0" placeholder="e.g. 53">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div>
-                            <label>Follower Growth %</label>
-                            <input id="m-growth" type="number" step="0.01" placeholder="e.g. 10.75">
-                        </div>
-                        <div></div>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze & Generate Snapshot</button>
-                <div id="debug-log"></div>
+                
+                <button class="btn btn-primary" id="extract-btn" onclick="app.extractData()" style="width:100%; margin-top:1.5rem;">
+                    Extract Metrics &rarr;
+                </button>
+                <p style="text-align:center; margin-top:1rem; font-size:0.8rem; color:var(--text-muted); cursor:pointer;" onclick="app.skipToManual()">Or enter data manually</p>
             </div>`;
-        this.inputMode = 'upload';
         this.initDropZone();
-    },
-
-    switchInputMode(mode, tabEl) {
-        this.inputMode = mode;
-        document.querySelectorAll('.timeframe-tab').forEach(t => t.classList.remove('active'));
-        tabEl.classList.add('active');
-        document.getElementById('mode-upload').style.display = mode === 'upload' ? 'block' : 'none';
-        document.getElementById('mode-manual').style.display = mode === 'manual' ? 'block' : 'none';
     },
 
     initDropZone() {
         const zone = document.getElementById('drop-zone');
         const input = document.getElementById('file-input');
         zone.onclick = () => input.click();
-        ['dragover', 'dragleave'].forEach(e => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.toggle('active', e === 'dragover'); }));
-        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('active'); if (e.dataTransfer.files.length) { this.setFile(e.dataTransfer.files[0]); } });
-        input.onchange = () => { if (input.files.length) { this.setFile(input.files[0]); } };
+        input.onchange = () => { if (input.files.length) this.setFile(input.files[0]); };
     },
 
     setFile(file) {
         this.currentFile = file;
-        document.getElementById('drop-text').innerText = '\uD83D\uDCC4 ' + file.name;
-        document.getElementById('file-actions').style.display = 'block';
+        document.getElementById('drop-text').innerText = '✅ ' + file.name;
     },
 
-    clearFile() {
-        this.currentFile = null;
-        document.getElementById('drop-text').innerText = 'Drag & drop analytics export (PNG, JPG, PDF)';
-        document.getElementById('file-actions').style.display = 'none';
-        document.getElementById('file-input').value = '';
-    },
-
-    // ─── PROCESS ───────────────────────────────────────────
-    async handleProcess() {
-        const name = document.getElementById('name').value.trim();
-        const postsWeek = parseFloat(document.getElementById('posts-week').value) || 0;
-        const btn = document.getElementById('sub-btn');
-        const debug = document.getElementById('debug-log');
-        if (!name) return alert('Need a client name.');
-
-        if (this.inputMode === 'manual') {
-            const metrics = {
-                followers: parseFloat(document.getElementById('m-followers').value) || 0,
-                reach: parseFloat(document.getElementById('m-reach').value) || 0,
-                impressions: parseFloat(document.getElementById('m-impressions').value) || 0,
-                likes: parseFloat(document.getElementById('m-likes').value) || 0,
-                comments: parseFloat(document.getElementById('m-comments').value) || 0,
-                engRate: parseFloat(document.getElementById('m-engrate').value) || 0,
-                followerGrowth: parseFloat(document.getElementById('m-growth').value) || 0,
-                postsWeek: postsWeek
-            };
-            if (!metrics.followers && !metrics.reach && !metrics.likes) return alert('Enter at least some metrics.');
-            if (!metrics.reach && metrics.impressions) metrics.reach = metrics.impressions;
-            if (!metrics.engRate && metrics.followers > 0) {
-                metrics.engRate = parseFloat((((metrics.likes + metrics.comments) / metrics.followers) * 100).toFixed(2));
-            }
-            const sc = this.calcScore(metrics);
-            this.clients.push({ name, ...metrics, score: sc.total, date: new Date().toLocaleDateString() });
-            localStorage.setItem('eb_data', JSON.stringify(this.clients));
-            this.view('dashboard');
-            return;
-        }
-
-        // Upload mode
-        if (!this.currentFile) return alert('Need a file. Switch to "Enter Manually" if you don\'t have one.');
-
-        btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Analyzing...';
-        debug.style.display = 'none';
+    // ─── STAGE 2: EXTRACTION ───
+    async extractData() {
+        const name = document.getElementById('client-name').value;
+        if (!name || !this.currentFile) return alert('Name and File required.');
+        
+        const btn = document.getElementById('extract-btn');
+        btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Scanning Report...';
 
         try {
-            const base64 = await new Promise((res) => { const r = new FileReader(); r.readAsDataURL(this.currentFile); r.onload = () => res(r.result.split(',')[1]); });
-            const isPDF = this.currentFile.type === 'application/pdf';
+            const base64 = await new Promise(res => {
+                const r = new FileReader(); r.readAsDataURL(this.currentFile);
+                r.onload = () => res(r.result.split(',')[1]);
+            });
 
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST',
@@ -399,30 +188,16 @@ const app = {
                     apiKey: this.apiKey,
                     payload: {
                         model: 'claude-haiku-4-5-20251001',
-                        max_tokens: 1024,
                         messages: [{
                             role: 'user',
                             content: [
-                                {
-                                    type: isPDF ? 'document' : 'image',
-                                    source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 }
-                                },
-                                { type: 'text', text: `You are extracting social media metrics from an analytics report (likely Metricool, but could be any platform).
-
-INSTRUCTIONS:
-1. Find the TOTAL/COMBINED followers across all platforms. Look for a summary number with a label like "Followers" that aggregates Facebook, Instagram, TikTok, YouTube, etc. Use the combined total, not individual platform numbers.
-2. Find TOTAL IMPRESSIONS across all platforms. Look for a section labeled "Impressions" with a combined total (e.g. "1.60M"). Convert abbreviations: 1.60M = 1600000, 177.38K = 177380.
-3. Find REACH if available. This may appear as "Accounts reached" or "Average reach per day." If only daily average reach is given, multiply by the number of days in the report period. If no reach metric exists, set reach to 0.
-4. Find TOTAL INTERACTIONS or sum up likes + comments + shares across all platforms from the combined "Interactions" section.
-5. For LIKES: use the total from the combined interactions section, or sum platform-level likes.
-6. For COMMENTS: use the total from the combined interactions section, or sum platform-level comments.
-7. ENGAGEMENT RATE: If explicitly stated, use it. Otherwise calculate as (total interactions / total followers) * 100.
-8. FOLLOWER GROWTH: Look for a percentage next to the total followers count (e.g. "+10.75%"). Report as a number like 10.75.
-
-Return ONLY a JSON object, no other text:
-{"followers": number, "reach": number, "impressions": number, "likes": number, "comments": number, "engRate": number, "followerGrowth": number}
-
-All values must be plain numbers. No abbreviations, no strings, no percent signs.` }
+                                { type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } },
+                                { type: 'text', text: `Extract social media metrics. Match these synonyms: 
+                                    Followers: audience, total community. 
+                                    Reach: accounts reached, unique. 
+                                    Impressions: views. 
+                                    EngRate: ER, engagement %.
+                                    Return ONLY JSON: {"followers":num, "followerGrowth":num, "reach":num, "impressions":num, "engRate":num, "likes":num, "comments":num, "shares":num, "saves":num, "postsPublished":num}` }
                             ]
                         }]
                     }
@@ -430,208 +205,180 @@ All values must be plain numbers. No abbreviations, no strings, no percent signs
             });
 
             const data = await resp.json();
-            if (!resp.ok || data.error) throw new Error(data.error ? data.error.message : 'Bridge Error. Check API credits/key.');
-            if (!data.content || !data.content[0]) throw new Error('AI returned no content. Check API key/credits.');
-
             const raw = data.content[0].text.match(/\{.*\}/s);
-            if (!raw) throw new Error('AI did not return valid JSON. Try a clearer screenshot.');
-            const metrics = JSON.parse(raw[0]);
-            metrics.postsWeek = postsWeek;
-            // If reach is 0 but impressions exist, use impressions as fallback for scoring
-            if (!metrics.reach && metrics.impressions) metrics.reach = metrics.impressions;
-
-            const sc = this.calcScore(metrics);
-            this.clients.push({ name, ...metrics, score: sc.total, date: new Date().toLocaleDateString() });
-            localStorage.setItem('eb_data', JSON.stringify(this.clients));
-            this.currentFile = null;
-            this.view('dashboard');
-
+            this.tempMetrics = JSON.parse(raw[0]);
+            this.tempMetrics.name = name;
+            this.view('confirm');
         } catch (e) {
-            btn.disabled = false; btn.innerText = 'Analyze & Generate Snapshot';
-            debug.innerText = 'Error: ' + e.message;
-            debug.style.display = 'block';
+            alert('Extraction failed. Switching to manual mode.');
+            this.skipToManual();
         }
     },
 
-    deleteClient(i) {
-        if (confirm('Delete this snapshot?')) {
-            this.clients.splice(i, 1);
-            localStorage.setItem('eb_data', JSON.stringify(this.clients));
-            this.view('dashboard');
-        }
-    },
-
-    // ─── AI RECOMMENDATIONS ────────────────────────────────
-    async fetchRecs(clientIndex, timeframe) {
-        const cacheKey = clientIndex + '_' + timeframe;
-        if (this.recsCache[cacheKey]) {
-            document.getElementById('recs-body').innerHTML = this.recsCache[cacheKey];
-            return;
-        }
-
-        document.getElementById('recs-body').innerHTML = '<div class="recs-loading"><span class="loader"></span> Generating recommendations...</div>';
-
-        const c = this.clients[clientIndex];
-        const sc = this.calcScore(c);
-        const weakest = Object.entries(sc.breakdown).sort((a, b) => a[1].score - b[1].score).slice(0, 3).map(e => e[1].label).join(', ');
-
-        const prompt = `You are a social media strategist for a marketing agency. A client "${c.name}" has these metrics:
-- Followers: ${c.followers || 0}
-- Reach: ${c.reach || 0}
-- Impressions: ${c.impressions || 0}
-- Likes: ${c.likes || 0}
-- Comments: ${c.comments || 0}
-- Engagement Rate: ${c.engRate || 0}%
-- Posts/Week: ${c.postsWeek || 0}
-- Follower Growth: ${c.followerGrowth || 0}%
-- Overall Score: ${sc.total}/100
-- Weakest areas: ${weakest}
-
-Give exactly 4 specific, actionable recommendations to boost engagement within the timeframe: ${timeframe}.
-
-Rules:
-- Be specific and tactical, not generic. Reference their actual numbers.
-- Each recommendation should be 1-2 sentences max.
-- Format as plain numbered list (1. 2. 3. 4.) with no headers or markdown.
-- Tailor urgency and scope to the timeframe: ASAP means today/tomorrow quick wins, 1 Week means a focused sprint, 4 Weeks means a strategic shift.`;
-
-        try {
-            const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    apiKey: this.apiKey,
-                    payload: {
-                        model: 'claude-haiku-4-5-20251001',
-                        max_tokens: 600,
-                        messages: [{ role: 'user', content: prompt }]
-                    }
-                })
-            });
-
-            const data = await resp.json();
-            if (!resp.ok || data.error) throw new Error(data.error ? data.error.message : 'API error');
-            if (!data.content || !data.content[0]) throw new Error('No response from AI');
-
-            const text = data.content[0].text.trim();
-            const html = text.split(/\n/).filter(l => l.trim()).map(l => '<p>' + l.replace(/^\d+[\.\)]\s*/, '<strong style="color:var(--primary);">&#x2022;</strong> ') + '</p>').join('');
-            this.recsCache[cacheKey] = html;
-            const el = document.getElementById('recs-body');
-            if (el) el.innerHTML = html;
-        } catch (e) {
-            const el = document.getElementById('recs-body');
-            if (el) el.innerHTML = '<p style="color:var(--red);">Failed to load recommendations: ' + e.message + '</p>';
-        }
-    },
-
-    // ─── PROFILE ───────────────────────────────────────────
-    renderProfile(el, i) {
-        const c = this.clients[i];
-        const sc = this.calcScore(c);
-        const color = this.scoreColor(sc.total);
-        const circumference = 2 * Math.PI * 52;
-        const offset = circumference * (1 - sc.total / 100);
-        const reachPct = c.followers > 0 ? ((c.reach || 0) / c.followers * 100).toFixed(1) : '0';
-        const reachIsImp = (c.reach === c.impressions && c.reach > 0);
-        const fmt = (n) => n != null ? Number(n).toLocaleString() : '\u2014';
-
-        const breakdownHTML = Object.values(sc.breakdown).map(b => `
-            <div class="breakdown-row">
-                <span class="breakdown-label">${b.label}</span>
-                <span class="breakdown-weight">${b.weight}%</span>
-                <div class="breakdown-bar"><div class="breakdown-fill" style="width:${b.score}%; background:${this.scoreColor(b.score)}"></div></div>
-                <span class="breakdown-score ${this.scoreClass(b.score)}">${b.score}</span>
-            </div>`).join('');
+    // ─── STAGE 3: CONFIRMATION ───
+    renderConfirm(el) {
+        const m = this.tempMetrics || {};
+        const fields = PLATFORM_KPI_CONFIG[this.currentPlatform];
+        
+        const rows = fields.map(f => `
+            <div style="margin-bottom:0.75rem;">
+                <label style="font-size:0.65rem;">${f}</label>
+                <input type="number" id="conf-${f}" value="${m[f] || 0}" style="margin-bottom:0;">
+            </div>
+        `).join('');
 
         el.innerHTML = `
-            <div style="max-width:600px; margin:0 auto;">
-                <button class="btn btn-ghost btn-sm" onclick="app.view('dashboard')" style="margin-bottom:1rem;">&larr; Back</button>
+            <div class="form-container" style="max-width:500px; margin:0 auto;">
+                <h3>Confirm & Correct Metrics</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Verify the data extracted from the report before analysis.</p>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">${rows}</div>
+                <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.5rem;">Run Audit Analysis</button>
+            </div>`;
+    },
 
-                <div class="profile-header" style="margin-bottom:1.5rem;">
-                    <h1>${c.name}</h1>
-                    <div class="date-tag">Snapshot from ${c.date || 'N/A'}</div>
-                </div>
+    saveAudit() {
+        const fields = PLATFORM_KPI_CONFIG[this.currentPlatform];
+        const final = { name: this.tempMetrics.name, platform: this.currentPlatform, date: new Date().toLocaleDateString() };
+        
+        fields.forEach(f => {
+            final[f] = parseFloat(document.getElementById(`conf-${f}`).value) || 0;
+        });
 
-                <div class="form-container" style="text-align:center; margin-bottom:1rem;">
-                    <div class="score-ring">
-                        <svg width="120" height="120" viewBox="0 0 120 120">
-                            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/>
-                            <circle cx="60" cy="60" r="52" fill="none" stroke="${color}" stroke-width="8"
-                                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
-                        </svg>
-                        <div class="score-label ${this.scoreClass(sc.total)}">${sc.total}</div>
+        // Smart Calculation: Eng Rate
+        if (!final.engRate && final.reach > 0) {
+            const interactions = (final.likes || 0) + (final.comments || 0) + (final.shares || 0) + (final.saves || 0);
+            final.engRate = ((interactions / final.reach) * 100).toFixed(2);
+        }
+
+        this.clients.push(final);
+        localStorage.setItem('eb_audit_data', JSON.stringify(this.clients));
+        this.view('profile', this.clients.length - 1);
+    },
+
+    // ─── STAGE 4: ANALYSIS & HEALTH SCORING ───
+    calcHealth(c) {
+        // Scoring logic (0-100)
+        const engScore = Math.min(100, (c.engRate / 5) * 100);
+        const growthScore = Math.min(100, (c.followerGrowth / 10) * 100);
+        const freqScore = Math.min(100, ((c.postsPublished || 4) / 12) * 100);
+        
+        const total = Math.round((engScore * 0.4) + (growthScore * 0.3) + (freqScore * 0.3));
+        return {
+            total,
+            breakdown: [
+                { label: 'Engagement', score: Math.round(engScore), color: 'var(--primary)' },
+                { label: 'Growth', score: Math.round(growthScore), color: 'var(--green)' },
+                { label: 'Frequency', score: Math.round(freqScore), color: 'var(--amber)' }
+            ]
+        };
+    },
+
+    getGaps(c) {
+        const gaps = [];
+        if (c.engRate < 2.5) gaps.push({ title: "Low Engagement", desc: `Current rate (${c.engRate}%) is below 3% benchmark. Causes: Weak hooks or lack of interactive content.` });
+        if (c.reach > c.followers * 2 && c.engRate < 2) gaps.push({ title: "High Reach, Low Conversion", desc: "People see your content but aren't interacting. Suggests content is too informational and not 'saveable'." });
+        return gaps;
+    },
+
+    renderProfile(el, i) {
+        const c = this.clients[i];
+        const health = this.calcHealth(c);
+        const gaps = this.getGaps(c);
+
+        el.innerHTML = `
+            <div style="max-width:700px; margin:0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                    <div>
+                        <h1 style="font-size:1.8rem;">${c.name}</h1>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">${c.platform} Audit &bull; ${c.date}</span>
                     </div>
-                    <div style="font-size:0.8rem; color:var(--text-muted);">Overall Health Score</div>
+                    <button class="btn btn-ghost btn-sm" onclick="app.view('dashboard')">&larr; Portfolio</button>
                 </div>
 
-                <div class="form-container" style="margin-bottom:1rem;">
-                    <h3 style="font-size:0.9rem; margin-bottom:1rem;">Key Metrics</h3>
-                    <div class="kpi-grid">
-                        <div class="kpi-card">
-                            <div class="kpi-label">Followers</div>
-                            <div class="kpi-value">${fmt(c.followers)}</div>
+                <div class="pitch-box" id="pitch-box">
+                    <strong>Client Pitch:</strong><br>
+                    "${c.name} has a health score of ${health.total}/100. While reach is healthy, the engagement gap suggests the audience is passive. By implementing our 4-week carousel and short-form video strategy, we expect a 25% lift in interactions."
+                </div>
+
+                <div class="grid">
+                    <div class="form-container" style="text-align:center;">
+                        <div style="font-size:3rem; font-weight:800; color:${health.total > 60 ? 'var(--green)' : 'var(--amber)'}">${health.total}</div>
+                        <label>Health Score</label>
+                        <div style="margin-top:1.5rem; text-align:left;">
+                            ${health.breakdown.map(b => `
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700;"><span>${b.label}</span><span>${b.score}</span></div>
+                                <div class="score-bar-bg"><div class="score-bar-fill" style="width:${b.score}%; background:${b.color}"></div></div>
+                            `).join('')}
                         </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Reach${reachIsImp ? ' (via impressions)' : ''}</div>
-                            <div class="kpi-value">${fmt(c.reach)}</div>
-                            <div class="kpi-benchmark">${reachPct}% of followers</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Impressions</div>
-                            <div class="kpi-value">${fmt(c.impressions)}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Engagement Rate</div>
-                            <div class="kpi-value">${c.engRate || 0}%</div>
-                            <div class="kpi-benchmark">${this.benchLabel(c.engRate || 0, 'engRate')}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Likes</div>
-                            <div class="kpi-value">${fmt(c.likes)}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Comments</div>
-                            <div class="kpi-value">${fmt(c.comments)}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Posts / Week</div>
-                            <div class="kpi-value">${c.postsWeek || 0}</div>
-                            <div class="kpi-benchmark">${this.benchLabel(c.postsWeek || 0, 'postsWeek')}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Follower Growth</div>
-                            <div class="kpi-value">${c.followerGrowth || 0}%</div>
-                        </div>
+                        <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:1rem;" onclick="document.getElementById('pitch-box').style.display='block'">Generate Client Pitch</button>
                     </div>
-                </div>
 
-                <div class="form-container" style="margin-bottom:1rem;">
-                    <h3 style="font-size:0.9rem; margin-bottom:0.75rem;">Score Breakdown</h3>
-                    <div class="score-breakdown">${breakdownHTML}</div>
+                    <div class="form-container">
+                        <h3 style="margin-bottom:1rem; font-size:1rem;">Performance Gaps</h3>
+                        ${gaps.map(g => `<div class="gap-box"><strong>${g.title}:</strong> ${g.desc}</div>`).join('')}
+                        ${gaps.length === 0 ? '<p style="color:var(--green); font-size:0.85rem;">No major gaps detected. Account is healthy.</p>' : ''}
+                    </div>
                 </div>
 
                 <div class="form-container">
-                    <h3 style="font-size:0.9rem; margin-bottom:0.75rem;">Boost Recommendations</h3>
+                    <h3 style="margin-bottom:1rem;">Growth Strategy</h3>
                     <div class="timeframe-tabs">
-                        <button class="timeframe-tab active" onclick="app.switchTimeframe(${i}, 'ASAP', this)">ASAP</button>
-                        <button class="timeframe-tab" onclick="app.switchTimeframe(${i}, '1 Week', this)">1 Week</button>
-                        <button class="timeframe-tab" onclick="app.switchTimeframe(${i}, '4 Weeks', this)">4 Weeks</button>
+                        <button class="timeframe-tab active" onclick="app.showTab('win', this)">Quick Wins</button>
+                        <button class="timeframe-tab" onclick="app.showTab('week', this)">1-Week Fix</button>
+                        <button class="timeframe-tab" onclick="app.showTab('month', this)">4-Week Strategy</button>
                     </div>
-                    <div class="recs-content" id="recs-body">
-                        <div class="recs-loading" style="color:var(--text-muted); font-size:0.85rem;">Select a timeframe to generate AI recommendations.</div>
+                    <div id="strategy-content" style="font-size:0.9rem; line-height:1.6;">
+                        <p><strong>24-48 Hour Actions:</strong></p>
+                        <ul>
+                            <li>Pin the top-performing post from this month.</li>
+                            <li>Rewrite the first line of the next 3 captions to be a specific "hook".</li>
+                            <li>Respond to all comments from the last 7 days within 1 hour.</li>
+                        </ul>
                     </div>
                 </div>
             </div>`;
-
-        this.fetchRecs(i, 'ASAP');
     },
 
-    switchTimeframe(clientIndex, timeframe, tabEl) {
+    showTab(type, btn) {
         document.querySelectorAll('.timeframe-tab').forEach(t => t.classList.remove('active'));
-        tabEl.classList.add('active');
-        this.fetchRecs(clientIndex, timeframe);
+        btn.classList.add('active');
+        const cont = document.getElementById('strategy-content');
+        if (type === 'win') cont.innerHTML = `<ul><li>Pin top performing post.</li><li>Stronger hooks in first caption line.</li><li>Respond to comments within 1 hour.</li></ul>`;
+        if (type === 'week') cont.innerHTML = `<ul><li>Post 3 saveable carousel posts.</li><li>Run one engagement poll in stories.</li><li>Repurpose top reel into short-form video.</li></ul>`;
+        if (type === 'month') cont.innerHTML = `<ul><li>Create 2 core content pillars.</li><li>Launch weekly carousel series.</li><li>Test 3 new hook formats.</li></ul>`;
+    },
+
+    renderDashboard(el) {
+        const cards = this.clients.map((c, i) => `
+            <div class="card" onclick="app.view('profile', ${i})">
+                <div style="font-weight:800;">${c.name}</div>
+                <div style="font-size:0.7rem; color:var(--text-muted);">${c.platform} &bull; ${c.date}</div>
+                <div style="font-size:1.5rem; font-weight:800; margin-top:1rem; color:var(--primary)">${this.calcHealth(c).total}<span style="font-size:0.8rem; opacity:0.5">/100</span></div>
+            </div>
+        `).join('');
+        el.innerHTML = `<h2 style="margin-bottom:1.5rem;">Audit Portfolio</h2><div class="grid">${cards}</div>`;
+        if (!this.clients.length) el.innerHTML += `<p style="margin-top:2rem; color:var(--text-muted);">No audits yet. Click "New Audit" to begin.</p>`;
+    },
+
+    toggleSettings() {
+        const m = document.getElementById('settings-modal');
+        m.style.display = m.style.display === 'none' ? 'flex' : 'none';
+        document.getElementById('api-key-input').value = this.apiKey;
+    },
+
+    saveSettings() {
+        this.apiKey = document.getElementById('api-key-input').value;
+        localStorage.setItem('eb_ant_key', this.apiKey);
+        this.toggleSettings();
+    },
+
+    skipToManual() {
+        const name = document.getElementById('client-name').value || 'New Client';
+        this.tempMetrics = { name };
+        this.view('confirm');
     }
 };
+
 app.init();
 </script>
 </body>
