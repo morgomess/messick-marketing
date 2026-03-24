@@ -255,18 +255,78 @@ const app = {
                 <input id="name" type="text" placeholder="e.g. Sound Vascular & Vein">
                 <label>Posts / Week</label>
                 <input id="posts-week" type="number" min="0" max="30" placeholder="e.g. 2" value="2">
-                <label>Report File</label>
-                <div id="drop-zone" class="drop-zone">
-                    <p id="drop-text">Drag & drop analytics export (PNG, JPG, PDF)</p>
-                    <input type="file" id="file-input" hidden accept="image/*,application/pdf">
+
+                <div style="margin-top:0.5rem;">
+                    <label style="margin-bottom:0.75rem;">Data Source</label>
+                    <div class="timeframe-tabs" style="margin-bottom:1rem;">
+                        <button class="timeframe-tab active" id="tab-upload" onclick="app.switchInputMode('upload', this)">Upload Report</button>
+                        <button class="timeframe-tab" id="tab-manual" onclick="app.switchInputMode('manual', this)">Enter Manually</button>
+                    </div>
                 </div>
-                <div id="file-actions" style="display:none; margin:-0.5rem 0 1rem; text-align:right;">
-                    <button class="btn btn-danger btn-sm" onclick="app.clearFile()">Remove file</button>
+
+                <div id="mode-upload">
+                    <div id="drop-zone" class="drop-zone">
+                        <p id="drop-text">Drag & drop analytics export (PNG, JPG, PDF)</p>
+                        <input type="file" id="file-input" hidden accept="image/*,application/pdf">
+                    </div>
+                    <div id="file-actions" style="display:none; margin:-0.5rem 0 1rem; text-align:right;">
+                        <button class="btn btn-danger btn-sm" onclick="app.clearFile()">Remove file</button>
+                    </div>
                 </div>
+
+                <div id="mode-manual" style="display:none;">
+                    <div class="input-row">
+                        <div>
+                            <label>Followers</label>
+                            <input id="m-followers" type="number" min="0" placeholder="e.g. 2153">
+                        </div>
+                        <div>
+                            <label>Reach</label>
+                            <input id="m-reach" type="number" min="0" placeholder="e.g. 50000">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label>Impressions</label>
+                            <input id="m-impressions" type="number" min="0" placeholder="e.g. 1600000">
+                        </div>
+                        <div>
+                            <label>Engagement Rate %</label>
+                            <input id="m-engrate" type="number" step="0.01" min="0" placeholder="e.g. 3.5">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label>Likes</label>
+                            <input id="m-likes" type="number" min="0" placeholder="e.g. 911">
+                        </div>
+                        <div>
+                            <label>Comments</label>
+                            <input id="m-comments" type="number" min="0" placeholder="e.g. 53">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div>
+                            <label>Follower Growth %</label>
+                            <input id="m-growth" type="number" step="0.01" placeholder="e.g. 10.75">
+                        </div>
+                        <div></div>
+                    </div>
+                </div>
+
                 <button class="btn btn-primary" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze & Generate Snapshot</button>
                 <div id="debug-log"></div>
             </div>`;
+        this.inputMode = 'upload';
         this.initDropZone();
+    },
+
+    switchInputMode(mode, tabEl) {
+        this.inputMode = mode;
+        document.querySelectorAll('.timeframe-tab').forEach(t => t.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.getElementById('mode-upload').style.display = mode === 'upload' ? 'block' : 'none';
+        document.getElementById('mode-manual').style.display = mode === 'manual' ? 'block' : 'none';
     },
 
     initDropZone() {
@@ -297,7 +357,33 @@ const app = {
         const postsWeek = parseFloat(document.getElementById('posts-week').value) || 0;
         const btn = document.getElementById('sub-btn');
         const debug = document.getElementById('debug-log');
-        if (!name || !this.currentFile) return alert('Need a name and file.');
+        if (!name) return alert('Need a client name.');
+
+        if (this.inputMode === 'manual') {
+            const metrics = {
+                followers: parseFloat(document.getElementById('m-followers').value) || 0,
+                reach: parseFloat(document.getElementById('m-reach').value) || 0,
+                impressions: parseFloat(document.getElementById('m-impressions').value) || 0,
+                likes: parseFloat(document.getElementById('m-likes').value) || 0,
+                comments: parseFloat(document.getElementById('m-comments').value) || 0,
+                engRate: parseFloat(document.getElementById('m-engrate').value) || 0,
+                followerGrowth: parseFloat(document.getElementById('m-growth').value) || 0,
+                postsWeek: postsWeek
+            };
+            if (!metrics.followers && !metrics.reach && !metrics.likes) return alert('Enter at least some metrics.');
+            if (!metrics.reach && metrics.impressions) metrics.reach = metrics.impressions;
+            if (!metrics.engRate && metrics.followers > 0) {
+                metrics.engRate = parseFloat((((metrics.likes + metrics.comments) / metrics.followers) * 100).toFixed(2));
+            }
+            const sc = this.calcScore(metrics);
+            this.clients.push({ name, ...metrics, score: sc.total, date: new Date().toLocaleDateString() });
+            localStorage.setItem('eb_data', JSON.stringify(this.clients));
+            this.view('dashboard');
+            return;
+        }
+
+        // Upload mode
+        if (!this.currentFile) return alert('Need a file. Switch to "Enter Manually" if you don\'t have one.');
 
         btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Analyzing...';
         debug.style.display = 'none';
