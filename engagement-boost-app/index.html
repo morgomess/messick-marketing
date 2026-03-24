@@ -250,37 +250,45 @@
                 this.view('dashboard');
             },
 
-            async callAnthropic(file) {
-                // YOUR CLOUDFLARE BRIDGE URL
-                const workerUrl = "https://calm-rice-eb6b.morgan-2bf.workers.dev"; 
-                
-                try {
-                    const base64 = await this.toBase64(file);
-                    const response = await fetch(workerUrl, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            apiKey: this.apiKey,
-                            payload: {
-                                model: "claude-3-5-sonnet-20240620",
-                                max_tokens: 1024,
-                                messages: [{
-                                    role: "user",
-                                    content: [
-                                        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } },
-                                        { type: "text", text: "Extract exactly these metrics from the social media report: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object with these keys: followers, reach, likes, comments, engRate. Use numbers only, no percent signs." }
-                                    ]
-                                }]
-                            }
-                        })
-                    });
-
-                    if (!response.ok) throw new Error("Bridge connection failed");
-                    const result = await response.json();
-                    return JSON.parse(result.content[0].text); 
-                } catch (e) {
-                    alert("AI Error: " + e.message + ". Reverting to manual entry.");
-                    return { followers: 0, reach: 0, likes: 0, comments: 0, engRate: "0.00" };
+           async callAnthropic(file) {
+    const workerUrl = "https://calm-rice-eb6b.morgan-2bf.workers.dev"; 
+    try {
+        const base64 = await this.toBase64(file);
+        const response = await fetch(workerUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+                apiKey: this.apiKey,
+                payload: {
+                    model: "claude-3-5-sonnet-20240620",
+                    max_tokens: 1024,
+                    messages: [{
+                        role: "user",
+                        content: [
+                            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } },
+                            { type: "text", text: "Extract numbers for: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object with keys: followers, reach, likes, comments, engRate." }
+                        ]
+                    }]
                 }
+            })
+        });
+
+        const result = await response.json();
+
+        // NEW: Check if the bridge passed back an AI error
+        if (result.ai_error) {
+            throw new Error(result.ai_error);
+        }
+
+        if (!result.content || !result.content[0]) {
+            throw new Error("Anthropic returned an empty response. Check your API credits.");
+        }
+
+        return JSON.parse(result.content[0].text); 
+    } catch (e) {
+        alert("AI Error: " + e.message);
+        return { followers: 0, reach: 0, likes: 0, comments: 0, engRate: "0.00" };
+    }
+}
             },
 
             toBase64: file => new Promise((resolve, reject) => {
