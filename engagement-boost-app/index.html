@@ -136,9 +136,10 @@ const app = {
             const base64 = await new Promise((res) => { const r = new FileReader(); r.readAsDataURL(this.currentFile); r.onload = () => res(r.result.split(',')[1]); });
             const isPDF = this.currentFile.type === "application/pdf";
 
-            const resp = await fetch("https://calm-rice-eb6b.morgan-2bf.workers.dev", {
-                method: 'POST',
-                body: JSON.stringify({
+           const resp = await fetch("https://calm-rice-eb6b.morgan-2bf.workers.dev", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
                     apiKey: this.apiKey,
                     payload: {
                         model: "claude-sonnet-4-6",
