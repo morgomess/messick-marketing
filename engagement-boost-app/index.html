@@ -1,329 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engagement Boost // AI Strategy Assistant</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engagement Boost / AI</title>
     <style>
-        :root {
-            --bg: #F7F8FB; --card: #FFFFFF; --primary: #5B7FFF; --accent: #FF7A59;
-            --text: #1F2937; --muted: #6B7280; --border: #E5E7EB; --green: #10B981; --orange: #F59E0B;
-        }
-        * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.5; }
-        
-        /* Navigation */
-        .top-nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem 2rem; background: var(--card); border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 10;
-        }
-        .logo { font-weight: 800; cursor: pointer; color: var(--primary); font-size: 1.2rem; }
-        .logo span { color: var(--muted); font-weight: 400; }
-
-        /* Layout */
-        main { padding: 2rem; max-width: 1000px; margin: 0 auto; min-height: 80vh; }
-        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-
-        /* Dashboard & Cards */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-        .card { 
-            background: var(--card); padding: 1.5rem; border-radius: 12px; 
-            border: 1px solid var(--border); transition: all 0.2s ease;
-            cursor: pointer; position: relative;
-        }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
-
-        /* Forms & Upload */
+        :root { --bg: #F7F8FB; --card: #FFFFFF; --primary: #5B7FFF; --text: #1F2937; --border: #E5E7EB; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .top-nav { display: flex; justify-content: space-between; padding: 1rem 2rem; background: white; border-bottom: 1px solid var(--border); }
+        main { padding: 2rem; max-width: 800px; margin: 0 auto; }
         .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        input, select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
-        
-        .file-upload-zone { 
-            border: 2px dashed var(--border); padding: 2.5rem; text-align: center; 
-            border-radius: 12px; cursor: pointer; background: #fff; transition: 0.2s;
-        }
-        .file-upload-zone.active { border-color: var(--primary); background: #f0f7ff; }
-        .disabled-overlay { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
-
-        /* Buttons */
-        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-ghost { background: #f3f4f6; color: var(--text); }
-        .btn-danger { 
-            color: #dc2626; background: #fee2e2; font-size: 0.7rem; 
-            padding: 4px 8px; border-radius: 4px; position: absolute; top: 12px; right: 12px; 
-        }
-
-        /* Loader */
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: white; margin-top: 10px; }
+        input { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        #settings-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; }
+        #debug-log { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.8rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; }
     </style>
 </head>
 <body>
 
-    <nav class="top-nav">
-        <div class="logo" onclick="app.view('dashboard')">Engagement Boost <span>// AI</span></div>
-        <div>
-            <button class="btn btn-ghost" onclick="app.toggleSettings()">⚙️ Settings</button>
-            <button class="btn btn-primary" onclick="app.view('input')" style="margin-left:10px;">+ New Snapshot</button>
-        </div>
-    </nav>
-
-    <main id="app-viewport"></main>
-
-    <div id="settings-modal">
-        <div class="form-container" style="max-width:450px; width:90%;">
-            <h3>Anthropic API Configuration</h3>
-            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1rem;">Your key is stored locally in your browser.</p>
-            <input type="password" id="api-key-input" placeholder="sk-ant-...">
-            <br><br>
-            <button class="btn btn-primary" onclick="app.saveSettings()" style="width:100%">Save Configuration</button>
-        </div>
+<nav class="top-nav">
+    <div style="font-weight:800; color:var(--primary); cursor:pointer;" onclick="app.view('dashboard')">Engagement Boost</div>
+    <div>
+        <button class="btn" style="background:#f3f4f6; color:black;" onclick="app.toggleSettings()">⚙️ Settings</button>
+        <button class="btn" onclick="app.view('input')">+ New</button>
     </div>
+</nav>
 
-    <script>
-        const app = {
-            clients: JSON.parse(localStorage.getItem('eb_data')) || [],
-            apiKey: localStorage.getItem('eb_ant_key') || '',
+<main id="app-viewport"></main>
 
-            init() { 
-                const isAuth = sessionStorage.getItem('eb_auth');
-                if (!isAuth) {
-                    this.renderLogin();
-                } else {
-                    this.view('dashboard'); 
-                }
-            },
+<div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:100;">
+    <div class="form-container" style="max-width:400px; width:90%;">
+        <h3>Settings</h3>
+        <label>Anthropic API Key</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-...">
+        <button class="btn" onclick="app.saveSettings()" style="width:100%">Save</button>
+    </div>
+</div>
 
-            renderLogin() {
-                const vp = document.getElementById('app-viewport');
-                vp.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:center; height:70vh;">
-                        <div class="form-container" style="max-width:350px; text-align:center;">
-                            <h2 style="color:var(--primary)">Engagement Boost</h2>
-                            <p style="font-size:0.8rem; color:var(--muted)">Agency Login Required</p>
-                            <input type="password" id="pass-input" placeholder="Password" style="margin-bottom:1rem;">
-                            <button class="btn btn-primary" onclick="app.checkPass()" style="width:100%">Unlock App</button>
-                        </div>
-                    </div>`;
-            },
+<script>
+const app = {
+    clients: JSON.parse(localStorage.getItem('eb_data')) || [],
+    apiKey: localStorage.getItem('eb_ant_key') || '',
 
-            checkPass() {
-                const pass = document.getElementById('pass-input')?.value;
-                const AGENCY_PASS = "Messick2026"; // <--- CHANGE YOUR PASSWORD HERE
-                
-                if (pass === AGENCY_PASS) {
-                    sessionStorage.setItem('eb_auth', 'true');
-                    this.view('dashboard');
-                } else {
-                    alert('Access Denied');
-                }
-            },
+    init() { 
+        const isAuth = sessionStorage.getItem('eb_auth');
+        if (!isAuth) this.renderLogin();
+        else this.view('dashboard');
+    },
 
-            toggleSettings() {
-                const modal = document.getElementById('settings-modal');
-                document.getElementById('api-key-input').value = this.apiKey;
-                modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-            },
+    renderLogin() {
+        document.getElementById('app-viewport').innerHTML = `
+            <div class="form-container" style="max-width:350px; margin: 50px auto; text-align:center;">
+                <h2>Login</h2>
+                <input type="password" id="pass-input" placeholder="Password">
+                <button class="btn" onclick="app.checkPass()" style="width:100%">Unlock</button>
+            </div>`;
+    },
 
-            saveSettings() {
-                this.apiKey = document.getElementById('api-key-input').value;
-                localStorage.setItem('eb_ant_key', this.apiKey);
-                this.toggleSettings();
-            },
+    checkPass() {
+        if (document.getElementById('pass-input').value === 'Messick2026') {
+            sessionStorage.setItem('eb_auth', 'true');
+            this.view('dashboard');
+        } else alert('Wrong password');
+    },
 
-            view(name, index = null) {
-                const vp = document.getElementById('app-viewport');
-                if (name === 'dashboard') this.renderDashboard(vp);
-                if (name === 'input') this.renderInput(vp);
-                if (name === 'profile') this.renderProfile(vp, index);
-                window.scrollTo(0,0);
-            },
+    toggleSettings() {
+        const m = document.getElementById('settings-modal');
+        document.getElementById('api-key-input').value = this.apiKey;
+        m.style.display = m.style.display === 'none' ? 'flex' : 'none';
+    },
 
-            calculateScore(d) {
-                const f = parseInt(d.followers) || 100;
-                const r = parseInt(d.reach) || (f * 0.1);
-                const i = (parseInt(d.likes) + parseInt(d.comments)) || (r * 0.02);
-                const score = Math.round(((r/f) * 30) + ((i/r) * 700));
-                return Math.max(15, Math.min(score, 100));
-            },
+    saveSettings() {
+        this.apiKey = document.getElementById('api-key-input').value;
+        localStorage.setItem('eb_ant_key', this.apiKey);
+        this.toggleSettings();
+    },
 
-            renderDashboard(el) {
-                const cards = this.clients.map((c, i) => `
-                    <div class="card" onclick="app.view('profile', ${i})">
-                        <button class="btn-danger" onclick="event.stopPropagation(); app.deleteClient(${i})">Delete</button>
-                        <h3 style="margin:0 0 10px 0">${c.name}</h3>
-                        <div style="font-weight:bold; color:${this.getColor(c.score)}">Score: ${c.score}/100</div>
-                        <p style="font-size:0.8rem; color:var(--muted); margin:5px 0 0 0;">Updated: ${c.date}</p>
-                    </div>
-                `).join('');
-                el.innerHTML = `<div class="view-header"><h1>Portfolio</h1></div><div class="grid">${cards || '<p>No clients yet.</p>'}</div>`;
-            },
+    view(name, index = null) {
+        const vp = document.getElementById('app-viewport');
+        if (name === 'dashboard') this.renderDashboard(vp);
+        if (name === 'input') this.renderInput(vp);
+        if (name === 'profile') this.renderProfile(vp, index);
+    },
 
-            renderInput(el) {
-                el.innerHTML = `
-                    <div class="form-container">
-                        <h2>Client Snapshot</h2>
-                        <div class="form-group"><label>Client Name</label><input id="name" required placeholder="Brand Name"></div>
-                        <div class="form-group">
-                            <label>Drop Social Media Report (PDF/Images)</label>
-                            <div id="drop-zone" class="file-upload-zone">
-                                <span id="drop-text">Drag & Drop or Click to Browse</span>
-                                <input type="file" id="file-input" style="display:none" accept="image/*,application/pdf">
-                            </div>
-                        </div>
-                        <div id="manual-fields">
-                            <label>Manual Entry (Auto-disabled if file uploaded)</label>
-                            <div class="grid" style="grid-template-columns:1fr 1fr;">
-                                <div class="form-group"><label>Followers</label><input type="number" id="followers" value="0"></div>
-                                <div class="form-group"><label>Reach</label><input type="number" id="reach" value="0"></div>
-                                <div class="form-group"><label>Likes</label><input type="number" id="likes" value="0"></div>
-                                <div class="form-group"><label>Comments</label><input type="number" id="comments" value="0"></div>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" id="submit-btn" onclick="app.handleProcess()" style="width:100%; margin-top:1rem;">Generate Analysis →</button>
-                    </div>`;
-                this.setupDrop();
-            },
+    renderDashboard(el) {
+        const cards = this.clients.map((c, i) => `
+            <div class="card" onclick="app.view('profile', ${i})">
+                <button onclick="event.stopPropagation(); app.deleteClient(${i})" style="position:absolute; top:10px; right:10px; border:none; color:red; background:none; cursor:pointer;">Delete</button>
+                <h3>${c.name}</h3>
+                <p>Score: <strong>${c.score || 0}/100</strong></p>
+            </div>
+        `).join('');
+        el.innerHTML = `<h1>Portfolio</h1><div class="grid">${cards || '<p>No clients yet.</p>'}</div>`;
+    },
 
-            setupDrop() {
-                const zone = document.getElementById('drop-zone');
-                const input = document.getElementById('file-input');
-                const manual = document.getElementById('manual-fields');
+    renderInput(el) {
+        el.innerHTML = `
+            <div class="form-container">
+                <h2>New Snapshot</h2>
+                <input id="name" placeholder="Client Name">
+                <label>Upload Report Image</label>
+                <input type="file" id="file-input" accept="image/*">
+                <button class="btn" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze with AI</button>
+                <button class="btn" style="background:#6B7280; width:100%" onclick="app.view('manual-entry')">Manual Entry Only</button>
+                <div id="debug-log"></div>
+            </div>`;
+    },
 
-                zone.onclick = () => input.click();
-                ['dragover', 'dragleave', 'drop'].forEach(e => zone.addEventListener(e, (ev) => {
-                    ev.preventDefault();
-                    zone.classList.toggle('active', e === 'dragover');
-                }));
+    async handleProcess() {
+        const name = document.getElementById('name').value;
+        const file = document.getElementById('file-input').files[0];
+        const btn = document.getElementById('sub-btn');
+        const debug = document.getElementById('debug-log');
+        
+        if (!name || !file) return alert("Missing name or file");
+        if (!this.apiKey) return alert("Add API key in settings first!");
 
-                zone.ondrop = (e) => {
-                    input.files = e.dataTransfer.files;
-                    this.handleFileSelected(input.files, zone, manual);
-                };
-                input.onchange = () => this.handleFileSelected(input.files, zone, manual);
-            },
+        btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Thinking...';
+        debug.style.display = 'none';
 
-            handleFileSelected(files, zone, manual) {
-                if (files.length) {
-                    zone.classList.add('active');
-                    document.getElementById('drop-text').innerText = "📄 Report Attached (AI Bridge Ready)";
-                    manual.classList.add('disabled-overlay');
-                }
-            },
+        try {
+            const base64 = await new Promise((res) => {
+                const r = new FileReader(); r.readAsDataURL(file);
+                r.onload = () => res(r.result.split(',')[1]);
+            });
 
-            async handleProcess() {
-                const name = document.getElementById('name').value;
-                const fileInput = document.getElementById('file-input');
-                const btn = document.getElementById('submit-btn');
+            const resp = await fetch("https://calm-rice-eb6b.morgan-2bf.workers.dev", {
+                method: 'POST',
+                body: JSON.stringify({
+                    apiKey: this.apiKey,
+                    payload: {
+                        model: "claude-3-5-sonnet-20240620",
+                        max_tokens: 1024,
+                        messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } }, { type: "text", text: "Return ONLY JSON: {followers:number, reach:number, likes:number, comments:number, engRate:number}" }]}]
+                    }
+                })
+            });
 
-                if (!name) return alert("Please enter a client name");
+            const data = await resp.json();
+            
+            // Check for AI Errors
+            if (data.error) throw new Error("Anthropic Error: " + data.error.message);
+            if (!data.content) throw new Error("No data returned. Check your API credits.");
 
-                btn.disabled = true;
-                btn.innerHTML = `<span class="loader"></span> AI Analyzing...`;
+            const metrics = JSON.parse(data.content[0].text);
+            this.saveClient(name, metrics);
 
-                let metrics = { followers: 0, reach: 0, likes: 0, comments: 0, engRate: "0.00" };
-
-                if (fileInput.files.length > 0 && this.apiKey) {
-                    metrics = await this.callAnthropic(fileInput.files[0]);
-                } else {
-                    metrics = {
-                        followers: parseInt(document.getElementById('followers').value) || 0,
-                        reach: parseInt(document.getElementById('reach').value) || 0,
-                        likes: parseInt(document.getElementById('likes').value) || 0,
-                        comments: parseInt(document.getElementById('comments').value) || 0
-                    };
-                }
-
-                if (!metrics.engRate) {
-                    const total = (parseInt(metrics.likes) + parseInt(metrics.comments));
-                    metrics.engRate = metrics.reach > 0 ? ((total / metrics.reach) * 100).toFixed(2) : "0.00";
-                }
-
-                const score = this.calculateScore(metrics);
-                this.clients.push({ name, ...metrics, score, date: new Date().toLocaleDateString() });
-                localStorage.setItem('eb_data', JSON.stringify(this.clients));
-                this.view('dashboard');
-            },
-
-           async callAnthropic(file) {
-    const workerUrl = "https://calm-rice-eb6b.morgan-2bf.workers.dev"; 
-    try {
-        const base64 = await this.toBase64(file);
-        const response = await fetch(workerUrl, {
-            method: 'POST',
-            body: JSON.stringify({
-                apiKey: this.apiKey,
-                payload: {
-                    model: "claude-3-5-sonnet-20240620",
-                    max_tokens: 1024,
-                    messages: [{
-                        role: "user",
-                        content: [
-                            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } },
-                            { type: "text", text: "Extract numbers for: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object with keys: followers, reach, likes, comments, engRate." }
-                        ]
-                    }]
-                }
-            })
-        });
-
-        const result = await response.json();
-
-        // NEW: Check if the bridge passed back an AI error
-        if (result.ai_error) {
-            throw new Error(result.ai_error);
+        } catch (e) {
+            btn.disabled = false; btn.innerText = 'Analyze with AI';
+            debug.innerText = "ERROR: " + e.message;
+            debug.style.display = 'block';
         }
+    },
 
-        if (!result.content || !result.content[0]) {
-            throw new Error("Anthropic returned an empty response. Check your API credits.");
+    saveClient(name, m) {
+        const score = Math.min(100, Math.round(((m.reach || 1) / (m.followers || 1) * 30) + (m.engRate || 0) * 10));
+        this.clients.push({ name, ...m, score, date: new Date().toLocaleDateString() });
+        localStorage.setItem('eb_data', JSON.stringify(this.clients));
+        this.view('dashboard');
+    },
+
+    deleteClient(i) {
+        if(confirm("Delete?")) {
+            this.clients.splice(i, 1);
+            localStorage.setItem('eb_data', JSON.stringify(this.clients));
+            this.view('dashboard');
         }
+    },
 
-        return JSON.parse(result.content[0].text); 
-    } catch (e) {
-        alert("AI Error: " + e.message);
-        return { followers: 0, reach: 0, likes: 0, comments: 0, engRate: "0.00" };
+    renderProfile(el, i) {
+        const c = this.clients[i];
+        el.innerHTML = `<h1>${c.name}</h1><div class="card"><h3>Eng. Rate: ${c.engRate}%</h3><p>Followers: ${c.followers}</p><p>Reach: ${c.reach}</p></div><br><button class="btn" onclick="app.view('dashboard')">Back</button>`;
     }
-}
-            },
-
-            toBase64: file => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            }),
-
-            deleteClient(i) {
-                if(confirm("Confirm deletion of this client record?")) {
-                    this.clients.splice(i, 1);
-                    localStorage.setItem('eb_data', JSON.stringify(this.clients));
-                    this.view('dashboard');
-                }
-            },
-
-            getColor(s) { return s >= 80 ? '#10B981' : (s >= 60 ? '#5B7FFF' : '#FF7A59'); },
-
-            renderProfile(el, i) {
-                const c = this.clients[i];
-                el.innerHTML = `
-                    <div class="view-header"><h1>${c.name} Strategy</h1><button class="btn btn-ghost" onclick="app.view('dashboard')">Back</button></div>
-                    <div class="grid">
-                        <div class="card"><h4>Boost Score</h4><h2 style="color:${this.getColor(c.score)}">${c.score}/100</h2></div>
-                        <div class="card"><h4>Platform Eng. Rate</h4><h2>${c.engRate}%</h2></div>
-                    </div>
-                    <div class="form-container" style="margin-top:20px;">
-                        <h3>Extracted Snapshot</h3>
-                        <p>👥 Followers: ${c.followers} | 📊 Reach: ${c.reach}</p>
-                        <p>❤️ Likes: ${c.likes} | 💬 Comments: ${c.comments}</p>
-                    </div>`;
-            }
-        };
-        app.init();
-    </script>
+};
+app.init();
+</script>
 </body>
 </html>
