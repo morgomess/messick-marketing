@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engagement Boost // AI Strategy</title>
+    <title>Engagement Boost // AI</title>
     <style>
         :root { --bg: #F7F8FB; --card: #FFFFFF; --primary: #5B7FFF; --text: #1F2937; --border: #E5E7EB; }
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -13,28 +13,19 @@
         .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: white; margin-top: 10px; transition: 0.2s; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         input[type="text"], input[type="password"] { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
-        
-        /* Drag & Drop Styles */
-        .drop-zone { 
-            border: 2px dashed var(--border); padding: 3rem 1rem; text-align: center; 
-            border-radius: 12px; cursor: pointer; transition: 0.2s; background: #fff; margin: 1rem 0;
-        }
+        .drop-zone { border: 2px dashed var(--border); padding: 3rem 1rem; text-align: center; border-radius: 12px; cursor: pointer; background: #fff; margin: 1rem 0; }
         .drop-zone.active { border-color: var(--primary); background: #f0f7ff; }
-        .drop-zone p { margin: 0; color: var(--muted); font-size: 0.9rem; }
-
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        #debug-log { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.8rem; border: 1px solid #fecaca; }
+        #debug-log { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.8rem; border: 1px solid #fecaca; word-break: break-all; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: pointer; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; }
     </style>
 </head>
 <body>
 
 <nav class="top-nav">
-    <div style="font-weight:800; color:var(--primary); cursor:pointer; font-size:1.2rem;" onclick="app.view('dashboard')">Engagement Boost // <span style="font-weight:400; color:#6B7280">AI</span></div>
+    <div style="font-weight:800; color:var(--primary); cursor:pointer; font-size:1.2rem;" onclick="app.view('dashboard')">Engagement Boost // AI</div>
     <div>
         <button class="btn" style="background:#f3f4f6; color:black;" onclick="app.toggleSettings()">⚙️ Settings</button>
         <button class="btn" onclick="app.view('input')">+ New Snapshot</button>
@@ -105,26 +96,18 @@ const app = {
             <div class="card" onclick="app.view('profile', ${i})">
                 <button onclick="event.stopPropagation(); app.deleteClient(${i})" style="position:absolute; top:12px; right:12px; border:none; color:#EF4444; background:#FEE2E2; cursor:pointer; padding:4px 8px; border-radius:4px; font-size:0.7rem;">Delete</button>
                 <h3 style="margin:0">${c.name}</h3>
-                <p style="color:#6B7280; font-size:0.8rem;">${c.date}</p>
                 <div style="font-size:1.2rem; font-weight:800; color:var(--primary)">${c.score || 0}/100</div>
             </div>
         `).join('');
-        el.innerHTML = `<h1 style="margin-bottom:2rem;">Client Portfolio</h1><div class="grid">${cards || '<p>No snaphosts yet. Click "+ New Snapshot" to begin.</p>'}</div>`;
+        el.innerHTML = `<h1 style="margin-bottom:2rem;">Portfolio</h1><div class="grid">${cards || '<p>No snapshots yet.</p>'}</div>`;
     },
 
     renderInput(el) {
         el.innerHTML = `
             <div class="form-container">
                 <h2>New Snapshot</h2>
-                <label>Client Name</label>
-                <input id="name" type="text" placeholder="e.g. Nike Social">
-                
-                <label>Report File (PNG, JPG, PDF)</label>
-                <div id="drop-zone" class="drop-zone">
-                    <p id="drop-text">Drag & Drop Report or Click to Browse</p>
-                    <input type="file" id="file-input" hidden accept="image/*,application/pdf">
-                </div>
-                
+                <input id="name" type="text" placeholder="Client Name">
+                <div id="drop-zone" class="drop-zone"><p id="drop-text">Drag & Drop Report (PNG, JPG, PDF)</p><input type="file" id="file-input" hidden accept="image/*,application/pdf"></div>
                 <button class="btn" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze & Generate Snapshot</button>
                 <div id="debug-log"></div>
             </div>`;
@@ -134,48 +117,24 @@ const app = {
     initDropZone() {
         const zone = document.getElementById('drop-zone');
         const input = document.getElementById('file-input');
-
         zone.onclick = () => input.click();
-        
-        ['dragover', 'dragleave'].forEach(e => {
-            zone.addEventListener(e, (ev) => {
-                ev.preventDefault();
-                zone.classList.toggle('active', e === 'dragover');
-            });
-        });
-
-        zone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            zone.classList.remove('active');
-            if (e.dataTransfer.files.length) {
-                this.currentFile = e.dataTransfer.files[0];
-                document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name;
-            }
-        });
-
-        input.onchange = (e) => {
-            if (input.files.length) {
-                this.currentFile = input.files[0];
-                document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name;
-            }
-        };
+        ['dragover', 'dragleave'].forEach(e => zone.addEventListener(e, (ev) => { ev.preventDefault(); zone.classList.toggle('active', e === 'dragover'); }));
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('active'); if (e.dataTransfer.files.length) { this.currentFile = e.dataTransfer.files[0]; document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name; } });
+        input.onchange = () => { if (input.files.length) { this.currentFile = input.files[0]; document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name; } };
     },
 
     async handleProcess() {
         const name = document.getElementById('name').value;
         const btn = document.getElementById('sub-btn');
         const debug = document.getElementById('debug-log');
+        if (!name || !this.currentFile) return alert("Need name and file.");
         
-        if (!name || !this.currentFile) return alert("Please provide a name and a file.");
-        if (!this.apiKey) return alert("API Key missing! Check settings.");
-
-        btn.disabled = true; 
-        btn.innerHTML = '<span class="loader"></span> AI is reading report...';
+        btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Analyzing...';
         debug.style.display = 'none';
 
         try {
-            const base64 = await this.toBase64(this.currentFile);
-            const mediaType = this.currentFile.type || "image/jpeg";
+            const base64 = await new Promise((res) => { const r = new FileReader(); r.readAsDataURL(this.currentFile); r.onload = () => res(r.result.split(',')[1]); });
+            const isPDF = this.currentFile.type === "application/pdf";
 
             const resp = await fetch("https://calm-rice-eb6b.morgan-2bf.workers.dev", {
                 method: 'POST',
@@ -188,14 +147,10 @@ const app = {
                             role: "user", 
                             content: [
                                 { 
-                                    type: this.currentFile.type === "application/pdf" ? "document" : "image", 
-                                    source: { 
-                                        type: "base64", 
-                                        media_type: mediaType, 
-                                        data: base64 
-                                    } 
+                                    type: isPDF ? "document" : "image", 
+                                    source: { type: "base64", media_type: this.currentFile.type || "image/jpeg", data: base64 } 
                                 }, 
-                                { type: "text", text: "Analyze this social media report. Extract: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object with these keys: followers, reach, likes, comments, engRate. Numbers only." }
+                                { type: "text", text: "Extract numbers: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object: {followers, reach, likes, comments, engRate}" }
                             ]
                         }]
                     }
@@ -203,17 +158,19 @@ const app = {
             });
 
             const data = await resp.json();
-            if (data.error) throw new Error(data.error.message);
             
-            const aiText = data.content[0].text;
-            const metrics = JSON.parse(aiText.match(/\{.*\}/s)[0]);
-            
-            // Score Calculation: (EngRate * 10) + (Reach/Followers * 20)
+            // CRITICAL: Handle the error message explicitly
+            if (!resp.ok || data.error) {
+                throw new Error(data.error ? data.error.message : "Bridge Error. Check API credits/key.");
+            }
+            if (!data.content || !data.content[0]) {
+                throw new Error("AI returned no content. This usually means the API key is invalid or lacks credits.");
+            }
+
+            const metrics = JSON.parse(data.content[0].text.match(/\{.*\}/s)[0]);
             const score = Math.min(100, Math.round(((metrics.reach || 1) / (metrics.followers || 1) * 20) + (metrics.engRate || 0) * 10));
-            
             this.clients.push({ name, ...metrics, score, date: new Date().toLocaleDateString() });
             localStorage.setItem('eb_data', JSON.stringify(this.clients));
-            this.currentFile = null;
             this.view('dashboard');
 
         } catch (e) {
@@ -223,38 +180,13 @@ const app = {
         }
     },
 
-    toBase64: (file) => new Promise((res, rej) => {
-        const r = new FileReader(); r.readAsDataURL(file);
-        r.onload = () => res(r.result.split(',')[1]);
-        r.onerror = e => rej(e);
-    }),
-
     deleteClient(i) {
-        if(confirm("Permanently delete this snapshot?")) {
-            this.clients.splice(i, 1);
-            localStorage.setItem('eb_data', JSON.stringify(this.clients));
-            this.view('dashboard');
-        }
+        if(confirm("Delete?")) { this.clients.splice(i, 1); localStorage.setItem('eb_data', JSON.stringify(this.clients)); this.view('dashboard'); }
     },
 
     renderProfile(el, i) {
         const c = this.clients[i];
-        el.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h1>${c.name}</h1>
-                <button class="btn" style="background:#f3f4f6; color:black;" onclick="app.view('dashboard')">← Back</button>
-            </div>
-            <div class="grid" style="margin-top:2rem;">
-                <div class="card"><h3>Boost Score</h3><div style="font-size:2rem; font-weight:800; color:var(--primary)">${c.score}/100</div></div>
-                <div class="card"><h3>Engagement Rate</h3><div style="font-size:2rem; font-weight:800;">${c.engRate}%</div></div>
-            </div>
-            <div class="form-container" style="margin-top:1.5rem;">
-                <h3>Report Breakdown</h3>
-                <p>👥 Followers: <strong>${c.followers.toLocaleString()}</strong></p>
-                <p>📊 Reach: <strong>${c.reach.toLocaleString()}</strong></p>
-                <p>❤️ Likes: <strong>${c.likes.toLocaleString()}</strong></p>
-                <p>💬 Comments: <strong>${c.comments.toLocaleString()}</strong></p>
-            </div>`;
+        el.innerHTML = `<h1>${c.name}</h1><div class="card"><h3>Score: ${c.score}/100</h3><p>Eng Rate: ${c.engRate}%</p><p>Reach: ${c.reach}</p></div><button class="btn" onclick="app.view('dashboard')">Back</button>`;
     }
 };
 app.init();
