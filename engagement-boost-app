@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StratStream // Internal Agency Tool</title>
+    <style>
+        :root {
+            --bg: #F7F8FB;
+            --card: #FFFFFF;
+            --primary: #5B7FFF;
+            --accent: #FF7A59;
+            --text: #1F2937;
+            --muted: #6B7280;
+            --border: #E5E7EB;
+            --green: #10B981;
+            --orange: #F59E0B;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.5; }
+
+        /* Navigation */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2rem; background: var(--card); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .logo { font-weight: 800; cursor: pointer; color: var(--primary); font-size: 1.2rem; }
+        .logo span { color: var(--muted); font-weight: 400; }
+
+        /* Layout */
+        main { padding: 2rem; max-width: 1000px; margin: 0 auto; min-height: 80vh; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+
+        /* Dashboard & Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { 
+            background: var(--card); padding: 1.5rem; border-radius: 12px; 
+            border: 1px solid var(--border); transition: all 0.2s ease;
+            cursor: pointer; position: relative;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
+
+        /* Components */
+        .score-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; color: white; margin-top: 10px;
+        }
+        .alert-box {
+            background: #FFFBEB; border-left: 4px solid var(--orange);
+            padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px; font-size: 0.9rem;
+        }
+        .insight-pill {
+            background: #EEF2FF; color: var(--primary); padding: 6px 12px;
+            border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin: 4px;
+        }
+
+        /* Forms */
+        .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); }
+        input, select { 
+            width: 100%; padding: 0.8rem; border: 1px solid var(--border); 
+            border-radius: 8px; font-size: 1rem; background: #FAFBFF;
+        }
+
+        /* Buttons */
+        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn:hover { opacity: 0.9; }
+
+        /* Strategy Roadmap */
+        .strategy-section { background: white; padding: 2rem; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border); }
+        .task-list { list-style: none; padding: 0; }
+        .task-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; }
+        .task-item::before { content: "→"; margin-right: 10px; color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="logo" onclick="app.view('dashboard')">StratStream <span>// Internal</span></div>
+        <button class="btn btn-primary" onclick="app.view('input')">+ New Snapshot</button>
+    </nav>
+
+    <main id="app-viewport">
+        </main>
+
+    <script>
+        /* --- 1. ANALYSIS ENGINE --- */
+        const Analysis = {
+            calculate: (data) => {
+                const reachEff = (data.reach / data.followers) * 10;
+                const engRate = ((data.likes + data.comments) / data.reach) * 100;
+                const score = Math.min(Math.round((reachEff * 4) + (engRate * 15)), 100);
+                
+                let alerts = [];
+                if (engRate < 2) alerts.push("Engagement rate is below 2%—content is missing the mark.");
+                if (data.reels < 5) alerts.push("Reel frequency is low. Algorithm reach is likely throttled.");
+                if (data.comments < (data.likes * 0.05)) alerts.push("High likes but low comments—try 'Questions' in captions.");
+
+                return { score, alerts, engRate: engRate.toFixed(2) };
+            }
+        };
+
+        /* --- 2. STRATEGY GENERATOR --- */
+        const Strategy = {
+            generate: (client) => {
+                const lever = client.reels < 8 ? "Video Volume" : "Engagement Depth";
+                return {
+                    lever,
+                    mix: ["40% Value/Tutorials", "30% Culture/BTS", "30% Sales/Conversion"],
+                    tasks: [
+                        `Increase ${lever} by 20% next month`,
+                        "Reply to top 10 niche creators' daily posts",
+                        "Test a 'Giveaway' or 'Lead Magnet' in Week 2",
+                        "Analyze highest-shared post and replicate format"
+                    ]
+                };
+            }
+        };
+
+        /* --- 3. APP LOGIC --- */
+        const app = {
+            clients: JSON.parse(localStorage.getItem('ss_data')) || [],
+            
+            init() {
+                this.view('dashboard');
+            },
+
+            view(name, index = null) {
+                const vp = document.getElementById('app-viewport');
+                if (name === 'dashboard') this.renderDashboard(vp);
+                if (name === 'input') this.renderInput(vp);
+                if (name === 'profile') this.renderProfile(vp, index);
+            },
+
+            save(data) {
+                const analysis = Analysis.calculate(data);
+                const strategy = Strategy.generate(data);
+                const entry = { ...data, ...analysis, strategy, date: new Date().toLocaleDateString() };
+                
+                const existing = this.clients.findIndex(c => c.name === data.name);
+                if (existing > -1) this.clients[existing] = entry;
+                else this.clients.push(entry);
+
+                localStorage.setItem('ss_data', JSON.stringify(this.clients));
+                this.view('dashboard');
+            },
+
+            renderDashboard(el) {
+                const cards = this.clients.map((c, i) => `
+                    <div class="card" onclick="app.view('profile', ${i})">
+                        <div style="font-size: 0.8rem; color: var(--muted)">${c.date}</div>
+                        <h3 style="margin: 0.5rem 0">${c.name}</h3>
+                        <div class="insight-pill">${c.platforms}</div>
+                        <div class="score-badge" style="background:${this.getColor(c.score)}">Score: ${c.score}</div>
+                    </div>
+                `).join('');
+
+                el.innerHTML = `
+                    <div class="view-header"><h1>Client Portfolio</h1></div>
+                    <div class="grid">${cards || '<p>No data yet. Click "+ New Snapshot" to begin.</p>'}</div>
+                `;
+            },
+
+            renderInput(el) {
+                el.innerHTML = `
+                    <div class="view-header"><h1>Monthly Snapshot</h1></div>
+                    <div class="form-container">
+                        <form onsubmit="app.handleSubmit(event)">
+                            <div class="form-group"><label>Client Name</label><input id="name" required placeholder="e.g. Acme Corp"></div>
+                            <div class="form-group"><label>Platform</label><select id="platforms"><option>Instagram</option><option>LinkedIn</option><option>TikTok</option></select></div>
+                            <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom:1rem;">
+                                <div><label>Followers</label><input type="number" id="followers" required></div>
+                                <div><label>Monthly Reach</label><input type="number" id="reach" required></div>
+                                <div><label>Likes</label><input type="number" id="likes" required></div>
+                                <div><label>Comments</label><input type="number" id="comments" required></div>
+                                <div><label>Reels/Videos</label><input type="number" id="reels" required></div>
+                                <div><label>Top Theme</label><input id="theme" placeholder="e.g. Tips"></div>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Run Analysis →</button>
+                            <button class="btn btn-ghost" type="button" onclick="app.view('dashboard')">Cancel</button>
+                        </form>
+                    </div>
+                `;
+            },
+
+            renderProfile(el, i) {
+                const c = this.clients[i];
+                el.innerHTML = `
+                    <div class="view-header">
+                        <h1>${c.name}</h1>
+                        <button class="btn btn-ghost" onclick="app.view('dashboard')">← Back</button>
+                    </div>
+                    
+                    ${c.alerts.map(a => `<div class="alert-box"><strong>Opportunity:</strong> ${a}</div>`).join('')}
+
+                    <div class="grid">
+                        <div class="card" style="cursor:default">
+                            <h4>Engagement Score</h4>
+                            <h2 style="color:${this.getColor(c.score)}">${c.score}/100</h2>
+                            <p style="font-size:0.9rem; color:var(--muted)">Rate: ${c.engRate}%</p>
+                        </div>
+                        <div class="card" style="cursor:default">
+                            <h4>Current Momentum</h4>
+                            <h2>${c.score > 70 ? 'Rising 🔥' : 'Stable ⚠'}</h2>
+                            <p style="font-size:0.9rem; color:var(--muted)">Based on reach efficiency</p>
+                        </div>
+                    </div>
+
+                    <div class="strategy-section">
+                        <h3>Next Month's Strategy</h3>
+                        <p><strong>Primary Growth Lever:</strong> ${c.strategy.lever}</p>
+                        <hr style="border:0; border-top:1px solid var(--border); margin:1.5rem 0;">
+                        <h4>Content Mix Recommendation</h4>
+                        <div>${c.strategy.mix.map(m => `<span class="insight-pill">${m}</span>`).join('')}</div>
+                        <h4 style="margin-top:2rem;">Weekly Execution Tasks</h4>
+                        <ul class="task-list">
+                            ${c.strategy.tasks.map(t => `<li class="task-item">${t}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            },
+
+            handleSubmit(e) {
+                e.preventDefault();
+                const data = {
+                    name: document.getElementById('name').value,
+                    platforms: document.getElementById('platforms').value,
+                    followers: parseInt(document.getElementById('followers').value),
+                    reach: parseInt(document.getElementById('reach').value),
+                    likes: parseInt(document.getElementById('likes').value),
+                    comments: parseInt(document.getElementById('comments').value),
+                    reels: parseInt(document.getElementById('reels').value),
+                    theme: document.getElementById('theme').value
+                };
+                this.save(data);
+            },
+
+            getColor(s) {
+                if (s >= 80) return '#10B981';
+                if (s >= 60) return '#5B7FFF';
+                return '#FF7A59';
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
