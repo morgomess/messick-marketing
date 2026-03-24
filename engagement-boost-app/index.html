@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engagement Boost // AI Strategy Assistant</title>
+    <style>
+        :root {
+            --bg: #F7F8FB; --card: #FFFFFF; --primary: #5B7FFF; --accent: #FF7A59;
+            --text: #1F2937; --muted: #6B7280; --border: #E5E7EB; --green: #10B981; --orange: #F59E0B;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.5; }
+        
+        /* Navigation */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2rem; background: var(--card); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .logo { font-weight: 800; cursor: pointer; color: var(--primary); font-size: 1.2rem; }
+        .logo span { color: var(--muted); font-weight: 400; }
+
+        /* Layout */
+        main { padding: 2rem; max-width: 1000px; margin: 0 auto; min-height: 80vh; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+
+        /* Dashboard & Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { 
+            background: var(--card); padding: 1.5rem; border-radius: 12px; 
+            border: 1px solid var(--border); transition: all 0.2s ease;
+            cursor: pointer; position: relative;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
+
+        /* Components */
+        .score-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; color: white; margin-top: 10px;
+        }
+        .insight-pill {
+            background: #EEF2FF; color: var(--primary); padding: 4px 10px;
+            border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin: 2px;
+        }
+
+        /* Forms & Upload */
+        .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input, select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+        
+        .file-upload-zone { 
+            border: 2px dashed var(--border); padding: 2.5rem; text-align: center; 
+            border-radius: 12px; cursor: pointer; background: #fff; transition: 0.2s;
+        }
+        .file-upload-zone.active { border-color: var(--primary); background: #f0f7ff; }
+        .disabled-overlay { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+
+        /* Buttons */
+        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-ghost { background: #f3f4f6; color: var(--text); }
+        .btn-danger { color: #dc2626; background: none; font-size: 0.8rem; padding: 5px; position: absolute; top: 10px; right: 10px; }
+
+        /* Loader */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Modals */
+        #settings-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="logo" onclick="app.view('dashboard')">Engagement Boost <span>// AI</span></div>
+        <div>
+            <button class="btn btn-ghost" onclick="app.toggleSettings()">⚙️ Settings</button>
+            <button class="btn btn-primary" onclick="app.view('input')" style="margin-left:10px;">+ New Snapshot</button>
+        </div>
+    </nav>
+
+    <main id="app-viewport"></main>
+
+    <div id="settings-modal">
+        <div class="form-container" style="max-width:450px; width:90%;">
+            <h3>Anthropic API Key</h3>
+            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1rem;">Your key is stored locally in your browser.</p>
+            <input type="password" id="api-key-input" placeholder="sk-ant-...">
+            <br><br>
+            <button class="btn btn-primary" onclick="app.saveSettings()" style="width:100%">Save Configuration</button>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            clients: JSON.parse(localStorage.getItem('eb_data')) || [],
+            apiKey: localStorage.getItem('eb_ant_key') || '',
+
+            init() { this.view('dashboard'); },
+
+            toggleSettings() {
+                const modal = document.getElementById('settings-modal');
+                document.getElementById('api-key-input').value = this.apiKey;
+                modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+            },
+
+            saveSettings() {
+                this.apiKey = document.getElementById('api-key-input').value;
+                localStorage.setItem('eb_ant_key', this.apiKey);
+                this.toggleSettings();
+            },
+
+            view(name, index = null) {
+                const vp = document.getElementById('app-viewport');
+                if (name === 'dashboard') this.renderDashboard(vp);
+                if (name === 'input') this.renderInput(vp);
+                if (name === 'profile') this.renderProfile(vp, index);
+                window.scrollTo(0,0);
+            },
+
+            calculateScore(d) {
+                const f = parseInt(d.followers) || 100;
+                const r = parseInt(d.reach) || (f * 0.1);
+                const i = (parseInt(d.likes) + parseInt(d.comments)) || (r * 0.02);
+                const score = Math.round(((r/f) * 30) + ((i/r) * 700));
+                return Math.max(15, Math.min(score, 100));
+            },
+
+            renderDashboard(el) {
+                const cards = this.clients.map((c, i) => `
+                    <div class="card" onclick="app.view('profile', ${i})">
+                        <button class="btn-danger" onclick="event.stopPropagation(); app.deleteClient(${i})">Delete</button>
+                        <h3 style="margin:0 0 10px 0">${c.name}</h3>
+                        <div style="font-weight:bold; color:${this.getColor(c.score)}">Score: ${c.score}/100</div>
+                        <p style="font-size:0.8rem; color:var(--muted); margin:5px 0 0 0;">Updated: ${c.date}</p>
+                    </div>
+                `).join('');
+                el.innerHTML = `<div class="view-header"><h1>Portfolio</h1></div><div class="grid">${cards || '<p>No clients yet.</p>'}</div>`;
+            },
+
+            renderInput(el) {
+                el.innerHTML = `
+                    <div class="form-container">
+                        <h2>Client Snapshot</h2>
+                        <div class="form-group"><label>Client Name</label><input id="name" required placeholder="Brand Name"></div>
+                        <div class="form-group">
+                            <label>Drop Report (PDF/Images)</label>
+                            <div id="drop-zone" class="file-upload-zone">
+                                <span id="drop-text">Drag & Drop or Click to Browse</span>
+                                <input type="file" id="file-input" style="display:none" accept="image/*,application/pdf">
+                            </div>
+                        </div>
+                        <div id="manual-fields">
+                            <label>Manual Entry (Overrides if no file)</label>
+                            <div class="grid" style="grid-template-columns:1fr 1fr;">
+                                <div class="form-group"><label>Followers</label><input type="number" id="followers" value="0"></div>
+                                <div class="form-group"><label>Reach</label><input type="number" id="reach" value="0"></div>
+                                <div class="form-group"><label>Likes</label><input type="number" id="likes" value="0"></div>
+                                <div class="form-group"><label>Comments</label><input type="number" id="comments" value="0"></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="submit-btn" onclick="app.handleProcess()" style="width:100%; margin-top:1rem;">Generate Analysis →</button>
+                    </div>`;
+                this.setupDrop();
+            },
+
+            setupDrop() {
+                const zone = document.getElementById('drop-zone');
+                const input = document.getElementById('file-input');
+                const manual = document.getElementById('manual-fields');
+
+                zone.onclick = () => input.click();
+                ['dragover', 'dragleave', 'drop'].forEach(e => zone.addEventListener(e, (ev) => {
+                    ev.preventDefault();
+                    zone.classList.toggle('active', e === 'dragover');
+                }));
+
+                zone.ondrop = (e) => {
+                    input.files = e.dataTransfer.files;
+                    this.handleFileSelected(input.files, zone, manual);
+                };
+                input.onchange = () => this.handleFileSelected(input.files, zone, manual);
+            },
+
+            handleFileSelected(files, zone, manual) {
+                if (files.length) {
+                    zone.classList.add('active');
+                    document.getElementById('drop-text').innerText = "📄 Report Attached (AI Processing Enabled)";
+                    manual.classList.add('disabled-overlay');
+                }
+            },
+
+            async handleProcess() {
+                const name = document.getElementById('name').value;
+                const fileInput = document.getElementById('file-input');
+                const btn = document.getElementById('submit-btn');
+
+                if (!name) return alert("Please enter a client name");
+
+                btn.disabled = true;
+                btn.innerHTML = `<span class="loader"></span> Claude is analyzing...`;
+
+                let metrics = { followers: 0, reach: 0, likes: 0, comments: 0, engRate: "0.00" };
+
+                if (fileInput.files.length > 0 && this.apiKey) {
+                    metrics = await this.callAnthropic(fileInput.files[0]);
+                } else {
+                    metrics = {
+                        followers: parseInt(document.getElementById('followers').value) || 0,
+                        reach: parseInt(document.getElementById('reach').value) || 0,
+                        likes: parseInt(document.getElementById('likes').value) || 0,
+                        comments: parseInt(document.getElementById('comments').value) || 0
+                    };
+                }
+
+                if (!metrics.engRate) {
+                    const total = (parseInt(metrics.likes) + parseInt(metrics.comments));
+                    metrics.engRate = metrics.reach > 0 ? ((total / metrics.reach) * 100).toFixed(2) : "0.00";
+                }
+
+                const score = this.calculateScore(metrics);
+                this.clients.push({ name, ...metrics, score, date: new Date().toLocaleDateString() });
+                localStorage.setItem('eb_data', JSON.stringify(this.clients));
+                this.view('dashboard');
+            },
+
+            async callAnthropic(file) {
+                try {
+                    const base64 = await this.toBase64(file);
+                    const response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'x-api-key': this.apiKey,
+                            'anthropic-version': '2023-06-01',
+                            'content-type': 'application/json',
+                            'anthropic-dangerous-direct-browser-access': 'true'
+                        },
+                        body: JSON.stringify({
+                            model: "claude-3-5-sonnet-20240620",
+                            max_tokens: 500,
+                            messages: [{
+                                role: "user",
+                                content: [
+                                    { type: "image", source: { type: "base64", media_type: file.type, data: base64 } },
+                                    { type: "text", text: "Extract followers, reach, likes, comments, and engagement rate from this image. Return ONLY a JSON object with keys: followers, reach, likes, comments, engRate. If a value isn't found, use 0." }
+                                ]
+                            }]
+                        })
+                    });
+                    const result = await response.json();
+                    return JSON.parse(result.content[0].text);
+                } catch (e) {
+                    console.error(e);
+                    alert("AI Error. Using manual fallback.");
+                    return { followers: 0, reach: 0, likes: 0, comments: 0 };
+                }
+            },
+
+            toBase64: file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            }),
+
+            deleteClient(i) {
+                if(confirm("Delete this client record?")) {
+                    this.clients.splice(i, 1);
+                    localStorage.setItem('eb_data', JSON.stringify(this.clients));
+                    this.view('dashboard');
+                }
+            },
+
+            getColor(s) { return s >= 80 ? '#10B981' : (s >= 60 ? '#5B7FFF' : '#FF7A59'); },
+
+            renderProfile(el, i) {
+                const c = this.clients[i];
+                el.innerHTML = `
+                    <div class="view-header"><h1>${c.name} Strategy</h1><button class="btn btn-ghost" onclick="app.view('dashboard')">Back</button></div>
+                    <div class="grid">
+                        <div class="card"><h4>Boost Score</h4><h2 style="color:${this.getColor(c.score)}">${c.score}/100</h2></div>
+                        <div class="card"><h4>Platform Eng. Rate</h4><h2>${c.engRate}%</h2></div>
+                    </div>
+                    <div class="form-container" style="margin-top:20px;">
+                        <h3>Extracted Snapshot</h3>
+                        <p>👥 Followers: ${c.followers} | 📊 Reach: ${c.reach}</p>
+                        <p>❤️ Likes: ${c.likes} | 💬 Comments: ${c.comments}</p>
+                    </div>`;
+            }
+        };
+        app.init();
+    </script>
+</body>
+</html>
