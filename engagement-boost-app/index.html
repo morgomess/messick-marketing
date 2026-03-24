@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engagement Boost / AI</title>
+    <title>Engagement Boost // AI Strategy</title>
     <style>
         :root { --bg: #F7F8FB; --card: #FFFFFF; --primary: #5B7FFF; --text: #1F2937; --border: #E5E7EB; }
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -10,22 +10,34 @@
         .top-nav { display: flex; justify-content: space-between; padding: 1rem 2rem; background: white; border-bottom: 1px solid var(--border); }
         main { padding: 2rem; max-width: 800px; margin: 0 auto; }
         .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); }
-        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: white; margin-top: 10px; }
-        input { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; }
+        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: white; margin-top: 10px; transition: 0.2s; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
+        
+        /* Drag & Drop Styles */
+        .drop-zone { 
+            border: 2px dashed var(--border); padding: 3rem 1rem; text-align: center; 
+            border-radius: 12px; cursor: pointer; transition: 0.2s; background: #fff; margin: 1rem 0;
+        }
+        .drop-zone.active { border-color: var(--primary); background: #f0f7ff; }
+        .drop-zone p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #debug-log { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.8rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        
+        #debug-log { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-size: 0.8rem; border: 1px solid #fecaca; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: pointer; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
 <nav class="top-nav">
-    <div style="font-weight:800; color:var(--primary); cursor:pointer;" onclick="app.view('dashboard')">Engagement Boost</div>
+    <div style="font-weight:800; color:var(--primary); cursor:pointer; font-size:1.2rem;" onclick="app.view('dashboard')">Engagement Boost // <span style="font-weight:400; color:#6B7280">AI</span></div>
     <div>
         <button class="btn" style="background:#f3f4f6; color:black;" onclick="app.toggleSettings()">⚙️ Settings</button>
-        <button class="btn" onclick="app.view('input')">+ New</button>
+        <button class="btn" onclick="app.view('input')">+ New Snapshot</button>
     </div>
 </nav>
 
@@ -33,10 +45,10 @@
 
 <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:100;">
     <div class="form-container" style="max-width:400px; width:90%;">
-        <h3>Settings</h3>
+        <h3>API Configuration</h3>
         <label>Anthropic API Key</label>
         <input type="password" id="api-key-input" placeholder="sk-ant-...">
-        <button class="btn" onclick="app.saveSettings()" style="width:100%">Save</button>
+        <button class="btn" onclick="app.saveSettings()" style="width:100%">Save & Close</button>
     </div>
 </div>
 
@@ -44,6 +56,7 @@
 const app = {
     clients: JSON.parse(localStorage.getItem('eb_data')) || [],
     apiKey: localStorage.getItem('eb_ant_key') || '',
+    currentFile: null,
 
     init() { 
         const isAuth = sessionStorage.getItem('eb_auth');
@@ -53,10 +66,10 @@ const app = {
 
     renderLogin() {
         document.getElementById('app-viewport').innerHTML = `
-            <div class="form-container" style="max-width:350px; margin: 50px auto; text-align:center;">
-                <h2>Login</h2>
-                <input type="password" id="pass-input" placeholder="Password">
-                <button class="btn" onclick="app.checkPass()" style="width:100%">Unlock</button>
+            <div class="form-container" style="max-width:350px; margin: 100px auto; text-align:center;">
+                <h2>Agency Access</h2>
+                <input type="password" id="pass-input" placeholder="Enter Password">
+                <button class="btn" onclick="app.checkPass()" style="width:100%">Unlock Tool</button>
             </div>`;
     },
 
@@ -64,7 +77,7 @@ const app = {
         if (document.getElementById('pass-input').value === 'Messick2026') {
             sessionStorage.setItem('eb_auth', 'true');
             this.view('dashboard');
-        } else alert('Wrong password');
+        } else alert('Incorrect Password');
     },
 
     toggleSettings() {
@@ -74,7 +87,7 @@ const app = {
     },
 
     saveSettings() {
-        this.apiKey = document.getElementById('api-key-input').value;
+        this.apiKey = document.getElementById('api-key-input').value.trim();
         localStorage.setItem('eb_ant_key', this.apiKey);
         this.toggleSettings();
     },
@@ -84,49 +97,85 @@ const app = {
         if (name === 'dashboard') this.renderDashboard(vp);
         if (name === 'input') this.renderInput(vp);
         if (name === 'profile') this.renderProfile(vp, index);
+        window.scrollTo(0,0);
     },
 
     renderDashboard(el) {
         const cards = this.clients.map((c, i) => `
             <div class="card" onclick="app.view('profile', ${i})">
-                <button onclick="event.stopPropagation(); app.deleteClient(${i})" style="position:absolute; top:10px; right:10px; border:none; color:red; background:none; cursor:pointer;">Delete</button>
-                <h3>${c.name}</h3>
-                <p>Score: <strong>${c.score || 0}/100</strong></p>
+                <button onclick="event.stopPropagation(); app.deleteClient(${i})" style="position:absolute; top:12px; right:12px; border:none; color:#EF4444; background:#FEE2E2; cursor:pointer; padding:4px 8px; border-radius:4px; font-size:0.7rem;">Delete</button>
+                <h3 style="margin:0">${c.name}</h3>
+                <p style="color:#6B7280; font-size:0.8rem;">${c.date}</p>
+                <div style="font-size:1.2rem; font-weight:800; color:var(--primary)">${c.score || 0}/100</div>
             </div>
         `).join('');
-        el.innerHTML = `<h1>Portfolio</h1><div class="grid">${cards || '<p>No clients yet.</p>'}</div>`;
+        el.innerHTML = `<h1 style="margin-bottom:2rem;">Client Portfolio</h1><div class="grid">${cards || '<p>No snaphosts yet. Click "+ New Snapshot" to begin.</p>'}</div>`;
     },
 
     renderInput(el) {
         el.innerHTML = `
             <div class="form-container">
                 <h2>New Snapshot</h2>
-                <input id="name" placeholder="Client Name">
-                <label>Upload Report Image</label>
-                <input type="file" id="file-input" accept="image/*">
-                <button class="btn" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze with AI</button>
-                <button class="btn" style="background:#6B7280; width:100%" onclick="app.view('manual-entry')">Manual Entry Only</button>
+                <label>Client Name</label>
+                <input id="name" type="text" placeholder="e.g. Nike Social">
+                
+                <label>Report File (PNG, JPG, PDF)</label>
+                <div id="drop-zone" class="drop-zone">
+                    <p id="drop-text">Drag & Drop Report or Click to Browse</p>
+                    <input type="file" id="file-input" hidden accept="image/*,application/pdf">
+                </div>
+                
+                <button class="btn" id="sub-btn" onclick="app.handleProcess()" style="width:100%">Analyze & Generate Snapshot</button>
                 <div id="debug-log"></div>
             </div>`;
+        this.initDropZone();
+    },
+
+    initDropZone() {
+        const zone = document.getElementById('drop-zone');
+        const input = document.getElementById('file-input');
+
+        zone.onclick = () => input.click();
+        
+        ['dragover', 'dragleave'].forEach(e => {
+            zone.addEventListener(e, (ev) => {
+                ev.preventDefault();
+                zone.classList.toggle('active', e === 'dragover');
+            });
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('active');
+            if (e.dataTransfer.files.length) {
+                this.currentFile = e.dataTransfer.files[0];
+                document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name;
+            }
+        });
+
+        input.onchange = (e) => {
+            if (input.files.length) {
+                this.currentFile = input.files[0];
+                document.getElementById('drop-text').innerText = "📄 " + this.currentFile.name;
+            }
+        };
     },
 
     async handleProcess() {
         const name = document.getElementById('name').value;
-        const file = document.getElementById('file-input').files[0];
         const btn = document.getElementById('sub-btn');
         const debug = document.getElementById('debug-log');
         
-        if (!name || !file) return alert("Missing name or file");
-        if (!this.apiKey) return alert("Add API key in settings first!");
+        if (!name || !this.currentFile) return alert("Please provide a name and a file.");
+        if (!this.apiKey) return alert("API Key missing! Check settings.");
 
-        btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Thinking...';
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="loader"></span> AI is reading report...';
         debug.style.display = 'none';
 
         try {
-            const base64 = await new Promise((res) => {
-                const r = new FileReader(); r.readAsDataURL(file);
-                r.onload = () => res(r.result.split(',')[1]);
-            });
+            const base64 = await this.toBase64(this.currentFile);
+            const mediaType = this.currentFile.type || "image/jpeg";
 
             const resp = await fetch("https://calm-rice-eb6b.morgan-2bf.workers.dev", {
                 method: 'POST',
@@ -135,36 +184,53 @@ const app = {
                     payload: {
                         model: "claude-3-5-sonnet-20240620",
                         max_tokens: 1024,
-                        messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } }, { type: "text", text: "Return ONLY JSON: {followers:number, reach:number, likes:number, comments:number, engRate:number}" }]}]
+                        messages: [{ 
+                            role: "user", 
+                            content: [
+                                { 
+                                    type: this.currentFile.type === "application/pdf" ? "document" : "image", 
+                                    source: { 
+                                        type: "base64", 
+                                        media_type: mediaType, 
+                                        data: base64 
+                                    } 
+                                }, 
+                                { type: "text", text: "Analyze this social media report. Extract: followers, reach, likes, comments, and engagement rate. Return ONLY a JSON object with these keys: followers, reach, likes, comments, engRate. Numbers only." }
+                            ]
+                        }]
                     }
                 })
             });
 
             const data = await resp.json();
+            if (data.error) throw new Error(data.error.message);
             
-            // Check for AI Errors
-            if (data.error) throw new Error("Anthropic Error: " + data.error.message);
-            if (!data.content) throw new Error("No data returned. Check your API credits.");
-
-            const metrics = JSON.parse(data.content[0].text);
-            this.saveClient(name, metrics);
+            const aiText = data.content[0].text;
+            const metrics = JSON.parse(aiText.match(/\{.*\}/s)[0]);
+            
+            // Score Calculation: (EngRate * 10) + (Reach/Followers * 20)
+            const score = Math.min(100, Math.round(((metrics.reach || 1) / (metrics.followers || 1) * 20) + (metrics.engRate || 0) * 10));
+            
+            this.clients.push({ name, ...metrics, score, date: new Date().toLocaleDateString() });
+            localStorage.setItem('eb_data', JSON.stringify(this.clients));
+            this.currentFile = null;
+            this.view('dashboard');
 
         } catch (e) {
-            btn.disabled = false; btn.innerText = 'Analyze with AI';
-            debug.innerText = "ERROR: " + e.message;
+            btn.disabled = false; btn.innerText = 'Analyze & Generate Snapshot';
+            debug.innerText = "Error: " + e.message;
             debug.style.display = 'block';
         }
     },
 
-    saveClient(name, m) {
-        const score = Math.min(100, Math.round(((m.reach || 1) / (m.followers || 1) * 30) + (m.engRate || 0) * 10));
-        this.clients.push({ name, ...m, score, date: new Date().toLocaleDateString() });
-        localStorage.setItem('eb_data', JSON.stringify(this.clients));
-        this.view('dashboard');
-    },
+    toBase64: (file) => new Promise((res, rej) => {
+        const r = new FileReader(); r.readAsDataURL(file);
+        r.onload = () => res(r.result.split(',')[1]);
+        r.onerror = e => rej(e);
+    }),
 
     deleteClient(i) {
-        if(confirm("Delete?")) {
+        if(confirm("Permanently delete this snapshot?")) {
             this.clients.splice(i, 1);
             localStorage.setItem('eb_data', JSON.stringify(this.clients));
             this.view('dashboard');
@@ -173,7 +239,22 @@ const app = {
 
     renderProfile(el, i) {
         const c = this.clients[i];
-        el.innerHTML = `<h1>${c.name}</h1><div class="card"><h3>Eng. Rate: ${c.engRate}%</h3><p>Followers: ${c.followers}</p><p>Reach: ${c.reach}</p></div><br><button class="btn" onclick="app.view('dashboard')">Back</button>`;
+        el.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h1>${c.name}</h1>
+                <button class="btn" style="background:#f3f4f6; color:black;" onclick="app.view('dashboard')">← Back</button>
+            </div>
+            <div class="grid" style="margin-top:2rem;">
+                <div class="card"><h3>Boost Score</h3><div style="font-size:2rem; font-weight:800; color:var(--primary)">${c.score}/100</div></div>
+                <div class="card"><h3>Engagement Rate</h3><div style="font-size:2rem; font-weight:800;">${c.engRate}%</div></div>
+            </div>
+            <div class="form-container" style="margin-top:1.5rem;">
+                <h3>Report Breakdown</h3>
+                <p>👥 Followers: <strong>${c.followers.toLocaleString()}</strong></p>
+                <p>📊 Reach: <strong>${c.reach.toLocaleString()}</strong></p>
+                <p>❤️ Likes: <strong>${c.likes.toLocaleString()}</strong></p>
+                <p>💬 Comments: <strong>${c.comments.toLocaleString()}</strong></p>
+            </div>`;
     }
 };
 app.init();
