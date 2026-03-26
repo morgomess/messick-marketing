@@ -9,27 +9,34 @@
         :root {
             --bg: #F4F5F7; --card: #FFFFFF; --primary: #5B7FFF; --primary-soft: #EEF2FF;
             --text: #1A1D23; --text-muted: #6B7280; --border: #E2E4E9;
-            --green: #10B981; --amber: #F59E0B; --red: #EF4444;
-            --red-bg: #FEF2F2;
+            --green: #10B981; --green-bg: #ECFDF5; --amber: #F59E0B; --amber-bg: #FFFBEB;
+            --red: #EF4444; --red-bg: #FEF2F2; --purple: #8B5CF6; --purple-bg: #F5F3FF;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; line-height: 1.5; }
 
         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 2rem; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
         .logo { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--primary); cursor: pointer; font-size: 1rem; letter-spacing: -0.5px; }
-        
-        main { padding: 2rem; max-width: 900px; margin: 0 auto; }
+        .nav-actions { display: flex; gap: 8px; }
+
+        main { padding: 2rem; max-width: 960px; margin: 0 auto; }
 
         .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
         .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg); }
         .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
-        .btn-danger { background: var(--red-bg); color: var(--red); }
+        .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #FECACA; }
+        .btn-danger:hover { background: #FEE2E2; }
+        .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .btn-icon:hover { background: var(--red-bg); color: var(--red); border-color: #FECACA; }
 
         .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
         label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem; }
-        input, select { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; }
-        
+        input, select { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; background: white; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
         .platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 1rem; }
         .platform-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; }
         .platform-item input { width: auto; margin-bottom: 0; cursor: pointer; }
@@ -37,22 +44,58 @@
         .drop-zone { border: 2px dashed var(--border); padding: 2.5rem 1rem; text-align: center; border-radius: 12px; cursor: pointer; background: #FAFBFC; transition: all 0.2s; }
         .drop-zone.active { border-color: var(--primary); background: var(--primary-soft); }
 
-        .loader { border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; }
+        .loader { border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; display: inline-block; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: transform 0.2s; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        
+
         .gap-box { background: var(--red-bg); border-left: 4px solid var(--red); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; }
+        .boost-box { border-left: 4px solid; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .boost-asap { background: var(--red-bg); border-color: var(--red); }
+        .boost-week { background: var(--amber-bg); border-color: var(--amber); }
+        .boost-month { background: var(--purple-bg); border-color: var(--purple); }
+        .boost-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .boost-tag-asap { background: var(--red); color: white; }
+        .boost-tag-week { background: var(--amber); color: white; }
+        .boost-tag-month { background: var(--purple); color: white; }
+
         .pitch-box { background: var(--primary-soft); border: 1px solid var(--primary); padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem; line-height: 1.6; display: none; font-size: 0.9rem; }
 
         .timeframe-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 4px; margin-bottom: 1rem; }
-        .timeframe-tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: none; background: transparent; }
+        .timeframe-tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: none; background: transparent; font-family: inherit; }
         .timeframe-tab.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
         .score-bar-bg { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin: 4px 0 12px; }
-        .score-bar-fill { height: 100%; transition: width 0.6s ease; }
+        .score-bar-fill { height: 100%; transition: width 0.6s ease; border-radius: 4px; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+        .stat-tile { background: var(--bg); border-radius: 10px; padding: 1rem; text-align: center; }
+        .stat-tile .val { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+        .stat-tile .lbl { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+        .platform-tab-row { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 4px; margin-bottom: 1.5rem; overflow-x: auto; }
+        .platform-tab-btn { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: none; background: transparent; font-family: inherit; white-space: nowrap; }
+        .platform-tab-btn.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        th { text-align: left; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border); }
+        td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+        .rank-num { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--primary-soft); color: var(--primary); font-weight: 800; font-size: 0.7rem; align-items: center; justify-content: center; }
+
+        .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .confirm-dialog { background: white; border-radius: 12px; padding: 2rem; max-width: 360px; width: 90%; text-align: center; }
+
+        .section-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; }
+
+        @media (max-width: 600px) {
+            main { padding: 1rem; }
+            .top-nav { padding: 0.75rem 1rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -67,7 +110,7 @@
 
 <main id="app-viewport"></main>
 
-<div id="settings-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
+<div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:100; display:none; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
     <div class="form-container" style="width:90%; max-width:400px; margin-bottom:0;">
         <h3>Configuration</h3>
         <label style="margin-top:1rem;">Anthropic API Key</label>
@@ -76,22 +119,88 @@
     </div>
 </div>
 
+<div id="delete-confirm" style="display:none;" class="confirm-overlay">
+    <div class="confirm-dialog">
+        <div style="font-size:2rem; margin-bottom:0.75rem;">🗑️</div>
+        <h3 id="delete-title" style="margin-bottom:0.5rem;">Delete this audit?</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">This action cannot be undone.</p>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-ghost" onclick="app.cancelDelete()" style="flex:1;">Cancel</button>
+            <button class="btn btn-danger" onclick="app.confirmDelete()" style="flex:1;">Delete</button>
+        </div>
+    </div>
+</div>
+
 <script>
+/* ─────────────────────────────────────────────────────────────
+   PLATFORM KPI CONFIG
+   Per-platform fields + granular interaction breakdowns
+   ───────────────────────────────────────────────────────────── */
 const PLATFORM_KPI_CONFIG = {
-    Instagram: ['followers', 'followerGrowth', 'reach', 'impressions', 'engRate', 'likes', 'comments', 'saves', 'postsPublished'],
-    TikTok: ['followers', 'followerGrowth', 'videoViews', 'shares', 'avgWatchTime', 'engRate', 'postsPublished'],
-    YouTube: ['followers', 'followerGrowth', 'videoViews', 'watchTime', 'impressions', 'engRate', 'postsPublished'],
-    Facebook: ['followers', 'reach', 'impressions', 'engRate', 'shares', 'postsPublished'],
-    LinkedIn: ['followers', 'impressions', 'engRate', 'comments', 'shares', 'postsPublished'],
-    Mixed: ['followers', 'followerGrowth', 'reach', 'impressions', 'engRate', 'likes', 'comments', 'shares', 'postsPublished']
+    Instagram: {
+        global: ['followers', 'followersGained', 'followersLost', 'reach', 'impressions'],
+        interactions: ['likes', 'comments', 'shares', 'saves'],
+        content: { standard: ['likes', 'comments', 'shares', 'saves', 'reach', 'impressions'], reels: ['likes', 'comments', 'shares', 'saves', 'plays', 'reach'] },
+        meta: ['postsPublished', 'reelsPublished', 'engRate', 'avgDailyReach']
+    },
+    TikTok: {
+        global: ['followers', 'followersGained', 'followersLost', 'videoViews', 'impressions'],
+        interactions: ['likes', 'comments', 'shares'],
+        content: { standard: ['likes', 'comments', 'shares', 'videoViews', 'avgWatchTime'] },
+        meta: ['postsPublished', 'engRate', 'avgDailyReach']
+    },
+    YouTube: {
+        global: ['followers', 'followersGained', 'followersLost', 'videoViews', 'impressions', 'watchTime'],
+        interactions: ['likes', 'comments', 'shares', 'dislikes'],
+        content: { standard: ['likes', 'comments', 'shares', 'dislikes', 'videoViews', 'watchTime'] },
+        meta: ['postsPublished', 'engRate', 'avgDailyReach']
+    },
+    Facebook: {
+        global: ['followers', 'followersGained', 'followersLost', 'reach', 'impressions'],
+        interactions: ['likes', 'comments', 'shares', 'clicks'],
+        content: { standard: ['likes', 'comments', 'shares', 'clicks', 'reach', 'impressions'], reels: ['likes', 'comments', 'shares', 'plays'] },
+        meta: ['postsPublished', 'reelsPublished', 'engRate', 'avgDailyReach']
+    },
+    LinkedIn: {
+        global: ['followers', 'followersGained', 'followersLost', 'impressions'],
+        interactions: ['likes', 'comments', 'shares', 'clicks'],
+        content: { standard: ['likes', 'comments', 'shares', 'clicks', 'impressions'] },
+        meta: ['postsPublished', 'engRate']
+    }
 };
 
+/* All possible fields across all platforms (for extraction prompt) */
+const ALL_FIELDS = ['followers','followersGained','followersLost','reach','impressions','videoViews','watchTime','likes','comments','shares','saves','clicks','dislikes','plays','postsPublished','reelsPublished','engRate','avgWatchTime','avgDailyReach'];
+
+const FIELD_LABELS = {
+    followers: 'Followers', followersGained: 'Gained', followersLost: 'Lost',
+    reach: 'Reach', impressions: 'Impressions', videoViews: 'Video Views',
+    watchTime: 'Watch Time (hrs)', likes: 'Likes', comments: 'Comments',
+    shares: 'Shares', saves: 'Saves', clicks: 'Clicks', dislikes: 'Dislikes',
+    plays: 'Plays', postsPublished: 'Posts', reelsPublished: 'Reels',
+    engRate: 'Eng. Rate %', avgWatchTime: 'Avg Watch Time', avgDailyReach: 'Avg Daily Reach',
+    followerGrowth: 'Growth %'
+};
+
+function fmt(n) {
+    if (n === undefined || n === null) return '0';
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return n.toLocaleString();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   APP
+   ───────────────────────────────────────────────────────────── */
 const app = {
-    clients: JSON.parse(localStorage.getItem('eb_audit_data')) || [],
+    clients: JSON.parse(localStorage.getItem('eb_audit_data_v2')) || [],
     apiKey: localStorage.getItem('eb_ant_key') || '',
     currentPlatforms: [],
-    tempMetrics: null,
+    tempData: null,
     currentFile: null,
+    deleteIndex: -1,
+
+    persist() { localStorage.setItem('eb_audit_data_v2', JSON.stringify(this.clients)); },
 
     init() {
         if (!sessionStorage.getItem('eb_auth')) this.renderLogin();
@@ -125,6 +234,59 @@ const app = {
         window.scrollTo(0, 0);
     },
 
+    /* ── DELETE ── */
+    promptDelete(i, e) {
+        e.stopPropagation();
+        this.deleteIndex = i;
+        document.getElementById('delete-title').textContent = `Delete "${this.clients[i].name}"?`;
+        document.getElementById('delete-confirm').style.display = 'flex';
+    },
+    cancelDelete() {
+        this.deleteIndex = -1;
+        document.getElementById('delete-confirm').style.display = 'none';
+    },
+    confirmDelete() {
+        if (this.deleteIndex >= 0) {
+            this.clients.splice(this.deleteIndex, 1);
+            this.persist();
+        }
+        this.cancelDelete();
+        this.view('dashboard');
+    },
+
+    /* ── DASHBOARD ── */
+    renderDashboard(el) {
+        if (this.clients.length === 0) {
+            el.innerHTML = `
+                <div style="text-align:center; padding:4rem 1rem;">
+                    <div style="font-size:3rem; margin-bottom:1rem;">📊</div>
+                    <h2 style="margin-bottom:0.5rem;">No Audits Yet</h2>
+                    <p style="color:var(--text-muted); margin-bottom:1.5rem; font-size:0.9rem;">Upload a Metricool report or enter metrics manually to get started.</p>
+                    <button class="btn btn-primary" onclick="app.view('input')">+ New Audit</button>
+                </div>`;
+            return;
+        }
+
+        const cards = this.clients.map((c, i) => {
+            const h = this.calcHealth(c);
+            return `
+            <div class="card" onclick="app.view('profile', ${i})">
+                <button class="btn-icon" onclick="app.promptDelete(${i}, event)" title="Delete audit" style="position:absolute; top:12px; right:12px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+                <div style="font-weight:800; margin-bottom:2px;">${c.name}</div>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem;">${c.platforms.join(' + ')} &middot; ${c.date}</div>
+                <div style="display:flex; align-items:baseline; gap:6px;">
+                    <span style="font-size:2rem; font-weight:800; color:${h.total > 65 ? 'var(--green)' : h.total > 40 ? 'var(--amber)' : 'var(--red)'}">${h.total}</span>
+                    <span style="font-size:0.8rem; color:var(--text-muted)">/100</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `<h2 style="margin-bottom:1.5rem;">Audits</h2><div class="grid">${cards}</div>`;
+    },
+
+    /* ── INPUT ── */
     renderInput(el) {
         el.innerHTML = `
             <div class="form-container" style="max-width:600px; margin:0 auto;">
@@ -135,11 +297,9 @@ const app = {
 
                 <label>Select Platforms (Multi-Select)</label>
                 <div class="platform-grid">
-                    <label class="platform-item"><input type="checkbox" name="platform" value="Instagram" checked> Instagram</label>
-                    <label class="platform-item"><input type="checkbox" name="platform" value="TikTok"> TikTok</label>
-                    <label class="platform-item"><input type="checkbox" name="platform" value="YouTube"> YouTube</label>
-                    <label class="platform-item"><input type="checkbox" name="platform" value="Facebook"> Facebook</label>
-                    <label class="platform-item"><input type="checkbox" name="platform" value="LinkedIn"> LinkedIn</label>
+                    ${Object.keys(PLATFORM_KPI_CONFIG).map(p => `
+                        <label class="platform-item"><input type="checkbox" name="platform" value="${p}" ${p === 'Instagram' ? 'checked' : ''}> ${p}</label>
+                    `).join('')}
                 </div>
 
                 <label>Upload Metricool / Analytics Report</label>
@@ -161,27 +321,9 @@ const app = {
         const zone = document.getElementById('drop-zone');
         const input = document.getElementById('file-input');
         zone.onclick = () => input.click();
-
-        ['dragover', 'dragenter'].forEach(name => {
-            zone.addEventListener(name, (e) => {
-                e.preventDefault();
-                zone.classList.add('active');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach(name => {
-            zone.addEventListener(name, (e) => {
-                e.preventDefault();
-                zone.classList.remove('active');
-            });
-        });
-
-        zone.addEventListener('drop', (e) => {
-            if (e.dataTransfer.files.length) {
-                this.setFile(e.dataTransfer.files[0]);
-            }
-        });
-
+        ['dragover','dragenter'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.add('active'); }));
+        ['dragleave','drop'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.remove('active'); }));
+        zone.addEventListener('drop', e => { if (e.dataTransfer.files.length) this.setFile(e.dataTransfer.files[0]); });
         input.onchange = () => { if (input.files.length) this.setFile(input.files[0]); };
     },
 
@@ -194,12 +336,14 @@ const app = {
         return Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
     },
 
+    /* ── EXTRACT ── */
     async extractData() {
         const name = document.getElementById('client-name').value;
         const platforms = this.getSelectedPlatforms();
         const debug = document.getElementById('debug-log');
         if (!name || !this.currentFile) return alert('Name and File are required.');
-        
+        if (platforms.length === 0) return alert('Select at least one platform.');
+
         const btn = document.getElementById('extract-btn');
         btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Scanning Data...';
         debug.style.display = 'none';
@@ -210,6 +354,15 @@ const app = {
                 r.onload = () => res(r.result.split(',')[1]);
             });
 
+            const fieldsNeeded = new Set();
+            platforms.forEach(p => {
+                const cfg = PLATFORM_KPI_CONFIG[p];
+                [...cfg.global, ...cfg.interactions, ...cfg.meta].forEach(f => fieldsNeeded.add(f));
+            });
+
+            const fieldList = Array.from(fieldsNeeded);
+            const jsonShape = '{' + fieldList.map(f => `"${f}":num`).join(', ') + '}';
+
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -217,20 +370,37 @@ const app = {
                     apiKey: this.apiKey,
                     payload: {
                         model: 'claude-haiku-4-5-20251001',
-                        max_tokens: 1024,
+                        max_tokens: 1500,
                         messages: [{
                             role: 'user',
                             content: [
                                 { type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } },
-                                { type: 'text', text: `You are extracting metrics from a social media report. 
-                                Match these synonyms and return ONLY valid JSON. If a value is missing, return 0.
-                                Convert abbreviations like 1.2K to 1200 or 1.5M to 1500000.
-                                - Followers: audience, community, total followers.
-                                - FollowerGrowth: new followers, growth %, net growth.
-                                - Reach: unique reach, accounts reached.
-                                - Impressions: views, total impressions.
-                                - EngRate: ER, interaction rate, engagement rate.
-                                Return JSON: {"followers":num, "followerGrowth":num, "reach":num, "impressions":num, "engRate":num, "likes":num, "comments":num, "shares":num, "saves":num, "postsPublished":num}` }
+                                { type: 'text', text: `You are extracting metrics from a social media analytics report (likely Metricool).
+Match these synonyms and return ONLY valid JSON. If a value is missing, return 0.
+Convert abbreviations like 1.2K to 1200 or 1.5M to 1500000.
+
+Field mappings:
+- followers: audience, community, total followers
+- followersGained: new followers, gained, subscriber growth
+- followersLost: lost followers, unfollowed
+- reach: unique reach, accounts reached
+- impressions: views, total impressions
+- videoViews: video views, total views
+- watchTime: watch time hours
+- likes: likes, reactions, hearts
+- comments: comments, replies
+- shares: shares, reposts, retweets
+- saves: saves, bookmarks
+- clicks: link clicks, profile clicks, website clicks
+- dislikes: dislikes, thumbs down
+- plays: reel plays, video plays
+- postsPublished: posts published, content count, total posts
+- reelsPublished: reels published, shorts published
+- engRate: engagement rate, ER, interaction rate (as percentage)
+- avgWatchTime: average watch time (seconds)
+- avgDailyReach: average daily reach
+
+If you see per-platform breakdowns, combine them. Return JSON: ${jsonShape}` }
                             ]
                         }]
                     }
@@ -238,20 +408,16 @@ const app = {
             });
 
             const data = await resp.json();
-
-            // FIX #3: Validate API response structure before accessing nested properties
-            if (data.error) {
-                throw new Error(data.error.message || 'API returned an error. Check your API key in Settings.');
-            }
+            if (data.error) throw new Error(data.error.message || 'API returned an error. Check your API key in Settings.');
             if (!data.content || !Array.isArray(data.content) || !data.content[0] || !data.content[0].text) {
                 throw new Error('Unexpected API response format. Check your API key and try again.');
             }
 
             const raw = data.content[0].text.match(/\{.*\}/s);
             if (!raw) throw new Error("AI returned invalid data format.");
-            
-            this.tempMetrics = JSON.parse(raw[0]);
-            this.tempMetrics.name = name;
+
+            this.tempData = JSON.parse(raw[0]);
+            this.tempData._name = name;
             this.currentPlatforms = platforms;
             this.view('confirm');
         } catch (e) {
@@ -262,53 +428,155 @@ const app = {
         }
     },
 
+    /* ── CONFIRM ── */
     renderConfirm(el) {
-        const m = this.tempMetrics || {};
-        const fields = new Set();
-        this.currentPlatforms.forEach(p => PLATFORM_KPI_CONFIG[p].forEach(f => fields.add(f)));
-        
-        const rows = Array.from(fields).map(f => `
+        const m = this.tempData || {};
+        const platforms = this.currentPlatforms;
+
+        // Collect all unique fields needed
+        const allFields = new Set();
+        platforms.forEach(p => {
+            const cfg = PLATFORM_KPI_CONFIG[p];
+            [...cfg.global, ...cfg.interactions, ...cfg.meta].forEach(f => allFields.add(f));
+        });
+
+        const fieldArr = Array.from(allFields);
+        const rows = fieldArr.map(f => `
             <div>
-                <label style="font-size:0.65rem;">${f.replace(/([A-Z])/g, ' $1').toUpperCase()}</label>
-                <input type="number" id="conf-${f}" value="${m[f] || 0}" style="margin-bottom:0.5rem;">
+                <label style="font-size:0.6rem;">${(FIELD_LABELS[f] || f).toUpperCase()}</label>
+                <input type="number" id="conf-${f}" value="${m[f] || 0}" step="any" style="margin-bottom:0.5rem;">
             </div>
         `).join('');
 
         el.innerHTML = `
-            <div class="form-container" style="max-width:540px; margin:0 auto;">
+            <div class="form-container" style="max-width:600px; margin:0 auto;">
                 <h3>Verify Audit Data</h3>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Correct any missing metrics for: ${this.currentPlatforms.join(', ')}.</p>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">${rows}</div>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Platforms: <strong>${platforms.join(', ')}</strong></p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">Correct any values below. Zero means not detected.</p>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.75rem;">${rows}</div>
+
+                <div style="margin-top:1.5rem;">
+                    <label>Top Content (Optional, one per line: "Post title | platform | likes | comments | shares | reach")</label>
+                    <textarea id="content-entries" rows="5" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | 342 | 28 | 15 | 4200"></textarea>
+                </div>
+
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.5rem;">Generate Audit</button>
             </div>`;
     },
 
+    /* ── SAVE AUDIT ── */
     saveAudit() {
-        const fields = new Set();
-        this.currentPlatforms.forEach(p => PLATFORM_KPI_CONFIG[p].forEach(f => fields.add(f)));
-        const final = { name: this.tempMetrics.name, platforms: this.currentPlatforms, date: new Date().toLocaleDateString() };
-        
-        fields.forEach(f => { final[f] = parseFloat(document.getElementById(`conf-${f}`).value) || 0; });
+        const platforms = this.currentPlatforms;
+        const allFields = new Set();
+        platforms.forEach(p => {
+            const cfg = PLATFORM_KPI_CONFIG[p];
+            [...cfg.global, ...cfg.interactions, ...cfg.meta].forEach(f => allFields.add(f));
+        });
 
-        if (!final.engRate && final.reach > 0) {
-            const interactions = (final.likes || 0) + (final.comments || 0) + (final.shares || 0) + (final.saves || 0);
-            final.engRate = parseFloat(((interactions / final.reach) * 100).toFixed(2));
+        // Build the audit object following Global-to-Local hierarchy
+        const audit = {
+            name: this.tempData._name,
+            platforms: platforms,
+            date: new Date().toLocaleDateString(),
+            global: {},
+            perPlatform: {},
+            topContent: []
+        };
+
+        // Gather raw values
+        const raw = {};
+        allFields.forEach(f => { raw[f] = parseFloat(document.getElementById(`conf-${f}`).value) || 0; });
+
+        // Global aggregates
+        audit.global = {
+            followers: raw.followers || 0,
+            followersGained: raw.followersGained || 0,
+            followersLost: raw.followersLost || 0,
+            followerBalance: (raw.followersGained || 0) - (raw.followersLost || 0),
+            totalContent: (raw.postsPublished || 0) + (raw.reelsPublished || 0),
+            reach: raw.reach || 0,
+            impressions: raw.impressions || 0,
+            avgDailyReach: raw.avgDailyReach || 0,
+            engRate: raw.engRate || 0,
+            totalInteractions: (raw.likes||0) + (raw.comments||0) + (raw.shares||0) + (raw.saves||0) + (raw.clicks||0)
+        };
+
+        // Auto-calc eng rate if missing
+        if (!audit.global.engRate && audit.global.reach > 0) {
+            audit.global.engRate = parseFloat(((audit.global.totalInteractions / audit.global.reach) * 100).toFixed(2));
+        }
+        // Auto-calc avg daily reach if missing (assume 30 day window)
+        if (!audit.global.avgDailyReach && audit.global.reach > 0) {
+            audit.global.avgDailyReach = Math.round(audit.global.reach / 30);
         }
 
-        this.clients.push(final);
-        localStorage.setItem('eb_audit_data', JSON.stringify(this.clients));
+        // Per-platform child objects
+        platforms.forEach(p => {
+            const cfg = PLATFORM_KPI_CONFIG[p];
+            const plat = { global: {}, interactions: {}, meta: {} };
+            cfg.global.forEach(f => plat.global[f] = raw[f] || 0);
+            cfg.interactions.forEach(f => plat.interactions[f] = raw[f] || 0);
+            cfg.meta.forEach(f => plat.meta[f] = raw[f] || 0);
+            // Content type arrays (standard vs reels)
+            plat.contentTypes = {};
+            Object.keys(cfg.content).forEach(type => {
+                plat.contentTypes[type] = {};
+                cfg.content[type].forEach(f => plat.contentTypes[type][f] = raw[f] || 0);
+            });
+            audit.perPlatform[p] = plat;
+        });
+
+        // Granular interaction totals per platform
+        audit.granular = {
+            likes: raw.likes || 0,
+            comments: raw.comments || 0,
+            shares: raw.shares || 0,
+            saves: raw.saves || 0,
+            clicks: raw.clicks || 0,
+            dislikes: raw.dislikes || 0
+        };
+
+        // Parse top content entries
+        const contentText = document.getElementById('content-entries').value.trim();
+        if (contentText) {
+            contentText.split('\n').forEach((line, idx) => {
+                const parts = line.split('|').map(s => s.trim());
+                if (parts.length >= 2) {
+                    audit.topContent.push({
+                        rank: idx + 1,
+                        title: parts[0] || 'Untitled',
+                        platform: parts[1] || platforms[0],
+                        likes: parseInt(parts[2]) || 0,
+                        comments: parseInt(parts[3]) || 0,
+                        shares: parseInt(parts[4]) || 0,
+                        reach: parseInt(parts[5]) || 0,
+                        totalEng: (parseInt(parts[2])||0) + (parseInt(parts[3])||0) + (parseInt(parts[4])||0)
+                    });
+                }
+            });
+        }
+
+        this.clients.push(audit);
+        this.persist();
         this.view('profile', this.clients.length - 1);
     },
 
+    /* ── HEALTH SCORE ── */
     calcHealth(c) {
-        const engScore = Math.min(100, (c.engRate / 4) * 100);
+        const g = c.global || {};
+        const engRate = g.engRate || c.engRate || 0;
+        const engScore = Math.min(100, (engRate / 4) * 100);
 
-        // FIX #1: Default followerGrowth to 0 when the platform doesn't track it
-        const growth = c.followerGrowth || 0;
-        const growthScore = Math.min(100, (growth / 8) * 100);
+        const gained = g.followersGained || c.followersGained || c.followerGrowth || 0;
+        const followers = g.followers || c.followers || 1;
+        const growthPct = followers > 0 ? (gained / followers) * 100 : 0;
+        const growthScore = Math.min(100, (growthPct / 8) * 100);
 
-        const freqScore = Math.min(100, ((c.postsPublished || 4) / 12) * 100);
+        const totalContent = g.totalContent || c.postsPublished || 4;
+        const freqScore = Math.min(100, (totalContent / 12) * 100);
+
         const total = Math.round((engScore * 0.4) + (growthScore * 0.3) + (freqScore * 0.3));
+
         return {
             total,
             breakdown: [
@@ -319,37 +587,120 @@ const app = {
         };
     },
 
-    getGaps(c) {
-        const gaps = [];
-        // FIX #2: Benchmark text now matches the condition threshold (2.5%)
-        if (c.engRate < 2.5) gaps.push({ title: "Low Engagement", desc: `Current rate (${c.engRate}%) is under the 2.5% benchmark.` });
-        if (c.reach > c.followers * 2 && c.engRate < 2) gaps.push({ title: "Passive Audience", desc: "High reach but low interaction. Content needs stronger hooks." });
-        return gaps;
+    /* ── BOOST SUGGESTIONS (ASAP / 1-Week / 4-Week) ── */
+    getBoosts(c) {
+        const boosts = [];
+        const g = c.global || {};
+        const gr = c.granular || {};
+        const engRate = g.engRate || c.engRate || 0;
+        const reach = g.reach || c.reach || 0;
+        const impressions = g.impressions || c.impressions || 0;
+        const avgDailyReach = g.avgDailyReach || 0;
+        const followersGained = g.followersGained || c.followersGained || 0;
+        const totalContent = g.totalContent || c.postsPublished || 0;
+        const dislikes = gr.dislikes || c.dislikes || 0;
+        const likes = gr.likes || c.likes || 0;
+
+        // ── ASAP: high-dislike ratio or low-interaction high-impression
+        if (dislikes > 0 && likes > 0 && (dislikes / likes) > 0.15) {
+            boosts.push({ tier: 'asap', title: 'High Dislike Ratio', desc: `Dislike-to-like ratio is ${((dislikes/likes)*100).toFixed(1)}%. Review recent content for polarizing hooks or misleading thumbnails. Rewrite CTAs to match content delivery.` });
+        }
+        if (impressions > 500 && engRate < 1.5) {
+            boosts.push({ tier: 'asap', title: 'Low Interaction Despite Impressions', desc: `${fmt(impressions)} impressions but only ${engRate}% engagement. Content is being shown but not connecting. Fix hooks and CTAs immediately.` });
+        }
+        if (engRate < 2.5) {
+            boosts.push({ tier: 'asap', title: 'Engagement Below Benchmark', desc: `Current rate (${engRate}%) is under the 2.5% benchmark. Prioritize reply-worthy captions and strong visual hooks.` });
+        }
+
+        // ── 1-WEEK: hashtag optimization, content format shifts
+        if (reach > 0 && engRate < 3) {
+            boosts.push({ tier: 'week', title: 'Hashtag & Hook Optimization', desc: 'Audit your top 5 hashtags for reach vs. competition balance. Replace broad tags with niche-specific ones. Test 3 new hook formats this week.' });
+        }
+        if (totalContent < 8) {
+            boosts.push({ tier: 'week', title: 'Increase Post Frequency', desc: `Only ${totalContent} posts this period. Aim for 3+ posts per week. Batch-create carousel and short-form video content.` });
+        }
+
+        // ── 4-WEEK: seasonal strategy, subscriber growth
+        if (followersGained < 10 && (c.platforms || []).includes('YouTube')) {
+            boosts.push({ tier: 'month', title: 'YouTube Subscriber Push', desc: `Only ${followersGained} subscribers gained. Launch a 4-week series with clear subscribe CTAs. Add end screens and pinned comments.` });
+        }
+        if (avgDailyReach > 0 && avgDailyReach < 200 && (c.platforms || []).includes('Instagram')) {
+            boosts.push({ tier: 'month', title: 'Instagram Reach Recovery', desc: `Avg daily reach is ${avgDailyReach}. Plan a 4-week content wave: 3 Reels/week + daily Stories + 2 carousels/week to rebuild algorithm momentum.` });
+        }
+        if (g.followers > 500 && engRate < 2) {
+            boosts.push({ tier: 'month', title: 'Audience Re-engagement Campaign', desc: 'Large following with low engagement signals a stale audience. Run a 4-week "reactivation" campaign: polls, Q&As, UGC prompts, and giveaway to resurface with followers.' });
+        }
+
+        return boosts;
     },
 
+    /* ── PROFILE VIEW ── */
     renderProfile(el, i) {
         const c = this.clients[i];
         const health = this.calcHealth(c);
-        const gaps = this.getGaps(c);
+        const boosts = this.getBoosts(c);
+        const g = c.global || {};
+        const gr = c.granular || {};
+
+        // Global stats
+        const globalStats = [
+            { lbl: 'Followers', val: fmt(g.followers || c.followers || 0) },
+            { lbl: 'Gained / Lost', val: `+${fmt(g.followersGained||0)} / -${fmt(g.followersLost||0)}` },
+            { lbl: 'Reach', val: fmt(g.reach || c.reach || 0) },
+            { lbl: 'Impressions', val: fmt(g.impressions || c.impressions || 0) },
+            { lbl: 'Eng. Rate', val: (g.engRate || c.engRate || 0) + '%' },
+            { lbl: 'Total Content', val: g.totalContent || c.postsPublished || 0 }
+        ];
+
+        // Granular interaction stats
+        const interactionStats = [
+            { lbl: 'Likes', val: fmt(gr.likes || c.likes || 0) },
+            { lbl: 'Comments', val: fmt(gr.comments || c.comments || 0) },
+            { lbl: 'Shares', val: fmt(gr.shares || c.shares || 0) },
+            { lbl: 'Saves', val: fmt(gr.saves || c.saves || 0) },
+            { lbl: 'Clicks', val: fmt(gr.clicks || c.clicks || 0) },
+            { lbl: 'Dislikes', val: fmt(gr.dislikes || c.dislikes || 0) }
+        ].filter(s => parseInt(String(s.val).replace(/[^0-9]/g,'')) > 0 || s.lbl === 'Likes');
+
+        // Platform tabs
+        const platforms = c.platforms || [];
+        const hasPlatformData = c.perPlatform && Object.keys(c.perPlatform).length > 0;
+
+        // Top content table
+        const topContent = (c.topContent || []).sort((a,b) => b.totalEng - a.totalEng).slice(0, 10);
+
+        // Boost sections
+        const boostHTML = boosts.length > 0 ? boosts.map(b => `
+            <div class="boost-box boost-${b.tier}">
+                <span class="boost-tag boost-tag-${b.tier}">${b.tier === 'asap' ? '⚡ ASAP' : b.tier === 'week' ? '📅 1-Week' : '📊 4-Week'}</span>
+                <div><strong>${b.title}</strong></div>
+                <div style="margin-top:4px;">${b.desc}</div>
+            </div>
+        `).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No critical boosts triggered. Performance is within acceptable ranges.</p>';
 
         el.innerHTML = `
-            <div style="max-width:700px; margin:0 auto;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem;">
+            <div style="max-width:760px; margin:0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
                     <div>
                         <h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">${c.platforms.join(' + ')} Audit</span>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${c.date}</span>
                     </div>
-                    <button class="btn btn-ghost btn-sm" onclick="app.view('dashboard')">&larr; Back</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button>
+                        <button class="btn btn-ghost btn-sm" onclick="app.view('dashboard')">&larr; Back</button>
+                    </div>
                 </div>
 
+                <!-- PITCH BOX -->
                 <div class="pitch-box" id="pitch-box">
                     <strong>Pitch Summary:</strong><br>
-                    "This account has a Health Score of ${health.total}/100. We can fix the engagement gap by shifting to higher-dwell content formats."
+                    "This account has a Health Score of ${health.total}/100 across ${platforms.join(' + ')}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"
                 </div>
 
-                <div class="grid">
+                <!-- HEALTH SCORE + GLOBAL STATS -->
+                <div class="grid" style="margin-bottom:1.5rem;">
                     <div class="form-container" style="text-align:center;">
-                        <div style="font-size:3.5rem; font-weight:800; color:${health.total > 65 ? 'var(--green)' : 'var(--amber)'}">${health.total}</div>
+                        <div style="font-size:3.5rem; font-weight:800; color:${health.total > 65 ? 'var(--green)' : health.total > 40 ? 'var(--amber)' : 'var(--red)'}">${health.total}</div>
                         <label>Health Score</label>
                         <div style="margin-top:1.5rem; text-align:left;">
                             ${health.breakdown.map(b => `
@@ -359,68 +710,184 @@ const app = {
                         </div>
                         <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:1rem;" onclick="document.getElementById('pitch-box').style.display='block'">Pitch Mode</button>
                     </div>
-
                     <div class="form-container">
-                        <h3 style="margin-bottom:1rem; font-size:1rem;">Audit Finding</h3>
-                        ${gaps.map(g => `<div class="gap-box"><strong>${g.title}:</strong> ${g.desc}</div>`).join('')}
+                        <div class="section-label">Global Dashboard</div>
+                        <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            ${globalStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}
+                        </div>
                     </div>
                 </div>
 
+                <!-- GRANULAR INTERACTIONS -->
+                <div class="form-container">
+                    <div class="section-label">Granular Interactions</div>
+                    <div class="stat-grid">
+                        ${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}
+                    </div>
+                </div>
+
+                <!-- TOP CONTENT RANKING TABLE -->
+                ${topContent.length > 0 ? `
+                <div class="form-container">
+                    <div class="section-label">Top Content Ranking</div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr><th>#</th><th>Content</th><th>Platform</th><th>Likes</th><th>Comments</th><th>Shares</th><th>Reach</th><th>Total Eng.</th></tr>
+                            </thead>
+                            <tbody>
+                                ${topContent.map((tc, idx) => `
+                                    <tr>
+                                        <td><span class="rank-num">${idx+1}</span></td>
+                                        <td style="font-weight:600; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tc.title}</td>
+                                        <td>${tc.platform}</td>
+                                        <td>${fmt(tc.likes)}</td>
+                                        <td>${fmt(tc.comments)}</td>
+                                        <td>${fmt(tc.shares)}</td>
+                                        <td>${fmt(tc.reach)}</td>
+                                        <td style="font-weight:700;">${fmt(tc.totalEng)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>` : ''}
+
+                <!-- PER-PLATFORM TABS -->
+                ${hasPlatformData ? `
+                <div class="form-container">
+                    <div class="section-label">Platform Breakdown</div>
+                    <div class="platform-tab-row">
+                        ${platforms.map((p, idx) => `<button class="platform-tab-btn ${idx === 0 ? 'active' : ''}" onclick="app.showPlatformTab('${p}', this)">${p}</button>`).join('')}
+                    </div>
+                    <div id="platform-detail"></div>
+                </div>` : ''}
+
+                <!-- BOOST SUGGESTIONS -->
+                <div class="form-container">
+                    <div class="section-label">Boost Suggestions</div>
+                    ${boostHTML}
+                </div>
+
+                <!-- STRATEGIC PLAN -->
                 <div class="form-container">
                     <h3 style="margin-bottom:1rem;">Strategic Plan</h3>
                     <div class="timeframe-tabs">
                         <button class="timeframe-tab active" onclick="app.showTab('win', this)">Quick Wins</button>
                         <button class="timeframe-tab" onclick="app.showTab('week', this)">1-Week Fix</button>
+                        <button class="timeframe-tab" onclick="app.showTab('month', this)">4-Week Plan</button>
                     </div>
-                    <div id="strategy-content" style="font-size:0.9rem;">
-                        <ul><li>Pin top performing post.</li><li>Stronger hooks in first line.</li><li>Respond to comments ASAP.</li></ul>
+                    <div id="strategy-content" style="font-size:0.9rem; line-height:1.7;">
+                        ${this.getStrategyHTML('win')}
                     </div>
                 </div>
             </div>`;
+
+        // Show first platform tab
+        if (hasPlatformData && platforms.length > 0) {
+            this.showPlatformTab(platforms[0]);
+        }
+    },
+
+    showPlatformTab(platform, btn) {
+        document.querySelectorAll('.platform-tab-btn').forEach(t => t.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        else document.querySelector(`.platform-tab-btn`)?.classList.add('active');
+
+        const detail = document.getElementById('platform-detail');
+        const currentAuditIndex = this.clients.length - 1;
+        // Find the audit that's currently being viewed
+        const profileHeading = document.querySelector('h1');
+        let auditData = null;
+        for (const c of this.clients) {
+            if (c.perPlatform && c.perPlatform[platform]) {
+                if (profileHeading && profileHeading.textContent === c.name) {
+                    auditData = c.perPlatform[platform];
+                    break;
+                }
+            }
+        }
+        if (!auditData) { detail.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">No detailed data for this platform.</p>'; return; }
+
+        const sections = [];
+
+        // Platform globals
+        if (auditData.global) {
+            const items = Object.entries(auditData.global).filter(([k,v]) => v > 0);
+            if (items.length > 0) {
+                sections.push(`<div class="section-label" style="margin-top:0.5rem;">Overview</div>
+                    <div class="stat-grid">${items.map(([k,v]) => `<div class="stat-tile"><div class="val">${fmt(v)}</div><div class="lbl">${FIELD_LABELS[k]||k}</div></div>`).join('')}</div>`);
+            }
+        }
+
+        // Interactions
+        if (auditData.interactions) {
+            const items = Object.entries(auditData.interactions).filter(([k,v]) => v > 0);
+            if (items.length > 0) {
+                sections.push(`<div class="section-label">Interactions</div>
+                    <div class="stat-grid">${items.map(([k,v]) => `<div class="stat-tile"><div class="val">${fmt(v)}</div><div class="lbl">${FIELD_LABELS[k]||k}</div></div>`).join('')}</div>`);
+            }
+        }
+
+        // Content types (standard vs reels)
+        if (auditData.contentTypes) {
+            Object.entries(auditData.contentTypes).forEach(([type, fields]) => {
+                const items = Object.entries(fields).filter(([k,v]) => v > 0);
+                if (items.length > 0) {
+                    sections.push(`<div class="section-label">${type === 'standard' ? 'Standard Posts' : 'Reels / Video'}</div>
+                        <div class="stat-grid">${items.map(([k,v]) => `<div class="stat-tile"><div class="val">${fmt(v)}</div><div class="lbl">${FIELD_LABELS[k]||k}</div></div>`).join('')}</div>`);
+                }
+            });
+        }
+
+        detail.innerHTML = sections.length > 0 ? sections.join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">All values are zero for this platform.</p>';
+    },
+
+    getStrategyHTML(type) {
+        if (type === 'win') return `
+            <p style="margin-bottom:0.5rem;"><strong>1.</strong> Pin your top-performing post to the profile grid.</p>
+            <p style="margin-bottom:0.5rem;"><strong>2.</strong> Rewrite the first line of your next 3 posts with a stronger hook (question, stat, or bold claim).</p>
+            <p style="margin-bottom:0.5rem;"><strong>3.</strong> Respond to every comment within 60 minutes of posting.</p>
+            <p><strong>4.</strong> Add a clear CTA to your bio and latest post caption.</p>`;
+        if (type === 'week') return `
+            <p style="margin-bottom:0.5rem;"><strong>1.</strong> Publish 3 saveable carousels (educational, tip-based, or myth-busting).</p>
+            <p style="margin-bottom:0.5rem;"><strong>2.</strong> Run an engagement poll or "this or that" in Stories daily.</p>
+            <p style="margin-bottom:0.5rem;"><strong>3.</strong> Audit and swap underperforming hashtags. Replace broad tags with 5 niche-specific ones.</p>
+            <p><strong>4.</strong> Post one Reel using a trending audio with a niche-relevant hook.</p>`;
+        if (type === 'month') return `
+            <p style="margin-bottom:0.5rem;"><strong>Week 1:</strong> Content audit. Identify your top 5 posts from the last 90 days. Reverse-engineer the format, hook, and topic. Build 8 new posts from that template.</p>
+            <p style="margin-bottom:0.5rem;"><strong>Week 2:</strong> Launch a themed content series (e.g., "Myth Monday" or "Patient Story Friday"). Consistency builds anticipation.</p>
+            <p style="margin-bottom:0.5rem;"><strong>Week 3:</strong> Community push. DM your top 20 engagers with a thank-you + question. Run a UGC prompt or giveaway.</p>
+            <p><strong>Week 4:</strong> Analyze what moved. Double down on the winning format. Cut what didn't land. Set benchmarks for next month.</p>`;
+        return '';
     },
 
     showTab(type, btn) {
         document.querySelectorAll('.timeframe-tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
-        const cont = document.getElementById('strategy-content');
-        if (type === 'win') cont.innerHTML = `<ul><li>Pin top performing post.</li><li>Stronger hooks in first line.</li><li>Respond to comments ASAP.</li></ul>`;
-        if (type === 'week') cont.innerHTML = `<ul><li>Post 3 saveable carousels.</li><li>Run an engagement poll in stories.</li></ul>`;
+        document.getElementById('strategy-content').innerHTML = this.getStrategyHTML(type);
     },
 
-    renderDashboard(el) {
-        const cards = this.clients.map((c, i) => `
-            <div class="card" onclick="app.view('profile', ${i})">
-                <div style="font-weight:800;">${c.name}</div>
-                <div style="font-size:1.8rem; font-weight:800; color:var(--primary)">${this.calcHealth(c).total}<span style="font-size:0.9rem; opacity:0.5">/100</span></div>
-            </div>
-        `).join('');
-        el.innerHTML = `<h2 style="margin-bottom:1.5rem;">Audits</h2><div class="grid">${cards}</div>`;
+    skipToManual() {
+        const name = document.getElementById('client-name').value || 'New Audit';
+        const platforms = this.getSelectedPlatforms();
+        if (platforms.length === 0) return alert('Select at least one platform before continuing.');
+        this.tempData = { _name: name };
+        this.currentPlatforms = platforms;
+        this.view('confirm');
     },
 
     toggleSettings() {
         const m = document.getElementById('settings-modal');
-        m.style.display = m.style.display === 'none' ? 'flex' : 'none';
-        document.getElementById('api-key-input').value = this.apiKey;
+        const isHidden = m.style.display === 'none' || m.style.display === '';
+        m.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) document.getElementById('api-key-input').value = this.apiKey;
     },
 
     saveSettings() {
         this.apiKey = document.getElementById('api-key-input').value;
         localStorage.setItem('eb_ant_key', this.apiKey);
         this.toggleSettings();
-    },
-
-    skipToManual() {
-        const name = document.getElementById('client-name').value || 'New Audit';
-        const platforms = this.getSelectedPlatforms();
-
-        // FIX #4: Validate that at least one platform is selected
-        if (platforms.length === 0) {
-            return alert('Select at least one platform before continuing.');
-        }
-
-        this.tempMetrics = { name };
-        this.currentPlatforms = platforms;
-        this.view('confirm');
     }
 };
 
