@@ -207,20 +207,6 @@
       <div class="page-title">New Prospect Analysis</div>
       <div class="page-sub">Enter practice details to run an AI-powered insight scan.</div>
 
-      <div class="api-banner">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-        <p><strong>API Key Required.</strong> Stored in this browser session only. Never sent anywhere except directly to Anthropic.</p>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🔑 Anthropic API Key</div>
-        <div class="field">
-          <label for="apiKey">API Key <span class="req">*</span></label>
-          <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" />
-          <span class="hint">console.anthropic.com</span>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-title">🏥 Prospect Details</div>
         <div class="form-grid">
@@ -239,6 +225,14 @@
           <div class="field">
             <label for="facebook">Facebook URL</label>
             <input type="url" id="facebook" placeholder="https://facebook.com/page" />
+          </div>
+          <div class="field">
+            <label for="linkedin">LinkedIn URL</label>
+            <input type="url" id="linkedin" placeholder="https://linkedin.com/company/..." />
+          </div>
+          <div class="field">
+            <label for="tiktok">TikTok URL</label>
+            <input type="url" id="tiktok" placeholder="https://tiktok.com/@handle" />
           </div>
           <div class="field">
             <label for="industry">Specialty <span class="req">*</span></label>
@@ -392,8 +386,8 @@
 <script>
 let S = {
   step: 1,
-  bizName:'', website:'', instagram:'', facebook:'',
-  industry:'', location:'', contactName:'', notes:'', apiKey:'',
+  bizName:'', website:'', instagram:'', facebook:'', linkedin:'', tiktok:'',
+  industry:'', location:'', contactName:'', notes:'',
   findings: null, services: [], selected: [],
   channel: 'email', pitches: {}
 };
@@ -418,21 +412,19 @@ function goTo(step) {
 }
 
 function startScan() {
-  const apiKey = document.getElementById('apiKey').value.trim();
   const bizName = document.getElementById('bizName').value.trim();
   const website = document.getElementById('website').value.trim();
   const industry = document.getElementById('industry').value;
-  if (!apiKey)   { toast('Enter your Anthropic API key'); return; }
   if (!bizName)  { toast('Business name is required'); return; }
   if (!website)  { toast('Website URL is required'); return; }
   if (!industry) { toast('Select a specialty'); return; }
 
-  localStorage.setItem('mm_api_key', apiKey);
-  S.apiKey = apiKey;
   S.bizName = bizName;
   S.website = website;
   S.instagram = document.getElementById('instagram').value.trim();
   S.facebook  = document.getElementById('facebook').value.trim();
+  S.linkedin  = document.getElementById('linkedin').value.trim();
+  S.tiktok    = document.getElementById('tiktok').value.trim();
   S.industry  = industry;
   S.location  = document.getElementById('location').value.trim();
   S.contactName = document.getElementById('contactName').value.trim();
@@ -459,20 +451,61 @@ async function animateScan() {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+
+async function callAI(payload, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.error?.type === 'overloaded_error') {
+        if (i < retries - 1) {
+          toast(`API busy, retrying in ${(i+1)*5}s...`);
+          await sleep((i+1) * 5000);
+          continue;
+        } else {
+          throw new Error('API overloaded after retries. Try again in a moment.');
+        }
+      }
+      return data;
+    } catch(err) {
+      if (i === retries - 1) throw err;
+      await sleep(3000);
+    }
+  }
+}
+
 async function runAnalysis() {
+  const socialLines = [];
+  if (S.instagram) socialLines.push(`- Instagram: ${S.instagram}`);
+  else socialLines.push(`- Instagram: Not provided — check if active profile exists`);
+  if (S.facebook) socialLines.push(`- Facebook: ${S.facebook}`);
+  else socialLines.push(`- Facebook: Not provided — check if active page exists`);
+  if (S.linkedin) socialLines.push(`- LinkedIn: ${S.linkedin}`);
+  else socialLines.push(`- LinkedIn: Not provided — check for physician/practice presence`);
+  if (S.tiktok) socialLines.push(`- TikTok: ${S.tiktok}`);
+  else socialLines.push(`- TikTok: Not provided — evaluate if relevant for this specialty`);
+
   const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. Analyze this prospect and identify marketing gaps and revenue opportunities.
 
 Prospect:
 - Name: ${S.bizName}
 - Website: ${S.website}
-- Instagram: ${S.instagram || 'Not provided'}
-- Facebook: ${S.facebook || 'Not provided'}
 - Specialty: ${S.industry}
 - Location: ${S.location || 'Not provided'}
 - Contact: ${S.contactName || 'Not provided'}
 - Notes: ${S.notes || 'None'}
 
-Perform a realistic marketing audit based on what practices in this specialty typically look like. Be specific and credible — write as if you've reviewed their actual web presence.
+Social Media Profiles:
+${socialLines.join('\n')}
+
+For any social platform marked "Not provided", treat this as a signal to investigate — the absence of a provided link likely means no active presence, which is itself a gap worth flagging. Check Instagram, Facebook, LinkedIn, TikTok, YouTube, and X/Twitter.
+
+Perform a realistic marketing audit based on what practices in this specialty typically look like. Be specific and credible — write as if you've reviewed their actual web and social presence.
 
 Return ONLY valid JSON (no markdown, no backticks, no preamble):
 
@@ -503,32 +536,16 @@ Gap type options: "gap" (red - problem), "warn" (orange - weakness), "ok" (green
 Include 4-6 gaps, 2-4 strengths, 4-7 service recommendations.
 
 Available services to recommend from:
-Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity
+Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building
 
 Rank services by priority (high first). Be specific to ${S.industry} and the signals from this prospect.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': S.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const data = await callAI({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
     });
-
-    const data = await res.json();
-
-    if (data.error) {
-      toast('API error: ' + data.error.message);
-      goTo(1); return;
-    }
 
     let raw = data.content[0].text.replace(/```json|```/g, '').trim();
     let parsed;
@@ -659,44 +676,13 @@ Rules:
 - Write the message only. Nothing else.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': S.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
-        stream: true,
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const data = await callAI({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }]
     });
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let full = '';
-    body.innerHTML = '<span class="cursor-blink"></span>';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const lines = decoder.decode(value).split('\n').filter(l => l.startsWith('data: '));
-      for (const line of lines) {
-        const raw = line.slice(6);
-        if (raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          if (ev.type === 'content_block_delta' && ev.delta?.text) {
-            full += ev.delta.text;
-            body.innerHTML = full.replace(/\n/g,'<br>') + '<span class="cursor-blink"></span>';
-          }
-        } catch(e) {}
-      }
-    }
-
+    const full = data.content[0].text;
     S.pitches[channel] = full;
     body.innerHTML = full.replace(/\n/g,'<br>');
     body.classList.remove('streaming');
@@ -724,13 +710,12 @@ function copyPitch() {
 }
 
 function resetAll() {
-  const key = document.getElementById('apiKey').value || localStorage.getItem('mm_api_key') || '';
-  ['bizName','website','instagram','facebook','location','contactName','notes'].forEach(id => {
+  ['bizName','website','instagram','facebook','linkedin','tiktok','location','contactName','notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   document.getElementById('industry').value = '';
-  S = { step:1, bizName:'', website:'', instagram:'', facebook:'', industry:'', location:'', contactName:'', notes:'', apiKey:key, findings:null, services:[], selected:[], channel:'email', pitches:{} };
+  S = { step:1, bizName:'', website:'', instagram:'', facebook:'', linkedin:'', tiktok:'', industry:'', location:'', contactName:'', notes:'', findings:null, services:[], selected:[], channel:'email', pitches:{} };
   goTo(1);
 }
 
@@ -764,8 +749,7 @@ function checkPassword() {
 }
 
 function initTool() {
-  const saved = localStorage.getItem('mm_api_key');
-  if (saved) document.getElementById('apiKey').value = saved;
+  // No API key needed - powered by Cloudflare Worker
 }
 
 document.addEventListener('keydown', e => {
