@@ -251,7 +251,7 @@
                 <option>Med Spa / Aesthetics</option>
                 <option>Dental / Oral Surgery</option>
                 <option>Chiropractic / Physical Therapy</option>
-                <option>Veterinary Clinic / Animal Health</option>
+               <option>Veterinary Clinic / Animal Health</option>
               </optgroup>
               <optgroup label="Other">
                 <option>Healthcare Marketing Agency</option>
@@ -481,17 +481,54 @@ async function callAI(payload, retries = 3) {
 }
 
 async function runAnalysis() {
-  const socialLines = [];
-  if (S.instagram) socialLines.push(`- Instagram: ${S.instagram}`);
-  else socialLines.push(`- Instagram: Not provided — check if active profile exists`);
-  if (S.facebook) socialLines.push(`- Facebook: ${S.facebook}`);
-  else socialLines.push(`- Facebook: Not provided — check if active page exists`);
-  if (S.linkedin) socialLines.push(`- LinkedIn: ${S.linkedin}`);
-  else socialLines.push(`- LinkedIn: Not provided — check for physician/practice presence`);
-  if (S.tiktok) socialLines.push(`- TikTok: ${S.tiktok}`);
-  else socialLines.push(`- TikTok: Not provided — evaluate if relevant for this specialty`);
+  // Step 1: Scrape real content via Worker
+  let scraped = {};
+  try {
+    const scrapeRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'scrape',
+        website: S.website,
+        instagram: S.instagram,
+        facebook: S.facebook,
+        linkedin: S.linkedin,
+        tiktok: S.tiktok,
+        bizName: S.bizName,
+        location: S.location
+      })
+    });
+    scraped = await scrapeRes.json();
+  } catch(e) {
+    console.warn('Scrape failed, proceeding with URL-only analysis:', e.message);
+  }
 
-  const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. Analyze this prospect and identify marketing gaps and revenue opportunities.
+  // Build social content summary from scraped data
+  const socialSummary = [];
+  const platforms = ['instagram', 'facebook', 'linkedin', 'tiktok'];
+  for (const p of platforms) {
+    const provided = S[p];
+    const data = scraped.socialContent?.[p];
+    if (provided && data?.found) {
+      socialSummary.push(`${p} (provided, reachable): ${data.content?.slice(0, 300) || 'page loaded but limited content extracted'}`);
+    } else if (provided && !data?.found) {
+      socialSummary.push(`${p} (provided but unreachable or blocked): ${provided}`);
+    } else if (!provided && data?.found) {
+      socialSummary.push(`${p} (not provided — Google search found possible presence): ${data.snippet?.slice(0, 200)}`);
+    } else {
+      socialSummary.push(`${p}: No URL provided and no presence found in search results`);
+    }
+  }
+
+  const websiteContext = scraped.websiteContent
+    ? `Website content extracted (first 3000 chars):\n${scraped.websiteContent}`
+    : `Website URL provided (${S.website}) but content could not be fetched — base analysis on URL and specialty knowledge.`;
+
+  const gbpContext = scraped.gbpSearch?.snippet
+    ? `Google search signals for GBP/reviews:\n${scraped.gbpSearch.snippet}`
+    : 'No GBP data retrieved.';
+
+  const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. Analyze this prospect using the REAL scraped data below. Base your findings on what is actually present or absent — do not invent gaps that aren't supported by evidence.
 
 Prospect:
 - Name: ${S.bizName}
@@ -501,12 +538,21 @@ Prospect:
 - Contact: ${S.contactName || 'Not provided'}
 - Notes: ${S.notes || 'None'}
 
-Social Media Profiles:
-${socialLines.join('\n')}
+--- REAL WEBSITE DATA ---
+${websiteContext}
 
-For any social platform marked "Not provided", treat this as a signal to investigate — the absence of a provided link likely means no active presence, which is itself a gap worth flagging. Check Instagram, Facebook, LinkedIn, TikTok, YouTube, and X/Twitter.
+--- REAL SOCIAL MEDIA DATA ---
+${socialSummary.join('\n')}
 
-Perform a realistic marketing audit based on what practices in this specialty typically look like. Be specific and credible — write as if you've reviewed their actual web and social presence.
+--- GOOGLE / GBP SIGNALS ---
+${gbpContext}
+
+Instructions:
+- Only flag something as a gap if the scraped data actually supports it
+- If a platform shows active content, acknowledge it as a strength
+- If data was blocked or unavailable, note uncertainty rather than assuming a gap
+- Score accurately — a strong website should score high, not low
+- Focus recommendations on genuine growth opportunities, not fabricated problems
 
 Return ONLY valid JSON (no markdown, no backticks, no preamble):
 
@@ -518,28 +564,26 @@ Return ONLY valid JSON (no markdown, no backticks, no preamble):
     "overall": {"score": 0-100, "label": "Overall Score"}
   },
   "gaps": [
-    {"type": "gap", "text": "specific finding"}
+    {"type": "gap", "text": "evidence-based finding"}
   ],
   "strengths": [
-    {"type": "ok", "text": "specific strength"}
+    {"type": "ok", "text": "evidence-based strength"}
   ],
   "services": [
     {
       "name": "Service Name",
       "priority": "high|med|low",
-      "why": "1-2 sentences specific to this prospect's signals"
+      "why": "1-2 sentences tied to actual findings above"
     }
   ],
-  "summary": "2-3 sentence narrative"
+  "summary": "2-3 sentence narrative based on real data"
 }
 
-Gap type options: "gap" (red - problem), "warn" (orange - weakness), "ok" (green - note).
-Include 4-6 gaps, 2-4 strengths, 4-7 service recommendations.
+Gap type options: "gap" (red - confirmed problem), "warn" (orange - potential weakness), "ok" (green - notable observation).
+Include 3-6 gaps, 2-5 strengths, 4-7 service recommendations ranked by priority (high first).
 
-Available services to recommend from:
-Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building
-
-Rank services by priority (high first). Be specific to ${S.industry} and the signals from this prospect.`;
+Available services:
+Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
 
   try {
     const data = await callAI({
