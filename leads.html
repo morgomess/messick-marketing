@@ -21,7 +21,8 @@
     --radius: 6px;
     --shadow: 0 1px 3px rgba(17,17,17,0.08), 0 4px 16px rgba(17,17,17,0.06);
   }
-  body { font-family: 'Jost', sans-serif; background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
+  *, body { font-family: 'Jost', sans-serif; }
+  body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
 
   /* HEADER */
   header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -51,42 +52,88 @@
   .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.2); line-height: 1.6; }
 
   /* MAIN */
-  main { flex: 1; padding: 40px 48px; overflow-y: auto; max-width: 860px; }
+  main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 900px; }
   .page { display: none; }
   .page.active { display: block; animation: fadeIn 0.22s ease; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-
   .page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
-  .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 28px; font-weight: 300; }
+  .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
 
-  /* CARD */
-  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 24px 26px; box-shadow: var(--shadow); margin-bottom: 18px; }
-  .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; }
+  /* CARDS */
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
 
-  /* FORM */
+  /* FORM BASICS */
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field.span2 { grid-column: span 2; }
   label { font-size: 12px; font-weight: 500; color: var(--black); }
   label .req { color: var(--steel); }
-  input, select, textarea { font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--warm); color: var(--black); transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%; }
-  input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff; }
+  input[type=text], input[type=url], select, textarea {
+    font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400;
+    padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: var(--warm); color: var(--black);
+    transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%;
+  }
+  input[type=text]:focus, input[type=url]:focus, select:focus, textarea:focus {
+    border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff;
+  }
   input::placeholder, textarea::placeholder { color: #b5bdc4; }
   select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
-  textarea { resize: vertical; min-height: 76px; }
-  .hint { font-size: 11px; color: var(--mid); }
+  textarea { resize: vertical; min-height: 72px; }
 
-  /* API BANNER */
-  .api-banner { background: rgba(58,107,138,0.06); border: 1px solid rgba(58,107,138,0.18); border-radius: var(--radius); padding: 13px 16px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
-  .api-banner svg { flex-shrink: 0; margin-top: 1px; color: var(--steel); }
-  .api-banner p { font-size: 12.5px; color: var(--mid); line-height: 1.5; }
-  .api-banner strong { color: var(--black); }
+  /* STAR RATING */
+  .star-row { display: flex; gap: 4px; align-items: center; }
+  .star { font-size: 22px; cursor: pointer; color: #ddd; transition: color 0.1s; user-select: none; line-height: 1; }
+  .star.on { color: #f5a623; }
+  .star-label { font-size: 12px; color: var(--mid); margin-left: 8px; }
+
+  /* TOGGLE GROUP */
+  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toggle-btn {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid);
+    transition: all 0.15s; font-family: 'Jost', sans-serif;
+  }
+  .toggle-btn:hover { border-color: var(--steel-pale); }
+  .toggle-btn.on { border-color: var(--steel); background: var(--steel); color: #fff; }
+  .toggle-btn.on-warn { border-color: #d97706; background: #d97706; color: #fff; }
+  .toggle-btn.on-none { border-color: #9ca3af; background: #9ca3af; color: #fff; }
+
+  /* CHECKBOX ROW */
+  .check-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .check-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12.5px; color: var(--black); user-select: none; }
+  .check-box { width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; background: var(--warm); }
+  .check-item.checked .check-box { background: var(--steel); border-color: var(--steel); }
+  .check-item.checked .check-box::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 700; }
+
+  /* SOCIAL PLATFORM ROWS */
+  .platform-grid { display: flex; flex-direction: column; gap: 14px; }
+  .platform-row { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 12px; align-items: start; padding: 14px; background: var(--warm); border-radius: var(--radius); border: 1px solid var(--border); }
+  .platform-name { font-size: 12px; font-weight: 600; color: var(--black); padding-top: 2px; display: flex; align-items: center; gap: 6px; }
+  .platform-section { display: flex; flex-direction: column; gap: 6px; }
+  .platform-section-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); }
+
+  /* GBP GRID */
+  .gbp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .gbp-block { display: flex; flex-direction: column; gap: 7px; }
+  .gbp-block label { font-size: 11.5px; font-weight: 600; color: var(--black); }
+
+  /* REVIEW SENTIMENT */
+  .sentiment-row { display: flex; gap: 8px; }
+  .sentiment-btn {
+    flex: 1; padding: 9px; border-radius: var(--radius); font-size: 12.5px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid);
+    transition: all 0.15s; font-family: 'Jost', sans-serif; text-align: center;
+  }
+  .sentiment-btn.on-pos { border-color: var(--success); background: rgba(46,125,94,0.08); color: var(--success); }
+  .sentiment-btn.on-mix { border-color: #d97706; background: rgba(217,119,6,0.08); color: #d97706; }
+  .sentiment-btn.on-few { border-color: var(--danger); background: rgba(192,57,43,0.08); color: var(--danger); }
 
   /* BUTTONS */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.02em; }
   .btn-primary { background: var(--steel); color: #fff; width: 100%; }
   .btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); box-shadow: var(--shadow); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   .btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
   .btn-outline:hover { background: rgba(58,107,138,0.06); }
   .btn-black { background: var(--black); color: #fff; }
@@ -99,7 +146,7 @@
   .scan-icon { width: 56px; height: 56px; background: rgba(58,107,138,0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
   .scan-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
   .scan-sub { font-size: 13px; color: var(--mid); margin-bottom: 30px; }
-  .scan-steps { list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 340px; margin: 0 auto; text-align: left; }
+  .scan-steps { list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; text-align: left; }
   .scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; }
   .scan-step.active { color: var(--black); font-weight: 500; }
   .scan-step.done { color: var(--success); }
@@ -109,7 +156,7 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
   /* SCORES */
-  .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   .score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
   .score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
   .score-val.red { color: var(--danger); }
@@ -117,13 +164,13 @@
   .score-val.green { color: var(--success); }
   .score-lbl { font-size: 11px; color: var(--mid); font-weight: 500; letter-spacing: 0.04em; }
 
-  /* FINDINGS GRID */
-  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  /* FINDINGS */
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
   .finding-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }
   .finding-card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--steel); margin-bottom: 12px; }
   .finding-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--warm-mid); font-size: 12.5px; line-height: 1.45; color: var(--black); }
   .finding-item:last-child { border-bottom: none; }
-  .fi { flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+  .fi { flex-shrink: 0; font-size: 11px; margin-top: 2px; }
   .fi-gap { color: var(--danger); }
   .fi-ok { color: var(--success); }
   .fi-warn { color: #d97706; }
@@ -188,12 +235,13 @@
 <div class="shell">
   <aside>
     <div class="sidebar-label">Workflow</div>
-    <nav class="step-nav" id="stepNav">
+    <nav class="step-nav">
       <div class="step-item active" id="nav-1"><div class="step-num">1</div><div class="step-label">Prospect Info</div></div>
-      <div class="step-item" id="nav-2"><div class="step-num">2</div><div class="step-label">Scanning</div></div>
-      <div class="step-item" id="nav-3"><div class="step-num">3</div><div class="step-label">Findings</div></div>
-      <div class="step-item" id="nav-4"><div class="step-num">4</div><div class="step-label">Select Services</div></div>
-      <div class="step-item" id="nav-5"><div class="step-num">5</div><div class="step-label">Pitch Output</div></div>
+      <div class="step-item" id="nav-2"><div class="step-num">2</div><div class="step-label">Audit Inputs</div></div>
+      <div class="step-item" id="nav-3"><div class="step-num">3</div><div class="step-label">Analyzing</div></div>
+      <div class="step-item" id="nav-4"><div class="step-num">4</div><div class="step-label">Findings</div></div>
+      <div class="step-item" id="nav-5"><div class="step-num">5</div><div class="step-label">Select Services</div></div>
+      <div class="step-item" id="nav-6"><div class="step-num">6</div><div class="step-label">Pitch Output</div></div>
     </nav>
     <div class="sidebar-footer">
       <p>Messick Marketing &copy; 2026<br>Internal use only.</p>
@@ -202,13 +250,13 @@
 
   <main>
 
-    <!-- STEP 1 -->
+    <!-- STEP 1: PROSPECT INFO -->
     <div class="page active" id="page-1">
-      <div class="page-title">New Prospect Analysis</div>
-      <div class="page-sub">Enter practice details to run an AI-powered insight scan.</div>
+      <div class="page-title">New Prospect</div>
+      <div class="page-sub">Basic info about the practice or business.</div>
 
       <div class="card">
-        <div class="card-title">🏥 Prospect Details</div>
+        <div class="card-title">🏥 Practice Details</div>
         <div class="form-grid">
           <div class="field">
             <label for="bizName">Business Name <span class="req">*</span></label>
@@ -217,22 +265,6 @@
           <div class="field">
             <label for="website">Website URL <span class="req">*</span></label>
             <input type="url" id="website" placeholder="https://example.com" />
-          </div>
-          <div class="field">
-            <label for="instagram">Instagram URL</label>
-            <input type="url" id="instagram" placeholder="https://instagram.com/handle" />
-          </div>
-          <div class="field">
-            <label for="facebook">Facebook URL</label>
-            <input type="url" id="facebook" placeholder="https://facebook.com/page" />
-          </div>
-          <div class="field">
-            <label for="linkedin">LinkedIn URL</label>
-            <input type="url" id="linkedin" placeholder="https://linkedin.com/company/..." />
-          </div>
-          <div class="field">
-            <label for="tiktok">TikTok URL</label>
-            <input type="url" id="tiktok" placeholder="https://tiktok.com/@handle" />
           </div>
           <div class="field">
             <label for="industry">Specialty <span class="req">*</span></label>
@@ -251,7 +283,7 @@
                 <option>Med Spa / Aesthetics</option>
                 <option>Dental / Oral Surgery</option>
                 <option>Chiropractic / Physical Therapy</option>
-               <option>Veterinary Clinic / Animal Health</option>
+                <option>Veterinary Clinic / Animal Health</option>
               </optgroup>
               <optgroup label="Other">
                 <option>Healthcare Marketing Agency</option>
@@ -275,60 +307,300 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" onclick="startScan()">
-        <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="white" stroke-width="1.8"/><path d="m15 15 3 3" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
-        Scan &amp; Analyze Prospect
+      <button class="btn btn-primary" onclick="goTo(2)">
+        Next: Audit Inputs →
       </button>
     </div>
 
-    <!-- STEP 2 -->
+    <!-- STEP 2: AUDIT INPUTS -->
     <div class="page" id="page-2">
-      <div class="page-title">Scanning Prospect</div>
-      <div class="page-sub">Claude is reviewing website, social, and local search signals...</div>
+      <div class="page-title">Quick Audit</div>
+      <div class="page-sub">Spend 3-5 minutes on their profiles, then fill this in.</div>
+
+      <!-- WEBSITE -->
+      <div class="card">
+        <div class="card-title">🌐 Website</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Quality Rating <span class="req">*</span></label>
+            <div class="star-row" id="websiteStars">
+              <span class="star" onclick="setStars('website',1)">★</span>
+              <span class="star" onclick="setStars('website',2)">★</span>
+              <span class="star" onclick="setStars('website',3)">★</span>
+              <span class="star" onclick="setStars('website',4)">★</span>
+              <span class="star" onclick="setStars('website',5)">★</span>
+              <span class="star-label" id="websiteStarLabel">Click to rate</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Has Blog / SEO Content?</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" onclick="toggle(this,'websiteBlog','yes')">Yes</button>
+              <button class="toggle-btn" onclick="toggle(this,'websiteBlog','no')">No</button>
+            </div>
+          </div>
+          <div class="field span2">
+            <label>Website Notes <span style="font-weight:300;color:var(--mid)">(optional)</span></label>
+            <textarea id="websiteNotes" placeholder="e.g. outdated design, good service pages, missing mobile optimization..." style="min-height:60px;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOCIAL MEDIA -->
+      <div class="card">
+        <div class="card-title">📱 Social Media</div>
+        <div class="platform-grid">
+
+          <!-- Instagram -->
+          <div class="platform-row">
+            <div class="platform-name">📸 Instagram</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="igFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'igEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'igPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'igVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'igPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Facebook -->
+          <div class="platform-row">
+            <div class="platform-name">👍 Facebook</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="fbFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'fbEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LinkedIn -->
+          <div class="platform-row">
+            <div class="platform-name">💼 LinkedIn</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="liFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'liEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'liPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'liVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'liPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TikTok -->
+          <div class="platform-row">
+            <div class="platform-name">🎵 TikTok</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="ttFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'ttEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- GBP -->
+      <div class="card">
+        <div class="card-title">📍 Google Business Profile</div>
+        <div class="gbp-grid">
+          <div class="gbp-block">
+            <label>GBP Exists?</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" onclick="toggle(this,'gbpExists','yes')">Yes</button>
+              <button class="toggle-btn" onclick="toggle(this,'gbpExists','no')">No</button>
+            </div>
+          </div>
+          <div class="gbp-block">
+            <label>Star Rating</label>
+            <div class="star-row" id="gbpStars">
+              <span class="star" onclick="setStars('gbp',1)">★</span>
+              <span class="star" onclick="setStars('gbp',2)">★</span>
+              <span class="star" onclick="setStars('gbp',3)">★</span>
+              <span class="star" onclick="setStars('gbp',4)">★</span>
+              <span class="star" onclick="setStars('gbp',5)">★</span>
+              <span class="star-label" id="gbpStarLabel">N/A</span>
+            </div>
+          </div>
+          <div class="gbp-block">
+            <label>Review Count</label>
+            <select id="gbpReviewCount">
+              <option value="">-- select --</option>
+              <option>0-10</option>
+              <option>10-50</option>
+              <option>50-100</option>
+              <option>100+</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="font-size:11.5px;font-weight:600;display:block;margin-bottom:8px;">Profile Completeness</label>
+          <div class="check-row">
+            <div class="check-item" onclick="toggleCheck(this,'gbpPhotos')"><div class="check-box"></div>Photos present</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpHours')"><div class="check-box"></div>Hours filled in</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpPosts')"><div class="check-box"></div>Posts active</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpServices')"><div class="check-box"></div>Services listed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS / REPUTATION -->
+      <div class="card">
+        <div class="card-title">⭐ Reviews &amp; Reputation</div>
+        <div class="field">
+          <label style="margin-bottom:8px;display:block;">Overall Review Sentiment</label>
+          <div class="sentiment-row">
+            <button class="sentiment-btn" onclick="setSentiment(this,'positive')">😊 Positive</button>
+            <button class="sentiment-btn" onclick="setSentiment(this,'mixed')">😐 Mixed</button>
+            <button class="sentiment-btn" onclick="setSentiment(this,'few')">😶 Few / None</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Review Presence</label>
+          <div class="check-row" style="margin-top:4px;">
+            <div class="check-item" onclick="toggleCheck(this,'revGBP')"><div class="check-box"></div>Reviews on GBP</div>
+            <div class="check-item" onclick="toggleCheck(this,'revFB')"><div class="check-box"></div>Reviews on Facebook</div>
+            <div class="check-item" onclick="toggleCheck(this,'revWebsite')"><div class="check-box"></div>Testimonials on website</div>
+            <div class="check-item" onclick="toggleCheck(this,'revHealthgrades')"><div class="check-box"></div>Healthgrades / Yelp</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="startAnalysis()">Run Analysis →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: ANALYZING -->
+    <div class="page" id="page-3">
+      <div class="page-title">Analyzing</div>
+      <div class="page-sub">Generating findings and opportunity report...</div>
       <div class="scan-overlay">
         <div class="scan-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3a6b8a" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </div>
-        <div class="scan-title">Analyzing <span id="scanBizName"></span></div>
-        <div class="scan-sub">15–30 seconds. Sit tight.</div>
+        <div class="scan-title" id="scanBizName"></div>
+        <div class="scan-sub">Claude is reviewing your audit inputs...</div>
         <ul class="scan-steps">
-          <li class="scan-step" id="ss1"><div class="scan-dot"></div>Reviewing website and content quality</li>
-          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Auditing Instagram and Facebook presence</li>
-          <li class="scan-step" id="ss3"><div class="scan-dot"></div>Checking Google Business Profile signals</li>
-          <li class="scan-step" id="ss4"><div class="scan-dot"></div>Identifying SEO and content gaps</li>
-          <li class="scan-step" id="ss5"><div class="scan-dot"></div>Building opportunity report</li>
+          <li class="scan-step" id="ss1"><div class="scan-dot"></div>Processing website and content signals</li>
+          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Evaluating social media presence</li>
+          <li class="scan-step" id="ss3"><div class="scan-dot"></div>Assessing GBP and reputation data</li>
+          <li class="scan-step" id="ss4"><div class="scan-dot"></div>Identifying opportunities</li>
+          <li class="scan-step" id="ss5"><div class="scan-dot"></div>Building pitch recommendations</li>
         </ul>
       </div>
     </div>
 
-    <!-- STEP 3 -->
-    <div class="page" id="page-3">
+    <!-- STEP 4: FINDINGS -->
+    <div class="page" id="page-4">
       <div class="page-title">Findings</div>
       <div class="page-sub">Opportunity assessment for <strong id="findingsBizName"></strong></div>
       <div class="score-strip" id="scoreStrip"></div>
       <div class="findings-grid" id="findingsGrid"></div>
       <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(1)">← Edit Prospect</button>
-        <button class="btn btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
+        <button class="btn btn-outline" onclick="goTo(2)">← Edit Audit</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Select Services →</button>
       </div>
     </div>
 
-    <!-- STEP 4 -->
-    <div class="page" id="page-4">
+    <!-- STEP 5: SELECT SERVICES -->
+    <div class="page" id="page-5">
       <div class="page-title">Select Services</div>
-      <div class="page-sub">Multi-select the services to pitch. Ranked by priority.</div>
+      <div class="page-sub">Multi-select what to pitch. Ranked by priority.</div>
       <div class="services-grid" id="servicesGrid"></div>
       <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(3)">← Back to Findings</button>
+        <button class="btn btn-outline" onclick="goTo(4)">← Back to Findings</button>
         <button class="btn btn-primary" onclick="generatePitch()">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="white"><path d="M11 3L3 11l7 7 8-8V3h-7zm5 1.5V10l-6 6-5-5 7-7h4v-.5z"/></svg>
-          Generate Pitch Message
+          Generate Pitch →
         </button>
       </div>
     </div>
 
-    <!-- STEP 5 -->
-    <div class="page" id="page-5">
+    <!-- STEP 6: PITCH -->
+    <div class="page" id="page-6">
       <div class="pitch-meta">
         <div>
           <div class="pitch-label">Pitch Ready</div>
@@ -340,13 +612,13 @@
         </button>
       </div>
       <div class="channel-tabs">
-        <button class="channel-tab active" onclick="switchChannel('email', this)">Email</button>
-        <button class="channel-tab" onclick="switchChannel('dm', this)">DM / Social</button>
-        <button class="channel-tab" onclick="switchChannel('linkedin', this)">LinkedIn</button>
+        <button class="channel-tab active" onclick="switchChannel('email',this)">Email</button>
+        <button class="channel-tab" onclick="switchChannel('dm',this)">DM / Social</button>
+        <button class="channel-tab" onclick="switchChannel('linkedin',this)">LinkedIn</button>
       </div>
       <div class="pitch-body" id="pitchBody"></div>
       <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(4)">← Adjust Services</button>
+        <button class="btn btn-outline" onclick="goTo(5)">← Adjust Services</button>
         <button class="btn btn-black" onclick="regeneratePitch()">↺ Regenerate</button>
       </div>
       <div class="reset-row">
@@ -361,7 +633,7 @@
 </div>
 
 <!-- PASSWORD GATE -->
-<div id="pwGate" style="display:none;position:fixed;inset:0;background:var(--black);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:0;">
+<div id="pwGate" style="display:none;position:fixed;inset:0;background:var(--black);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
   <div style="text-align:center;margin-bottom:32px;">
     <div style="width:40px;height:40px;background:var(--steel);border-radius:6px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
       <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3" height="6" rx="1" fill="white"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/><rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/></svg>
@@ -374,7 +646,7 @@
       style="width:100%;font-family:'Jost',sans-serif;font-size:14px;padding:12px 16px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;outline:none;text-align:center;letter-spacing:0.08em;margin-bottom:12px;"
       onfocus="this.style.borderColor='#3a6b8a'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
     <button onclick="checkPassword()"
-      style="width:100%;font-family:'Jost',sans-serif;font-size:13.5px;font-weight:500;padding:11px;border-radius:6px;border:none;background:var(--steel);color:#fff;cursor:pointer;transition:background 0.15s;"
+      style="width:100%;font-family:'Jost',sans-serif;font-size:13.5px;font-weight:500;padding:11px;border-radius:6px;border:none;background:var(--steel);color:#fff;cursor:pointer;"
       onmouseover="this.style.background='#5a9ab8'" onmouseout="this.style.background='#3a6b8a'">
       Unlock
     </button>
@@ -385,60 +657,138 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+const TOTAL_STEPS = 6;
+
+// ── STATE ──
 let S = {
   step: 1,
-  bizName:'', website:'', instagram:'', facebook:'', linkedin:'', tiktok:'',
-  industry:'', location:'', contactName:'', notes:'',
-  findings: null, services: [], selected: [],
-  channel: 'email', pitches: {}
+  bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
+  // website audit
+  websiteRating: 0, websiteBlog: null, websiteNotes: '',
+  // social
+  igStatus:null, igFreq:'', igTypes:[],
+  fbStatus:null, fbFreq:'', fbTypes:[],
+  liStatus:null, liFreq:'', liTypes:[],
+  ttStatus:null, ttFreq:'', ttTypes:[],
+  // gbp
+  gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
+  // reviews
+  reviewSentiment:null, reviewPresence:[],
+  // output
+  findings:null, services:[], selected:[], channel:'email', pitches:{}
 };
 
+// ── NAV ──
 function goTo(step) {
+  if (step === 1) {
+    // validate step 1 fields before leaving
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + step).classList.add('active');
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
     const el = document.getElementById('nav-' + i);
     el.classList.remove('active','done');
-    if (i < step) {
-      el.classList.add('done');
-      el.querySelector('.step-num').textContent = '✓';
-    } else if (i === step) {
-      el.classList.add('active');
-      el.querySelector('.step-num').textContent = i;
-    } else {
-      el.querySelector('.step-num').textContent = i;
-    }
+    const num = el.querySelector('.step-num');
+    if (i < step) { el.classList.add('done'); num.textContent = '✓'; }
+    else if (i === step) { el.classList.add('active'); num.textContent = i; }
+    else { num.textContent = i; }
   }
   S.step = step;
 }
 
-function startScan() {
+// ── STAR RATING ──
+const starLabels = ['','Poor','Fair','Average','Good','Excellent'];
+function setStars(type, val) {
+  const key = type === 'website' ? 'websiteRating' : 'gbpRating';
+  S[key] = val;
+  const container = document.getElementById(type + 'Stars');
+  container.querySelectorAll('.star').forEach((s, i) => {
+    s.classList.toggle('on', i < val);
+  });
+  document.getElementById(type + 'StarLabel').textContent = starLabels[val];
+}
+
+// ── TOGGLE BUTTONS ──
+function toggle(btn, key, val) {
+  const group = btn.parentElement;
+  group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on','on-warn','on-none'));
+  S[key] = val;
+  const cls = val === 'active' || val === 'yes' ? 'on' : val === 'inactive' ? 'on-warn' : 'on-none';
+  btn.classList.add(cls);
+}
+
+// ── CHECKBOXES ──
+const checkMap = {
+  websiteBlog: 'websiteBlog',
+  igEducational:'igTypes', igPromotional:'igTypes', igVideo:'igTypes', igPatient:'igTypes',
+  fbEducational:'fbTypes', fbPromotional:'fbTypes', fbVideo:'fbTypes', fbPatient:'fbTypes',
+  liEducational:'liTypes', liPromotional:'liTypes', liVideo:'liTypes', liPatient:'liTypes',
+  ttEducational:'ttTypes', ttPromotional:'ttTypes', ttVideo:'ttTypes', ttPatient:'ttTypes',
+  gbpPhotos:'gbpFeatures', gbpHours:'gbpFeatures', gbpPosts:'gbpFeatures', gbpServices:'gbpFeatures',
+  revGBP:'reviewPresence', revFB:'reviewPresence', revWebsite:'reviewPresence', revHealthgrades:'reviewPresence'
+};
+const checkLabels = {
+  igEducational:'Educational', igPromotional:'Promotional', igVideo:'Video/Reels', igPatient:'Patient Stories',
+  fbEducational:'Educational', fbPromotional:'Promotional', fbVideo:'Video/Reels', fbPatient:'Patient Stories',
+  liEducational:'Educational', liPromotional:'Promotional', liVideo:'Video/Reels', liPatient:'Patient Stories',
+  ttEducational:'Educational', ttPromotional:'Promotional', ttVideo:'Video/Reels', ttPatient:'Patient Stories',
+  gbpPhotos:'Photos', gbpHours:'Hours', gbpPosts:'Posts Active', gbpServices:'Services Listed',
+  revGBP:'GBP', revFB:'Facebook', revWebsite:'Website', revHealthgrades:'Healthgrades/Yelp'
+};
+
+function toggleCheck(el, key) {
+  el.classList.toggle('checked');
+  const stateKey = checkMap[key];
+  const label = checkLabels[key] || key;
+  const isChecked = el.classList.contains('checked');
+  if (Array.isArray(S[stateKey])) {
+    if (isChecked && !S[stateKey].includes(label)) S[stateKey].push(label);
+    else S[stateKey] = S[stateKey].filter(v => v !== label);
+  } else {
+    S[stateKey] = isChecked ? 'yes' : 'no';
+  }
+}
+
+// ── SENTIMENT ──
+function setSentiment(btn, val) {
+  document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('on-pos','on-mix','on-few'));
+  S.reviewSentiment = val;
+  const cls = val === 'positive' ? 'on-pos' : val === 'mixed' ? 'on-mix' : 'on-few';
+  btn.classList.add(cls);
+}
+
+// ── START ANALYSIS ──
+function startAnalysis() {
   const bizName = document.getElementById('bizName').value.trim();
   const website = document.getElementById('website').value.trim();
   const industry = document.getElementById('industry').value;
-  if (!bizName)  { toast('Business name is required'); return; }
-  if (!website)  { toast('Website URL is required'); return; }
-  if (!industry) { toast('Select a specialty'); return; }
+  if (!bizName)  { toast('Business name is required'); goTo(1); return; }
+  if (!website)  { toast('Website URL is required'); goTo(1); return; }
+  if (!industry) { toast('Select a specialty'); goTo(1); return; }
+  if (!S.websiteRating) { toast('Rate the website quality'); return; }
 
   S.bizName = bizName;
   S.website = website;
-  S.instagram = document.getElementById('instagram').value.trim();
-  S.facebook  = document.getElementById('facebook').value.trim();
-  S.linkedin  = document.getElementById('linkedin').value.trim();
-  S.tiktok    = document.getElementById('tiktok').value.trim();
-  S.industry  = industry;
-  S.location  = document.getElementById('location').value.trim();
+  S.industry = industry;
+  S.location = document.getElementById('location').value.trim();
   S.contactName = document.getElementById('contactName').value.trim();
-  S.notes     = document.getElementById('notes').value.trim();
+  S.notes = document.getElementById('notes').value.trim();
+  S.websiteNotes = document.getElementById('websiteNotes').value.trim();
+  S.igFreq = document.getElementById('igFreq').value;
+  S.fbFreq = document.getElementById('fbFreq').value;
+  S.liFreq = document.getElementById('liFreq').value;
+  S.ttFreq = document.getElementById('ttFreq').value;
+  S.gbpReviewCount = document.getElementById('gbpReviewCount').value;
 
-  document.getElementById('scanBizName').textContent = bizName;
-  goTo(2);
+  document.getElementById('scanBizName').textContent = 'Analyzing ' + bizName;
+  goTo(3);
   animateScan();
   runAnalysis();
 }
 
 async function animateScan() {
-  const delays = [0, 4000, 9000, 14000, 18000];
+  const delays = [0, 3000, 7000, 12000, 16000];
   for (let i = 1; i <= 5; i++) {
     await sleep(delays[i-1]);
     if (i > 1) {
@@ -452,8 +802,7 @@ async function animateScan() {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
-
+// ── AI CALL WITH RETRY ──
 async function callAI(payload, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -464,13 +813,8 @@ async function callAI(payload, retries = 3) {
       });
       const data = await res.json();
       if (data.error?.type === 'overloaded_error') {
-        if (i < retries - 1) {
-          toast(`API busy, retrying in ${(i+1)*5}s...`);
-          await sleep((i+1) * 5000);
-          continue;
-        } else {
-          throw new Error('API overloaded after retries. Try again in a moment.');
-        }
+        if (i < retries - 1) { toast(`API busy, retrying...`); await sleep((i+1) * 5000); continue; }
+        else throw new Error('API overloaded. Try again in a moment.');
       }
       return data;
     } catch(err) {
@@ -480,81 +824,71 @@ async function callAI(payload, retries = 3) {
   }
 }
 
+// ── BUILD ANALYSIS PROMPT FROM REAL INPUTS ──
+function buildAuditContext() {
+  const rating = ['','Poor (1/5)','Fair (2/5)','Average (3/5)','Good (4/5)','Excellent (5/5)'];
+  const gbpRating = ['','1 star','2 stars','3 stars','4 stars','5 stars'];
+
+  const socialPlatform = (name, status, freq, types) => {
+    if (!status) return `${name}: Not assessed`;
+    if (status === 'none') return `${name}: No presence found`;
+    const typeStr = types.length ? `Content types: ${types.join(', ')}` : 'Content types: unknown';
+    return `${name}: ${status === 'active' ? 'Active' : 'Inactive'} | Posting: ${freq || 'unknown'} | ${typeStr}`;
+  };
+
+  const gbpFeatures = S.gbpFeatures.length ? S.gbpFeatures.join(', ') : 'none checked';
+  const revPresence = S.reviewPresence.length ? S.reviewPresence.join(', ') : 'none';
+
+  return `
+WEBSITE:
+- URL: ${S.website}
+- Quality rating (assessed by analyst): ${rating[S.websiteRating] || 'not rated'}
+- Has blog / SEO content: ${S.websiteBlog || 'unknown'}
+- Analyst notes: ${S.websiteNotes || 'none'}
+
+SOCIAL MEDIA:
+- ${socialPlatform('Instagram', S.igStatus, S.igFreq, S.igTypes)}
+- ${socialPlatform('Facebook', S.fbStatus, S.fbFreq, S.fbTypes)}
+- ${socialPlatform('LinkedIn', S.liStatus, S.liFreq, S.liTypes)}
+- ${socialPlatform('TikTok', S.ttStatus, S.ttFreq, S.ttTypes)}
+
+GOOGLE BUSINESS PROFILE:
+- GBP exists: ${S.gbpExists || 'unknown'}
+- Star rating: ${gbpRating[S.gbpRating] || 'not assessed'}
+- Review count: ${S.gbpReviewCount || 'unknown'}
+- Profile features present: ${gbpFeatures}
+
+REVIEWS & REPUTATION:
+- Overall sentiment: ${S.reviewSentiment || 'not assessed'}
+- Reviews found on: ${revPresence}`.trim();
+}
+
 async function runAnalysis() {
-  // Step 1: Scrape real content via Worker
-  let scraped = {};
-  try {
-    const scrapeRes = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'scrape',
-        website: S.website,
-        instagram: S.instagram,
-        facebook: S.facebook,
-        linkedin: S.linkedin,
-        tiktok: S.tiktok,
-        bizName: S.bizName,
-        location: S.location
-      })
-    });
-    scraped = await scrapeRes.json();
-  } catch(e) {
-    console.warn('Scrape failed, proceeding with URL-only analysis:', e.message);
-  }
+  const auditContext = buildAuditContext();
+  const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. You have just completed a manual audit of this prospect. Use the audit data provided below as ground truth — it was collected by a human analyst who reviewed the actual profiles. Do not contradict, second-guess, or add uncertainty to what the analyst observed.
 
-  // Build social content summary from scraped data
-  const socialSummary = [];
-  const platforms = ['instagram', 'facebook', 'linkedin', 'tiktok'];
-  for (const p of platforms) {
-    const provided = S[p];
-    const data = scraped.socialContent?.[p];
-    if (provided && data?.found) {
-      socialSummary.push(`${p} (provided, reachable): ${data.content?.slice(0, 300) || 'page loaded but limited content extracted'}`);
-    } else if (provided && !data?.found) {
-      socialSummary.push(`${p} (provided but unreachable or blocked): ${provided}`);
-    } else if (!provided && data?.found) {
-      socialSummary.push(`${p} (not provided — Google search found possible presence): ${data.snippet?.slice(0, 200)}`);
-    } else {
-      socialSummary.push(`${p}: No URL provided and no presence found in search results`);
-    }
-  }
-
-  const websiteContext = scraped.websiteContent
-    ? `Website content extracted (first 3000 chars):\n${scraped.websiteContent}`
-    : `Website URL provided (${S.website}) but content could not be fetched — base analysis on URL and specialty knowledge.`;
-
-  const gbpContext = scraped.gbpSearch?.snippet
-    ? `Google search signals for GBP/reviews:\n${scraped.gbpSearch.snippet}`
-    : 'No GBP data retrieved.';
-
-  const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. Analyze this prospect using the REAL scraped data below. Base your findings on what is actually present or absent — do not invent gaps that aren't supported by evidence.
-
-Prospect:
+PROSPECT:
 - Name: ${S.bizName}
 - Website: ${S.website}
 - Specialty: ${S.industry}
-- Location: ${S.location || 'Not provided'}
-- Contact: ${S.contactName || 'Not provided'}
+- Location: ${S.location || 'Not specified'}
+- Contact: ${S.contactName || 'Not specified'}
 - Notes: ${S.notes || 'None'}
 
---- REAL WEBSITE DATA ---
-${websiteContext}
+ANALYST AUDIT DATA:
+${auditContext}
 
---- REAL SOCIAL MEDIA DATA ---
-${socialSummary.join('\n')}
+Based on this audit data, identify gaps, strengths, and service opportunities.
 
---- GOOGLE / GBP SIGNALS ---
-${gbpContext}
+Rules:
+- Treat all audit inputs as accurate observations
+- Only flag something as a gap if the data supports it
+- If a platform is marked Active, treat it as active — do not suggest it may be inactive
+- Score accurately — a 4-5 star website should score high; a 1-2 star website should score low
+- Focus on genuine growth opportunities specific to ${S.industry}
+- Be specific — reference the actual data, not generic specialty assumptions
 
-Instructions:
-- Only flag something as a gap if the scraped data actually supports it
-- If a platform shows active content, acknowledge it as a strength
-- If data was blocked or unavailable, note uncertainty rather than assuming a gap
-- Score accurately — a strong website should score high, not low
-- Focus recommendations on genuine growth opportunities, not fabricated problems
-
-Return ONLY valid JSON (no markdown, no backticks, no preamble):
+Return ONLY valid JSON (no markdown, no backticks):
 
 {
   "scores": {
@@ -563,24 +897,14 @@ Return ONLY valid JSON (no markdown, no backticks, no preamble):
     "gbp": {"score": 0-100, "label": "Google / GBP"},
     "overall": {"score": 0-100, "label": "Overall Score"}
   },
-  "gaps": [
-    {"type": "gap", "text": "evidence-based finding"}
-  ],
-  "strengths": [
-    {"type": "ok", "text": "evidence-based strength"}
-  ],
-  "services": [
-    {
-      "name": "Service Name",
-      "priority": "high|med|low",
-      "why": "1-2 sentences tied to actual findings above"
-    }
-  ],
-  "summary": "2-3 sentence narrative based on real data"
+  "gaps": [{"type": "gap|warn|ok", "text": "finding"}],
+  "strengths": [{"type": "ok", "text": "strength"}],
+  "services": [{"name": "Service Name", "priority": "high|med|low", "why": "reason tied to audit data"}],
+  "summary": "2-3 sentence narrative"
 }
 
-Gap type options: "gap" (red - confirmed problem), "warn" (orange - potential weakness), "ok" (green - notable observation).
-Include 3-6 gaps, 2-5 strengths, 4-7 service recommendations ranked by priority (high first).
+Gap types: "gap" = confirmed problem (red), "warn" = opportunity to improve (orange), "ok" = notable observation (green).
+Include 3-6 gaps, 2-5 strengths, 4-7 services ranked high to low.
 
 Available services:
 Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
@@ -592,59 +916,49 @@ Social Media Management, Content Marketing / SEO Blogging, Google Business Profi
       messages: [{ role: 'user', content: prompt }]
     });
 
-    let raw = data.content[0].text.replace(/```json|```/g, '').trim();
+    let raw = data.content[0].text.replace(/```json|```/g,'').trim();
     let parsed;
     try { parsed = JSON.parse(raw); }
-    catch(e) {
-      toast('Parse error. Check console.');
-      console.error('Raw response:', raw);
-      goTo(1); return;
-    }
+    catch(e) { toast('Parse error. Check console.'); console.error(raw); goTo(2); return; }
 
     S.findings = parsed;
     S.services = parsed.services || [];
     S.selected = S.services.filter(s => s.priority === 'high').map(s => s.name);
     renderFindings();
     renderServices();
-    goTo(3);
+    goTo(4);
 
   } catch(err) {
     toast('Error: ' + err.message);
-    goTo(1);
+    goTo(2);
   }
 }
 
+// ── RENDER ──
 function renderFindings() {
   const f = S.findings;
   document.getElementById('findingsBizName').textContent = S.bizName;
-
-  // Scores
   const strip = document.getElementById('scoreStrip');
   strip.innerHTML = Object.values(f.scores).map(s => {
     const c = s.score >= 70 ? 'green' : s.score >= 45 ? 'orange' : 'red';
     return `<div class="score-card"><div class="score-val ${c}">${s.score}</div><div class="score-lbl">${s.label}</div></div>`;
   }).join('');
-
-  // Findings
-  const icons = { gap: '<span class="fi fi-gap">✕</span>', warn: '<span class="fi fi-warn">⚠</span>', ok: '<span class="fi fi-ok">✓</span>' };
+  const icons = { gap:'<span class="fi fi-gap">✕</span>', warn:'<span class="fi fi-warn">⚠</span>', ok:'<span class="fi fi-ok">✓</span>' };
   const gapsHtml = (f.gaps||[]).map(g => `<div class="finding-item">${icons[g.type]||icons.warn}<span>${g.text}</span></div>`).join('');
-  const strHtml  = (f.strengths||[]).map(g => `<div class="finding-item"><span class="fi fi-ok">✓</span><span>${g.text}</span></div>`).join('');
-
+  const strHtml = (f.strengths||[]).map(g => `<div class="finding-item"><span class="fi fi-ok">✓</span><span>${g.text}</span></div>`).join('');
   document.getElementById('findingsGrid').innerHTML = `
     <div class="finding-card">
-      <div class="finding-card-title">⚡ Gaps &amp; Opportunities</div>
-      ${gapsHtml}
+      <div class="finding-card-title">⚡ Gaps &amp; Opportunities</div>${gapsHtml}
     </div>
     <div class="finding-card">
-      <div class="finding-card-title">✅ Strengths</div>
-      ${strHtml}
+      <div class="finding-card-title">✅ Strengths</div>${strHtml}
       ${f.summary ? `<p style="margin-top:14px;font-size:12px;color:var(--mid);line-height:1.55;border-top:1px solid var(--warm-mid);padding-top:12px">${f.summary}</p>` : ''}
     </div>`;
 }
 
 function renderServices() {
-  const pClass = { high:'priority-high', med:'priority-med', low:'priority-low' };
-  const pLabel = { high:'High Priority', med:'Medium', low:'Lower Priority' };
+  const pClass = {high:'priority-high', med:'priority-med', low:'priority-low'};
+  const pLabel = {high:'High Priority', med:'Medium', low:'Lower Priority'};
   document.getElementById('servicesGrid').innerHTML = S.services.map(svc => {
     const sel = S.selected.includes(svc.name);
     return `<div class="service-card${sel?' selected':''}" onclick="toggleSvc(this,'${svc.name.replace(/'/g,"\\'")}')">
@@ -659,22 +973,17 @@ function renderServices() {
 function toggleSvc(el, name) {
   el.classList.toggle('selected');
   const check = el.querySelector('.service-check');
-  if (el.classList.contains('selected')) {
-    check.textContent = '✓';
-    if (!S.selected.includes(name)) S.selected.push(name);
-  } else {
-    check.textContent = '';
-    S.selected = S.selected.filter(s => s !== name);
-  }
+  if (el.classList.contains('selected')) { check.textContent = '✓'; if (!S.selected.includes(name)) S.selected.push(name); }
+  else { check.textContent = ''; S.selected = S.selected.filter(s => s !== name); }
 }
 
+// ── PITCH ──
 async function generatePitch() {
   if (!S.selected.length) { toast('Select at least one service'); return; }
-  S.pitches = {};
-  S.channel = 'email';
+  S.pitches = {}; S.channel = 'email';
   document.querySelectorAll('.channel-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.getElementById('pitchBizName').textContent = S.bizName;
-  goTo(5);
+  goTo(6);
   await streamPitch('email');
 }
 
@@ -682,29 +991,22 @@ async function streamPitch(channel) {
   S.channel = channel;
   const body = document.getElementById('pitchBody');
   body.classList.add('streaming');
-
-  if (S.pitches[channel]) {
-    body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>');
-    body.classList.remove('streaming');
-    return;
-  }
-
+  if (S.pitches[channel]) { body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>'); body.classList.remove('streaming'); return; }
   body.innerHTML = '<span class="cursor-blink"></span>';
 
   const channelGuide = {
-    email:    'Write a cold outreach email. First line must be "Subject: [your subject line]". Under 200 words. Personal and specific, not corporate or salesy.',
-    dm:       'Write a short Instagram or Facebook DM. Max 75 words. Casual, warm, reference something specific about their practice.',
-    linkedin: 'Write a LinkedIn connection request message. Max 55 words. Professional but human. No jargon.'
+    email: 'Write a cold outreach email. First line must be "Subject: [subject line]". Under 200 words. Personal, specific, not corporate.',
+    dm: 'Write a short Instagram or Facebook DM. Max 75 words. Casual, warm, reference something specific.',
+    linkedin: 'Write a LinkedIn connection request. Max 55 words. Professional but human. No jargon.'
   };
 
-  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,4).join('; ');
-  const prompt = `You are Morgan at Messick Marketing, a boutique healthcare marketing agency based in Georgia. Write a pitch outreach message for this prospect.
+  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
+  const prompt = `You are Morgan at Messick Marketing, a boutique healthcare marketing agency based in Georgia. Write a pitch outreach message.
 
 Prospect: ${S.bizName}
 Specialty: ${S.industry}
 Location: ${S.location || 'Not specified'}
 Contact: ${S.contactName || 'the practice'}
-Website: ${S.website}
 Key gaps found: ${gaps}
 Services to pitch: ${S.selected.join(', ')}
 
@@ -712,26 +1014,22 @@ ${channelGuide[channel]}
 
 Rules:
 - Sound like a real person, not a template
-- Mention 1-2 specific things about their specialty or situation
+- Reference 1-2 specific, accurate things about their practice or specialty
 - Lead with value or an observation, not a sales pitch
 - Never use em dashes
 - Never use: leverage, synergy, holistic, game-changer, cutting-edge
+- Never reference data collection, audits, scanning tools, or what you could or could not access
+- Only speak to observable business opportunities
 - Sign off as: Morgan | Messick Marketing
 - No brackets, no placeholders, no asterisks
 - Write the message only. Nothing else.`;
 
   try {
-    const data = await callAI({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
+    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
     const full = data.content[0].text;
     S.pitches[channel] = full;
     body.innerHTML = full.replace(/\n/g,'<br>');
     body.classList.remove('streaming');
-
   } catch(err) {
     body.textContent = 'Error: ' + err.message;
     body.classList.remove('streaming');
@@ -744,46 +1042,44 @@ function switchChannel(ch, el) {
   streamPitch(ch);
 }
 
-async function regeneratePitch() {
-  delete S.pitches[S.channel];
-  await streamPitch(S.channel);
-}
-
-function copyPitch() {
-  const text = document.getElementById('pitchBody').innerText;
-  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'));
-}
+async function regeneratePitch() { delete S.pitches[S.channel]; await streamPitch(S.channel); }
+function copyPitch() { navigator.clipboard.writeText(document.getElementById('pitchBody').innerText).then(() => toast('Copied')); }
 
 function resetAll() {
-  ['bizName','website','instagram','facebook','linkedin','tiktok','location','contactName','notes'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+  // Reset state
+  S = { step:1, bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
+    websiteRating:0, websiteBlog:null, websiteNotes:'',
+    igStatus:null, igFreq:'', igTypes:[], fbStatus:null, fbFreq:'', fbTypes:[],
+    liStatus:null, liFreq:'', liTypes:[], ttStatus:null, ttFreq:'', ttTypes:[],
+    gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
+    reviewSentiment:null, reviewPresence:[],
+    findings:null, services:[], selected:[], channel:'email', pitches:{} };
+  // Reset form fields
+  ['bizName','website','location','contactName','notes','websiteNotes','igFreq','fbFreq','liFreq','ttFreq','gbpReviewCount'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('industry').value = '';
-  S = { step:1, bizName:'', website:'', instagram:'', facebook:'', linkedin:'', tiktok:'', industry:'', location:'', contactName:'', notes:'', findings:null, services:[], selected:[], channel:'email', pitches:{} };
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.star-label').forEach(s => s.textContent = s.id === 'gbpStarLabel' ? 'N/A' : 'Click to rate');
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on','on-warn','on-none'));
+  document.querySelectorAll('.check-item').forEach(c => c.classList.remove('checked'));
+  document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('on-pos','on-mix','on-few'));
   goTo(1);
 }
 
-// Password gate
+// ── PASSWORD ──
 window.addEventListener('DOMContentLoaded', () => {
   const unlocked = sessionStorage.getItem('mm_unlocked');
-  if (!unlocked) showPasswordGate();
-  else initTool();
+  if (!unlocked) {
+    document.querySelector('.shell').style.display = 'none';
+    document.getElementById('pwGate').style.display = 'flex';
+    setTimeout(() => document.getElementById('pwInput').focus(), 100);
+  }
 });
 
-function showPasswordGate() {
-  document.querySelector('.shell').style.display = 'none';
-  document.getElementById('pwGate').style.display = 'flex';
-  setTimeout(() => document.getElementById('pwInput').focus(), 100);
-}
-
 function checkPassword() {
-  const val = document.getElementById('pwInput').value;
-  if (val === 'Messick2026') {
-    sessionStorage.setItem('mm_unlocked', '1');
+  if (document.getElementById('pwInput').value === 'Messick2026') {
+    sessionStorage.setItem('mm_unlocked','1');
     document.getElementById('pwGate').style.display = 'none';
     document.querySelector('.shell').style.display = 'flex';
-    initTool();
   } else {
     const err = document.getElementById('pwError');
     err.style.display = 'block';
@@ -791,10 +1087,6 @@ function checkPassword() {
     document.getElementById('pwInput').focus();
     setTimeout(() => err.style.display = 'none', 2500);
   }
-}
-
-function initTool() {
-  // No API key needed - powered by Cloudflare Worker
 }
 
 document.addEventListener('keydown', e => {
