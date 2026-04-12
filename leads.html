@@ -202,6 +202,45 @@
   .pitch-body.streaming { border-color: var(--steel-pale); }
   .cursor-blink { display: inline-block; width: 2px; height: 1.1em; background: var(--steel); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.75s step-end infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* REFINEMENT CHAT */
+  .refinement-section { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: var(--shadow); overflow: hidden; }
+  .refinement-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--warm); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .refinement-header-left { display: flex; align-items: center; gap: 8px; }
+  .refinement-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); }
+  .refinement-hint { font-size: 11.5px; color: var(--mid); font-weight: 300; }
+  .refinement-toggle { font-size: 13px; color: var(--mid); transition: transform 0.2s; }
+  .refinement-toggle.open { transform: rotate(180deg); }
+  .refinement-body { display: none; }
+  .refinement-body.open { display: block; }
+
+  /* CHAT HISTORY */
+  .chat-history { max-height: 260px; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-history:empty { display: none; }
+  .chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 88%; animation: fadeIn 0.18s ease; }
+  .chat-msg.user { align-self: flex-end; }
+  .chat-msg.assistant { align-self: flex-start; }
+  .chat-bubble { padding: 9px 13px; border-radius: 10px; font-size: 13px; line-height: 1.55; font-weight: 400; }
+  .chat-msg.user .chat-bubble { background: var(--steel); color: #fff; border-bottom-right-radius: 3px; }
+  .chat-msg.assistant .chat-bubble { background: var(--warm-mid); color: var(--black); border-bottom-left-radius: 3px; border: 1px solid var(--border); }
+  .chat-msg.assistant .chat-bubble.thinking { color: var(--mid); font-style: italic; font-size: 12px; }
+  .chat-time { font-size: 10px; color: var(--mid); padding: 0 2px; }
+  .chat-msg.user .chat-time { text-align: right; }
+
+  /* QUICK CHIPS */
+  .quick-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+  .quick-chip { padding: 5px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid); transition: all 0.15s; font-family: 'Jost', sans-serif; white-space: nowrap; }
+  .quick-chip:hover { border-color: var(--steel); color: var(--steel); background: rgba(58,107,138,0.04); }
+
+  /* CHAT INPUT ROW */
+  .chat-input-row { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--warm); align-items: flex-end; }
+  .chat-input { flex: 1; font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--black); resize: none; outline: none; transition: border-color 0.15s, box-shadow 0.15s; max-height: 120px; min-height: 40px; line-height: 1.5; }
+  .chat-input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
+  .chat-input::placeholder { color: #b5bdc4; }
+  .chat-send { width: 38px; height: 38px; border-radius: var(--radius); border: none; background: var(--steel); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .chat-send:hover { background: var(--steel-light); transform: translateY(-1px); }
+  .chat-send:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
   .reset-row { display: flex; justify-content: flex-end; margin-top: 10px; }
   .reset-btn { font-size: 12px; color: var(--mid); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
   .reset-btn:hover { color: var(--black); }
@@ -617,6 +656,36 @@
         <button class="channel-tab" onclick="switchChannel('linkedin',this)">LinkedIn</button>
       </div>
       <div class="pitch-body" id="pitchBody"></div>
+
+      <!-- REFINEMENT CHAT -->
+      <div class="refinement-section">
+        <div class="refinement-header" onclick="toggleRefinement()">
+          <div class="refinement-header-left">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#3a6b8a" stroke-width="1.8"><path d="M20 2H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
+            <span class="refinement-title">Refine This Pitch</span>
+            <span class="refinement-hint">Ask for edits, a different tone, shorter version...</span>
+          </div>
+          <span class="refinement-toggle" id="refinementToggle">▾</span>
+        </div>
+        <div class="refinement-body" id="refinementBody">
+          <div class="chat-history" id="chatHistory"></div>
+          <div class="quick-chips" id="quickChips">
+            <button class="quick-chip" onclick="sendChip('Make it shorter')">Make it shorter</button>
+            <button class="quick-chip" onclick="sendChip('Make it more casual')">More casual</button>
+            <button class="quick-chip" onclick="sendChip('Make it more direct and punchy')">More direct</button>
+            <button class="quick-chip" onclick="sendChip('Lead with the stat instead')">Lead with the stat</button>
+            <button class="quick-chip" onclick="sendChip('Try a completely different angle')">Different angle</button>
+            <button class="quick-chip" onclick="sendChip('Add a stronger call to action')">Stronger CTA</button>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chatInput" placeholder="e.g. make it shorter, try a different hook, focus on the GBP gap..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+            <button class="chat-send" id="chatSendBtn" onclick="sendRefinement()">
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button class="btn btn-outline" onclick="goTo(5)">← Adjust Services</button>
         <button class="btn btn-black" onclick="regeneratePitch()">↺ Regenerate</button>
@@ -664,26 +733,20 @@ const TOTAL_STEPS = 6;
 let S = {
   step: 1,
   bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
-  // website audit
   websiteRating: 0, websiteBlog: null, websiteNotes: '',
-  // social
   igStatus:null, igFreq:'', igTypes:[],
   fbStatus:null, fbFreq:'', fbTypes:[],
   liStatus:null, liFreq:'', liTypes:[],
   ttStatus:null, ttFreq:'', ttTypes:[],
-  // gbp
   gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
-  // reviews
   reviewSentiment:null, reviewPresence:[],
-  // output
-  findings:null, services:[], selected:[], channel:'email', pitches:{}
+  findings:null, services:[], selected:[], channel:'email', pitches:{},
+  // chat refinement state per channel
+  chatHistory: { email:[], dm:[], linkedin:[] }
 };
 
 // ── NAV ──
 function goTo(step) {
-  if (step === 1) {
-    // validate step 1 fields before leaving
-  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + step).classList.add('active');
   for (let i = 1; i <= TOTAL_STEPS; i++) {
@@ -980,9 +1043,13 @@ function toggleSvc(el, name) {
 // ── PITCH ──
 async function generatePitch() {
   if (!S.selected.length) { toast('Select at least one service'); return; }
-  S.pitches = {}; S.channel = 'email';
+  S.pitches = {};
+  S.chatHistory = { email:[], dm:[], linkedin:[] };
+  S.channel = 'email';
   document.querySelectorAll('.channel-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.getElementById('pitchBizName').textContent = S.bizName;
+  // Clear chat UI when generating fresh
+  document.getElementById('chatHistory').innerHTML = '';
   goTo(6);
   await streamPitch('email');
 }
@@ -991,7 +1058,12 @@ async function streamPitch(channel) {
   S.channel = channel;
   const body = document.getElementById('pitchBody');
   body.classList.add('streaming');
-  if (S.pitches[channel]) { body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>'); body.classList.remove('streaming'); return; }
+  if (S.pitches[channel]) {
+    body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>');
+    body.classList.remove('streaming');
+    renderChatHistory(channel);
+    return;
+  }
   body.innerHTML = '<span class="cursor-blink"></span>';
 
   const channelGuide = {
@@ -1016,6 +1088,7 @@ Rules:
 - Sound like a real person, not a template
 - Reference 1-2 specific, accurate things about their practice or specialty
 - Lead with value or an observation, not a sales pitch
+- Include at least one relevant statistic, data point, or real-world example that supports why marketing matters for this specialty (e.g. patient search behavior, social media usage in healthcare, local competition benchmarks). Weave it in naturally — do not call attention to it as a "stat."
 - Never use em dashes
 - Never use: leverage, synergy, holistic, game-changer, cutting-edge
 - Never reference data collection, audits, scanning tools, or what you could or could not access
@@ -1030,6 +1103,7 @@ Rules:
     S.pitches[channel] = full;
     body.innerHTML = full.replace(/\n/g,'<br>');
     body.classList.remove('streaming');
+    renderChatHistory(channel);
   } catch(err) {
     body.textContent = 'Error: ' + err.message;
     body.classList.remove('streaming');
@@ -1042,19 +1116,162 @@ function switchChannel(ch, el) {
   streamPitch(ch);
 }
 
-async function regeneratePitch() { delete S.pitches[S.channel]; await streamPitch(S.channel); }
+async function regeneratePitch() {
+  delete S.pitches[S.channel];
+  S.chatHistory[S.channel] = [];
+  document.getElementById('chatHistory').innerHTML = '';
+  await streamPitch(S.channel);
+}
+
 function copyPitch() { navigator.clipboard.writeText(document.getElementById('pitchBody').innerText).then(() => toast('Copied')); }
 
+// ── REFINEMENT CHAT ──
+function toggleRefinement() {
+  const body = document.getElementById('refinementBody');
+  const toggle = document.getElementById('refinementToggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  toggle.classList.toggle('open', !isOpen);
+}
+
+function renderChatHistory(channel) {
+  const hist = S.chatHistory[channel] || [];
+  const container = document.getElementById('chatHistory');
+  container.innerHTML = '';
+  hist.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = `chat-msg ${msg.role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = msg.content;
+    div.appendChild(bubble);
+    container.appendChild(div);
+  });
+  if (hist.length) container.scrollTop = container.scrollHeight;
+}
+
+function addChatMsg(role, content, thinking = false) {
+  const hist = document.getElementById('chatHistory');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble${thinking ? ' thinking' : ''}`;
+  bubble.textContent = content;
+  div.appendChild(bubble);
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+  return bubble;
+}
+
+function sendChip(text) {
+  document.getElementById('chatInput').value = text;
+  sendRefinement();
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendRefinement(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendRefinement() {
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const currentPitch = S.pitches[S.channel];
+  if (!currentPitch) { toast('Generate a pitch first'); return; }
+
+  // Open refinement panel if closed
+  const body = document.getElementById('refinementBody');
+  if (!body.classList.contains('open')) toggleRefinement();
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  // Add user msg to history
+  S.chatHistory[S.channel].push({ role:'user', content: msg });
+  addChatMsg('user', msg);
+
+  // Thinking indicator
+  const thinkBubble = addChatMsg('assistant', 'Rewriting...', true);
+
+  const channelConstraint = {
+    email: 'Keep it under 200 words. First line must still be "Subject: [subject line]".',
+    dm: 'Keep it under 75 words. Stay casual and warm.',
+    linkedin: 'Keep it under 55 words. Stay professional but human.'
+  };
+
+  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
+
+  // Build conversation history for context (last 6 exchanges)
+  const recentHistory = S.chatHistory[S.channel].slice(-7, -1); // exclude the msg we just added
+  const historyStr = recentHistory.map(m => `${m.role === 'user' ? 'Feedback' : 'Previous version'}: ${m.content}`).join('\n\n');
+
+  const prompt = `You are Morgan at Messick Marketing. You wrote the following pitch outreach message, and the user has feedback. Rewrite the pitch applying their request.
+
+ORIGINAL PITCH:
+${currentPitch}
+
+PROSPECT CONTEXT:
+- Business: ${S.bizName}
+- Specialty: ${S.industry}
+- Location: ${S.location || 'Not specified'}
+- Key gaps: ${gaps}
+- Services pitched: ${S.selected.join(', ')}
+
+${historyStr ? `PREVIOUS FEEDBACK AND REVISIONS:\n${historyStr}\n` : ''}
+NEW FEEDBACK: ${msg}
+
+Rewrite the pitch applying this feedback. ${channelConstraint[S.channel]}
+
+Rules (always apply):
+- Sound like a real person, not a template
+- Include at least one relevant statistic, data point, or real-world example that supports why marketing matters for this specialty. Weave it in naturally.
+- Never use em dashes
+- Never use: leverage, synergy, holistic, game-changer, cutting-edge
+- Never reference audits, scanning tools, or data collection
+- Sign off as: Morgan | Messick Marketing
+- No brackets, no placeholders, no asterisks
+- Write the revised message only. Nothing else.`;
+
+  try {
+    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
+    const revised = data.content[0].text;
+
+    // Update pitch
+    S.pitches[S.channel] = revised;
+    document.getElementById('pitchBody').innerHTML = revised.replace(/\n/g,'<br>');
+
+    // Replace thinking bubble with the new version summary
+    thinkBubble.classList.remove('thinking');
+    thinkBubble.textContent = 'Done. Pitch updated above.';
+
+    // Add assistant response to history
+    S.chatHistory[S.channel].push({ role:'assistant', content: 'Done. Pitch updated above.' });
+
+  } catch(err) {
+    thinkBubble.textContent = 'Error: ' + err.message;
+    thinkBubble.classList.remove('thinking');
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
 function resetAll() {
-  // Reset state
   S = { step:1, bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
     websiteRating:0, websiteBlog:null, websiteNotes:'',
     igStatus:null, igFreq:'', igTypes:[], fbStatus:null, fbFreq:'', fbTypes:[],
     liStatus:null, liFreq:'', liTypes:[], ttStatus:null, ttFreq:'', ttTypes:[],
     gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
     reviewSentiment:null, reviewPresence:[],
-    findings:null, services:[], selected:[], channel:'email', pitches:{} };
-  // Reset form fields
+    findings:null, services:[], selected:[], channel:'email', pitches:{},
+    chatHistory: { email:[], dm:[], linkedin:[] } };
   ['bizName','website','location','contactName','notes','websiteNotes','igFreq','fbFreq','liFreq','ttFreq','gbpReviewCount'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('industry').value = '';
   document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
@@ -1062,6 +1279,11 @@ function resetAll() {
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on','on-warn','on-none'));
   document.querySelectorAll('.check-item').forEach(c => c.classList.remove('checked'));
   document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('on-pos','on-mix','on-few'));
+  document.getElementById('chatHistory').innerHTML = '';
+  const rb = document.getElementById('refinementBody');
+  const rt = document.getElementById('refinementToggle');
+  rb.classList.remove('open');
+  rt.classList.remove('open');
   goTo(1);
 }
 
