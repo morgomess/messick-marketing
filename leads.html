@@ -1,148 +1,598 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7Messick Marketing | Agency Intelligence</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root { --black: #111111; --steel: #3a6b8a; --warm: #faf8f5; --border: #dde5ea; --danger: #c0392b; --success: #2e7d5e; }
-        body { font-family: 'Jost', sans-serif; background: var(--warm); margin: 0; display: flex; flex-direction: column; min-height: 100vh; color: var(--black); }
-        
-        header { background: var(--black); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        .shell { display: flex; flex: 1; }
-        
-        aside { width: 220px; background: var(--black); padding: 20px 0; flex-shrink: 0; }
-        .step { padding: 12px 25px; color: rgba(255,255,255,0.3); font-size: 13px; border-left: 3px solid transparent; transition: 0.3s; }
-        .step.active { color: white; background: rgba(58,107,138,0.15); border-left: 3px solid var(--steel); }
-        
-        main { flex: 1; padding: 40px; max-width: 1100px; }
-        .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 25px; }
-        
-        .page { display: none; } 
-        .page.active { display: block; }
-        
-        input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 15px; box-sizing: border-box; }
-        button { background: var(--steel); color: white; border: none; padding: 16px; border-radius: 4px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; font-size: 16px; }
-        button:hover { background: #2c526a; }
-        
-        /* AI Output Formatting */
-        #aiOutput { white-space: pre-wrap; line-height: 1.8; font-size: 16px; color: #333; }
-        #aiOutput h1, #aiOutput h2, #aiOutput h3 { font-family: 'Cormorant Garamond'; color: var(--steel); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        #aiOutput strong { color: var(--black); font-weight: 600; }
-        #status { font-style: italic; color: var(--steel); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messick Marketing | Pitch Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #111111;
+    --steel: #3a6b8a;
+    --steel-light: #5a9ab8;
+    --warm: #faf8f5;
+    --border: #dde5ea;
+    --muted: #888;
+    --success: #2e7d5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Jost', sans-serif; background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* LOGIN GATE */
+  #loginGate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--black);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    transition: opacity 0.4s;
+  }
+  .lock-logo { font-family: 'Cormorant Garamond'; font-size: 26px; letter-spacing: 2px; color: white; margin-bottom: 6px; }
+  .lock-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: var(--steel-light); font-weight: 600; margin-bottom: 44px; }
+  .lock-card { background: #181818; border: 1px solid #2a2a2a; border-radius: 12px; padding: 40px 44px; width: 100%; max-width: 380px; text-align: center; }
+  .lock-icon { font-size: 28px; margin-bottom: 16px; opacity: 0.5; }
+  .lock-card h2 { font-family: 'Cormorant Garamond'; font-size: 22px; color: white; margin-bottom: 6px; font-weight: 600; }
+  .lock-card p { font-size: 13px; color: rgba(255,255,255,0.3); margin-bottom: 28px; }
+  .lock-card input {
+    width: 100%; padding: 13px 16px; background: #111; border: 1px solid #333;
+    border-radius: 6px; color: white; font-family: 'Jost', sans-serif; font-size: 15px;
+    text-align: center; letter-spacing: 2px; outline: none; transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  .lock-card input:focus { border-color: var(--steel); }
+  .lock-card input::placeholder { letter-spacing: 1px; color: #3a3a3a; font-size: 13px; }
+  .lock-btn {
+    width: 100%; padding: 13px; background: var(--steel); border: none; border-radius: 6px;
+    color: white; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+  }
+  .lock-btn:hover { background: #2c526a; }
+  #loginError { color: #e07070; font-size: 12px; margin-top: 12px; min-height: 16px; }
+
+  /* HEADER */
+  header {
+    background: var(--black); color: white; padding: 0 36px; height: 58px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; flex-shrink: 0;
+  }
+  .header-logo { font-family: 'Cormorant Garamond'; font-size: 21px; letter-spacing: 1.5px; }
+  .header-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--steel-light); font-weight: 600; }
+
+  /* PROGRESS */
+  .progress-wrap { background: var(--black); border-top: 1px solid #1e1e1e; padding: 0 36px; display: flex; overflow-x: auto; }
+  .progress-step {
+    flex: 1; min-width: 90px; padding: 10px 0;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.2);
+    font-weight: 600; display: flex; align-items: center; gap: 8px;
+    border-bottom: 2px solid transparent; transition: all 0.3s; white-space: nowrap;
+  }
+  .progress-step .num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center;
+    font-size: 10px; flex-shrink: 0; transition: all 0.3s;
+  }
+  .progress-step.active { color: white; border-bottom-color: var(--steel-light); }
+  .progress-step.active .num { background: var(--steel); }
+  .progress-step.done { color: rgba(255,255,255,0.35); }
+  .progress-step.done .num { background: var(--success); color: white; font-size: 10px; }
+
+  /* SHELL */
+  .shell { flex: 1; display: flex; justify-content: center; padding: 44px 24px 80px; }
+  .panel { width: 100%; max-width: 860px; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* CARD */
+  .card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 20px; }
+  .card-title { font-family: 'Cormorant Garamond'; font-size: 30px; font-weight: 600; margin-bottom: 6px; }
+  .card-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
+
+  /* FIELDS */
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; color: var(--steel); margin-bottom: 7px; }
+  .field input {
+    width: 100%; padding: 13px 15px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 15px; color: var(--black); background: var(--warm);
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: white; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background: var(--steel); color: white; border: none; padding: 14px 26px;
+    border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: #2c526a; }
+  .btn-primary:disabled { background: #bbb; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--steel); border: 1px solid var(--border); padding: 12px 22px;
+    border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-ghost:hover { border-color: var(--steel); background: rgba(58,107,138,0.05); }
+
+  /* LOADING */
+  .loading-wrap { text-align: center; padding: 80px 20px; }
+  .spinner {
+    width: 38px; height: 38px; border: 3px solid var(--border);
+    border-top-color: var(--steel); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 24px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-status { font-size: 15px; color: var(--steel); font-style: italic; margin-bottom: 8px; }
+  .loading-note { font-size: 12px; color: var(--muted); }
+
+  /* INTEL OUTPUT */
+  .intel-output { line-height: 1.8; font-size: 15px; color: #333; }
+  .intel-output h2 {
+    font-family: 'Cormorant Garamond'; font-size: 22px; font-weight: 600;
+    color: var(--steel); margin: 28px 0 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .intel-output h2:first-child { margin-top: 0; }
+  .intel-output h3 { font-size: 13px; font-weight: 700; color: var(--black); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .intel-output p { margin-bottom: 12px; }
+  .intel-output strong { color: var(--black); font-weight: 700; }
+  .intel-output ul { margin: 8px 0 14px 20px; }
+  .intel-output ul li { margin-bottom: 6px; color: #444; }
+  .intel-output .impact-box {
+    background: #fff8f2; border-left: 3px solid #d4622a;
+    border-radius: 0 6px 6px 0; padding: 14px 18px; margin: 16px 0; font-size: 14px; color: #7a3a10;
+  }
+
+  /* CHAT */
+  .chat-history { max-height: 380px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .chat-msg { display: flex; gap: 12px; align-items: flex-start; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+  }
+  .chat-msg.ai .chat-avatar { background: var(--steel); color: white; }
+  .chat-msg.user .chat-avatar { background: var(--black); color: white; }
+  .chat-bubble { max-width: 78%; padding: 12px 16px; border-radius: 10px; font-size: 14px; line-height: 1.65; }
+  .chat-msg.ai .chat-bubble { background: var(--warm); border: 1px solid var(--border); color: #333; }
+  .chat-msg.user .chat-bubble { background: var(--steel); color: white; }
+  .chat-input-row { display: flex; gap: 10px; }
+  .chat-input-row input {
+    flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--warm);
+  }
+  .chat-input-row input:focus { border-color: var(--steel); background: white; }
+  .chat-send {
+    background: var(--steel); border: none; border-radius: 6px; color: white;
+    padding: 12px 18px; cursor: pointer; font-size: 16px; transition: background 0.2s; flex-shrink: 0;
+  }
+  .chat-send:hover { background: #2c526a; }
+  .chat-send:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* SERVICES */
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .service-card {
+    border: 2px solid var(--border); border-radius: 8px; padding: 16px 18px;
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .service-card:hover { border-color: var(--steel-light); background: rgba(58,107,138,0.03); }
+  .service-card.selected { border-color: var(--steel); background: rgba(58,107,138,0.07); }
+  .svc-check { display: none; color: var(--steel); font-weight: 700; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .service-card.selected .svc-check { display: block; }
+  .svc-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .svc-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* PITCH OUTPUT */
+  .pitch-output { line-height: 1.85; font-size: 15px; color: #333; }
+  .pitch-output h2 { font-family: 'Cormorant Garamond'; font-size: 24px; font-weight: 600; color: var(--black); margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .pitch-output h2:first-child { margin-top: 0; }
+  .pitch-output h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--steel); margin: 18px 0 8px; }
+  .pitch-output p { margin-bottom: 14px; }
+  .pitch-output ul { margin: 8px 0 14px 20px; }
+  .pitch-output ul li { margin-bottom: 7px; }
+  .pitch-output strong { font-weight: 700; color: var(--black); }
+
+  /* MISC */
+  .row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .prospect-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--black); color: white; border-radius: 20px;
+    padding: 6px 14px; font-size: 12px; font-weight: 600; margin-bottom: 18px;
+  }
+  .prospect-tag span { color: var(--steel-light); }
+</style>
 </head>
 <body>
 
+<!-- LOGIN GATE -->
+<div id="loginGate">
+  <div class="lock-logo">Messick Marketing</div>
+  <div class="lock-sub">Pitch Intelligence · Internal Tool</div>
+  <div class="lock-card">
+    <div class="lock-icon">🔒</div>
+    <h2>Restricted Access</h2>
+    <p>Enter your access password to continue</p>
+    <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="lock-btn" onclick="checkPw()">Unlock →</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
 <header>
-    <div style="font-family:'Cormorant Garamond'; font-size:24px; letter-spacing:1px;">Messick Marketing</div>
-    <div style="font-size:11px; text-transform:uppercase; color:var(--steel); font-weight:600;">Pitch Intelligence v4.6</div>
+  <div class="header-logo">Messick Marketing</div>
+  <div class="header-badge">Pitch Intelligence</div>
 </header>
 
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-step active" id="ps1"><div class="num">1</div><span>Prospect</span></div>
+  <div class="progress-step" id="ps2"><div class="num">2</div><span>Research</span></div>
+  <div class="progress-step" id="ps3"><div class="num">3</div><span>Intelligence</span></div>
+  <div class="progress-step" id="ps4"><div class="num">4</div><span>Services</span></div>
+  <div class="progress-step" id="ps5"><div class="num">5</div><span>Pitch</span></div>
+</div>
+
 <div class="shell">
-    <aside>
-        <div class="step active" id="s1">1. Prospect Data</div>
-        <div class="step" id="s2">2. Intelligence Gathering</div>
-        <div class="step" id="s3">3. Strategic Gaps</div>
-    </aside>
+  <div class="panel">
 
-    <main>
-        <div id="p1" class="page active">
-            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:10px;">New Prospect Analysis</h2>
-            <p style="margin-bottom:25px; color:#666;">Enter the business details to identify critical marketing failures.</p>
-            <div class="card">
-                <input type="text" id="bizName" placeholder="Practice Name (e.g., NY Vascular Care)">
-                <input type="text" id="location" placeholder="City, State">
-                <input type="url" id="website" placeholder="Full Website URL (https://...)">
-                <button onclick="runAnalysis()">Generate Insight →</button>
-            </div>
-        </div>
+    <!-- STEP 1: INPUT -->
+    <div id="p1" class="page active">
+      <div class="card">
+        <div class="card-title">New Prospect Analysis</div>
+        <div class="card-sub">Enter the prospect's details below. Website URL is optional but improves depth of analysis.</div>
+        <div class="field"><label>Practice / Business Name</label><input type="text" id="bizName" placeholder="e.g. NY Vascular Care"></div>
+        <div class="field"><label>City, State</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
+        <div class="field"><label>Website URL (optional)</label><input type="url" id="website" placeholder="https://..."></div>
+        <button class="btn-primary" onclick="startResearch()">Run Intelligence Report →</button>
+      </div>
+    </div>
 
-        <div id="p2" class="page">
-            <h2 style="font-family:'Cormorant Garamond';">Gathering Intel...</h2>
-            <div class="card" style="text-align:center; padding:100px 20px;">
-                <div id="status">Scraping site architecture and identifying conversion leaks...</div>
-                <p style="font-size: 12px; color: #999; margin-top: 20px;">This may take up to 30 seconds depending on server load.</p>
-            </div>
+    <!-- STEP 2: LOADING -->
+    <div id="p2" class="page">
+      <div class="card">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <div class="loading-status" id="loadStatus">Scraping website and social presence...</div>
+          <div class="loading-note">Pulling SEO signals, Google Business Profile data, social pages, and conversion gaps. This may take 20-30 seconds.</div>
         </div>
+      </div>
+    </div>
 
-        <div id="p3" class="page">
-            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:20px;">Strategic Gap Analysis</h2>
-            <div class="card">
-                <div id="aiOutput">Waiting for analysis...</div>
-            </div>
-            <button onclick="location.reload()" style="background:#444; width:auto; padding:10px 40px;">Analyze Another Prospect</button>
+    <!-- STEP 3: INTELLIGENCE + CHAT -->
+    <div id="p3" class="page">
+      <div class="prospect-tag">🎯 <span id="prospectLabel">—</span></div>
+      <div class="card">
+        <div class="card-title">Strategic Gap Analysis</div>
+        <div class="card-sub">Critical marketing failures and revenue opportunities identified for this prospect. Use the chat below to dig deeper into any area.</div>
+        <div id="intelOutput" class="intel-output"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:22px; margin-bottom:5px;">Refine the Intelligence</div>
+        <div class="card-sub" style="margin-bottom:18px;">Ask follow-up questions or request deeper analysis on any finding before you pitch.</div>
+        <div class="chat-history" id="chatHistory"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder='e.g. "Go deeper on their SEO gaps" or "How would you open the call?"' onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">➤</button>
         </div>
-    </main>
+      </div>
+      <div class="row-actions">
+        <button class="btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
+        <button class="btn-ghost" onclick="restart()">← Start Over</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: SERVICE SELECTION -->
+    <div id="p4" class="page">
+      <div class="prospect-tag">🎯 <span id="prospectLabel2">—</span></div>
+      <div class="card">
+        <div class="card-title">Select Services to Pitch</div>
+        <div class="card-sub">Choose the services most relevant to this prospect's gaps. The pitch will be written around what you select.</div>
+        <div class="services-grid" id="servicesGrid"></div>
+        <div class="row-actions">
+          <button class="btn-primary" id="generatePitchBtn" onclick="generatePitch()" disabled>Generate Pitch →</button>
+          <button class="btn-ghost" onclick="goTo(3)">← Back to Intel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: PITCH -->
+    <div id="p5" class="page">
+      <div class="prospect-tag">🎯 <span id="prospectLabel3">—</span></div>
+      <div class="card" id="pitchLoadCard">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <div class="loading-status">Crafting your custom pitch...</div>
+          <div class="loading-note">Tailoring the email and call script to this prospect's specific gaps.</div>
+        </div>
+      </div>
+      <div class="card" id="pitchCard" style="display:none;">
+        <div class="card-title">Your Custom Pitch</div>
+        <div class="card-sub">Tailored to this prospect's specific gaps and your selected services. Includes an email version and call script.</div>
+        <div id="pitchOutput" class="pitch-output"></div>
+      </div>
+      <div class="row-actions" id="pitchActions" style="display:none;">
+        <button class="btn-ghost" onclick="copyPitch()">📋 Copy Pitch</button>
+        <button class="btn-ghost" onclick="goTo(4)">← Change Services</button>
+        <button class="btn-ghost" onclick="restart()">New Prospect</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-    // MAKE SURE THIS MATCHES YOUR WORKER DOMAIN
-    const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
+  const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
+  const PASSWORD = "Messick2026";
 
-    function goTo(n) {
-        document.querySelectorAll('.page, .step').forEach(el => el.classList.remove('active'));
-        document.getElementById('p'+n).classList.add('active');
-        document.getElementById('s'+n).classList.add('active');
+  let state = { biz: '', loc: '', web: '', scrapeData: null, intelText: '', selectedServices: [], chatMessages: [] };
+
+  // LOGIN
+  function checkPw() {
+    const val = document.getElementById('pwInput').value;
+    if (val === PASSWORD) {
+      const gate = document.getElementById('loginGate');
+      gate.style.opacity = '0';
+      setTimeout(() => gate.style.display = 'none', 400);
+    } else {
+      document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+
+  // NAVIGATION
+  function goTo(n) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('p' + n).classList.add('active');
+    for (let i = 1; i <= 5; i++) {
+      const s = document.getElementById('ps' + i);
+      s.classList.remove('active', 'done');
+      if (i < n) { s.classList.add('done'); s.querySelector('.num').textContent = '✓'; }
+      else { s.querySelector('.num').textContent = i; }
+      if (i === n) s.classList.add('active');
+    }
+    // sync prospect labels
+    const label = state.biz + (state.loc ? ' · ' + state.loc : '');
+    ['prospectLabel', 'prospectLabel2', 'prospectLabel3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = label;
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function restart() {
+    state = { biz: '', loc: '', web: '', scrapeData: null, intelText: '', selectedServices: [], chatMessages: [] };
+    ['bizName','location','website'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('chatHistory').innerHTML = '';
+    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+    state.selectedServices = [];
+    document.getElementById('generatePitchBtn').disabled = true;
+    goTo(1);
+  }
+
+  // STEP 1 → RESEARCH
+  async function startResearch() {
+    state.biz = document.getElementById('bizName').value.trim();
+    state.loc = document.getElementById('location').value.trim();
+    state.web = document.getElementById('website').value.trim();
+    if (!state.biz) { alert('Please enter a business name.'); return; }
+
+    goTo(2);
+    document.getElementById('loadStatus').textContent = 'Scraping website architecture and content...';
+
+    try {
+      const scrapeRes = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scrape', website: state.web, bizName: state.biz, location: state.loc })
+      }).then(r => r.json());
+      state.scrapeData = scrapeRes;
+
+      document.getElementById('loadStatus').textContent = 'Running Shark Marketing analysis...';
+
+      const system = `You are a sharp, high-ticket marketing consultant for Messick Marketing, a healthcare social media and content agency. Analyze this prospect's online presence and identify their most critical marketing failures.
+
+Structure your response with ## for major section headers and ### for sub-headers. Be specific, cite what you actually found, and make the business owner feel like every day without fixing this is costing them patients.
+
+Cover: website conversion gaps, SEO failures, Google Business Profile weaknesses, social media gaps, patient-facing messaging failures, and missed content opportunities.
+
+For each problem include: what the issue is (specific), why it's costing them, what they're missing, and the revenue impact.
+
+End with a ## Quick Wins section with 3 things they could fix this week.
+
+Do not use em dashes. Use bullet points within sections.`;
+
+      const intelRes = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\n\nWebsite and Online Data:\n${JSON.stringify(state.scrapeData)}`);
+      state.intelText = intelRes;
+      state.chatMessages = [{ role: 'assistant', content: intelRes }];
+
+      document.getElementById('intelOutput').innerHTML = formatIntel(intelRes);
+      goTo(3);
+
+    } catch (e) {
+      alert('Error running analysis: ' + e.message);
+      goTo(1);
+    }
+  }
+
+  // STEP 3: CHAT
+  async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    input.value = '';
+    document.getElementById('chatSendBtn').disabled = true;
+    appendChat('user', msg);
+    state.chatMessages.push({ role: 'user', content: msg });
+
+    try {
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc} and wants to go deeper. Be direct, specific, and actionable. Do not use em dashes.`;
+      const reply = await callAIWithHistory(system, state.chatMessages);
+      state.chatMessages.push({ role: 'assistant', content: reply });
+      appendChat('ai', reply);
+    } catch(e) {
+      appendChat('ai', 'Connection error. Please try again.');
     }
 
-    async function runAnalysis() {
-        const biz = document.getElementById('bizName').value;
-        const loc = document.getElementById('location').value;
-        const web = document.getElementById('website').value;
-        
-        if(!biz || !web) return alert("Please provide both a Business Name and Website.");
+    document.getElementById('chatSendBtn').disabled = false;
+  }
 
-        goTo(2);
+  function appendChat(role, text) {
+    const history = document.getElementById('chatHistory');
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + role;
+    div.innerHTML = `<div class="chat-avatar">${role === 'ai' ? 'M' : 'U'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+    history.appendChild(div);
+    history.scrollTop = history.scrollHeight;
+  }
 
-        try {
-            // STEP 1: SCRAPE THE SITE
-            const scrape = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'scrape', website: web, bizName: biz, location: loc })
-            }).then(r => r.json());
+  // SERVICES
+  const SERVICES = [
+    { id: 'social',      name: 'Social Media Management', desc: 'Content creation, scheduling, and engagement across Instagram, Facebook, LinkedIn' },
+    { id: 'seo',         name: 'SEO & Local Search',       desc: 'On-page SEO, local keyword targeting, and search visibility improvements' },
+    { id: 'gbp',         name: 'Google Business Profile',  desc: 'GBP setup, optimization, review strategy, and weekly post management' },
+    { id: 'content',     name: 'Content Marketing',        desc: 'Blog posts, patient education articles, video scripts, email newsletters' },
+    { id: 'ads',         name: 'Paid Social Ads',          desc: 'Meta ad campaigns for patient acquisition and brand awareness' },
+    { id: 'website',     name: 'Website Audit & Copy',     desc: 'CRO analysis, homepage rewrites, and landing page optimization' },
+    { id: 'reputation',  name: 'Reputation Management',    desc: 'Review generation strategy, response protocols, and monitoring' },
+    { id: 'video',       name: 'Video & Reels Production', desc: 'Short-form video briefs, Reels scripts, and TikTok content strategy' },
+  ];
 
-            document.getElementById('status').innerText = "Processing data through Claude 4.6 Intelligence...";
-
-            // STEP 2: RUN THE AI (THE "SHARK" PROMPT)
-            const ai = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system: "You are a high-ticket Marketing Consultant. Do not ask for more data. Analyze the provided website text and find 3-4 'bleeding neck' problems. Be aggressive, insightful, and persuasive. Use professional headers. Focus on conversion gaps, missed SEO opportunities, and messaging that fails to convert patients. Make the business owner feel like they are losing money every day they don't hire us.",
-                    messages: [{ 
-                        role: 'user', 
-                        content: `Business: ${biz} in ${loc}. Website Scrape Data: ${JSON.stringify(scrape)}` 
-                    }]
-                })
-            }).then(r => r.json());
-
-            // STEP 3: OUTPUT
-            if (ai.error) {
-                document.getElementById('aiOutput').innerText = "AI Connection Error: " + ai.error;
-            } else {
-                // Ensure we only grab the 'text' property from your Worker's response
-                document.getElementById('aiOutput').innerHTML = formatOutput(ai.text);
-            }
-            
-            goTo(3);
-
-        } catch (e) {
-            alert("Connection Error: " + e.message);
-            goTo(1);
+  function buildServicesGrid() {
+    const grid = document.getElementById('servicesGrid');
+    SERVICES.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'service-card';
+      card.dataset.id = s.id;
+      card.innerHTML = `<div class="svc-check">✓ Selected</div><div class="svc-name">${s.name}</div><div class="svc-desc">${s.desc}</div>`;
+      card.onclick = () => {
+        if (state.selectedServices.includes(s.id)) {
+          state.selectedServices = state.selectedServices.filter(x => x !== s.id);
+          card.classList.remove('selected');
+        } else {
+          state.selectedServices.push(s.id);
+          card.classList.add('selected');
         }
-    }
+        document.getElementById('generatePitchBtn').disabled = state.selectedServices.length === 0;
+      };
+      grid.appendChild(card);
+    });
+  }
 
-    // Simple helper to convert AI double-asterisks to bold and handle line breaks
-    function formatOutput(text) {
-        return text
-            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-            .replace(/### (.*?)(\n|$)/g, "<h3>$1</h3>")
-            .replace(/## (.*?)(\n|$)/g, "<h2>$1</h2>");
+  // STEP 5: GENERATE PITCH
+  async function generatePitch() {
+    goTo(5);
+    document.getElementById('pitchLoadCard').style.display = 'block';
+    document.getElementById('pitchCard').style.display = 'none';
+    document.getElementById('pitchActions').style.display = 'none';
+
+    const selectedNames = state.selectedServices.map(id => SERVICES.find(s => s.id === id)?.name).join(', ');
+
+    try {
+      const system = `You are writing a sales pitch on behalf of Messick Marketing, a healthcare social media and content marketing agency.
+
+Write a personalized, confident outreach pitch for the prospect based on the intelligence findings and selected services.
+
+The pitch should:
+- Open by referencing one specific real problem you found (not generic)
+- Briefly introduce Messick Marketing (we specialize in healthcare practices, AI-powered content, real patient-focused strategy)
+- Address each selected service with a 1-2 sentence benefit tied to their specific gaps
+- Close with a clear, low-friction CTA (short discovery call, no commitment)
+- Feel consultative and confident, not salesy
+
+Format with ## Email Version and ## Call Script as separate sections.
+Keep the email under 200 words. Keep the call script under 150 words.
+Do not use em dashes.`;
+
+      const pitchRes = await callAI(system, `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nKey Findings:\n${state.intelText.substring(0, 2500)}`);
+      document.getElementById('pitchOutput').innerHTML = formatPitch(pitchRes);
+      document.getElementById('pitchLoadCard').style.display = 'none';
+      document.getElementById('pitchCard').style.display = 'block';
+      document.getElementById('pitchActions').style.display = 'flex';
+    } catch(e) {
+      document.getElementById('pitchOutput').textContent = 'Error: ' + e.message;
+      document.getElementById('pitchLoadCard').style.display = 'none';
+      document.getElementById('pitchCard').style.display = 'block';
+      document.getElementById('pitchActions').style.display = 'flex';
     }
+  }
+
+  function copyPitch() {
+    const text = document.getElementById('pitchOutput').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  // API
+  async function callAI(system, userMsg) {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: userMsg }] })
+    }).then(r => r.json());
+    if (res.error) throw new Error(res.error);
+    return res.text;
+  }
+
+  async function callAIWithHistory(system, messages) {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages })
+    }).then(r => r.json());
+    if (res.error) throw new Error(res.error);
+    return res.text;
+  }
+
+  // FORMATTING
+  function formatIntel(text) {
+    let html = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>');
+
+    // Wrap consecutive li tags in ul
+    html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`);
+
+    // Paragraphs
+    html = html.split('\n\n').map(chunk => {
+      if (chunk.match(/^<[hul]/)) return chunk;
+      if (chunk.trim() === '') return '';
+      return `<p>${chunk}</p>`;
+    }).join('\n');
+
+    // Impact callout boxes
+    html = html.replace(/<strong>(Revenue Impact:|Cost of Inaction:|What You're Losing:)<\/strong>([^<]+)/g,
+      '<div class="impact-box"><strong>$1</strong>$2</div>');
+
+    return html;
+  }
+
+  function formatPitch(text) {
+    let html = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>');
+
+    html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`);
+    html = html.split('\n\n').map(chunk => {
+      if (chunk.match(/^<[hul]/)) return chunk;
+      if (chunk.trim() === '') return '';
+      return `<p>${chunk}</p>`;
+    }).join('\n');
+
+    return html;
+  }
+
+  buildServicesGrid();
 </script>
-
 </body>
 </html>
