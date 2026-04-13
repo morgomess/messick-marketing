@@ -1,115 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agency Insight Tool | Messick Marketing</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<title>Messick Marketing | Insight Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
-  --warm: #faf8f5; --warm-mid: #f0ece6; --mid: #6b7280; --border: #dde5ea;
-  --danger: #c0392b; --success: #2e7d5e; --radius: 6px;
-  --shadow: 0 1px 3px rgba(17,17,17,0.08), 0 4px 16px rgba(17,17,17,0.06);
-}
-*, body { font-family: 'Jost', sans-serif; box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
-header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.logo-mark { width: 30px; height: 30px; background: var(--steel); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-.logo-text .t1 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: #fff; display: block; }
-.logo-text .t2 { font-size: 10px; font-weight: 300; color: var(--steel-pale); text-transform: uppercase; letter-spacing: 0.1em; }
+/* CSS Reset and Georgia Vascular UI Styles */
+:root { --black: #111111; --steel: #3a6b8a; --warm: #faf8f5; --border: #dde5ea; }
+body { font-family: 'Jost', sans-serif; background: var(--warm); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+header { background: var(--black); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
 .shell { display: flex; flex: 1; }
-aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.05); }
-.step-nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
-.step-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius); color: rgba(255,255,255,0.3); }
-.step-item.active { background: rgba(58,107,138,0.2); color: #fff; }
-.step-num { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 10px; }
-.step-item.active .step-num { background: var(--steel); }
-main { flex: 1; padding: 40px; max-width: 1000px; }
-.page { display: none; animation: fadeIn 0.3s ease; }
-.page.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-.card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
-.card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--steel); margin-bottom: 15px; border-bottom: 1px solid var(--warm-mid); padding-bottom: 8px; }
-input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; background: var(--warm); font-family: 'Jost'; }
-.btn-primary { background: var(--steel); color: #fff; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 500; cursor: pointer; }
-.score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-.score-card { background: #fff; border: 1px solid var(--border); padding: 15px; text-align: center; border-radius: 8px; }
-.score-val { font-family: 'Cormorant Garamond'; font-size: 32px; font-weight: 700; }
-.red { color: var(--danger); } .green { color: var(--success); }
-.presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-.presence-card { background: #fff; border: 1px solid var(--border); padding: 15px; border-radius: 8px; font-size: 13px; }
+aside { width: 200px; background: var(--black); border-right: 1px solid #333; padding: 20px 0; }
+.step { padding: 12px 20px; color: rgba(255,255,255,0.3); font-size: 13px; }
+.step.active { color: white; background: rgba(58,107,138,0.2); }
+main { flex: 1; padding: 40px; }
+.card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.page { display: none; } .page.active { display: block; }
+input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; }
+button { background: var(--steel); color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+pre { white-space: pre-wrap; font-family: 'Jost'; line-height: 1.6; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-mark"><svg width="14" height="14" viewBox="0 0 16 16" fill="white"><rect x="1" y="9" width="3" height="6"/><rect x="6.5" y="5" width="3" height="10"/><rect x="12" y="1" width="3" height="14"/></svg></div>
-    <div class="logo-text"><span class="t1">Messick Marketing</span><span class="t2">Intelligence</span></div>
-  </div>
+  <div style="font-family:'Cormorant Garamond'; font-size:20px;">Messick Marketing Agency Intelligence</div>
 </header>
 
 <div class="shell">
-  <aside>
-    <div class="step-nav">
-      <div class="step-item active" id="nav-1"><div class="step-num">1</div>Prospect</div>
-      <div class="step-item" id="nav-2"><div class="step-num">2</div>Researching</div>
-      <div class="step-item" id="nav-3"><div class="step-num">3</div>Findings</div>
-      <div class="step-item" id="nav-4"><div class="step-num">4</div>Services</div>
-      <div class="step-item" id="nav-5"><div class="step-num">5</div>Pitch</div>
-    </div>
+  <aside id="sidebar">
+    <div class="step active" id="s1">1. Prospect</div>
+    <div class="step" id="s2">2. Researching</div>
+    <div class="step" id="s3">3. Findings</div>
   </aside>
 
   <main>
-    <div class="page active" id="page-1">
-      <h2 style="font-family:'Cormorant Garamond'; font-size:28px; margin-bottom:20px;">New Prospect</h2>
+    <div id="p1" class="page active">
+      <h2 style="font-family:'Cormorant Garamond';">New Prospect</h2>
       <div class="card">
-        <div class="card-title">Practice Details</div>
-        <input type="text" id="bizName" placeholder="Georgia Vascular Institute">
-        <input type="text" id="location" placeholder="Atlanta, GA">
-        <input type="url" id="website" placeholder="https://georgiavascular.com">
-      </div>
-      <button class="btn-primary" onclick="runFullResearch()">Research Prospect →</button>
-    </div>
-
-    <div class="page" id="page-2">
-      <h2 style="font-family:'Cormorant Garamond'; font-size:28px; margin-bottom:20px;">Researching...</h2>
-      <div class="card" style="text-align:center; padding:60px;">
-        <div id="statusText">Scraping website and search results...</div>
+        <input type="text" id="bizName" placeholder="Business Name">
+        <input type="text" id="location" placeholder="Location">
+        <input type="url" id="website" placeholder="Website URL">
+        <button onclick="startProcess()">Run Analysis</button>
       </div>
     </div>
 
-    <div class="page" id="page-3">
-      <h2 style="font-family:'Cormorant Garamond'; font-size:28px; margin-bottom:10px;">Findings & Gaps</h2>
-      <div class="score-strip">
-        <div class="score-card"><div class="score-val green">72</div><div style="font-size:10px;">SEO</div></div>
-        <div class="score-card"><div class="score-val red">38</div><div style="font-size:10px;">GBP</div></div>
-        <div class="score-card"><div class="score-val green">84</div><div style="font-size:10px;">REVIEWS</div></div>
-        <div class="score-card"><div class="score-val red">21</div><div style="font-size:10px;">SOCIAL</div></div>
-      </div>
-      <div class="presence-grid">
-        <div class="presence-card"><b>Search</b><br>Page 1 Found</div>
-        <div class="presence-card"><b>Maps</b><br><span class="red">Unoptimized</span></div>
-        <div class="presence-card"><b>Meta</b><br><span class="red">Inactive</span></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Gap Analysis</div>
-        <div id="findingsContent" style="font-size:14px; line-height:1.6; white-space:pre-wrap;"></div>
-      </div>
-      <button class="btn-primary" onclick="goTo(4)">Next: Services →</button>
+    <div id="p2" class="page">
+      <h2 style="font-family:'Cormorant Garamond';">Analyzing...</h2>
+      <div class="card" id="status">Scraping data and contacting AI...</div>
     </div>
 
-    <div class="page" id="page-4">
-        <h2>Recommendations</h2>
-        <div class="card">Select pitch components...</div>
-        <button class="btn-primary" onclick="generatePitch()">Generate Pitch →</button>
-    </div>
-
-    <div class="page" id="page-5">
-      <h2>Final Pitch</h2>
-      <div class="card" id="pitchBody" style="white-space:pre-wrap; line-height:1.8;"></div>
+    <div id="p3" class="page">
+      <h2 style="font-family:'Cormorant Garamond';">Analysis Summary</h2>
+      <div class="card"><pre id="output"></pre></div>
+      <button onclick="location.reload()" style="margin-top:20px;">New Search</button>
     </div>
   </main>
 </div>
@@ -117,61 +61,48 @@ input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px sol
 <script>
 const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
 
-function goTo(step) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${step}`).classList.add('active');
-  document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active'));
-  document.getElementById(`nav-${step}`).classList.add('active');
+function showPage(num) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('p'+num).classList.add('active');
+    document.getElementById('s'+num).classList.add('active');
 }
 
-async function runFullResearch() {
-  const biz = document.getElementById('bizName').value;
-  const web = document.getElementById('website').value;
-  const loc = document.getElementById('location').value;
-  if(!biz) return alert("Business Name required.");
-  
-  goTo(2);
+async function startProcess() {
+    const biz = document.getElementById('bizName').value;
+    const loc = document.getElementById('location').value;
+    const web = document.getElementById('website').value;
+    if(!biz) return alert("Enter business name");
 
-  try {
-    // 1. SCRAPE
-    const scrapeRes = await fetch(WORKER_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: 'scrape', bizName: biz, website: web, location: loc })
-    }).then(r => r.json());
+    showPage(2);
 
-    document.getElementById('statusText').innerText = "Analyzing findings with AI...";
+    try {
+        // Step 1: Scrape
+        const scrape = await fetch(WORKER_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'scrape', bizName: biz, location: loc, website: web })
+        }).then(r => r.json());
 
-    // 2. AI ANALYSIS
-    const aiRes = await fetch(WORKER_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        system: "You are a marketing expert. Based on the provided research, list the top 3 marketing gaps for this business.",
-        messages: [{ role: "user", content: `Research Data: ${JSON.stringify(scrapeRes)}` }]
-      })
-    }).then(r => r.json());
+        // Step 2: AI
+        const ai = await fetch(WORKER_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                system: "You are a growth consultant. Analyze the provided business data and list 3 high-impact marketing gaps.",
+                messages: [{ role: 'user', content: `Analyze: ${JSON.stringify(scrape)}` }]
+            })
+        }).then(r => r.json());
 
-    document.getElementById('findingsContent').innerText = aiRes.content[0].text;
-    goTo(3);
-  } catch (err) {
-    alert("Error: " + err.message);
-    goTo(1);
-  }
-}
+        // FIX: Check for 'text' property (from our new Worker) or 'error'
+        if (ai.error) {
+            document.getElementById('output').innerText = "AI Error: " + ai.error;
+        } else {
+            document.getElementById('output').innerText = ai.text || "No analysis generated.";
+        }
+        showPage(3);
 
-async function generatePitch() {
-  goTo(5);
-  document.getElementById('pitchBody').innerText = "Writing pitch...";
-  const context = document.getElementById('findingsContent').innerText;
-  
-  const aiRes = await fetch(WORKER_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      system: "Write a high-end agency pitch letter.",
-      messages: [{ role: "user", content: `Write a pitch based on these gaps: ${context}` }]
-    })
-  }).then(r => r.json());
-
-  document.getElementById('pitchBody').innerText = aiRes.content[0].text;
+    } catch (e) {
+        document.getElementById('status').innerText = "Error: " + e.message;
+    }
 }
 </script>
 </body>
