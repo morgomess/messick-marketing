@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>2Messick Marketing | Agency Intelligence</title>
+    <title>3Messick Marketing | Agency Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --black: #111111; --steel: #3a6b8a; --warm: #faf8f5; --border: #dde5ea; --danger: #c0392b; --success: #2e7d5e; }
@@ -102,7 +102,7 @@ async function runLogic() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                system: "You are a senior marketing strategist. Analyze the data and provide a concise, professional gap analysis for a pitch.",
+                system: "system: "You are a high-ticket Marketing Consultant. Do not ask for more data. Analyze the provided website text and find 3-4 'bleeding neck' problems. Be aggressive, insightful, and persuasive. Use professional headers. Focus on conversion gaps, missed SEO opportunities, and poor messaging. Make the business owner feel like they are losing money every day they don't hire us.",",
                 messages: [{ role: 'user', content: `Analyze this data: ${JSON.stringify(scrape)}` }]
             })
         }).then(r => r.json());
