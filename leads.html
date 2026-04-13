@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2Messick Marketing | Pitch Intelligence</title>
+<title>Messick Marketing | Pitch Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -200,6 +200,21 @@
     padding: 10px 14px; font-size: 13px; color: var(--danger-text); line-height: 1.5;
   }
   .finding-toggle { font-size: 11px; color: var(--steel); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  .dismiss-btn {
+    background: none; border: 1px solid #e0d0cc; border-radius: 4px;
+    color: #b07060; font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 8px; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .dismiss-btn:hover { background: #fff0ee; border-color: #c0392b; color: #c0392b; }
+  .finding-card.dismissed { opacity: 0; transform: scale(0.96); pointer-events: none; transition: opacity 0.25s, transform 0.25s; }
+  .finding-card.dismissed { opacity: 0.38; filter: grayscale(0.6); }
+  .finding-card.dismissed .finding-body { display: none; }
+  .finding-card.dismissed .finding-header { border-bottom: none; }
+  .dismiss-btn { margin-left: auto; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #bbb; border: 1px solid #e0e0e0; border-radius: 4px; padding: 3px 9px; cursor: pointer; background: none; font-family: 'Jost', sans-serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+  .dismiss-btn:hover { color: #c0392b; border-color: #f5bfb8; background: #fff5f4; }
+  .finding-card.dismissed .dismiss-btn { color: var(--steel); border-color: var(--border); background: none; }
+  .finding-card.dismissed .dismiss-btn:hover { background: rgba(58,107,138,0.06); }
 
   /* ── CHAT ── */
   .chat-history { max-height: 360px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
@@ -460,14 +475,46 @@
     document.getElementById('loadStatus').textContent = 'Scraping website architecture and content...';
 
     try {
-      const scrapeRes = await fetch(WORKER_URL, {
+      // Step 1: scrape homepage
+      document.getElementById('loadStatus').textContent = 'Scraping homepage...';
+      const homepageRes = await fetch(WORKER_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'scrape', website: state.web, bizName: state.biz, location: state.loc })
       }).then(r => r.json());
-      state.scrapeData = scrapeRes;
-      document.getElementById('loadStatus').textContent = 'Running Shark Marketing analysis...';
 
-      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. Analyze the prospect's online presence and return a JSON object only — no markdown, no extra text.
+      // Step 2: extract internal links from homepage and scrape up to 4 key subpages
+      const collectedPages = { homepage: homepageRes };
+      if (state.web) {
+        document.getElementById('loadStatus').textContent = 'Crawling treatment and service pages...';
+        const baseUrl = new URL(state.web);
+        const linkText = JSON.stringify(homepageRes).toLowerCase();
+
+        // identify likely subpage paths from common patterns in scraped text
+        const subpageCandidates = extractInternalLinks(homepageRes, baseUrl.origin);
+        const toScrape = subpageCandidates.slice(0, 4);
+
+        await Promise.allSettled(toScrape.map(async (url) => {
+          try {
+            const res = await fetch(WORKER_URL, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'scrape', website: url, bizName: state.biz, location: state.loc })
+            }).then(r => r.json());
+            const slug = url.replace(baseUrl.origin, '').replace(/\//g, '_').substring(0, 40) || '_root';
+            collectedPages[slug] = res;
+          } catch(e) { /* skip failed subpage */ }
+        }));
+      }
+
+      state.scrapeData = collectedPages;
+      document.getElementById('loadStatus').textContent = 'Running Shark Marketing analysis across all pages...';
+
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. Analyze the prospect's online presence across ALL pages provided and return a JSON object only — no markdown, no extra text.
+
+IMPORTANT ACCURACY RULES:
+- You have been given data from the homepage AND multiple subpages (treatment pages, about, contact, services, etc.)
+- Before flagging something as a gap, check ALL pages provided. If treatment pages exist, do NOT flag missing treatment content. If an online booking link exists anywhere, do NOT flag missing scheduling. If reviews are present, do NOT flag zero social proof.
+- Only flag something as a gap if you have confirmed it is actually missing across ALL provided page data.
+- Be specific about what page or section you found evidence on.
 
 Return exactly this structure:
 {
@@ -480,7 +527,7 @@ Return exactly this structure:
       "category": "Website & Conversion",
       "title": "Short problem title",
       "severity": "critical",
-      "summary": "1-2 sentence description of the problem",
+      "summary": "1-2 sentence description of the confirmed problem, citing which page(s) you reviewed",
       "bullets": ["specific detail 1", "specific detail 2", "specific detail 3"],
       "impact": "Revenue/patient impact statement — be specific with numbers if possible"
     }
@@ -489,7 +536,7 @@ Return exactly this structure:
 
 Severity options: "critical", "high", "medium"
 Categories to cover (use as many as relevant): "Website & Conversion", "SEO & Local Search", "Google Business Profile", "Social Media", "Reputation & Reviews", "Content Strategy", "Paid & Ads"
-Include 4-6 findings total. Be specific, cite what you actually found. Do not use em dashes.`;
+Include 4-6 findings total. Only flag real, confirmed gaps. Do not use em dashes.`;
 
       const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}`);
       
@@ -569,11 +616,14 @@ Include 4-6 findings total. Be specific, cite what you actually found. Do not us
       card.dataset.idx = i;
       card.innerHTML = `
         <div class="finding-header">
-          <div>
+          <div style="flex:1; min-width:0;">
             <div class="finding-category" style="color:${catColor}">${f.category || 'General'}</div>
             <div class="finding-title">${f.title}</div>
           </div>
-          <div class="severity-badge ${sevClass}">${sevLabel}</div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
+            <div class="severity-badge ${sevClass}">${sevLabel}</div>
+            <button class="dismiss-btn" onclick="dismissFinding(event, this)">✕ Inaccurate</button>
+          </div>
         </div>
         <div class="finding-body">
           <div class="finding-summary">${f.summary}</div>
@@ -593,6 +643,42 @@ Include 4-6 findings total. Be specific, cite what you actually found. Do not us
     const expanded = card.classList.toggle('expanded');
     el.textContent = expanded ? 'Hide Details ↑' : 'View Details ↓';
   }
+
+  function dismissFinding(e, btn) {
+    e.stopPropagation();
+    const card = btn.closest('.finding-card');
+    const isDismissed = card.classList.toggle('dismissed');
+    btn.textContent = isDismissed ? '\u21a9 Restore' : '\u2715 Inaccurate';
+    const idx = parseInt(card.dataset.idx);
+    if (!state.dismissedFindings) state.dismissedFindings = new Set();
+    if (isDismissed) state.dismissedFindings.add(idx);
+    else state.dismissedFindings.delete(idx);
+  }
+
+  function extractInternalLinks(scrapeData, origin) {
+    const text = JSON.stringify(scrapeData);
+    const found = new Set();
+    const hrefRe = /href=[\"']+([^\"'#?]+)[\"']+/g;
+    let m;
+    while ((m = hrefRe.exec(text)) !== null) {
+      const path = m[1];
+      if (!path || path.length < 2) continue;
+      try {
+        const full = path.startsWith('http') ? path : origin + (path.startsWith('/') ? path : '/' + path);
+        const u = new URL(full);
+        if (u.origin === origin && u.pathname !== '/' && u.pathname.length > 1) {
+          found.add(u.href.split('#')[0].split('?')[0]);
+        }
+      } catch(e) { /* skip */ }
+    }
+    const priority = ['treatment','service','condition','procedure','vein','vascular','care','about','team'];
+    return [...found].sort((a, b) => {
+      const aP = priority.some(k => a.includes(k)) ? 0 : 1;
+      const bP = priority.some(k => b.includes(k)) ? 0 : 1;
+      return aP - bP;
+    });
+  }
+
 
   function categoryColor(cat) {
     const map = {
@@ -771,7 +857,8 @@ Include 4-6 findings total. Be specific, cite what you actually found. Do not us
 
     const selectedNames = allSelected().join(', ');
     const findings = state.intelRaw?.findings || [];
-    const topIssues = findings.filter(f => f.severity === 'critical' || f.severity === 'high').map(f => f.title + ': ' + f.summary).join('\n');
+    const dismissed = state.dismissedFindings || new Set();
+    const topIssues = findings.filter((f, i) => !dismissed.has(i) && (f.severity === 'critical' || f.severity === 'high')).map(f => f.title + ': ' + f.summary).join('\n');
 
     try {
       const system = `You are writing a sales pitch on behalf of Messick Marketing, a healthcare social media and content marketing agency.
