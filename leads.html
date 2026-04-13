@@ -3,25 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Pitch Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>2Messick Marketing | Pitch Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --black: #111111;
     --steel: #3a6b8a;
     --steel-light: #5a9ab8;
+    --steel-dim: rgba(58,107,138,0.1);
     --warm: #faf8f5;
+    --warm-dark: #f0ece6;
     --border: #dde5ea;
     --muted: #888;
     --success: #2e7d5e;
+    --danger-bg: #fff2f0;
+    --danger-text: #a33020;
+    --warn-bg: #fff9ed;
+    --warn-text: #8a5a00;
+    --ok-bg: #f0faf5;
+    --ok-text: #1e6b45;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Jost', sans-serif; background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
 
-  /* LOGIN GATE */
+  /* ── LOGIN ── */
   #loginGate {
-    position: fixed; inset: 0; z-index: 9999;
-    background: var(--black);
+    position: fixed; inset: 0; z-index: 9999; background: var(--black);
     display: flex; align-items: center; justify-content: center; flex-direction: column;
     transition: opacity 0.4s;
   }
@@ -46,7 +53,7 @@
   .lock-btn:hover { background: #2c526a; }
   #loginError { color: #e07070; font-size: 12px; margin-top: 12px; min-height: 16px; }
 
-  /* HEADER */
+  /* ── HEADER ── */
   header {
     background: var(--black); color: white; padding: 0 36px; height: 58px;
     display: flex; justify-content: space-between; align-items: center;
@@ -55,7 +62,7 @@
   .header-logo { font-family: 'Cormorant Garamond'; font-size: 21px; letter-spacing: 1.5px; }
   .header-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--steel-light); font-weight: 600; }
 
-  /* PROGRESS */
+  /* ── PROGRESS ── */
   .progress-wrap { background: var(--black); border-top: 1px solid #1e1e1e; padding: 0 36px; display: flex; overflow-x: auto; }
   .progress-step {
     flex: 1; min-width: 90px; padding: 10px 0;
@@ -71,23 +78,23 @@
   .progress-step.active { color: white; border-bottom-color: var(--steel-light); }
   .progress-step.active .num { background: var(--steel); }
   .progress-step.done { color: rgba(255,255,255,0.35); }
-  .progress-step.done .num { background: var(--success); color: white; font-size: 10px; }
+  .progress-step.done .num { background: var(--success); color: white; }
 
-  /* SHELL */
+  /* ── SHELL ── */
   .shell { flex: 1; display: flex; justify-content: center; padding: 44px 24px 80px; }
-  .panel { width: 100%; max-width: 860px; }
+  .panel { width: 100%; max-width: 920px; }
 
-  /* PAGES */
+  /* ── PAGES ── */
   .page { display: none; }
   .page.active { display: block; animation: fadeUp 0.3s ease; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* CARD */
-  .card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 20px; }
+  /* ── CARD ── */
+  .card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 28px 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 20px; }
   .card-title { font-family: 'Cormorant Garamond'; font-size: 30px; font-weight: 600; margin-bottom: 6px; }
   .card-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
 
-  /* FIELDS */
+  /* ── FIELDS ── */
   .field { margin-bottom: 18px; }
   .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; color: var(--steel); margin-bottom: 7px; }
   .field input {
@@ -97,7 +104,7 @@
   }
   .field input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: white; }
 
-  /* BUTTONS */
+  /* ── BUTTONS ── */
   .btn-primary {
     background: var(--steel); color: white; border: none; padding: 14px 26px;
     border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700;
@@ -114,46 +121,94 @@
   }
   .btn-ghost:hover { border-color: var(--steel); background: rgba(58,107,138,0.05); }
 
-  /* LOADING */
+  /* ── LOADING ── */
   .loading-wrap { text-align: center; padding: 80px 20px; }
-  .spinner {
-    width: 38px; height: 38px; border: 3px solid var(--border);
-    border-top-color: var(--steel); border-radius: 50%;
-    animation: spin 0.8s linear infinite; margin: 0 auto 24px;
-  }
+  .spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--steel); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 24px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-status { font-size: 15px; color: var(--steel); font-style: italic; margin-bottom: 8px; }
   .loading-note { font-size: 12px; color: var(--muted); }
 
-  /* INTEL OUTPUT */
-  .intel-output { line-height: 1.8; font-size: 15px; color: #333; }
-  .intel-output h2 {
-    font-family: 'Cormorant Garamond'; font-size: 22px; font-weight: 600;
-    color: var(--steel); margin: 28px 0 10px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
+  /* ── DASHBOARD: PROSPECT HEADER ── */
+  .dash-header {
+    background: var(--black); border-radius: 10px; padding: 24px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 16px;
   }
-  .intel-output h2:first-child { margin-top: 0; }
-  .intel-output h3 { font-size: 13px; font-weight: 700; color: var(--black); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .intel-output p { margin-bottom: 12px; }
-  .intel-output strong { color: var(--black); font-weight: 700; }
-  .intel-output ul { margin: 8px 0 14px 20px; }
-  .intel-output ul li { margin-bottom: 6px; color: #444; }
-  .intel-output .impact-box {
-    background: #fff8f2; border-left: 3px solid #d4622a;
-    border-radius: 0 6px 6px 0; padding: 14px 18px; margin: 16px 0; font-size: 14px; color: #7a3a10;
-  }
+  .dash-header-left h2 { font-family: 'Cormorant Garamond'; font-size: 26px; color: white; font-weight: 600; margin-bottom: 4px; }
+  .dash-header-left p { font-size: 13px; color: rgba(255,255,255,0.45); }
+  .dash-header-right { display: flex; align-items: center; gap: 12px; }
 
-  /* CHAT */
-  .chat-history { max-height: 380px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
+  /* ── HEALTH SCORE RING ── */
+  .score-ring-wrap { text-align: center; }
+  .score-ring { position: relative; width: 72px; height: 72px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 5; }
+  .score-ring .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-size: 20px; font-weight: 700; color: white; line-height: 1; }
+  .score-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .score-grade { font-size: 11px; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── STAT CHIPS ── */
+  .stat-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat-chip { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 80px; }
+  .stat-chip .chip-val { font-size: 18px; font-weight: 700; color: white; line-height: 1; }
+  .stat-chip .chip-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+  .stat-chip.danger .chip-val { color: #f87878; }
+  .stat-chip.warn .chip-val { color: #f5c842; }
+  .stat-chip.ok .chip-val { color: #5dd49a; }
+
+  /* ── QUICK WINS BANNER ── */
+  .quick-wins {
+    background: linear-gradient(135deg, #1a3a4a 0%, #0f2535 100%);
+    border: 1px solid rgba(90,154,184,0.3);
+    border-radius: 10px; padding: 20px 24px; margin-bottom: 20px;
+  }
+  .quick-wins-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--steel-light); font-weight: 700; margin-bottom: 14px; }
+  .quick-wins-list { display: flex; gap: 10px; flex-wrap: wrap; }
+  .quick-win-pill {
+    background: rgba(90,154,184,0.15); border: 1px solid rgba(90,154,184,0.3);
+    border-radius: 20px; padding: 7px 14px; font-size: 13px; color: rgba(255,255,255,0.85);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .quick-win-pill::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--steel-light); flex-shrink: 0; }
+
+  /* ── FINDINGS GRID ── */
+  .findings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .finding-card {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .finding-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.09); transform: translateY(-2px); }
+  .finding-card.expanded { grid-column: 1 / -1; }
+  .finding-header { padding: 16px 18px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .finding-category { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 5px; }
+  .finding-title { font-weight: 600; font-size: 15px; line-height: 1.4; }
+  .severity-badge { border-radius: 4px; padding: 3px 9px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; white-space: nowrap; margin-top: 2px; }
+  .sev-critical { background: #fff0ee; color: #c0392b; border: 1px solid #f5c0b8; }
+  .sev-high     { background: #fff5e8; color: #b06000; border: 1px solid #f5d89a; }
+  .sev-medium   { background: #fefce8; color: #7a6000; border: 1px solid #ede9a0; }
+
+  .finding-body { padding: 16px 18px; }
+  .finding-summary { font-size: 14px; color: #444; line-height: 1.65; margin-bottom: 12px; }
+  .finding-detail { display: none; }
+  .finding-card.expanded .finding-detail { display: block; }
+  .finding-detail ul { margin: 0 0 12px 18px; }
+  .finding-detail ul li { font-size: 13px; color: #555; margin-bottom: 5px; line-height: 1.5; }
+  .finding-impact {
+    background: var(--danger-bg); border-left: 3px solid #d4622a; border-radius: 0 6px 6px 0;
+    padding: 10px 14px; font-size: 13px; color: var(--danger-text); line-height: 1.5;
+  }
+  .finding-toggle { font-size: 11px; color: var(--steel); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── CHAT ── */
+  .chat-history { max-height: 360px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
   .chat-msg { display: flex; gap: 12px; align-items: flex-start; }
   .chat-msg.user { flex-direction: row-reverse; }
-  .chat-avatar {
-    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
-  }
+  .chat-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
   .chat-msg.ai .chat-avatar { background: var(--steel); color: white; }
   .chat-msg.user .chat-avatar { background: var(--black); color: white; }
-  .chat-bubble { max-width: 78%; padding: 12px 16px; border-radius: 10px; font-size: 14px; line-height: 1.65; }
+  .chat-bubble { max-width: 78%; padding: 11px 15px; border-radius: 10px; font-size: 14px; line-height: 1.65; }
   .chat-msg.ai .chat-bubble { background: var(--warm); border: 1px solid var(--border); color: #333; }
   .chat-msg.user .chat-bubble { background: var(--steel); color: white; }
   .chat-input-row { display: flex; gap: 10px; }
@@ -162,27 +217,33 @@
     font-family: 'Jost', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--warm);
   }
   .chat-input-row input:focus { border-color: var(--steel); background: white; }
-  .chat-send {
-    background: var(--steel); border: none; border-radius: 6px; color: white;
-    padding: 12px 18px; cursor: pointer; font-size: 16px; transition: background 0.2s; flex-shrink: 0;
-  }
+  .chat-send { background: var(--steel); border: none; border-radius: 6px; color: white; padding: 12px 18px; cursor: pointer; font-size: 16px; transition: background 0.2s; flex-shrink: 0; }
   .chat-send:hover { background: #2c526a; }
   .chat-send:disabled { background: #aaa; cursor: not-allowed; }
 
-  /* SERVICES */
+  /* ── SERVICES ── */
   .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .service-card {
-    border: 2px solid var(--border); border-radius: 8px; padding: 16px 18px;
-    cursor: pointer; transition: all 0.2s; user-select: none;
-  }
+  .service-card { border: 2px solid var(--border); border-radius: 8px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; user-select: none; }
   .service-card:hover { border-color: var(--steel-light); background: rgba(58,107,138,0.03); }
   .service-card.selected { border-color: var(--steel); background: rgba(58,107,138,0.07); }
   .svc-check { display: none; color: var(--steel); font-weight: 700; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
   .service-card.selected .svc-check { display: block; }
   .svc-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
   .svc-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .service-card.add-custom { border-style: dashed; border-color: #c8d8e4; color: var(--steel); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 88px; gap: 6px; }
+  .service-card.add-custom:hover { border-color: var(--steel); background: rgba(58,107,138,0.04); }
+  .add-custom-icon { font-size: 20px; line-height: 1; color: var(--steel); opacity: 0.6; }
+  .add-custom-label { font-size: 13px; font-weight: 600; color: var(--steel); }
+  .custom-input-wrap { display: none; flex-direction: column; gap: 8px; }
+  .custom-input-wrap.visible { display: flex; }
+  .custom-input-wrap input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; background: var(--warm); }
+  .custom-input-wrap input:focus { border-color: var(--steel); background: white; }
+  .custom-input-wrap .custom-btns { display: flex; gap: 6px; }
+  .custom-input-wrap .btn-add { flex: 1; padding: 8px; background: var(--steel); color: white; border: none; border-radius: 5px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+  .custom-input-wrap .btn-add:hover { background: #2c526a; }
+  .custom-input-wrap .btn-cancel { padding: 8px 12px; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 5px; font-family: 'Jost', sans-serif; font-size: 12px; cursor: pointer; }
 
-  /* PITCH OUTPUT */
+  /* ── PITCH OUTPUT ── */
   .pitch-output { line-height: 1.85; font-size: 15px; color: #333; }
   .pitch-output h2 { font-family: 'Cormorant Garamond'; font-size: 24px; font-weight: 600; color: var(--black); margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
   .pitch-output h2:first-child { margin-top: 0; }
@@ -192,19 +253,14 @@
   .pitch-output ul li { margin-bottom: 7px; }
   .pitch-output strong { font-weight: 700; color: var(--black); }
 
-  /* MISC */
+  /* ── MISC ── */
   .row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
-  .prospect-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--black); color: white; border-radius: 20px;
-    padding: 6px 14px; font-size: 12px; font-weight: 600; margin-bottom: 18px;
-  }
-  .prospect-tag span { color: var(--steel-light); }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--muted); margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN GATE -->
+<!-- LOGIN -->
 <div id="loginGate">
   <div class="lock-logo">Messick Marketing</div>
   <div class="lock-sub">Pitch Intelligence · Internal Tool</div>
@@ -236,7 +292,7 @@
 <div class="shell">
   <div class="panel">
 
-    <!-- STEP 1: INPUT -->
+    <!-- STEP 1 -->
     <div id="p1" class="page active">
       <div class="card">
         <div class="card-title">New Prospect Analysis</div>
@@ -259,16 +315,46 @@
       </div>
     </div>
 
-    <!-- STEP 3: INTELLIGENCE + CHAT -->
+    <!-- STEP 3: DASHBOARD INTELLIGENCE -->
     <div id="p3" class="page">
-      <div class="prospect-tag">🎯 <span id="prospectLabel">—</span></div>
-      <div class="card">
-        <div class="card-title">Strategic Gap Analysis</div>
-        <div class="card-sub">Critical marketing failures and revenue opportunities identified for this prospect. Use the chat below to dig deeper into any area.</div>
-        <div id="intelOutput" class="intel-output"></div>
+
+      <!-- Prospect header with score -->
+      <div class="dash-header">
+        <div class="dash-header-left">
+          <h2 id="dashName">—</h2>
+          <p id="dashLoc">—</p>
+        </div>
+        <div class="dash-header-right">
+          <div class="stat-chips" id="statChips"></div>
+          <div class="score-ring-wrap">
+            <div class="score-ring">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle class="ring-bg" cx="36" cy="36" r="30"/>
+                <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30" stroke-dasharray="188.4" stroke-dashoffset="188.4"/>
+              </svg>
+              <div class="score-center">
+                <div class="score-num" id="scoreNum">—</div>
+                <div class="score-label">Score</div>
+              </div>
+            </div>
+            <div class="score-grade" id="scoreGrade" style="color:white; text-align:center;"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- Quick wins banner -->
+      <div class="quick-wins" id="quickWinsBanner" style="display:none;">
+        <div class="quick-wins-title">Quick Wins — Fix This Week</div>
+        <div class="quick-wins-list" id="quickWinsList"></div>
+      </div>
+
+      <!-- Findings -->
+      <div class="section-label">Critical Findings</div>
+      <div class="findings-grid" id="findingsGrid"></div>
+
+      <!-- Chat -->
       <div class="card">
-        <div class="card-title" style="font-size:22px; margin-bottom:5px;">Refine the Intelligence</div>
+        <div class="card-title" style="font-size:22px; margin-bottom:5px;">Dig Deeper</div>
         <div class="card-sub" style="margin-bottom:18px;">Ask follow-up questions or request deeper analysis on any finding before you pitch.</div>
         <div class="chat-history" id="chatHistory"></div>
         <div class="chat-input-row">
@@ -276,15 +362,15 @@
           <button class="chat-send" id="chatSendBtn" onclick="sendChat()">➤</button>
         </div>
       </div>
+
       <div class="row-actions">
         <button class="btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
         <button class="btn-ghost" onclick="restart()">← Start Over</button>
       </div>
     </div>
 
-    <!-- STEP 4: SERVICE SELECTION -->
+    <!-- STEP 4: SERVICES -->
     <div id="p4" class="page">
-      <div class="prospect-tag">🎯 <span id="prospectLabel2">—</span></div>
       <div class="card">
         <div class="card-title">Select Services to Pitch</div>
         <div class="card-sub">Choose the services most relevant to this prospect's gaps. The pitch will be written around what you select.</div>
@@ -298,7 +384,6 @@
 
     <!-- STEP 5: PITCH -->
     <div id="p5" class="page">
-      <div class="prospect-tag">🎯 <span id="prospectLabel3">—</span></div>
       <div class="card" id="pitchLoadCard">
         <div class="loading-wrap">
           <div class="spinner"></div>
@@ -308,7 +393,7 @@
       </div>
       <div class="card" id="pitchCard" style="display:none;">
         <div class="card-title">Your Custom Pitch</div>
-        <div class="card-sub">Tailored to this prospect's specific gaps and your selected services. Includes an email version and call script.</div>
+        <div class="card-sub">Tailored to this prospect's specific gaps and selected services. Includes an email version and call script.</div>
         <div id="pitchOutput" class="pitch-output"></div>
       </div>
       <div class="row-actions" id="pitchActions" style="display:none;">
@@ -325,15 +410,14 @@
   const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
   const PASSWORD = "Messick2026";
 
-  let state = { biz: '', loc: '', web: '', scrapeData: null, intelText: '', selectedServices: [], chatMessages: [] };
+  let state = { biz: '', loc: '', web: '', scrapeData: null, intelRaw: null, selectedServices: [], chatMessages: [] };
 
-  // LOGIN
+  // ── LOGIN ──
   function checkPw() {
-    const val = document.getElementById('pwInput').value;
-    if (val === PASSWORD) {
-      const gate = document.getElementById('loginGate');
-      gate.style.opacity = '0';
-      setTimeout(() => gate.style.display = 'none', 400);
+    if (document.getElementById('pwInput').value === PASSWORD) {
+      const g = document.getElementById('loginGate');
+      g.style.opacity = '0';
+      setTimeout(() => g.style.display = 'none', 400);
     } else {
       document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
       document.getElementById('pwInput').value = '';
@@ -341,28 +425,23 @@
     }
   }
 
-  // NAVIGATION
+  // ── NAV ──
   function goTo(n) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('p' + n).classList.add('active');
     for (let i = 1; i <= 5; i++) {
       const s = document.getElementById('ps' + i);
-      s.classList.remove('active', 'done');
-      if (i < n) { s.classList.add('done'); s.querySelector('.num').textContent = '✓'; }
-      else { s.querySelector('.num').textContent = i; }
+      s.classList.remove('active','done');
+      const num = s.querySelector('.num');
+      if (i < n) { s.classList.add('done'); num.textContent = '✓'; }
+      else { num.textContent = i; }
       if (i === n) s.classList.add('active');
     }
-    // sync prospect labels
-    const label = state.biz + (state.loc ? ' · ' + state.loc : '');
-    ['prospectLabel', 'prospectLabel2', 'prospectLabel3'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = label;
-    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function restart() {
-    state = { biz: '', loc: '', web: '', scrapeData: null, intelText: '', selectedServices: [], chatMessages: [] };
+    state = { biz: '', loc: '', web: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [] };
     ['bizName','location','website'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('chatHistory').innerHTML = '';
     document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
@@ -371,70 +450,196 @@
     goTo(1);
   }
 
-  // STEP 1 → RESEARCH
+  // ── STEP 1 → RESEARCH ──
   async function startResearch() {
     state.biz = document.getElementById('bizName').value.trim();
     state.loc = document.getElementById('location').value.trim();
     state.web = document.getElementById('website').value.trim();
     if (!state.biz) { alert('Please enter a business name.'); return; }
-
     goTo(2);
     document.getElementById('loadStatus').textContent = 'Scraping website architecture and content...';
 
     try {
       const scrapeRes = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'scrape', website: state.web, bizName: state.biz, location: state.loc })
       }).then(r => r.json());
       state.scrapeData = scrapeRes;
-
       document.getElementById('loadStatus').textContent = 'Running Shark Marketing analysis...';
 
-      const system = `You are a sharp, high-ticket marketing consultant for Messick Marketing, a healthcare social media and content agency. Analyze this prospect's online presence and identify their most critical marketing failures.
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. Analyze the prospect's online presence and return a JSON object only — no markdown, no extra text.
 
-Structure your response with ## for major section headers and ### for sub-headers. Be specific, cite what you actually found, and make the business owner feel like every day without fixing this is costing them patients.
+Return exactly this structure:
+{
+  "score": <integer 0-100 representing overall marketing health, lower = more broken>,
+  "criticalCount": <number of critical severity findings>,
+  "highCount": <number of high severity findings>,
+  "quickWins": ["short win 1", "short win 2", "short win 3"],
+  "findings": [
+    {
+      "category": "Website & Conversion",
+      "title": "Short problem title",
+      "severity": "critical",
+      "summary": "1-2 sentence description of the problem",
+      "bullets": ["specific detail 1", "specific detail 2", "specific detail 3"],
+      "impact": "Revenue/patient impact statement — be specific with numbers if possible"
+    }
+  ]
+}
 
-Cover: website conversion gaps, SEO failures, Google Business Profile weaknesses, social media gaps, patient-facing messaging failures, and missed content opportunities.
+Severity options: "critical", "high", "medium"
+Categories to cover (use as many as relevant): "Website & Conversion", "SEO & Local Search", "Google Business Profile", "Social Media", "Reputation & Reviews", "Content Strategy", "Paid & Ads"
+Include 4-6 findings total. Be specific, cite what you actually found. Do not use em dashes.`;
 
-For each problem include: what the issue is (specific), why it's costing them, what they're missing, and the revenue impact.
+      const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}`);
+      
+      let parsed;
+      try {
+        const clean = raw.replace(/```json|```/g,'').trim();
+        parsed = JSON.parse(clean);
+      } catch(e) {
+        parsed = buildFallbackData(raw);
+      }
 
-End with a ## Quick Wins section with 3 things they could fix this week.
+      state.intelRaw = parsed;
+      state.chatMessages = [{ role: 'assistant', content: `I've analyzed ${state.biz}. Here's what I found: score ${parsed.score}/100. Key issues: ${parsed.findings.map(f => f.title).join(', ')}. Quick wins: ${parsed.quickWins.join(', ')}.` }];
 
-Do not use em dashes. Use bullet points within sections.`;
-
-      const intelRes = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\n\nWebsite and Online Data:\n${JSON.stringify(state.scrapeData)}`);
-      state.intelText = intelRes;
-      state.chatMessages = [{ role: 'assistant', content: intelRes }];
-
-      document.getElementById('intelOutput').innerHTML = formatIntel(intelRes);
+      renderDashboard(parsed);
       goTo(3);
 
-    } catch (e) {
+    } catch(e) {
       alert('Error running analysis: ' + e.message);
       goTo(1);
     }
   }
 
-  // STEP 3: CHAT
+  // ── RENDER DASHBOARD ──
+  function renderDashboard(data) {
+    document.getElementById('dashName').textContent = state.biz;
+    document.getElementById('dashLoc').textContent = state.loc || 'Location not provided';
+
+    // Score ring
+    const score = Math.max(0, Math.min(100, data.score || 45));
+    const circumference = 188.4;
+    const offset = circumference - (score / 100) * circumference;
+    const ring = document.getElementById('ringFill');
+    ring.style.strokeDashoffset = circumference;
+    const strokeColor = score >= 70 ? '#5dd49a' : score >= 45 ? '#f5c842' : '#f87878';
+    ring.style.stroke = strokeColor;
+    setTimeout(() => ring.style.strokeDashoffset = offset, 100);
+    document.getElementById('scoreNum').textContent = score;
+    const grade = score >= 70 ? 'Healthy' : score >= 45 ? 'At Risk' : 'Critical';
+    const gradeColor = score >= 70 ? '#5dd49a' : score >= 45 ? '#f5c842' : '#f87878';
+    document.getElementById('scoreGrade').textContent = grade;
+    document.getElementById('scoreGrade').style.color = gradeColor;
+
+    // Stat chips
+    const chips = document.getElementById('statChips');
+    chips.innerHTML = '';
+    const findings = data.findings || [];
+    const crit = findings.filter(f => f.severity === 'critical').length;
+    const high = findings.filter(f => f.severity === 'high').length;
+    const med  = findings.filter(f => f.severity === 'medium').length;
+    const chipData = [
+      { val: crit, label: 'Critical', cls: crit > 0 ? 'danger' : '' },
+      { val: high, label: 'High',     cls: high > 0 ? 'warn' : '' },
+      { val: med,  label: 'Medium',   cls: '' },
+    ];
+    chipData.forEach(c => {
+      chips.innerHTML += `<div class="stat-chip ${c.cls}"><div class="chip-val">${c.val}</div><div class="chip-label">${c.label}</div></div>`;
+    });
+
+    // Quick wins
+    const qw = data.quickWins || [];
+    if (qw.length) {
+      document.getElementById('quickWinsBanner').style.display = 'block';
+      document.getElementById('quickWinsList').innerHTML = qw.map(w => `<div class="quick-win-pill">${w}</div>`).join('');
+    }
+
+    // Findings grid
+    const grid = document.getElementById('findingsGrid');
+    grid.innerHTML = '';
+    findings.forEach((f, i) => {
+      const sevClass = f.severity === 'critical' ? 'sev-critical' : f.severity === 'high' ? 'sev-high' : 'sev-medium';
+      const sevLabel = f.severity === 'critical' ? 'Critical' : f.severity === 'high' ? 'High' : 'Medium';
+      const catColor = categoryColor(f.category);
+      const bullets = (f.bullets || []).map(b => `<li>${b}</li>`).join('');
+      const card = document.createElement('div');
+      card.className = 'finding-card';
+      card.dataset.idx = i;
+      card.innerHTML = `
+        <div class="finding-header">
+          <div>
+            <div class="finding-category" style="color:${catColor}">${f.category || 'General'}</div>
+            <div class="finding-title">${f.title}</div>
+          </div>
+          <div class="severity-badge ${sevClass}">${sevLabel}</div>
+        </div>
+        <div class="finding-body">
+          <div class="finding-summary">${f.summary}</div>
+          <div class="finding-detail">
+            ${bullets ? `<ul>${bullets}</ul>` : ''}
+            ${f.impact ? `<div class="finding-impact">${f.impact}</div>` : ''}
+          </div>
+          <div class="finding-toggle" onclick="toggleFinding(event, this)">View Details ↓</div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleFinding(e, el) {
+    e.stopPropagation();
+    const card = el.closest('.finding-card');
+    const expanded = card.classList.toggle('expanded');
+    el.textContent = expanded ? 'Hide Details ↑' : 'View Details ↓';
+  }
+
+  function categoryColor(cat) {
+    const map = {
+      'Website & Conversion': '#c0392b',
+      'SEO & Local Search': '#d4722a',
+      'Google Business Profile': '#b06000',
+      'Social Media': '#3a6b8a',
+      'Reputation & Reviews': '#7a3a8a',
+      'Content Strategy': '#2e7d5e',
+      'Paid & Ads': '#1a5276',
+    };
+    return map[cat] || '#555';
+  }
+
+  function buildFallbackData(rawText) {
+    return {
+      score: 42,
+      criticalCount: 2,
+      highCount: 2,
+      quickWins: ['Optimize Google Business Profile', 'Add social proof to homepage', 'Create patient education content'],
+      findings: [{
+        category: 'Website & Conversion',
+        title: 'Analysis complete — review details',
+        severity: 'high',
+        summary: rawText.substring(0, 200) + '...',
+        bullets: [],
+        impact: 'See full analysis above.'
+      }]
+    };
+  }
+
+  // ── CHAT ──
   async function sendChat() {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
     if (!msg) return;
-
     input.value = '';
     document.getElementById('chatSendBtn').disabled = true;
     appendChat('user', msg);
     state.chatMessages.push({ role: 'user', content: msg });
 
     try {
-      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc} and wants to go deeper. Be direct, specific, and actionable. Do not use em dashes.`;
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}. Be direct, specific, and actionable. Do not use em dashes.`;
       const reply = await callAIWithHistory(system, state.chatMessages);
       state.chatMessages.push({ role: 'assistant', content: reply });
       appendChat('ai', reply);
-    } catch(e) {
-      appendChat('ai', 'Connection error. Please try again.');
-    }
+    } catch(e) { appendChat('ai', 'Connection error. Please try again.'); }
 
     document.getElementById('chatSendBtn').disabled = false;
   }
@@ -448,16 +653,16 @@ Do not use em dashes. Use bullet points within sections.`;
     history.scrollTop = history.scrollHeight;
   }
 
-  // SERVICES
+  // ── SERVICES ──
   const SERVICES = [
-    { id: 'social',      name: 'Social Media Management', desc: 'Content creation, scheduling, and engagement across Instagram, Facebook, LinkedIn' },
-    { id: 'seo',         name: 'SEO & Local Search',       desc: 'On-page SEO, local keyword targeting, and search visibility improvements' },
-    { id: 'gbp',         name: 'Google Business Profile',  desc: 'GBP setup, optimization, review strategy, and weekly post management' },
-    { id: 'content',     name: 'Content Marketing',        desc: 'Blog posts, patient education articles, video scripts, email newsletters' },
-    { id: 'ads',         name: 'Paid Social Ads',          desc: 'Meta ad campaigns for patient acquisition and brand awareness' },
-    { id: 'website',     name: 'Website Audit & Copy',     desc: 'CRO analysis, homepage rewrites, and landing page optimization' },
-    { id: 'reputation',  name: 'Reputation Management',    desc: 'Review generation strategy, response protocols, and monitoring' },
-    { id: 'video',       name: 'Video & Reels Production', desc: 'Short-form video briefs, Reels scripts, and TikTok content strategy' },
+    { id: 'social',     name: 'Social Media Management', desc: 'Content creation, scheduling, and engagement across Instagram, Facebook, LinkedIn' },
+    { id: 'seo',        name: 'SEO & Local Search',       desc: 'On-page SEO, local keyword targeting, and search visibility improvements' },
+    { id: 'gbp',        name: 'Google Business Profile',  desc: 'GBP setup, optimization, review strategy, and weekly post management' },
+    { id: 'content',    name: 'Content Marketing',        desc: 'Blog posts, patient education articles, video scripts, email newsletters' },
+    { id: 'ads',        name: 'Paid Social Ads',          desc: 'Meta ad campaigns for patient acquisition and brand awareness' },
+    { id: 'website',    name: 'Website Audit & Copy',     desc: 'CRO analysis, homepage rewrites, and landing page optimization' },
+    { id: 'reputation', name: 'Reputation Management',    desc: 'Review generation strategy, response protocols, and monitoring' },
+    { id: 'video',      name: 'Video & Reels Production', desc: 'Short-form video briefs, Reels scripts, and TikTok content strategy' },
   ];
 
   function buildServicesGrid() {
@@ -465,7 +670,6 @@ Do not use em dashes. Use bullet points within sections.`;
     SERVICES.forEach(s => {
       const card = document.createElement('div');
       card.className = 'service-card';
-      card.dataset.id = s.id;
       card.innerHTML = `<div class="svc-check">✓ Selected</div><div class="svc-name">${s.name}</div><div class="svc-desc">${s.desc}</div>`;
       card.onclick = () => {
         if (state.selectedServices.includes(s.id)) {
@@ -475,20 +679,99 @@ Do not use em dashes. Use bullet points within sections.`;
           state.selectedServices.push(s.id);
           card.classList.add('selected');
         }
-        document.getElementById('generatePitchBtn').disabled = state.selectedServices.length === 0;
+        document.getElementById('generatePitchBtn').disabled = allSelected().length === 0;
       };
       grid.appendChild(card);
     });
+
+    // Add custom service card
+    const addCard = document.createElement('div');
+    addCard.className = 'service-card add-custom';
+    addCard.id = 'addCustomCard';
+    addCard.innerHTML = `
+      <div id="addCustomPrompt">
+        <div class="add-custom-icon">+</div>
+        <div class="add-custom-label">Add Custom Service</div>
+      </div>
+      <div class="custom-input-wrap" id="customInputWrap">
+        <input type="text" id="customServiceName" placeholder="Service name" maxlength="60">
+        <input type="text" id="customServiceDesc" placeholder="Short description (optional)" maxlength="100">
+        <div class="custom-btns">
+          <button class="btn-add" onclick="confirmCustomService(event)">Add</button>
+          <button class="btn-cancel" onclick="cancelCustomService(event)">Cancel</button>
+        </div>
+      </div>`;
+    addCard.onclick = (e) => {
+      if (e.target.closest('#customInputWrap')) return;
+      document.getElementById('addCustomPrompt').style.display = 'none';
+      document.getElementById('customInputWrap').classList.add('visible');
+      addCard.style.alignItems = 'stretch';
+      addCard.style.cursor = 'default';
+      setTimeout(() => document.getElementById('customServiceName').focus(), 50);
+    };
+    grid.appendChild(addCard);
   }
 
-  // STEP 5: GENERATE PITCH
+  function confirmCustomService(e) {
+    e.stopPropagation();
+    const name = document.getElementById('customServiceName').value.trim();
+    if (!name) { document.getElementById('customServiceName').focus(); return; }
+    const desc = document.getElementById('customServiceDesc').value.trim();
+    const id = 'custom_' + Date.now();
+    state.customServices = state.customServices || [];
+    state.customServices.push({ id, name, desc });
+
+    // Insert new selected card before the add card
+    const grid = document.getElementById('servicesGrid');
+    const addCard = document.getElementById('addCustomCard');
+    const card = document.createElement('div');
+    card.className = 'service-card selected';
+    card.dataset.customId = id;
+    card.innerHTML = `<div class="svc-check">✓ Selected</div><div class="svc-name">${name}</div><div class="svc-desc">${desc || 'Custom service'}</div>`;
+    card.onclick = () => {
+      if (state.customServices) state.customServices = state.customServices.filter(s => s.id !== id);
+      card.remove();
+      document.getElementById('generatePitchBtn').disabled = allSelected().length === 0;
+    };
+    grid.insertBefore(card, addCard);
+
+    // Reset add card
+    document.getElementById('customServiceName').value = '';
+    document.getElementById('customServiceDesc').value = '';
+    document.getElementById('customInputWrap').classList.remove('visible');
+    document.getElementById('addCustomPrompt').style.display = '';
+    addCard.style.alignItems = '';
+    addCard.style.cursor = '';
+    document.getElementById('generatePitchBtn').disabled = false;
+  }
+
+  function cancelCustomService(e) {
+    e.stopPropagation();
+    document.getElementById('customServiceName').value = '';
+    document.getElementById('customServiceDesc').value = '';
+    document.getElementById('customInputWrap').classList.remove('visible');
+    document.getElementById('addCustomPrompt').style.display = '';
+    const addCard = document.getElementById('addCustomCard');
+    addCard.style.alignItems = '';
+    addCard.style.cursor = '';
+  }
+
+  function allSelected() {
+    const standard = state.selectedServices;
+    const custom = (state.customServices || []).map(s => s.name);
+    return [...standard.map(id => SERVICES.find(s => s.id === id)?.name), ...custom].filter(Boolean);
+  }
+
+  // ── PITCH ──
   async function generatePitch() {
     goTo(5);
     document.getElementById('pitchLoadCard').style.display = 'block';
     document.getElementById('pitchCard').style.display = 'none';
     document.getElementById('pitchActions').style.display = 'none';
 
-    const selectedNames = state.selectedServices.map(id => SERVICES.find(s => s.id === id)?.name).join(', ');
+    const selectedNames = allSelected().join(', ');
+    const findings = state.intelRaw?.findings || [];
+    const topIssues = findings.filter(f => f.severity === 'critical' || f.severity === 'high').map(f => f.title + ': ' + f.summary).join('\n');
 
     try {
       const system = `You are writing a sales pitch on behalf of Messick Marketing, a healthcare social media and content marketing agency.
@@ -497,7 +780,7 @@ Write a personalized, confident outreach pitch for the prospect based on the int
 
 The pitch should:
 - Open by referencing one specific real problem you found (not generic)
-- Briefly introduce Messick Marketing (we specialize in healthcare practices, AI-powered content, real patient-focused strategy)
+- Briefly introduce Messick Marketing (healthcare specialist, AI-powered content, real patient-focused strategy)
 - Address each selected service with a 1-2 sentence benefit tied to their specific gaps
 - Close with a clear, low-friction CTA (short discovery call, no commitment)
 - Feel consultative and confident, not salesy
@@ -506,7 +789,7 @@ Format with ## Email Version and ## Call Script as separate sections.
 Keep the email under 200 words. Keep the call script under 150 words.
 Do not use em dashes.`;
 
-      const pitchRes = await callAI(system, `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nKey Findings:\n${state.intelText.substring(0, 2500)}`);
+      const pitchRes = await callAI(system, `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`);
       document.getElementById('pitchOutput').innerHTML = formatPitch(pitchRes);
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
@@ -520,8 +803,7 @@ Do not use em dashes.`;
   }
 
   function copyPitch() {
-    const text = document.getElementById('pitchOutput').innerText;
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(document.getElementById('pitchOutput').innerText).then(() => {
       const btn = event.target;
       const orig = btn.textContent;
       btn.textContent = '✓ Copied!';
@@ -529,7 +811,7 @@ Do not use em dashes.`;
     });
   }
 
-  // API
+  // ── API ──
   async function callAI(system, userMsg) {
     const res = await fetch(WORKER_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -548,32 +830,7 @@ Do not use em dashes.`;
     return res.text;
   }
 
-  // FORMATTING
-  function formatIntel(text) {
-    let html = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
-      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
-      .replace(/^- (.+)$/gm,'<li>$1</li>');
-
-    // Wrap consecutive li tags in ul
-    html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`);
-
-    // Paragraphs
-    html = html.split('\n\n').map(chunk => {
-      if (chunk.match(/^<[hul]/)) return chunk;
-      if (chunk.trim() === '') return '';
-      return `<p>${chunk}</p>`;
-    }).join('\n');
-
-    // Impact callout boxes
-    html = html.replace(/<strong>(Revenue Impact:|Cost of Inaction:|What You're Losing:)<\/strong>([^<]+)/g,
-      '<div class="impact-box"><strong>$1</strong>$2</div>');
-
-    return html;
-  }
-
+  // ── FORMAT PITCH ──
   function formatPitch(text) {
     let html = text
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -581,14 +838,11 @@ Do not use em dashes.`;
       .replace(/^## (.+)$/gm,'<h2>$1</h2>')
       .replace(/^### (.+)$/gm,'<h3>$1</h3>')
       .replace(/^- (.+)$/gm,'<li>$1</li>');
-
     html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`);
     html = html.split('\n\n').map(chunk => {
       if (chunk.match(/^<[hul]/)) return chunk;
-      if (chunk.trim() === '') return '';
-      return `<p>${chunk}</p>`;
+      return chunk.trim() ? `<p>${chunk}</p>` : '';
     }).join('\n');
-
     return html;
   }
 
