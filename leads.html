@@ -3,83 +3,270 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>3Agency Insight Tool | Messick Marketing</title>
+<title>Agency Insight Tool | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* EXACT CSS RESTORATION */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
-  --warm: #faf8f5; --warm-mid: #f0ece6; --mid: #6b7280; --border: #dde5ea;
-  --danger: #c0392b; --success: #2e7d5e; --radius: 6px;
-  --shadow: 0 1px 3px rgba(17,17,17,0.08), 0 4px 16px rgba(17,17,17,0.06);
-}
-*, body { font-family: 'Jost', sans-serif; -webkit-font-smoothing: antialiased; }
-body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
-header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.logo-mark { width: 30px; height: 30px; background: var(--steel); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-.logo-text { display: flex; flex-direction: column; line-height: 1.15; }
-.logo-text .t1 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
-.logo-text .t2 { font-size: 10px; font-weight: 300; color: var(--steel-pale); letter-spacing: 0.12em; text-transform: uppercase; }
-.header-badge { font-size: 10.5px; font-weight: 500; color: var(--steel-pale); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(90,154,184,0.3); padding: 4px 10px; border-radius: 20px; }
-.shell { display: flex; flex: 1; min-height: calc(100vh - 56px); }
-aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05); }
-.sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.28); padding: 0 20px 10px; }
-.step-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
-.step-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); transition: all 0.2s ease; cursor: default; }
-.step-item.active { background: rgba(58,107,138,0.25); }
-.step-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); transition: all 0.2s; }
-.step-item.active .step-num { background: var(--steel); color: #fff; }
-.step-item.done .step-num { background: var(--success); color: #fff; font-size: 13px; }
-.step-label { font-size: 12.5px; color: rgba(255,255,255,0.32); transition: color 0.15s; }
-.step-item.active .step-label { color: rgba(255,255,255,0.92); font-weight: 500; }
-.step-item.done .step-label { color: rgba(255,255,255,0.52); }
-main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 960px; }
-.page { display: none; }
-.page.active { display: block; animation: fadeIn 0.25s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; color: var(--black); }
-.page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
-.card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; position: relative; }
-.card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; border-bottom: 1px solid var(--warm-mid); padding-bottom: 8px; }
-.score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-.score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
-.score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
-.score-val.red { color: var(--danger); }
-.score-val.green { color: var(--success); }
-.score-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); }
-.presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
-.presence-label { font-size: 12px; font-weight: 600; color: var(--black); }
-.presence-status { font-size: 11px; font-weight: 400; display: flex; align-items: center; gap: 5px; }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; }
-.status-dot.red { background: var(--danger); }
-.status-dot.green { background: var(--success); }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field.span2 { grid-column: span 2; }
-label { font-size: 12px; font-weight: 500; color: var(--black); }
-input[type=text], input[type=url], select, textarea { font-family: 'Jost', sans-serif; font-size: 13.5px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--warm); outline: none; width: 100%; transition: all 0.15s; }
-input:focus, select:focus, textarea:focus { border-color: var(--steel); background: #fff; box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
-.btn-primary { background: var(--steel); color: #fff; }
-.btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); }
-.scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
-.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); margin-bottom: 10px; }
-.scan-step.active { color: var(--black); font-weight: 500; }
-.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
-.scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 30px; line-height: 1.8; font-size: 14.5px; white-space: pre-wrap; box-shadow: var(--shadow); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #111111;
+    --steel: #3a6b8a;
+    --steel-light: #5a9ab8;
+    --steel-pale: #c8dde8;
+    --warm: #faf8f5;
+    --warm-mid: #f0ece6;
+    --mid: #6b7280;
+    --border: #dde5ea;
+    --danger: #c0392b;
+    --success: #2e7d5e;
+    --radius: 6px;
+    --shadow: 0 1px 3px rgba(17,17,17,0.08), 0 4px 16px rgba(17,17,17,0.06);
+  }
+  *, body { font-family: 'Jost', sans-serif; }
+  body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* HEADER */
+  header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 30px; height: 30px; background: var(--steel); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+  .logo-text .t1 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
+  .logo-text .t2 { font-size: 10px; font-weight: 300; color: var(--steel-pale); letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-badge { font-size: 10.5px; font-weight: 500; color: var(--steel-pale); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(90,154,184,0.3); padding: 4px 10px; border-radius: 20px; }
+
+  /* SHELL */
+  .shell { display: flex; flex: 1; min-height: calc(100vh - 56px); }
+
+  /* SIDEBAR */
+  aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; display: flex; flex-direction: column; }
+  .sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.28); padding: 0 20px 10px; }
+  .step-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+  .step-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); }
+  .step-item.active { background: rgba(58,107,138,0.25); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); transition: all 0.2s; }
+  .step-item.active .step-num { background: var(--steel); color: #fff; }
+  .step-item.done .step-num { background: var(--success); color: #fff; font-size: 13px; }
+  .step-label { font-size: 12.5px; color: rgba(255,255,255,0.32); transition: color 0.15s; }
+  .step-item.active .step-label { color: rgba(255,255,255,0.92); font-weight: 500; }
+  .step-item.done .step-label { color: rgba(255,255,255,0.52); }
+  .sidebar-footer { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.2); line-height: 1.6; }
+
+  /* MAIN */
+  main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 900px; }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.22s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
+
+  /* CARDS */
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+
+  /* FORM BASICS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.span2 { grid-column: span 2; }
+  label { font-size: 12px; font-weight: 500; color: var(--black); }
+  label .req { color: var(--steel); }
+  input[type=text], input[type=url], select, textarea {
+    font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400;
+    padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: var(--warm); color: var(--black);
+    transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%;
+  }
+  input[type=text]:focus, input[type=url]:focus, select:focus, textarea:focus {
+    border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff;
+  }
+  input::placeholder, textarea::placeholder { color: #b5bdc4; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+  textarea { resize: vertical; min-height: 72px; }
+
+  /* STAR RATING */
+  .star-row { display: flex; gap: 4px; align-items: center; }
+  .star { font-size: 22px; cursor: pointer; color: #ddd; transition: color 0.1s; user-select: none; line-height: 1; }
+  .star.on { color: #f5a623; }
+  .star-label { font-size: 12px; color: var(--mid); margin-left: 8px; }
+
+  /* TOGGLE GROUP */
+  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toggle-btn {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid);
+    transition: all 0.15s; font-family: 'Jost', sans-serif;
+  }
+  .toggle-btn:hover { border-color: var(--steel-pale); }
+  .toggle-btn.on { border-color: var(--steel); background: var(--steel); color: #fff; }
+  .toggle-btn.on-warn { border-color: #d97706; background: #d97706; color: #fff; }
+  .toggle-btn.on-none { border-color: #9ca3af; background: #9ca3af; color: #fff; }
+
+  /* CHECKBOX ROW */
+  .check-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .check-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12.5px; color: var(--black); user-select: none; }
+  .check-box { width: 16px; height: 16px; border: 1.5px solid var(--border); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; background: var(--warm); }
+  .check-item.checked .check-box { background: var(--steel); border-color: var(--steel); }
+  .check-item.checked .check-box::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 700; }
+
+  /* SOCIAL PLATFORM ROWS */
+  .platform-grid { display: flex; flex-direction: column; gap: 14px; }
+  .platform-row { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 12px; align-items: start; padding: 14px; background: var(--warm); border-radius: var(--radius); border: 1px solid var(--border); }
+  .platform-name { font-size: 12px; font-weight: 600; color: var(--black); padding-top: 2px; display: flex; align-items: center; gap: 6px; }
+  .platform-section { display: flex; flex-direction: column; gap: 6px; }
+  .platform-section-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid); }
+
+  /* GBP GRID */
+  .gbp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .gbp-block { display: flex; flex-direction: column; gap: 7px; }
+  .gbp-block label { font-size: 11.5px; font-weight: 600; color: var(--black); }
+
+  /* REVIEW SENTIMENT */
+  .sentiment-row { display: flex; gap: 8px; }
+  .sentiment-btn {
+    flex: 1; padding: 9px; border-radius: var(--radius); font-size: 12.5px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid);
+    transition: all 0.15s; font-family: 'Jost', sans-serif; text-align: center;
+  }
+  .sentiment-btn.on-pos { border-color: var(--success); background: rgba(46,125,94,0.08); color: var(--success); }
+  .sentiment-btn.on-mix { border-color: #d97706; background: rgba(217,119,6,0.08); color: #d97706; }
+  .sentiment-btn.on-few { border-color: var(--danger); background: rgba(192,57,43,0.08); color: var(--danger); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.02em; }
+  .btn-primary { background: var(--steel); color: #fff; width: 100%; }
+  .btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
+  .btn-outline:hover { background: rgba(58,107,138,0.06); }
+  .btn-black { background: var(--black); color: #fff; }
+  .btn-black:hover { background: #2a2a2a; }
+  .btn-row { display: flex; gap: 12px; margin-top: 22px; }
+  .btn-row .btn { flex: 1; }
+
+  /* SCAN */
+  .scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
+  .scan-icon { width: 56px; height: 56px; background: rgba(58,107,138,0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .scan-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+  .scan-sub { font-size: 13px; color: var(--mid); margin-bottom: 30px; }
+  .scan-steps { list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; text-align: left; }
+  .scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; }
+  .scan-step.active { color: var(--black); font-weight: 500; }
+  .scan-step.done { color: var(--success); }
+  .scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+  .scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
+  .scan-step.done .scan-dot { background: var(--success); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* SCORES */
+  .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
+  .score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .score-val.red { color: var(--danger); }
+  .score-val.orange { color: #d97706; }
+  .score-val.green { color: var(--success); }
+  .score-lbl { font-size: 11px; color: var(--mid); font-weight: 500; letter-spacing: 0.04em; }
+
+  /* FINDINGS */
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .finding-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }
+  .finding-card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--steel); margin-bottom: 12px; }
+  .finding-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--warm-mid); font-size: 12.5px; line-height: 1.45; color: var(--black); }
+  .finding-item:last-child { border-bottom: none; }
+  .fi { flex-shrink: 0; font-size: 11px; margin-top: 2px; }
+  .fi-gap { color: var(--danger); }
+  .fi-ok { color: var(--success); }
+  .fi-warn { color: #d97706; }
+
+  /* SERVICES */
+  .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+  .service-card { background: #fff; border: 2px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.15s; user-select: none; position: relative; }
+  .service-card:hover { border-color: var(--steel-pale); }
+  .service-card.selected { border-color: var(--steel); background: rgba(58,107,138,0.04); }
+  .service-check { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: all 0.15s; color: transparent; }
+  .service-card.selected .service-check { background: var(--steel); border-color: var(--steel); color: #fff; }
+  .service-priority { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-bottom: 6px; }
+  .priority-high { background: rgba(192,57,43,0.09); color: var(--danger); }
+  .priority-med { background: rgba(217,119,6,0.09); color: #d97706; }
+  .priority-low { background: rgba(46,125,94,0.09); color: var(--success); }
+  .service-name { font-size: 13.5px; font-weight: 600; color: var(--black); margin-bottom: 5px; padding-right: 24px; }
+  .service-why { font-size: 12px; color: var(--mid); line-height: 1.45; }
+
+  /* PITCH */
+  .pitch-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .pitch-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); }
+  .pitch-biz { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; }
+  .copy-btn { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--steel); background: none; border: 1.5px solid var(--steel-pale); border-radius: var(--radius); padding: 7px 14px; cursor: pointer; transition: all 0.15s; font-family: 'Jost', sans-serif; }
+  .copy-btn:hover { background: rgba(58,107,138,0.07); border-color: var(--steel); }
+  .channel-tabs { display: flex; gap: 8px; margin-bottom: 13px; }
+  .channel-tab { padding: 7px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid); transition: all 0.15s; font-family: 'Jost', sans-serif; }
+  .channel-tab.active { border-color: var(--steel); background: var(--steel); color: #fff; }
+  .pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; color: var(--black); white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; font-family: 'Jost', sans-serif; font-weight: 300; }
+  .pitch-body.streaming { border-color: var(--steel-pale); }
+  .cursor-blink { display: inline-block; width: 2px; height: 1.1em; background: var(--steel); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.75s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* REFINEMENT CHAT */
+  .refinement-section { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: var(--shadow); overflow: hidden; }
+  .refinement-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--warm); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .refinement-header-left { display: flex; align-items: center; gap: 8px; }
+  .refinement-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); }
+  .refinement-hint { font-size: 11.5px; color: var(--mid); font-weight: 300; }
+  .refinement-toggle { font-size: 13px; color: var(--mid); transition: transform 0.2s; }
+  .refinement-toggle.open { transform: rotate(180deg); }
+  .refinement-body { display: none; }
+  .refinement-body.open { display: block; }
+
+  /* CHAT HISTORY */
+  .chat-history { max-height: 260px; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-history:empty { display: none; }
+  .chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 88%; animation: fadeIn 0.18s ease; }
+  .chat-msg.user { align-self: flex-end; }
+  .chat-msg.assistant { align-self: flex-start; }
+  .chat-bubble { padding: 9px 13px; border-radius: 10px; font-size: 13px; line-height: 1.55; font-weight: 400; }
+  .chat-msg.user .chat-bubble { background: var(--steel); color: #fff; border-bottom-right-radius: 3px; }
+  .chat-msg.assistant .chat-bubble { background: var(--warm-mid); color: var(--black); border-bottom-left-radius: 3px; border: 1px solid var(--border); }
+  .chat-msg.assistant .chat-bubble.thinking { color: var(--mid); font-style: italic; font-size: 12px; }
+  .chat-time { font-size: 10px; color: var(--mid); padding: 0 2px; }
+  .chat-msg.user .chat-time { text-align: right; }
+
+  /* QUICK CHIPS */
+  .quick-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+  .quick-chip { padding: 5px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid); transition: all 0.15s; font-family: 'Jost', sans-serif; white-space: nowrap; }
+  .quick-chip:hover { border-color: var(--steel); color: var(--steel); background: rgba(58,107,138,0.04); }
+
+  /* CHAT INPUT ROW */
+  .chat-input-row { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--warm); align-items: flex-end; }
+  .chat-input { flex: 1; font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--black); resize: none; outline: none; transition: border-color 0.15s, box-shadow 0.15s; max-height: 120px; min-height: 40px; line-height: 1.5; }
+  .chat-input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
+  .chat-input::placeholder { color: #b5bdc4; }
+  .chat-send { width: 38px; height: 38px; border-radius: var(--radius); border: none; background: var(--steel); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .chat-send:hover { background: var(--steel-light); transform: translateY(-1px); }
+  .chat-send:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
+  .reset-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .reset-btn { font-size: 12px; color: var(--mid); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
+  .reset-btn:hover { color: var(--black); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--black); color: #fff; font-size: 13px; padding: 10px 18px; border-radius: var(--radius); opacity: 0; transform: translateY(8px); transition: all 0.22s; pointer-events: none; z-index: 9999; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 
 <header>
   <a class="logo" href="#">
-    <div class="logo-mark"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3" height="6" rx="1" fill="white"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/><rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/></svg></div>
-    <div class="logo-text"><span class="t1">Messick Marketing</span><span class="t2">Agency Intelligence</span></div>
+    <div class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="9" width="3" height="6" rx="1" fill="white"/>
+        <rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/>
+        <rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="t1">Messick Marketing</span>
+      <span class="t2">Agency Intelligence</span>
+    </div>
   </a>
   <div class="header-badge">Internal Pitch Tool</div>
 </header>
@@ -89,143 +276,1050 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); backgrou
     <div class="sidebar-label">Workflow</div>
     <nav class="step-nav">
       <div class="step-item active" id="nav-1"><div class="step-num">1</div><div class="step-label">Prospect Info</div></div>
-      <div class="step-item" id="nav-2"><div class="step-num">2</div><div class="step-label">Researching</div></div>
-      <div class="step-item" id="nav-3"><div class="step-num">3</div><div class="step-label">Findings</div></div>
-      <div class="step-item" id="nav-4"><div class="step-num">4</div><div class="step-label">Select Services</div></div>
-      <div class="step-item" id="nav-5"><div class="step-num">5</div><div class="step-label">Pitch Output</div></div>
+      <div class="step-item" id="nav-2"><div class="step-num">2</div><div class="step-label">Audit Inputs</div></div>
+      <div class="step-item" id="nav-3"><div class="step-num">3</div><div class="step-label">Analyzing</div></div>
+      <div class="step-item" id="nav-4"><div class="step-num">4</div><div class="step-label">Findings</div></div>
+      <div class="step-item" id="nav-5"><div class="step-num">5</div><div class="step-label">Select Services</div></div>
+      <div class="step-item" id="nav-6"><div class="step-num">6</div><div class="step-label">Pitch Output</div></div>
     </nav>
+    <div class="sidebar-footer">
+      <p>Messick Marketing &copy; 2026<br>Internal use only.</p>
+    </div>
   </aside>
 
   <main>
+
+    <!-- STEP 1: PROSPECT INFO -->
     <div class="page active" id="page-1">
       <div class="page-title">New Prospect</div>
-      <div class="page-sub">Enter the basics — AI will research the rest.</div>
+      <div class="page-sub">Basic info about the practice or business.</div>
+
       <div class="card">
-        <div class="card-title">Practice Details</div>
+        <div class="card-title">🏥 Practice Details</div>
         <div class="form-grid">
-          <div class="field"><label>Business Name</label><input type="text" id="bizName" placeholder="e.g. Georgia Vascular Institute"></div>
-          <div class="field"><label>Location</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
-          <div class="field span2"><label>Website URL</label><input type="url" id="website" placeholder="https://example.com"></div>
-          <div class="field span2"><label>Specialty</label>
+          <div class="field">
+            <label for="bizName">Business Name <span class="req">*</span></label>
+            <input type="text" id="bizName" placeholder="Georgia Vascular Institute" />
+          </div>
+          <div class="field">
+            <label for="website">Website URL <span class="req">*</span></label>
+            <input type="url" id="website" placeholder="https://example.com" />
+          </div>
+          <div class="field">
+            <label for="industry">Specialty <span class="req">*</span></label>
             <select id="industry">
               <option value="">Select specialty</option>
-              <option>Vascular Surgery</option>
-              <option>Brain Health / Neurology</option>
-              <option>Mental Health / Therapy</option>
-              <option>Orthopedics</option>
-              <option>Other</option>
+              <optgroup label="Healthcare">
+                <option>Interventional Radiology</option>
+                <option>Vascular Surgery</option>
+                <option>Vein &amp; Vascular</option>
+                <option>Brain Health / Neurology</option>
+                <option>Mental Health / Therapy</option>
+                <option>Outpatient Surgery Center / OBL</option>
+                <option>Primary Care / Family Medicine</option>
+                <option>Orthopedics</option>
+                <option>Pain Management</option>
+                <option>Med Spa / Aesthetics</option>
+                <option>Dental / Oral Surgery</option>
+                <option>Chiropractic / Physical Therapy</option>
+                <option>Veterinary Clinic / Animal Health</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option>Healthcare Marketing Agency</option>
+                <option>Medical Device / Pharma</option>
+                <option>Other</option>
+              </optgroup>
             </select>
+          </div>
+          <div class="field">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="Atlanta, GA" />
+          </div>
+          <div class="field span2">
+            <label for="contactName">Contact Name / Title</label>
+            <input type="text" id="contactName" placeholder="Dr. Jane Smith / Practice Manager" />
+          </div>
+          <div class="field span2">
+            <label for="notes">Notes <span style="font-weight:300;color:var(--mid)">(optional)</span></label>
+            <textarea id="notes" placeholder="Referral source, known pain points, recent news, competition..."></textarea>
           </div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="startResearch()">Research This Prospect →</button>
+
+      <button class="btn btn-primary" onclick="goTo(2)">
+        Next: Audit Inputs →
+      </button>
     </div>
 
+    <!-- STEP 2: AUDIT INPUTS -->
     <div class="page" id="page-2">
-      <div class="page-title">Researching</div>
-      <div class="scan-overlay">
-        <div id="scanBizName" style="font-weight:600; margin-bottom:20px;"></div>
-        <div class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</div>
-        <div class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</div>
-      </div>
-    </div>
+      <div class="page-title">Quick Audit</div>
+      <div class="page-sub">Spend 3-5 minutes on their profiles, then fill this in.</div>
 
-    <div class="page" id="page-3">
-      <div class="page-title">Findings & Gaps</div>
-      <div class="score-strip" id="scoreStrip">
-        <div class="score-card"><div class="score-val green">72</div><div class="score-lbl">SEO</div></div>
-        <div class="score-card"><div class="score-val red">38</div><div class="score-lbl">GBP</div></div>
-        <div class="score-card"><div class="score-val green">84</div><div class="score-lbl">Reviews</div></div>
-        <div class="score-card"><div class="score-val red">21</div><div class="score-lbl">Social</div></div>
-      </div>
-      <div class="presence-grid" id="presenceGrid">
-        <div class="presence-card"><div class="presence-label">Google Search</div><div class="presence-status"><div class="status-dot green"></div>Found (Page 1)</div></div>
-        <div class="presence-card"><div class="presence-label">Google Maps</div><div class="presence-status"><div class="status-dot red"></div>Missing Optimization</div></div>
-        <div class="presence-card"><div class="presence-label">Meta/Facebook</div><div class="presence-status"><div class="status-dot red"></div>Inactive</div></div>
-      </div>
+      <!-- WEBSITE -->
       <div class="card">
-        <div class="card-title">Analysis Summary</div>
-        <div id="findingsContent" style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;"></div>
-      </div>
-      <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
-    </div>
-
-    <div class="page" id="page-4">
-      <div class="page-title">Select Recommendations</div>
-      <div class="card">
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <label><input type="checkbox" value="SEO"> SEO & Website Authority</label>
-          <label><input type="checkbox" value="GBP"> Google Business Profile Fixes</label>
-          <label><input type="checkbox" value="Reputation"> Reputation & Review Growth</label>
-          <label><input type="checkbox" value="Paid"> High-Intent Paid Search</label>
+        <div class="card-title">🌐 Website</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Quality Rating <span class="req">*</span></label>
+            <div class="star-row" id="websiteStars">
+              <span class="star" onclick="setStars('website',1)">★</span>
+              <span class="star" onclick="setStars('website',2)">★</span>
+              <span class="star" onclick="setStars('website',3)">★</span>
+              <span class="star" onclick="setStars('website',4)">★</span>
+              <span class="star" onclick="setStars('website',5)">★</span>
+              <span class="star-label" id="websiteStarLabel">Click to rate</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Has Blog / SEO Content?</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" onclick="toggle(this,'websiteBlog','yes')">Yes</button>
+              <button class="toggle-btn" onclick="toggle(this,'websiteBlog','no')">No</button>
+            </div>
+          </div>
+          <div class="field span2">
+            <label>Website Notes <span style="font-weight:300;color:var(--mid)">(optional)</span></label>
+            <textarea id="websiteNotes" placeholder="e.g. outdated design, good service pages, missing mobile optimization..." style="min-height:60px;"></textarea>
+          </div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="generatePitch()">Generate Final Pitch →</button>
+
+      <!-- SOCIAL MEDIA -->
+      <div class="card">
+        <div class="card-title">📱 Social Media</div>
+        <div class="platform-grid">
+
+          <!-- Instagram -->
+          <div class="platform-row">
+            <div class="platform-name">📸 Instagram</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'igStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="igFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'igEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'igPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'igVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'igPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Facebook -->
+          <div class="platform-row">
+            <div class="platform-name">👍 Facebook</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'fbStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="fbFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'fbEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'fbPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LinkedIn -->
+          <div class="platform-row">
+            <div class="platform-name">💼 LinkedIn</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'liStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="liFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'liEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'liPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'liVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'liPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TikTok -->
+          <div class="platform-row">
+            <div class="platform-name">🎵 TikTok</div>
+            <div class="platform-section">
+              <div class="platform-section-label">Status</div>
+              <div class="toggle-group">
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','active')">Active</button>
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','inactive')">Inactive</button>
+                <button class="toggle-btn" onclick="toggle(this,'ttStatus','none')">None</button>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="platform-section-label" style="margin-bottom:5px;">Posting Frequency</div>
+                <select id="ttFreq" style="font-size:12.5px;padding:7px 10px;">
+                  <option value="">-- select --</option>
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Sporadic</option>
+                  <option>None / N/A</option>
+                </select>
+              </div>
+            </div>
+            <div class="platform-section">
+              <div class="platform-section-label">Content Types</div>
+              <div class="check-row" style="flex-direction:column;gap:6px;">
+                <div class="check-item" onclick="toggleCheck(this,'ttEducational')"><div class="check-box"></div>Educational</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttPromotional')"><div class="check-box"></div>Promotional</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttVideo')"><div class="check-box"></div>Video / Reels</div>
+                <div class="check-item" onclick="toggleCheck(this,'ttPatient')"><div class="check-box"></div>Patient Stories</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- GBP -->
+      <div class="card">
+        <div class="card-title">📍 Google Business Profile</div>
+        <div class="gbp-grid">
+          <div class="gbp-block">
+            <label>GBP Exists?</label>
+            <div class="toggle-group">
+              <button class="toggle-btn" onclick="toggle(this,'gbpExists','yes')">Yes</button>
+              <button class="toggle-btn" onclick="toggle(this,'gbpExists','no')">No</button>
+            </div>
+          </div>
+          <div class="gbp-block">
+            <label>Star Rating</label>
+            <div class="star-row" id="gbpStars">
+              <span class="star" onclick="setStars('gbp',1)">★</span>
+              <span class="star" onclick="setStars('gbp',2)">★</span>
+              <span class="star" onclick="setStars('gbp',3)">★</span>
+              <span class="star" onclick="setStars('gbp',4)">★</span>
+              <span class="star" onclick="setStars('gbp',5)">★</span>
+              <span class="star-label" id="gbpStarLabel">N/A</span>
+            </div>
+          </div>
+          <div class="gbp-block">
+            <label>Review Count</label>
+            <select id="gbpReviewCount">
+              <option value="">-- select --</option>
+              <option>0-10</option>
+              <option>10-50</option>
+              <option>50-100</option>
+              <option>100+</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="font-size:11.5px;font-weight:600;display:block;margin-bottom:8px;">Profile Completeness</label>
+          <div class="check-row">
+            <div class="check-item" onclick="toggleCheck(this,'gbpPhotos')"><div class="check-box"></div>Photos present</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpHours')"><div class="check-box"></div>Hours filled in</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpPosts')"><div class="check-box"></div>Posts active</div>
+            <div class="check-item" onclick="toggleCheck(this,'gbpServices')"><div class="check-box"></div>Services listed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS / REPUTATION -->
+      <div class="card">
+        <div class="card-title">⭐ Reviews &amp; Reputation</div>
+        <div class="field">
+          <label style="margin-bottom:8px;display:block;">Overall Review Sentiment</label>
+          <div class="sentiment-row">
+            <button class="sentiment-btn" onclick="setSentiment(this,'positive')">😊 Positive</button>
+            <button class="sentiment-btn" onclick="setSentiment(this,'mixed')">😐 Mixed</button>
+            <button class="sentiment-btn" onclick="setSentiment(this,'few')">😶 Few / None</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>Review Presence</label>
+          <div class="check-row" style="margin-top:4px;">
+            <div class="check-item" onclick="toggleCheck(this,'revGBP')"><div class="check-box"></div>Reviews on GBP</div>
+            <div class="check-item" onclick="toggleCheck(this,'revFB')"><div class="check-box"></div>Reviews on Facebook</div>
+            <div class="check-item" onclick="toggleCheck(this,'revWebsite')"><div class="check-box"></div>Testimonials on website</div>
+            <div class="check-item" onclick="toggleCheck(this,'revHealthgrades')"><div class="check-box"></div>Healthgrades / Yelp</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="startAnalysis()">Run Analysis →</button>
+      </div>
     </div>
 
-    <div class="page" id="page-5">
-      <div class="page-title">Final Pitch</div>
-      <div class="pitch-body" id="pitchBody"></div>
-      <button class="btn btn-primary" style="margin-top:20px;" onclick="goTo(1)">Start New Project</button>
+    <!-- STEP 3: ANALYZING -->
+    <div class="page" id="page-3">
+      <div class="page-title">Analyzing</div>
+      <div class="page-sub">Generating findings and opportunity report...</div>
+      <div class="scan-overlay">
+        <div class="scan-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3a6b8a" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <div class="scan-title" id="scanBizName"></div>
+        <div class="scan-sub">Claude is reviewing your audit inputs...</div>
+        <ul class="scan-steps">
+          <li class="scan-step" id="ss1"><div class="scan-dot"></div>Processing website and content signals</li>
+          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Evaluating social media presence</li>
+          <li class="scan-step" id="ss3"><div class="scan-dot"></div>Assessing GBP and reputation data</li>
+          <li class="scan-step" id="ss4"><div class="scan-dot"></div>Identifying opportunities</li>
+          <li class="scan-step" id="ss5"><div class="scan-dot"></div>Building pitch recommendations</li>
+        </ul>
+      </div>
     </div>
+
+    <!-- STEP 4: FINDINGS -->
+    <div class="page" id="page-4">
+      <div class="page-title">Findings</div>
+      <div class="page-sub">Opportunity assessment for <strong id="findingsBizName"></strong></div>
+      <div class="score-strip" id="scoreStrip"></div>
+      <div class="findings-grid" id="findingsGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goTo(2)">← Edit Audit</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Select Services →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: SELECT SERVICES -->
+    <div class="page" id="page-5">
+      <div class="page-title">Select Services</div>
+      <div class="page-sub">Multi-select what to pitch. Ranked by priority.</div>
+      <div class="services-grid" id="servicesGrid"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goTo(4)">← Back to Findings</button>
+        <button class="btn btn-primary" onclick="generatePitch()">
+          Generate Pitch →
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 6: PITCH -->
+    <div class="page" id="page-6">
+      <div class="pitch-meta">
+        <div>
+          <div class="pitch-label">Pitch Ready</div>
+          <div class="pitch-biz" id="pitchBizName"></div>
+        </div>
+        <button class="copy-btn" onclick="copyPitch()">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="7" width="11" height="11" rx="1.5"/><path d="M3 13V3h10"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="channel-tabs">
+        <button class="channel-tab active" onclick="switchChannel('email',this)">Email</button>
+        <button class="channel-tab" onclick="switchChannel('dm',this)">DM / Social</button>
+        <button class="channel-tab" onclick="switchChannel('linkedin',this)">LinkedIn</button>
+      </div>
+      <div class="pitch-body" id="pitchBody"></div>
+
+      <!-- REFINEMENT CHAT -->
+      <div class="refinement-section">
+        <div class="refinement-header" onclick="toggleRefinement()">
+          <div class="refinement-header-left">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#3a6b8a" stroke-width="1.8"><path d="M20 2H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
+            <span class="refinement-title">Refine This Pitch</span>
+            <span class="refinement-hint">Ask for edits, a different tone, shorter version...</span>
+          </div>
+          <span class="refinement-toggle" id="refinementToggle">▾</span>
+        </div>
+        <div class="refinement-body" id="refinementBody">
+          <div class="chat-history" id="chatHistory"></div>
+          <div class="quick-chips" id="quickChips">
+            <button class="quick-chip" onclick="sendChip('Make it shorter')">Make it shorter</button>
+            <button class="quick-chip" onclick="sendChip('Make it more casual')">More casual</button>
+            <button class="quick-chip" onclick="sendChip('Make it more direct and punchy')">More direct</button>
+            <button class="quick-chip" onclick="sendChip('Lead with the stat instead')">Lead with the stat</button>
+            <button class="quick-chip" onclick="sendChip('Try a completely different angle')">Different angle</button>
+            <button class="quick-chip" onclick="sendChip('Add a stronger call to action')">Stronger CTA</button>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chatInput" placeholder="e.g. make it shorter, try a different hook, focus on the GBP gap..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+            <button class="chat-send" id="chatSendBtn" onclick="sendRefinement()">
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goTo(5)">← Adjust Services</button>
+        <button class="btn btn-black" onclick="regeneratePitch()">↺ Regenerate</button>
+      </div>
+      <div class="reset-row">
+        <button class="reset-btn" onclick="resetAll()">
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4l12 12M16 4L4 16"/></svg>
+          Start New Prospect
+        </button>
+      </div>
+    </div>
+
   </main>
 </div>
 
-<script>
-const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
+<!-- PASSWORD GATE -->
+<div id="pwGate" style="display:none;position:fixed;inset:0;background:var(--black);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="width:40px;height:40px;background:var(--steel);border-radius:6px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3" height="6" rx="1" fill="white"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/><rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/></svg>
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:4px;">Messick Marketing</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.12em;text-transform:uppercase;">Agency Intelligence Tool</div>
+  </div>
+  <div style="width:100%;max-width:320px;padding:0 24px;">
+    <input id="pwInput" type="password" placeholder="Enter access code" autocomplete="off"
+      style="width:100%;font-family:'Jost',sans-serif;font-size:14px;padding:12px 16px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;outline:none;text-align:center;letter-spacing:0.08em;margin-bottom:12px;"
+      onfocus="this.style.borderColor='#3a6b8a'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+    <button onclick="checkPassword()"
+      style="width:100%;font-family:'Jost',sans-serif;font-size:13.5px;font-weight:500;padding:11px;border-radius:6px;border:none;background:var(--steel);color:#fff;cursor:pointer;"
+      onmouseover="this.style.background='#5a9ab8'" onmouseout="this.style.background='#3a6b8a'">
+      Unlock
+    </button>
+    <div id="pwError" style="display:none;margin-top:10px;font-size:12px;color:#e07070;text-align:center;">Incorrect access code.</div>
+  </div>
+</div>
 
+<div class="toast" id="toast"></div>
+
+<script>
+const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+const TOTAL_STEPS = 6;
+
+// ── STATE ──
+let S = {
+  step: 1,
+  bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
+  websiteRating: 0, websiteBlog: null, websiteNotes: '',
+  igStatus:null, igFreq:'', igTypes:[],
+  fbStatus:null, fbFreq:'', fbTypes:[],
+  liStatus:null, liFreq:'', liTypes:[],
+  ttStatus:null, ttFreq:'', ttTypes:[],
+  gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
+  reviewSentiment:null, reviewPresence:[],
+  findings:null, services:[], selected:[], channel:'email', pitches:{},
+  // chat refinement state per channel
+  chatHistory: { email:[], dm:[], linkedin:[] }
+};
+
+// ── NAV ──
 function goTo(step) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${step}`).classList.add('active');
-  document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'done'));
-  for(let i=1; i<=5; i++){
-    const nav = document.getElementById(`nav-${i}`);
-    if(i < step) nav.classList.add('done');
-    if(i === step) nav.classList.add('active');
+  document.getElementById('page-' + step).classList.add('active');
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const el = document.getElementById('nav-' + i);
+    el.classList.remove('active','done');
+    const num = el.querySelector('.step-num');
+    if (i < step) { el.classList.add('done'); num.textContent = '✓'; }
+    else if (i === step) { el.classList.add('active'); num.textContent = i; }
+    else { num.textContent = i; }
+  }
+  S.step = step;
+}
+
+// ── STAR RATING ──
+const starLabels = ['','Poor','Fair','Average','Good','Excellent'];
+function setStars(type, val) {
+  const key = type === 'website' ? 'websiteRating' : 'gbpRating';
+  S[key] = val;
+  const container = document.getElementById(type + 'Stars');
+  container.querySelectorAll('.star').forEach((s, i) => {
+    s.classList.toggle('on', i < val);
+  });
+  document.getElementById(type + 'StarLabel').textContent = starLabels[val];
+}
+
+// ── TOGGLE BUTTONS ──
+function toggle(btn, key, val) {
+  const group = btn.parentElement;
+  group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on','on-warn','on-none'));
+  S[key] = val;
+  const cls = val === 'active' || val === 'yes' ? 'on' : val === 'inactive' ? 'on-warn' : 'on-none';
+  btn.classList.add(cls);
+}
+
+// ── CHECKBOXES ──
+const checkMap = {
+  websiteBlog: 'websiteBlog',
+  igEducational:'igTypes', igPromotional:'igTypes', igVideo:'igTypes', igPatient:'igTypes',
+  fbEducational:'fbTypes', fbPromotional:'fbTypes', fbVideo:'fbTypes', fbPatient:'fbTypes',
+  liEducational:'liTypes', liPromotional:'liTypes', liVideo:'liTypes', liPatient:'liTypes',
+  ttEducational:'ttTypes', ttPromotional:'ttTypes', ttVideo:'ttTypes', ttPatient:'ttTypes',
+  gbpPhotos:'gbpFeatures', gbpHours:'gbpFeatures', gbpPosts:'gbpFeatures', gbpServices:'gbpFeatures',
+  revGBP:'reviewPresence', revFB:'reviewPresence', revWebsite:'reviewPresence', revHealthgrades:'reviewPresence'
+};
+const checkLabels = {
+  igEducational:'Educational', igPromotional:'Promotional', igVideo:'Video/Reels', igPatient:'Patient Stories',
+  fbEducational:'Educational', fbPromotional:'Promotional', fbVideo:'Video/Reels', fbPatient:'Patient Stories',
+  liEducational:'Educational', liPromotional:'Promotional', liVideo:'Video/Reels', liPatient:'Patient Stories',
+  ttEducational:'Educational', ttPromotional:'Promotional', ttVideo:'Video/Reels', ttPatient:'Patient Stories',
+  gbpPhotos:'Photos', gbpHours:'Hours', gbpPosts:'Posts Active', gbpServices:'Services Listed',
+  revGBP:'GBP', revFB:'Facebook', revWebsite:'Website', revHealthgrades:'Healthgrades/Yelp'
+};
+
+function toggleCheck(el, key) {
+  el.classList.toggle('checked');
+  const stateKey = checkMap[key];
+  const label = checkLabels[key] || key;
+  const isChecked = el.classList.contains('checked');
+  if (Array.isArray(S[stateKey])) {
+    if (isChecked && !S[stateKey].includes(label)) S[stateKey].push(label);
+    else S[stateKey] = S[stateKey].filter(v => v !== label);
+  } else {
+    S[stateKey] = isChecked ? 'yes' : 'no';
   }
 }
 
-async function callAI(messages, system) {
-  try {
-    const response = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-3-5-sonnet-20240620",
-        max_tokens: 2500,
-        system: system,
-        messages: messages
-      })
-    });
-    const data = await response.json();
-    // Safety check to ensure we get the text content correctly from Worker
-    return data.content ? data.content[0].text : (data.text || JSON.stringify(data));
-  } catch (err) {
-    console.error("AI Error:", err);
-    return "Error: Problem communicating with the research engine.";
-  }
+// ── SENTIMENT ──
+function setSentiment(btn, val) {
+  document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('on-pos','on-mix','on-few'));
+  S.reviewSentiment = val;
+  const cls = val === 'positive' ? 'on-pos' : val === 'mixed' ? 'on-mix' : 'on-few';
+  btn.classList.add(cls);
 }
 
-async function startResearch() {
-  const biz = document.getElementById('bizName').value;
-  if(!biz) return alert("Business Name is required.");
-  document.getElementById('scanBizName').innerText = biz;
-  goTo(2);
+// ── START ANALYSIS ──
+function startAnalysis() {
+  const bizName = document.getElementById('bizName').value.trim();
+  const website = document.getElementById('website').value.trim();
+  const industry = document.getElementById('industry').value;
+  if (!bizName)  { toast('Business name is required'); goTo(1); return; }
+  if (!website)  { toast('Website URL is required'); goTo(1); return; }
+  if (!industry) { toast('Select a specialty'); goTo(1); return; }
+  if (!S.websiteRating) { toast('Rate the website quality'); return; }
 
-  const system = "You are a marketing analyst. Analyze the business and provide a clear report on their marketing gaps.";
-  const msg = `Business: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}. Website: ${document.getElementById('website').value}`;
-  
-  const result = await callAI([{role: "user", content: msg}], system);
-  document.getElementById('findingsContent').innerText = result;
+  S.bizName = bizName;
+  S.website = website;
+  S.industry = industry;
+  S.location = document.getElementById('location').value.trim();
+  S.contactName = document.getElementById('contactName').value.trim();
+  S.notes = document.getElementById('notes').value.trim();
+  S.websiteNotes = document.getElementById('websiteNotes').value.trim();
+  S.igFreq = document.getElementById('igFreq').value;
+  S.fbFreq = document.getElementById('fbFreq').value;
+  S.liFreq = document.getElementById('liFreq').value;
+  S.ttFreq = document.getElementById('ttFreq').value;
+  S.gbpReviewCount = document.getElementById('gbpReviewCount').value;
+
+  document.getElementById('scanBizName').textContent = 'Analyzing ' + bizName;
   goTo(3);
+  animateScan();
+  runAnalysis();
 }
 
+async function animateScan() {
+  const delays = [0, 3000, 7000, 12000, 16000];
+  for (let i = 1; i <= 5; i++) {
+    await sleep(delays[i-1]);
+    if (i > 1) {
+      const prev = document.getElementById('ss'+(i-1));
+      if (prev) { prev.classList.remove('active'); prev.classList.add('done'); }
+    }
+    const el = document.getElementById('ss'+i);
+    if (el) el.classList.add('active');
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── AI CALL WITH RETRY ──
+async function callAI(payload, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.error?.type === 'overloaded_error') {
+        if (i < retries - 1) { toast(`API busy, retrying...`); await sleep((i+1) * 5000); continue; }
+        else throw new Error('API overloaded. Try again in a moment.');
+      }
+      return data;
+    } catch(err) {
+      if (i === retries - 1) throw err;
+      await sleep(3000);
+    }
+  }
+}
+
+// ── BUILD ANALYSIS PROMPT FROM REAL INPUTS ──
+function buildAuditContext() {
+  const rating = ['','Poor (1/5)','Fair (2/5)','Average (3/5)','Good (4/5)','Excellent (5/5)'];
+  const gbpRating = ['','1 star','2 stars','3 stars','4 stars','5 stars'];
+
+  const socialPlatform = (name, status, freq, types) => {
+    if (!status) return `${name}: Not assessed`;
+    if (status === 'none') return `${name}: No presence found`;
+    const typeStr = types.length ? `Content types: ${types.join(', ')}` : 'Content types: unknown';
+    return `${name}: ${status === 'active' ? 'Active' : 'Inactive'} | Posting: ${freq || 'unknown'} | ${typeStr}`;
+  };
+
+  const gbpFeatures = S.gbpFeatures.length ? S.gbpFeatures.join(', ') : 'none checked';
+  const revPresence = S.reviewPresence.length ? S.reviewPresence.join(', ') : 'none';
+
+  return `
+WEBSITE:
+- URL: ${S.website}
+- Quality rating (assessed by analyst): ${rating[S.websiteRating] || 'not rated'}
+- Has blog / SEO content: ${S.websiteBlog || 'unknown'}
+- Analyst notes: ${S.websiteNotes || 'none'}
+
+SOCIAL MEDIA:
+- ${socialPlatform('Instagram', S.igStatus, S.igFreq, S.igTypes)}
+- ${socialPlatform('Facebook', S.fbStatus, S.fbFreq, S.fbTypes)}
+- ${socialPlatform('LinkedIn', S.liStatus, S.liFreq, S.liTypes)}
+- ${socialPlatform('TikTok', S.ttStatus, S.ttFreq, S.ttTypes)}
+
+GOOGLE BUSINESS PROFILE:
+- GBP exists: ${S.gbpExists || 'unknown'}
+- Star rating: ${gbpRating[S.gbpRating] || 'not assessed'}
+- Review count: ${S.gbpReviewCount || 'unknown'}
+- Profile features present: ${gbpFeatures}
+
+REVIEWS & REPUTATION:
+- Overall sentiment: ${S.reviewSentiment || 'not assessed'}
+- Reviews found on: ${revPresence}`.trim();
+}
+
+async function runAnalysis() {
+  const auditContext = buildAuditContext();
+  const prompt = `You are a senior marketing strategist at Messick Marketing, a boutique healthcare-focused social media and content marketing agency. You have just completed a manual audit of this prospect. Use the audit data provided below as ground truth — it was collected by a human analyst who reviewed the actual profiles. Do not contradict, second-guess, or add uncertainty to what the analyst observed.
+
+PROSPECT:
+- Name: ${S.bizName}
+- Website: ${S.website}
+- Specialty: ${S.industry}
+- Location: ${S.location || 'Not specified'}
+- Contact: ${S.contactName || 'Not specified'}
+- Notes: ${S.notes || 'None'}
+
+ANALYST AUDIT DATA:
+${auditContext}
+
+Based on this audit data, identify gaps, strengths, and service opportunities.
+
+Rules:
+- Treat all audit inputs as accurate observations
+- Only flag something as a gap if the data supports it
+- If a platform is marked Active, treat it as active — do not suggest it may be inactive
+- Score accurately — a 4-5 star website should score high; a 1-2 star website should score low
+- Focus on genuine growth opportunities specific to ${S.industry}
+- Be specific — reference the actual data, not generic specialty assumptions
+
+Return ONLY valid JSON (no markdown, no backticks):
+
+{
+  "scores": {
+    "website": {"score": 0-100, "label": "Website Quality"},
+    "social": {"score": 0-100, "label": "Social Presence"},
+    "gbp": {"score": 0-100, "label": "Google / GBP"},
+    "overall": {"score": 0-100, "label": "Overall Score"}
+  },
+  "gaps": [{"type": "gap|warn|ok", "text": "finding"}],
+  "strengths": [{"type": "ok", "text": "strength"}],
+  "services": [{"name": "Service Name", "priority": "high|med|low", "why": "reason tied to audit data"}],
+  "summary": "2-3 sentence narrative"
+}
+
+Gap types: "gap" = confirmed problem (red), "warn" = opportunity to improve (orange), "ok" = notable observation (green).
+Include 3-6 gaps, 2-5 strengths, 4-7 services ranked high to low.
+
+Available services:
+Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
+
+  try {
+    const data = await callAI({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    let raw = data.content[0].text.replace(/```json|```/g,'').trim();
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch(e) { toast('Parse error. Check console.'); console.error(raw); goTo(2); return; }
+
+    S.findings = parsed;
+    S.services = parsed.services || [];
+    S.selected = S.services.filter(s => s.priority === 'high').map(s => s.name);
+    renderFindings();
+    renderServices();
+    goTo(4);
+
+  } catch(err) {
+    toast('Error: ' + err.message);
+    goTo(2);
+  }
+}
+
+// ── RENDER ──
+function renderFindings() {
+  const f = S.findings;
+  document.getElementById('findingsBizName').textContent = S.bizName;
+  const strip = document.getElementById('scoreStrip');
+  strip.innerHTML = Object.values(f.scores).map(s => {
+    const c = s.score >= 70 ? 'green' : s.score >= 45 ? 'orange' : 'red';
+    return `<div class="score-card"><div class="score-val ${c}">${s.score}</div><div class="score-lbl">${s.label}</div></div>`;
+  }).join('');
+  const icons = { gap:'<span class="fi fi-gap">✕</span>', warn:'<span class="fi fi-warn">⚠</span>', ok:'<span class="fi fi-ok">✓</span>' };
+  const gapsHtml = (f.gaps||[]).map(g => `<div class="finding-item">${icons[g.type]||icons.warn}<span>${g.text}</span></div>`).join('');
+  const strHtml = (f.strengths||[]).map(g => `<div class="finding-item"><span class="fi fi-ok">✓</span><span>${g.text}</span></div>`).join('');
+  document.getElementById('findingsGrid').innerHTML = `
+    <div class="finding-card">
+      <div class="finding-card-title">⚡ Gaps &amp; Opportunities</div>${gapsHtml}
+    </div>
+    <div class="finding-card">
+      <div class="finding-card-title">✅ Strengths</div>${strHtml}
+      ${f.summary ? `<p style="margin-top:14px;font-size:12px;color:var(--mid);line-height:1.55;border-top:1px solid var(--warm-mid);padding-top:12px">${f.summary}</p>` : ''}
+    </div>`;
+}
+
+function renderServices() {
+  const pClass = {high:'priority-high', med:'priority-med', low:'priority-low'};
+  const pLabel = {high:'High Priority', med:'Medium', low:'Lower Priority'};
+  document.getElementById('servicesGrid').innerHTML = S.services.map(svc => {
+    const sel = S.selected.includes(svc.name);
+    return `<div class="service-card${sel?' selected':''}" onclick="toggleSvc(this,'${svc.name.replace(/'/g,"\\'")}')">
+      <div class="service-check">${sel?'✓':''}</div>
+      <div class="service-priority ${pClass[svc.priority]||'priority-med'}">${pLabel[svc.priority]||''}</div>
+      <div class="service-name">${svc.name}</div>
+      <div class="service-why">${svc.why}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSvc(el, name) {
+  el.classList.toggle('selected');
+  const check = el.querySelector('.service-check');
+  if (el.classList.contains('selected')) { check.textContent = '✓'; if (!S.selected.includes(name)) S.selected.push(name); }
+  else { check.textContent = ''; S.selected = S.selected.filter(s => s !== name); }
+}
+
+// ── PITCH ──
 async function generatePitch() {
-  goTo(5);
-  document.getElementById('pitchBody').innerText = "Drafting your pitch...";
-  const context = document.getElementById('findingsContent').innerText;
-  const result = await callAI([{role: "user", content: `Write a professional pitch based on this research: ${context}`}], "Expert Agency Copywriter.");
-  document.getElementById('pitchBody').innerText = result;
+  if (!S.selected.length) { toast('Select at least one service'); return; }
+  S.pitches = {};
+  S.chatHistory = { email:[], dm:[], linkedin:[] };
+  S.channel = 'email';
+  document.querySelectorAll('.channel-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.getElementById('pitchBizName').textContent = S.bizName;
+  // Clear chat UI when generating fresh
+  document.getElementById('chatHistory').innerHTML = '';
+  goTo(6);
+  await streamPitch('email');
+}
+
+async function streamPitch(channel) {
+  S.channel = channel;
+  const body = document.getElementById('pitchBody');
+  body.classList.add('streaming');
+  if (S.pitches[channel]) {
+    body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>');
+    body.classList.remove('streaming');
+    renderChatHistory(channel);
+    return;
+  }
+  body.innerHTML = '<span class="cursor-blink"></span>';
+
+  const channelGuide = {
+    email: 'Write a cold outreach email. First line must be "Subject: [subject line]". Under 200 words. Personal, specific, not corporate.',
+    dm: 'Write a short Instagram or Facebook DM. Max 75 words. Casual, warm, reference something specific.',
+    linkedin: 'Write a LinkedIn connection request. Max 55 words. Professional but human. No jargon.'
+  };
+
+  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
+  const prompt = `You are Morgan at Messick Marketing, a boutique healthcare marketing agency based in Georgia. Write a pitch outreach message.
+
+Prospect: ${S.bizName}
+Specialty: ${S.industry}
+Location: ${S.location || 'Not specified'}
+Contact: ${S.contactName || 'the practice'}
+Key gaps found: ${gaps}
+Services to pitch: ${S.selected.join(', ')}
+
+${channelGuide[channel]}
+
+Rules:
+- Sound like a real person, not a template
+- Reference 1-2 specific, accurate things about their practice or specialty
+- Lead with value or an observation, not a sales pitch
+- Include at least one relevant statistic, data point, or real-world example that supports why marketing matters for this specialty (e.g. patient search behavior, social media usage in healthcare, local competition benchmarks). Weave it in naturally — do not call attention to it as a "stat."
+- Never use em dashes
+- Never use: leverage, synergy, holistic, game-changer, cutting-edge
+- Never reference data collection, audits, scanning tools, or what you could or could not access
+- Only speak to observable business opportunities
+- Sign off as: Morgan | Messick Marketing
+- No brackets, no placeholders, no asterisks
+- Write the message only. Nothing else.`;
+
+  try {
+    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
+    const full = data.content[0].text;
+    S.pitches[channel] = full;
+    body.innerHTML = full.replace(/\n/g,'<br>');
+    body.classList.remove('streaming');
+    renderChatHistory(channel);
+  } catch(err) {
+    body.textContent = 'Error: ' + err.message;
+    body.classList.remove('streaming');
+  }
+}
+
+function switchChannel(ch, el) {
+  document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  streamPitch(ch);
+}
+
+async function regeneratePitch() {
+  delete S.pitches[S.channel];
+  S.chatHistory[S.channel] = [];
+  document.getElementById('chatHistory').innerHTML = '';
+  await streamPitch(S.channel);
+}
+
+function copyPitch() { navigator.clipboard.writeText(document.getElementById('pitchBody').innerText).then(() => toast('Copied')); }
+
+// ── REFINEMENT CHAT ──
+function toggleRefinement() {
+  const body = document.getElementById('refinementBody');
+  const toggle = document.getElementById('refinementToggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  toggle.classList.toggle('open', !isOpen);
+}
+
+function renderChatHistory(channel) {
+  const hist = S.chatHistory[channel] || [];
+  const container = document.getElementById('chatHistory');
+  container.innerHTML = '';
+  hist.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = `chat-msg ${msg.role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = msg.content;
+    div.appendChild(bubble);
+    container.appendChild(div);
+  });
+  if (hist.length) container.scrollTop = container.scrollHeight;
+}
+
+function addChatMsg(role, content, thinking = false) {
+  const hist = document.getElementById('chatHistory');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble${thinking ? ' thinking' : ''}`;
+  bubble.textContent = content;
+  div.appendChild(bubble);
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+  return bubble;
+}
+
+function sendChip(text) {
+  document.getElementById('chatInput').value = text;
+  sendRefinement();
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendRefinement(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendRefinement() {
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const currentPitch = S.pitches[S.channel];
+  if (!currentPitch) { toast('Generate a pitch first'); return; }
+
+  // Open refinement panel if closed
+  const body = document.getElementById('refinementBody');
+  if (!body.classList.contains('open')) toggleRefinement();
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  // Add user msg to history
+  S.chatHistory[S.channel].push({ role:'user', content: msg });
+  addChatMsg('user', msg);
+
+  // Thinking indicator
+  const thinkBubble = addChatMsg('assistant', 'Rewriting...', true);
+
+  const channelConstraint = {
+    email: 'Keep it under 200 words. First line must still be "Subject: [subject line]".',
+    dm: 'Keep it under 75 words. Stay casual and warm.',
+    linkedin: 'Keep it under 55 words. Stay professional but human.'
+  };
+
+  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
+
+  // Build conversation history for context (last 6 exchanges)
+  const recentHistory = S.chatHistory[S.channel].slice(-7, -1); // exclude the msg we just added
+  const historyStr = recentHistory.map(m => `${m.role === 'user' ? 'Feedback' : 'Previous version'}: ${m.content}`).join('\n\n');
+
+  const prompt = `You are Morgan at Messick Marketing. You wrote the following pitch outreach message, and the user has feedback. Rewrite the pitch applying their request.
+
+ORIGINAL PITCH:
+${currentPitch}
+
+PROSPECT CONTEXT:
+- Business: ${S.bizName}
+- Specialty: ${S.industry}
+- Location: ${S.location || 'Not specified'}
+- Key gaps: ${gaps}
+- Services pitched: ${S.selected.join(', ')}
+
+${historyStr ? `PREVIOUS FEEDBACK AND REVISIONS:\n${historyStr}\n` : ''}
+NEW FEEDBACK: ${msg}
+
+Rewrite the pitch applying this feedback. ${channelConstraint[S.channel]}
+
+Rules (always apply):
+- Sound like a real person, not a template
+- Include at least one relevant statistic, data point, or real-world example that supports why marketing matters for this specialty. Weave it in naturally.
+- Never use em dashes
+- Never use: leverage, synergy, holistic, game-changer, cutting-edge
+- Never reference audits, scanning tools, or data collection
+- Sign off as: Morgan | Messick Marketing
+- No brackets, no placeholders, no asterisks
+- Write the revised message only. Nothing else.`;
+
+  try {
+    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
+    const revised = data.content[0].text;
+
+    // Update pitch
+    S.pitches[S.channel] = revised;
+    document.getElementById('pitchBody').innerHTML = revised.replace(/\n/g,'<br>');
+
+    // Replace thinking bubble with the new version summary
+    thinkBubble.classList.remove('thinking');
+    thinkBubble.textContent = 'Done. Pitch updated above.';
+
+    // Add assistant response to history
+    S.chatHistory[S.channel].push({ role:'assistant', content: 'Done. Pitch updated above.' });
+
+  } catch(err) {
+    thinkBubble.textContent = 'Error: ' + err.message;
+    thinkBubble.classList.remove('thinking');
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+function resetAll() {
+  S = { step:1, bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
+    websiteRating:0, websiteBlog:null, websiteNotes:'',
+    igStatus:null, igFreq:'', igTypes:[], fbStatus:null, fbFreq:'', fbTypes:[],
+    liStatus:null, liFreq:'', liTypes:[], ttStatus:null, ttFreq:'', ttTypes:[],
+    gbpExists:null, gbpRating:0, gbpReviewCount:'', gbpFeatures:[],
+    reviewSentiment:null, reviewPresence:[],
+    findings:null, services:[], selected:[], channel:'email', pitches:{},
+    chatHistory: { email:[], dm:[], linkedin:[] } };
+  ['bizName','website','location','contactName','notes','websiteNotes','igFreq','fbFreq','liFreq','ttFreq','gbpReviewCount'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('industry').value = '';
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.star-label').forEach(s => s.textContent = s.id === 'gbpStarLabel' ? 'N/A' : 'Click to rate');
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on','on-warn','on-none'));
+  document.querySelectorAll('.check-item').forEach(c => c.classList.remove('checked'));
+  document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('on-pos','on-mix','on-few'));
+  document.getElementById('chatHistory').innerHTML = '';
+  const rb = document.getElementById('refinementBody');
+  const rt = document.getElementById('refinementToggle');
+  rb.classList.remove('open');
+  rt.classList.remove('open');
+  goTo(1);
+}
+
+// ── PASSWORD ──
+window.addEventListener('DOMContentLoaded', () => {
+  const unlocked = sessionStorage.getItem('mm_unlocked');
+  if (!unlocked) {
+    document.querySelector('.shell').style.display = 'none';
+    document.getElementById('pwGate').style.display = 'flex';
+    setTimeout(() => document.getElementById('pwInput').focus(), 100);
+  }
+});
+
+function checkPassword() {
+  if (document.getElementById('pwInput').value === 'Messick2026') {
+    sessionStorage.setItem('mm_unlocked','1');
+    document.getElementById('pwGate').style.display = 'none';
+    document.querySelector('.shell').style.display = 'flex';
+  } else {
+    const err = document.getElementById('pwError');
+    err.style.display = 'block';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+    setTimeout(() => err.style.display = 'none', 2500);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('pwGate').style.display === 'flex') checkPassword();
+});
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
 }
 </script>
 </body>
