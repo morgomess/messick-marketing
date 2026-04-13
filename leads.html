@@ -2,124 +2,147 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>3Messick Marketing | Agency Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7Messick Marketing | Agency Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --black: #111111; --steel: #3a6b8a; --warm: #faf8f5; --border: #dde5ea; --danger: #c0392b; --success: #2e7d5e; }
-        body { font-family: 'Jost', sans-serif; background: var(--warm); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        body { font-family: 'Jost', sans-serif; background: var(--warm); margin: 0; display: flex; flex-direction: column; min-height: 100vh; color: var(--black); }
+        
         header { background: var(--black); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
         .shell { display: flex; flex: 1; }
+        
         aside { width: 220px; background: var(--black); padding: 20px 0; flex-shrink: 0; }
-        .step { padding: 12px 25px; color: rgba(255,255,255,0.3); font-size: 13px; border-left: 3px solid transparent; }
+        .step { padding: 12px 25px; color: rgba(255,255,255,0.3); font-size: 13px; border-left: 3px solid transparent; transition: 0.3s; }
         .step.active { color: white; background: rgba(58,107,138,0.15); border-left: 3px solid var(--steel); }
+        
         main { flex: 1; padding: 40px; max-width: 1100px; }
         .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 25px; }
-        .page { display: none; } .page.active { display: block; }
-        .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .score-card { background: white; border: 1px solid var(--border); padding: 20px; text-align: center; border-radius: 8px; }
-        .score-val { font-family: 'Cormorant Garamond'; font-size: 38px; font-weight: 700; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; }
-        button { background: var(--steel); color: white; border: none; padding: 14px; border-radius: 4px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        #aiOutput { white-space: pre-wrap; line-height: 1.8; font-size: 15px; color: #444; }
+        
+        .page { display: none; } 
+        .page.active { display: block; }
+        
+        input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 15px; box-sizing: border-box; }
+        button { background: var(--steel); color: white; border: none; padding: 16px; border-radius: 4px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; font-size: 16px; }
+        button:hover { background: #2c526a; }
+        
+        /* AI Output Formatting */
+        #aiOutput { white-space: pre-wrap; line-height: 1.8; font-size: 16px; color: #333; }
+        #aiOutput h1, #aiOutput h2, #aiOutput h3 { font-family: 'Cormorant Garamond'; color: var(--steel); margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        #aiOutput strong { color: var(--black); font-weight: 600; }
+        #status { font-style: italic; color: var(--steel); }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-family:'Cormorant Garamond'; font-size:22px; letter-spacing:1px;">Messick Marketing</div>
-    <div style="font-size:11px; text-transform:uppercase; color:var(--steel);">Internal Pitch Tool</div>
+    <div style="font-family:'Cormorant Garamond'; font-size:24px; letter-spacing:1px;">Messick Marketing</div>
+    <div style="font-size:11px; text-transform:uppercase; color:var(--steel); font-weight:600;">Pitch Intelligence v4.6</div>
 </header>
 
 <div class="shell">
     <aside>
-        <div class="step active" id="s1">1. Prospect Info</div>
-        <div class="step" id="s2">2. Researching</div>
-        <div class="step" id="s3">3. Findings & Gaps</div>
+        <div class="step active" id="s1">1. Prospect Data</div>
+        <div class="step" id="s2">2. Intelligence Gathering</div>
+        <div class="step" id="s3">3. Strategic Gaps</div>
     </aside>
 
     <main>
         <div id="p1" class="page active">
-            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:20px;">Begin Analysis</h2>
+            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:10px;">New Prospect Analysis</h2>
+            <p style="margin-bottom:25px; color:#666;">Enter the business details to identify critical marketing failures.</p>
             <div class="card">
-                <input type="text" id="bizName" placeholder="Practice Name">
+                <input type="text" id="bizName" placeholder="Practice Name (e.g., NY Vascular Care)">
                 <input type="text" id="location" placeholder="City, State">
-                <input type="url" id="website" placeholder="Website URL (https://...)">
-                <button onclick="runLogic()">Generate Insight →</button>
+                <input type="url" id="website" placeholder="Full Website URL (https://...)">
+                <button onclick="runAnalysis()">Generate Insight →</button>
             </div>
         </div>
 
         <div id="p2" class="page">
-            <h2 style="font-family:'Cormorant Garamond';">Researching...</h2>
-            <div class="card" style="text-align:center; padding:80px 20px;">
-                <div id="status">Scraping site data and identifying marketing gaps...</div>
+            <h2 style="font-family:'Cormorant Garamond';">Gathering Intel...</h2>
+            <div class="card" style="text-align:center; padding:100px 20px;">
+                <div id="status">Scraping site architecture and identifying conversion leaks...</div>
+                <p style="font-size: 12px; color: #999; margin-top: 20px;">This may take up to 30 seconds depending on server load.</p>
             </div>
         </div>
 
         <div id="p3" class="page">
-            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:15px;">Analysis Summary</h2>
-            <div class="score-strip">
-                <div class="score-card"><div class="score-val" style="color:#2e7d5e">72</div><div style="font-size:11px; color:#888;">SEO</div></div>
-                <div class="score-card"><div class="score-val" style="color:#c0392b">38</div><div style="font-size:11px; color:#888;">GBP</div></div>
-                <div class="score-card"><div class="score-val" style="color:#2e7d5e">84</div><div style="font-size:11px; color:#888;">REVIEWS</div></div>
-                <div class="score-card"><div class="score-val" style="color:#c0392b">21</div><div style="font-size:11px; color:#888;">SOCIAL</div></div>
-            </div>
+            <h2 style="font-family:'Cormorant Garamond'; font-size:32px; margin-bottom:20px;">Strategic Gap Analysis</h2>
             <div class="card">
-                <div id="aiOutput">Preparing results...</div>
+                <div id="aiOutput">Waiting for analysis...</div>
             </div>
-            <button onclick="location.reload()" style="background:#444; width:auto; padding:10px 30px;">Restart</button>
+            <button onclick="location.reload()" style="background:#444; width:auto; padding:10px 40px;">Analyze Another Prospect</button>
         </div>
     </main>
 </div>
 
 <script>
-const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
+    // MAKE SURE THIS MATCHES YOUR WORKER DOMAIN
+    const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
 
-function goTo(n) {
-    document.querySelectorAll('.page, .step').forEach(el => el.classList.remove('active'));
-    document.getElementById('p'+n).classList.add('active');
-    document.getElementById('s'+n).classList.add('active');
-}
-
-async function runLogic() {
-    const biz = document.getElementById('bizName').value;
-    const loc = document.getElementById('location').value;
-    const web = document.getElementById('website').value;
-    if(!biz) return alert("Please enter a Business Name.");
-
-    goTo(2);
-
-    try {
-        // STEP 1: SCRAPE
-        const scrape = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ action: 'scrape', bizName: biz, location: loc, website: web })
-        }).then(r => r.json());
-
-        // STEP 2: AI 
-        const ai = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                system: "system: "You are a high-ticket Marketing Consultant. Do not ask for more data. Analyze the provided website text and find 3-4 'bleeding neck' problems. Be aggressive, insightful, and persuasive. Use professional headers. Focus on conversion gaps, missed SEO opportunities, and poor messaging. Make the business owner feel like they are losing money every day they don't hire us.",",
-                messages: [{ role: 'user', content: `Analyze this data: ${JSON.stringify(scrape)}` }]
-            })
-        }).then(r => r.json());
-
-        if (ai.error) {
-            document.getElementById('aiOutput').innerText = "Error: " + ai.error;
-        } else {
-            document.getElementById('aiOutput').innerText = ai.text;
-        }
-        
-        goTo(3);
-
-    } catch (e) {
-        alert("System Error: " + e.message);
-        goTo(1);
+    function goTo(n) {
+        document.querySelectorAll('.page, .step').forEach(el => el.classList.remove('active'));
+        document.getElementById('p'+n).classList.add('active');
+        document.getElementById('s'+n).classList.add('active');
     }
-}
+
+    async function runAnalysis() {
+        const biz = document.getElementById('bizName').value;
+        const loc = document.getElementById('location').value;
+        const web = document.getElementById('website').value;
+        
+        if(!biz || !web) return alert("Please provide both a Business Name and Website.");
+
+        goTo(2);
+
+        try {
+            // STEP 1: SCRAPE THE SITE
+            const scrape = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'scrape', website: web, bizName: biz, location: loc })
+            }).then(r => r.json());
+
+            document.getElementById('status').innerText = "Processing data through Claude 4.6 Intelligence...";
+
+            // STEP 2: RUN THE AI (THE "SHARK" PROMPT)
+            const ai = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system: "You are a high-ticket Marketing Consultant. Do not ask for more data. Analyze the provided website text and find 3-4 'bleeding neck' problems. Be aggressive, insightful, and persuasive. Use professional headers. Focus on conversion gaps, missed SEO opportunities, and messaging that fails to convert patients. Make the business owner feel like they are losing money every day they don't hire us.",
+                    messages: [{ 
+                        role: 'user', 
+                        content: `Business: ${biz} in ${loc}. Website Scrape Data: ${JSON.stringify(scrape)}` 
+                    }]
+                })
+            }).then(r => r.json());
+
+            // STEP 3: OUTPUT
+            if (ai.error) {
+                document.getElementById('aiOutput').innerText = "AI Connection Error: " + ai.error;
+            } else {
+                // Ensure we only grab the 'text' property from your Worker's response
+                document.getElementById('aiOutput').innerHTML = formatOutput(ai.text);
+            }
+            
+            goTo(3);
+
+        } catch (e) {
+            alert("Connection Error: " + e.message);
+            goTo(1);
+        }
+    }
+
+    // Simple helper to convert AI double-asterisks to bold and handle line breaks
+    function formatOutput(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/### (.*?)(\n|$)/g, "<h3>$1</h3>")
+            .replace(/## (.*?)(\n|$)/g, "<h2>$1</h2>");
+    }
 </script>
+
 </body>
 </html>
