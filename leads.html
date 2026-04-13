@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Pitch Intelligence</title>
+<title>Messick Marketing | Leads Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -510,11 +510,14 @@
 
       const system = `You are a sharp healthcare marketing consultant for Messick Marketing. Analyze the prospect's online presence across ALL pages provided and return a JSON object only — no markdown, no extra text.
 
+The current year is ${new Date().getFullYear()}. Do not flag any year-based content as outdated unless it is more than 1 year behind the current year.
+
 IMPORTANT ACCURACY RULES:
 - You have been given data from the homepage AND multiple subpages (treatment pages, about, contact, services, etc.)
 - Before flagging something as a gap, check ALL pages provided. If treatment pages exist, do NOT flag missing treatment content. If an online booking link exists anywhere, do NOT flag missing scheduling. If reviews are present, do NOT flag zero social proof.
 - Only flag something as a gap if you have confirmed it is actually missing across ALL provided page data.
 - Be specific about what page or section you found evidence on.
+- Do not flag copyright years, date references, or any year-stamped content as an issue unless the year is more than 1 year behind ${new Date().getFullYear()}.
 
 Return exactly this structure:
 {
@@ -721,7 +724,16 @@ Include 4-6 findings total. Only flag real, confirmed gaps. Do not use em dashes
     state.chatMessages.push({ role: 'user', content: msg });
 
     try {
-      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}. Be direct, specific, and actionable. Do not use em dashes.`;
+      const scrapeSummary = state.scrapeData ? JSON.stringify(state.scrapeData).substring(0, 3000) : 'No scrape data available';
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}.
+
+You have access to the actual scraped website and page data for this prospect — use it to ground your answers. Do not make assumptions or state things as fact if they are not confirmed in the data below.
+
+If the user says something contradicts your findings (e.g. "they do post regularly" or "they have that page"), accept the correction and adjust your analysis accordingly. Never argue with the user about what the prospect does or doesn't have.
+
+Scraped data: ${scrapeSummary}
+
+Be direct, specific, and actionable. Do not use em dashes.`;
       const reply = await callAIWithHistory(system, state.chatMessages);
       state.chatMessages.push({ role: 'assistant', content: reply });
       appendChat('ai', reply);
@@ -730,11 +742,24 @@ Include 4-6 findings total. Only flag real, confirmed gaps. Do not use em dashes
     document.getElementById('chatSendBtn').disabled = false;
   }
 
+  function formatChatText(text) {
+    return text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^### (.+)$/gm,'<strong>$1</strong>')
+      .replace(/^## (.+)$/gm,'<strong>$1</strong>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>')
+      .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+      .replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul style="margin:8px 0 8px 16px;">${m}</ul>`)
+      .replace(/\n\n/g,'</p><p style="margin:8px 0;">')
+      .replace(/\n/g,'<br>');
+  }
+
   function appendChat(role, text) {
     const history = document.getElementById('chatHistory');
     const div = document.createElement('div');
     div.className = 'chat-msg ' + role;
-    div.innerHTML = `<div class="chat-avatar">${role === 'ai' ? 'M' : 'U'}</div><div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+    div.innerHTML = `<div class="chat-avatar">${role === 'ai' ? 'M' : 'U'}</div><div class="chat-bubble">${role === 'ai' ? formatChatText(text) : text.replace(/\n/g,'<br>')}</div>`;
     history.appendChild(div);
     history.scrollTop = history.scrollHeight;
   }
