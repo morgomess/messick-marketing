@@ -573,14 +573,14 @@ function startResearch() {
 }
 
 async function runResearch() {
-  // Animate scan steps
   animateScan([0, 4000, 9000, 14000, 18000]);
 
   const websiteNote = S.website ? `Their website is: ${S.website}` : 'No website provided — search for one if possible.';
 
-  const prompt = `You are a marketing analyst at Messick Marketing. Research the web presence of this healthcare practice and return a structured JSON report.
+  const systemPrompt = `You are a marketing analyst at Messick Marketing. Use web search to research this healthcare practice's online presence, then return a structured JSON report. Search for their Google Business Profile, social media channels (Instagram, Facebook, LinkedIn, TikTok), website quality, and reviews. Be specific — report what you actually find. After searching, return ONLY valid JSON with no markdown or backticks.`;
 
-PROSPECT:
+  const userPrompt = `Research the web presence of this healthcare practice:
+
 - Name: ${S.bizName}
 - Location: ${S.location}
 - Specialty: ${S.industry}
@@ -588,73 +588,67 @@ PROSPECT:
 - ${websiteNote}
 - Notes: ${S.notes || 'None'}
 
-Use web search to find:
-1. Google Business Profile — does it exist? Star rating? Number of reviews? Profile completeness (photos, posts, hours, services)?
-2. Social media — Instagram, Facebook, LinkedIn, TikTok. For each: exists? Active or dormant? Posting frequency? Content types?
-3. Website — Does one exist? Quality (design, mobile, content)? SEO blog content present?
-4. Reviews / reputation — sentiment, platforms with reviews, notable issues
+Search for their Google Business Profile, all social media channels, website quality, and reviews/reputation. After completing your searches, return ONLY this JSON (no markdown, no backticks, no extra text):
 
-Be specific. Report what you actually find, not assumptions. If you cannot find something, say "not found."
+{"scores":{"website":{"score":0,"label":"Website Quality"},"social":{"score":0,"label":"Social Presence"},"gbp":{"score":0,"label":"Google / GBP"},"overall":{"score":0,"label":"Overall Score"}},"presence":{"website":{"status":"found","detail":""},"gbp":{"status":"found","detail":""},"instagram":{"status":"found","detail":""},"facebook":{"status":"found","detail":""},"linkedin":{"status":"found","detail":""},"tiktok":{"status":"found","detail":""}},"gaps":[{"type":"gap","text":""}],"strengths":[{"type":"ok","text":""}],"services":[{"name":"","priority":"high","why":""}],"summary":""}
 
-Return ONLY valid JSON (no markdown, no backticks):
+Replace all values with your actual findings. Status: found/partial/missing. Gap types: gap=red, warn=orange, ok=green. Include 3-6 gaps, 2-4 strengths, 4-7 services ranked high to low.
 
-{
-  "scores": {
-    "website": {"score": 0-100, "label": "Website Quality"},
-    "social": {"score": 0-100, "label": "Social Presence"},
-    "gbp": {"score": 0-100, "label": "Google / GBP"},
-    "overall": {"score": 0-100, "label": "Overall Score"}
-  },
-  "presence": {
-    "website": {"status": "found|partial|missing", "detail": "what was found"},
-    "gbp": {"status": "found|partial|missing", "detail": "rating, review count, completeness"},
-    "instagram": {"status": "found|partial|missing", "detail": "activity level, content type"},
-    "facebook": {"status": "found|partial|missing", "detail": "activity level, content type"},
-    "linkedin": {"status": "found|partial|missing", "detail": "presence details"},
-    "tiktok": {"status": "found|partial|missing", "detail": "presence details"}
-  },
-  "gaps": [{"type": "gap|warn|ok", "text": "specific finding"}],
-  "strengths": [{"type": "ok", "text": "specific strength"}],
-  "services": [{"name": "Service Name", "priority": "high|med|low", "why": "reason tied to what was found"}],
-  "summary": "2-3 sentence narrative about overall opportunity"
-}
-
-Include 3-6 gaps, 2-4 strengths, 4-7 services ranked high to low.
-
-Available services to recommend from:
-Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
+Available services: Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
 
   try {
-    const data = await callAI({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2500,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }]
-    });
+    const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    let messages = [{ role: 'user', content: userPrompt }];
+    let finalData = null;
 
-    // Extract text content
-    let raw = '';
-    if (Array.isArray(data.content)) {
-      for (const block of data.content) {
-        if (block.type === 'text') raw += block.text;
+    for (let iter = 0; iter < 8; iter++) {
+      const data = await callAI({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 3000,
+        system: systemPrompt,
+        tools,
+        messages
+      });
+
+      console.log(`Iter ${iter} stop_reason:`, data.stop_reason, 'blocks:', data.content?.length);
+
+      if (data.stop_reason === 'end_turn') {
+        finalData = data;
+        break;
       }
-    } else {
-      raw = data.content?.[0]?.text || '';
+
+      if (data.stop_reason === 'tool_use') {
+        messages.push({ role: 'assistant', content: data.content });
+        const toolResults = data.content
+          .filter(b => b.type === 'tool_use')
+          .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: 'Search executed.' }));
+        messages.push({ role: 'user', content: toolResults });
+        continue;
+      }
+
+      finalData = data;
+      break;
     }
 
-    raw = raw.replace(/```json|```/g,'').trim();
+    if (!finalData) { toast('Research timed out — try again'); goTo(1); return; }
+
+    let raw = '';
+    for (const block of (finalData.content || [])) {
+      if (block.type === 'text') raw += block.text;
+    }
+
+    console.log('Final raw:', raw);
+    raw = raw.replace(/```json|```/g, '').trim();
 
     let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch(e) {
-      // Try to extract JSON from the response
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (match) {
-        try { parsed = JSON.parse(match[0]); }
-        catch(e2) { toast('Parse error — check console'); console.error(raw); goTo(1); return; }
-      } else {
-        toast('Could not parse AI response'); console.error(raw); goTo(1); return;
-      }
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { parsed = JSON.parse(match[0]); }
+      catch(e) { toast('JSON parse error — check console'); console.error('Failed:', match[0]); goTo(1); return; }
+    } else {
+      toast('No JSON in response — check console');
+      console.error('Raw response:', raw);
+      goTo(1); return;
     }
 
     S.researchRaw = raw;
@@ -665,8 +659,7 @@ Social Media Management, Content Marketing / SEO Blogging, Google Business Profi
     renderFindings();
     renderServices();
 
-    // Seed initial assistant message in findings chat
-    const summaryMsg = parsed.summary || 'Research complete. Review the findings above and let me know if anything looks off or needs context.';
+    const summaryMsg = parsed.summary || 'Research complete. Review the findings above and let me know if anything looks off.';
     addChatMsg('findingsChatMsgs', 'assistant', `Here's what I found for ${S.bizName}:\n\n${summaryMsg}\n\nFeel free to correct anything, add context, or ask questions before moving on.`);
 
     goTo(3);
@@ -677,6 +670,7 @@ Social Media Management, Content Marketing / SEO Blogging, Google Business Profi
     goTo(1);
   }
 }
+
 
 async function animateScan(delays) {
   for (let i = 1; i <= 5; i++) {
