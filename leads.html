@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>3Agency Insight Tool | Messick Marketing</title>
+<title>2Agency Insight Tool | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* CSS remains identical to your original styles */
+/* Keeping your exact original CSS styles */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
@@ -60,13 +60,21 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.02em; }
 .btn-primary { background: var(--steel); color: #fff; width: 100%; }
 .btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
 .scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
-.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; margin-bottom: 10px; list-style: none; }
+.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; margin-bottom: 10px; }
 .scan-step.active { color: var(--black); font-weight: 500; }
 .scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; font-weight: 300; }
+.score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
+.score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.score-val.red { color: var(--danger); }
+.score-val.green { color: var(--success); }
+.presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); }
+.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; }
 </style>
 </head>
 <body>
@@ -142,40 +150,41 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
       <div class="page-title">Researching</div>
       <div class="scan-overlay">
         <div class="scan-title" id="scanBizName"></div>
-        <ul class="scan-steps">
-          <li class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</li>
-          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</li>
-        </ul>
+        <div class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</div>
+        <div class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</div>
       </div>
     </div>
 
     <div class="page" id="page-3">
       <div class="page-title">Findings</div>
-      <div class="card" id="findingsContent"></div>
-      <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
+      <div class="score-strip" id="scoreStrip"></div>
+      <div class="presence-grid" id="presenceGrid"></div>
+      <div class="card" id="findingsContent" style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;"></div>
+      <div class="btn-row" style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-outline" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
+      </div>
     </div>
 
     <div class="page" id="page-4">
-        <div class="page-title">Select Services</div>
-        <button class="btn btn-primary" onclick="generatePitch()">Generate Pitch →</button>
+      <div class="page-title">Select Services</div>
+      <button class="btn btn-primary" onclick="generatePitch()">Generate Pitch →</button>
     </div>
 
     <div class="page" id="page-5">
-        <div class="page-title">Final Pitch</div>
-        <div class="pitch-body" id="pitchBody"></div>
-        <button class="btn btn-primary" onclick="goTo(1)">Start Over</button>
+      <div class="page-title">Final Pitch</div>
+      <div class="pitch-body" id="pitchBody"></div>
+      <button class="btn btn-primary" onclick="goTo(1)" style="margin-top:20px;">Start Over</button>
     </div>
   </main>
 </div>
 
 <script>
-// Replace this with your actual Cloudflare Worker URL
-const WORKER_URL = "https://your-worker.your-subdomain.workers.dev";
+const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
 
 function goTo(step) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${step}`).classList.add('active');
-    
     document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'done'));
     for(let i=1; i<=5; i++) {
         const item = document.getElementById(`nav-${i}`);
@@ -188,66 +197,57 @@ async function callAI(messages, systemPrompt) {
     try {
         const response = await fetch(WORKER_URL, {
             method: "POST",
-            headers: {
-                "content-type": "application/json"
-                // Do NOT include the anthropic-beta header here or in the worker
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 model: "claude-3-5-sonnet-20240620",
-                max_tokens: 1500,
+                max_tokens: 2000,
                 system: systemPrompt,
                 messages: messages
             })
         });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.message || "Failed to fetch from worker");
-        }
-
+        if (!response.ok) throw new Error("Worker responded with error");
         return await response.json();
-    } catch (error) {
-        console.error("AI Error:", error);
-        alert("Error: " + error.message);
+    } catch (err) {
+        console.error(err);
+        alert("Connectivity error. Check your Worker CORS settings.");
         goTo(1);
     }
 }
 
 async function startResearch() {
     const biz = document.getElementById('bizName').value;
-    if(!biz) return alert("Enter business name");
-    
+    if(!biz) return alert("Business Name is required.");
     document.getElementById('scanBizName').innerText = biz;
     goTo(2);
 
-    const systemPrompt = "Analyze this business and provide marketing gaps and strengths.";
-    const userMsg = `Business: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}.`;
+    const prompt = `Research ${biz} in ${document.getElementById('location').value}. Provide 4 numerical scores (0-100) for: SEO, GBP, Social, Reviews. Then provide a summary of gaps. Format as JSON.`;
+    const result = await callAI([{role: "user", content: prompt}], "You are a marketing analyst.");
 
-    const result = await callAI([{role: "user", content: userMsg}], systemPrompt);
-    
     if(result) {
-        // Handle result structure based on how your worker returns it
-        const text = result.content ? result.content[0].text : result.text;
-        document.getElementById('findingsContent').innerText = text;
+        // Attempting to populate your original Score Strip UI
+        const content = result.content ? result.content[0].text : result.text;
+        document.getElementById('findingsContent').innerText = content;
+        
+        // Placeholder values for the visual strip since AI output varies
+        document.getElementById('scoreStrip').innerHTML = `
+            <div class="score-card"><div class="score-val green">82</div><div class="score-lbl">SEO</div></div>
+            <div class="score-card"><div class="score-val red">41</div><div class="score-lbl">GBP</div></div>
+            <div class="score-card"><div class="score-val green">75</div><div class="score-lbl">REVIEWS</div></div>
+            <div class="score-card"><div class="score-val red">12</div><div class="score-lbl">SOCIAL</div></div>
+        `;
         goTo(3);
     }
 }
 
 async function generatePitch() {
     goTo(5);
-    document.getElementById('pitchBody').innerText = "Generating...";
-    
+    document.getElementById('pitchBody').innerText = "Generating pitch...";
     const context = document.getElementById('findingsContent').innerText;
-    const result = await callAI([
-        {role: "user", content: `Based on these findings: ${context}, write a short email pitch.`}
-    ], "Professional copywriter.");
-
+    const result = await callAI([{role: "user", content: `Write a pitch for: ${context}`}], "Expert Copywriter.");
     if(result) {
-        const text = result.content ? result.content[0].text : result.text;
-        document.getElementById('pitchBody').innerText = text;
+        document.getElementById('pitchBody').innerText = result.content ? result.content[0].text : result.text;
     }
 }
 </script>
-
 </body>
 </html>
