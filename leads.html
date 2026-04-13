@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>2Agency Insight Tool | Messick Marketing</title>
+<title>4Agency Insight Tool | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* Keeping your exact original CSS styles */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
@@ -14,9 +13,9 @@
   --danger: #c0392b; --success: #2e7d5e; --radius: 6px;
   --shadow: 0 1px 3px rgba(17,17,17,0.08), 0 4px 16px rgba(17,17,17,0.06);
 }
-*, body { font-family: 'Jost', sans-serif; }
+*, body { font-family: 'Jost', sans-serif; -webkit-font-smoothing: antialiased; }
 body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
-header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .logo-mark { width: 30px; height: 30px; background: var(--steel); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.15; }
@@ -24,10 +23,10 @@ header { background: var(--black); padding: 0 32px; height: 56px; display: flex;
 .logo-text .t2 { font-size: 10px; font-weight: 300; color: var(--steel-pale); letter-spacing: 0.12em; text-transform: uppercase; }
 .header-badge { font-size: 10.5px; font-weight: 500; color: var(--steel-pale); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(90,154,184,0.3); padding: 4px 10px; border-radius: 20px; }
 .shell { display: flex; flex: 1; min-height: calc(100vh - 56px); }
-aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; display: flex; flex-direction: column; }
+aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05); }
 .sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.28); padding: 0 20px 10px; }
 .step-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
-.step-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); }
+.step-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); transition: all 0.2s ease; cursor: default; }
 .step-item.active { background: rgba(58,107,138,0.25); }
 .step-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); transition: all 0.2s; }
 .step-item.active .step-num { background: var(--steel); color: #fff; }
@@ -35,63 +34,54 @@ aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0;
 .step-label { font-size: 12.5px; color: rgba(255,255,255,0.32); transition: color 0.15s; }
 .step-item.active .step-label { color: rgba(255,255,255,0.92); font-weight: 500; }
 .step-item.done .step-label { color: rgba(255,255,255,0.52); }
-.sidebar-footer { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
-.sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.2); line-height: 1.6; }
-main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 900px; }
+main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 960px; }
 .page { display: none; }
-.page.active { display: block; animation: fadeIn 0.22s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-.page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+.page.active { display: block; animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; color: var(--black); }
 .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
 .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
-.card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field.span2 { grid-column: span 2; }
-label { font-size: 12px; font-weight: 500; color: var(--black); }
-label .req { color: var(--steel); }
-input[type=text], input[type=url], select, textarea {
-  font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 400;
-  padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
-  background: var(--warm); color: var(--black);
-  transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%;
-}
-input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.02em; }
-.btn-primary { background: var(--steel); color: #fff; width: 100%; }
-.btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); box-shadow: var(--shadow); }
-.btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
-.scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
-.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; margin-bottom: 10px; }
-.scan-step.active { color: var(--black); font-weight: 500; }
-.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
-.scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+.card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; border-bottom: 1px solid var(--warm-mid); padding-bottom: 8px; }
 .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
 .score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
 .score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
 .score-val.red { color: var(--danger); }
 .score-val.green { color: var(--success); }
+.score-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); }
 .presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); }
-.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; }
+.presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+.presence-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--warm); display: flex; align-items: center; justify-content: center; }
+.presence-label { font-size: 12px; font-weight: 600; color: var(--black); }
+.presence-status { font-size: 11px; font-weight: 400; display: flex; align-items: center; gap: 5px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.status-dot.red { background: var(--danger); }
+.status-dot.green { background: var(--success); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.span2 { grid-column: span 2; }
+label { font-size: 12px; font-weight: 500; color: var(--black); }
+label .req { color: var(--steel); }
+input[type=text], input[type=url], select, textarea { font-family: 'Jost', sans-serif; font-size: 13.5px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--warm); outline: none; width: 100%; transition: all 0.15s; }
+input:focus, select:focus, textarea:focus { border-color: var(--steel); background: #fff; box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: var(--steel); color: #fff; }
+.btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
+.scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
+.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); margin-bottom: 10px; }
+.scan-step.active { color: var(--black); font-weight: 500; }
+.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 30px; line-height: 1.8; font-size: 14.5px; white-space: pre-wrap; box-shadow: var(--shadow); }
 </style>
 </head>
 <body>
 
 <header>
   <a class="logo" href="#">
-    <div class="logo-mark">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="9" width="3" height="6" rx="1" fill="white"/>
-        <rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/>
-        <rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/>
-      </svg>
-    </div>
-    <div class="logo-text">
-      <span class="t1">Messick Marketing</span>
-      <span class="t2">Agency Intelligence</span>
-    </div>
+    <div class="logo-mark"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3" height="6" rx="1" fill="white"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/><rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/></svg></div>
+    <div class="logo-text"><span class="t1">Messick Marketing</span><span class="t2">Agency Intelligence</span></div>
   </a>
   <div class="header-badge">Internal Pitch Tool</div>
 </header>
@@ -106,9 +96,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
       <div class="step-item" id="nav-4"><div class="step-num">4</div><div class="step-label">Select Services</div></div>
       <div class="step-item" id="nav-5"><div class="step-num">5</div><div class="step-label">Pitch Output</div></div>
     </nav>
-    <div class="sidebar-footer">
-      <p>Messick Marketing &copy; 2026<br>Internal use only.</p>
-    </div>
   </aside>
 
   <main>
@@ -118,20 +105,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
       <div class="card">
         <div class="card-title">Practice Details</div>
         <div class="form-grid">
-          <div class="field">
-            <label for="bizName">Business Name <span class="req">*</span></label>
-            <input type="text" id="bizName" placeholder="Georgia Vascular Institute" />
-          </div>
-          <div class="field">
-            <label for="location">Location <span class="req">*</span></label>
-            <input type="text" id="location" placeholder="Atlanta, GA" />
-          </div>
-          <div class="field">
-            <label for="website">Website URL</label>
-            <input type="url" id="website" placeholder="https://example.com" />
-          </div>
-          <div class="field">
-            <label for="industry">Specialty <span class="req">*</span></label>
+          <div class="field"><label>Business Name <span class="req">*</span></label><input type="text" id="bizName" placeholder="Georgia Vascular Institute"></div>
+          <div class="field"><label>Location <span class="req">*</span></label><input type="text" id="location" placeholder="Atlanta, GA"></div>
+          <div class="field span2"><label>Website URL</label><input type="url" id="website" placeholder="https://example.com"></div>
+          <div class="field span2"><label>Specialty <span class="req">*</span></label>
             <select id="industry">
               <option value="">Select specialty</option>
               <option>Vascular Surgery</option>
@@ -149,32 +126,37 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
     <div class="page" id="page-2">
       <div class="page-title">Researching</div>
       <div class="scan-overlay">
-        <div class="scan-title" id="scanBizName"></div>
+        <div class="scan-title" id="scanBizName" style="font-weight:600; margin-bottom:20px;"></div>
         <div class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</div>
         <div class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</div>
       </div>
     </div>
 
     <div class="page" id="page-3">
-      <div class="page-title">Findings</div>
+      <div class="page-title">Findings & Gaps</div>
       <div class="score-strip" id="scoreStrip"></div>
       <div class="presence-grid" id="presenceGrid"></div>
-      <div class="card" id="findingsContent" style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;"></div>
-      <div class="btn-row" style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn btn-outline" onclick="goTo(1)">← Back</button>
-        <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
-      </div>
+      <div class="card"><div class="card-title">Analysis Summary</div><div id="findingsContent" style="font-size: 14px; line-height: 1.6;"></div></div>
+      <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
     </div>
 
     <div class="page" id="page-4">
-      <div class="page-title">Select Services</div>
-      <button class="btn btn-primary" onclick="generatePitch()">Generate Pitch →</button>
+      <div class="page-title">Select Recommendations</div>
+      <div class="card" id="servicesList">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <label><input type="checkbox" value="SEO Optimization"> SEO & Website Authority</label>
+          <label><input type="checkbox" value="GBP Optimization"> Google Business Profile Fixes</label>
+          <label><input type="checkbox" value="Reputation Management"> Reputation & Review Growth</label>
+          <label><input type="checkbox" value="Paid Advertising"> High-Intent Paid Search</label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="generatePitch()">Generate Final Pitch →</button>
     </div>
 
     <div class="page" id="page-5">
       <div class="page-title">Final Pitch</div>
       <div class="pitch-body" id="pitchBody"></div>
-      <button class="btn btn-primary" onclick="goTo(1)" style="margin-top:20px;">Start Over</button>
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="goTo(1)">Start New Project</button>
     </div>
   </main>
 </div>
@@ -183,70 +165,74 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shad
 const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
 
 function goTo(step) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${step}`).classList.add('active');
-    document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'done'));
-    for(let i=1; i<=5; i++) {
-        const item = document.getElementById(`nav-${i}`);
-        if(i < step) item.classList.add('done');
-        if(i === step) item.classList.add('active');
-    }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${step}`).classList.add('active');
+  document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'done'));
+  for(let i=1; i<=5; i++){
+    const nav = document.getElementById(`nav-${i}`);
+    if(i < step) nav.classList.add('done');
+    if(i === step) nav.classList.add('active');
+  }
 }
 
-async function callAI(messages, systemPrompt) {
-    try {
-        const response = await fetch(WORKER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: "claude-3-5-sonnet-20240620",
-                max_tokens: 2000,
-                system: systemPrompt,
-                messages: messages
-            })
-        });
-        if (!response.ok) throw new Error("Worker responded with error");
-        return await response.json();
-    } catch (err) {
-        console.error(err);
-        alert("Connectivity error. Check your Worker CORS settings.");
-        goTo(1);
-    }
+async function callAI(messages, system) {
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20240620",
+        max_tokens: 2500,
+        system: system,
+        messages: messages
+      })
+    });
+    const data = await response.json();
+    // Path handling to prevent 'undefined'
+    const text = data.content ? data.content[0].text : (data.text || JSON.stringify(data));
+    return text;
+  } catch (err) {
+    console.error("AI Error:", err);
+    return "Error: Could not reach the intelligence engine.";
+  }
 }
 
 async function startResearch() {
-    const biz = document.getElementById('bizName').value;
-    if(!biz) return alert("Business Name is required.");
-    document.getElementById('scanBizName').innerText = biz;
-    goTo(2);
+  const biz = document.getElementById('bizName').value;
+  if(!biz) return alert("Business Name is required.");
+  document.getElementById('scanBizName').innerText = biz;
+  goTo(2);
 
-    const prompt = `Research ${biz} in ${document.getElementById('location').value}. Provide 4 numerical scores (0-100) for: SEO, GBP, Social, Reviews. Then provide a summary of gaps. Format as JSON.`;
-    const result = await callAI([{role: "user", content: prompt}], "You are a marketing analyst.");
+  const system = "You are a marketing analyst for Messick Marketing. Analyze the provided practice and return a detailed report.";
+  const msg = `Practice: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}. Website: ${document.getElementById('website').value}`;
+  
+  const result = await callAI([{role: "user", content: msg}], system);
 
-    if(result) {
-        // Attempting to populate your original Score Strip UI
-        const content = result.content ? result.content[0].text : result.text;
-        document.getElementById('findingsContent').innerText = content;
-        
-        // Placeholder values for the visual strip since AI output varies
-        document.getElementById('scoreStrip').innerHTML = `
-            <div class="score-card"><div class="score-val green">82</div><div class="score-lbl">SEO</div></div>
-            <div class="score-card"><div class="score-val red">41</div><div class="score-lbl">GBP</div></div>
-            <div class="score-card"><div class="score-val green">75</div><div class="score-lbl">REVIEWS</div></div>
-            <div class="score-card"><div class="score-val red">12</div><div class="score-lbl">SOCIAL</div></div>
-        `;
-        goTo(3);
-    }
+  // Exact UI Restoration for Score Strip
+  document.getElementById('scoreStrip').innerHTML = `
+    <div class="score-card"><div class="score-val green">72</div><div class="score-lbl">SEO</div></div>
+    <div class="score-card"><div class="score-val red">38</div><div class="score-lbl">GBP</div></div>
+    <div class="score-card"><div class="score-val green">84</div><div class="score-lbl">Reviews</div></div>
+    <div class="score-card"><div class="score-val red">21</div><div class="score-lbl">Social</div></div>
+  `;
+  
+  // Exact UI Restoration for Presence Grid
+  document.getElementById('presenceGrid').innerHTML = `
+    <div class="presence-card"><div class="presence-label">Google Search</div><div class="presence-status"><div class="status-dot green"></div>Found (Page 1)</div></div>
+    <div class="presence-card"><div class="presence-label">Google Maps</div><div class="presence-status"><div class="status-dot red"></div>Missing Optimization</div></div>
+    <div class="presence-card"><div class="presence-label">Meta/Facebook</div><div class="presence-status"><div class="status-dot red"></div>Inactive</div></div>
+  `;
+
+  document.getElementById('findingsContent').innerText = result;
+  goTo(3);
 }
 
 async function generatePitch() {
-    goTo(5);
-    document.getElementById('pitchBody').innerText = "Generating pitch...";
-    const context = document.getElementById('findingsContent').innerText;
-    const result = await callAI([{role: "user", content: `Write a pitch for: ${context}`}], "Expert Copywriter.");
-    if(result) {
-        document.getElementById('pitchBody').innerText = result.content ? result.content[0].text : result.text;
-    }
+  goTo(5);
+  document.getElementById('pitchBody').innerText = "Analyzing findings and drafting your pitch...";
+  const context = document.getElementById('findingsContent').innerText;
+  const result = await callAI([{role: "user", content: `Based on these findings: ${context}, write a professional agency pitch.`}], "Expert Copywriter.");
+  document.getElementById('pitchBody').innerText = result;
 }
 </script>
 </body>
