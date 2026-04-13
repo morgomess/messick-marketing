@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>4Agency Insight Tool | Messick Marketing</title>
+<title>3Agency Insight Tool | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
+/* EXACT CSS RESTORATION */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
@@ -40,7 +41,7 @@ main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 960px; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; color: var(--black); }
 .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
-.card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; position: relative; }
 .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; border-bottom: 1px solid var(--warm-mid); padding-bottom: 8px; }
 .score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
 .score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
@@ -50,7 +51,6 @@ main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 960px; }
 .score-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); }
 .presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
 .presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
-.presence-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--warm); display: flex; align-items: center; justify-content: center; }
 .presence-label { font-size: 12px; font-weight: 600; color: var(--black); }
 .presence-status { font-size: 11px; font-weight: 400; display: flex; align-items: center; gap: 5px; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; }
@@ -60,13 +60,11 @@ main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 960px; }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field.span2 { grid-column: span 2; }
 label { font-size: 12px; font-weight: 500; color: var(--black); }
-label .req { color: var(--steel); }
 input[type=text], input[type=url], select, textarea { font-family: 'Jost', sans-serif; font-size: 13.5px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--warm); outline: none; width: 100%; transition: all 0.15s; }
 input:focus, select:focus, textarea:focus { border-color: var(--steel); background: #fff; box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
 .btn-primary { background: var(--steel); color: #fff; }
 .btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); }
-.btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
 .scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
 .scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); margin-bottom: 10px; }
 .scan-step.active { color: var(--black); font-weight: 500; }
@@ -105,10 +103,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); backgrou
       <div class="card">
         <div class="card-title">Practice Details</div>
         <div class="form-grid">
-          <div class="field"><label>Business Name <span class="req">*</span></label><input type="text" id="bizName" placeholder="Georgia Vascular Institute"></div>
-          <div class="field"><label>Location <span class="req">*</span></label><input type="text" id="location" placeholder="Atlanta, GA"></div>
+          <div class="field"><label>Business Name</label><input type="text" id="bizName" placeholder="e.g. Georgia Vascular Institute"></div>
+          <div class="field"><label>Location</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
           <div class="field span2"><label>Website URL</label><input type="url" id="website" placeholder="https://example.com"></div>
-          <div class="field span2"><label>Specialty <span class="req">*</span></label>
+          <div class="field span2"><label>Specialty</label>
             <select id="industry">
               <option value="">Select specialty</option>
               <option>Vascular Surgery</option>
@@ -126,7 +124,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); backgrou
     <div class="page" id="page-2">
       <div class="page-title">Researching</div>
       <div class="scan-overlay">
-        <div class="scan-title" id="scanBizName" style="font-weight:600; margin-bottom:20px;"></div>
+        <div id="scanBizName" style="font-weight:600; margin-bottom:20px;"></div>
         <div class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</div>
         <div class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</div>
       </div>
@@ -134,20 +132,32 @@ input:focus, select:focus, textarea:focus { border-color: var(--steel); backgrou
 
     <div class="page" id="page-3">
       <div class="page-title">Findings & Gaps</div>
-      <div class="score-strip" id="scoreStrip"></div>
-      <div class="presence-grid" id="presenceGrid"></div>
-      <div class="card"><div class="card-title">Analysis Summary</div><div id="findingsContent" style="font-size: 14px; line-height: 1.6;"></div></div>
+      <div class="score-strip" id="scoreStrip">
+        <div class="score-card"><div class="score-val green">72</div><div class="score-lbl">SEO</div></div>
+        <div class="score-card"><div class="score-val red">38</div><div class="score-lbl">GBP</div></div>
+        <div class="score-card"><div class="score-val green">84</div><div class="score-lbl">Reviews</div></div>
+        <div class="score-card"><div class="score-val red">21</div><div class="score-lbl">Social</div></div>
+      </div>
+      <div class="presence-grid" id="presenceGrid">
+        <div class="presence-card"><div class="presence-label">Google Search</div><div class="presence-status"><div class="status-dot green"></div>Found (Page 1)</div></div>
+        <div class="presence-card"><div class="presence-label">Google Maps</div><div class="presence-status"><div class="status-dot red"></div>Missing Optimization</div></div>
+        <div class="presence-card"><div class="presence-label">Meta/Facebook</div><div class="presence-status"><div class="status-dot red"></div>Inactive</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Analysis Summary</div>
+        <div id="findingsContent" style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;"></div>
+      </div>
       <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
     </div>
 
     <div class="page" id="page-4">
       <div class="page-title">Select Recommendations</div>
-      <div class="card" id="servicesList">
+      <div class="card">
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <label><input type="checkbox" value="SEO Optimization"> SEO & Website Authority</label>
-          <label><input type="checkbox" value="GBP Optimization"> Google Business Profile Fixes</label>
-          <label><input type="checkbox" value="Reputation Management"> Reputation & Review Growth</label>
-          <label><input type="checkbox" value="Paid Advertising"> High-Intent Paid Search</label>
+          <label><input type="checkbox" value="SEO"> SEO & Website Authority</label>
+          <label><input type="checkbox" value="GBP"> Google Business Profile Fixes</label>
+          <label><input type="checkbox" value="Reputation"> Reputation & Review Growth</label>
+          <label><input type="checkbox" value="Paid"> High-Intent Paid Search</label>
         </div>
       </div>
       <button class="btn btn-primary" onclick="generatePitch()">Generate Final Pitch →</button>
@@ -188,12 +198,11 @@ async function callAI(messages, system) {
       })
     });
     const data = await response.json();
-    // Path handling to prevent 'undefined'
-    const text = data.content ? data.content[0].text : (data.text || JSON.stringify(data));
-    return text;
+    // Safety check to ensure we get the text content correctly from Worker
+    return data.content ? data.content[0].text : (data.text || JSON.stringify(data));
   } catch (err) {
     console.error("AI Error:", err);
-    return "Error: Could not reach the intelligence engine.";
+    return "Error: Problem communicating with the research engine.";
   }
 }
 
@@ -203,35 +212,19 @@ async function startResearch() {
   document.getElementById('scanBizName').innerText = biz;
   goTo(2);
 
-  const system = "You are a marketing analyst for Messick Marketing. Analyze the provided practice and return a detailed report.";
-  const msg = `Practice: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}. Website: ${document.getElementById('website').value}`;
+  const system = "You are a marketing analyst. Analyze the business and provide a clear report on their marketing gaps.";
+  const msg = `Business: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}. Website: ${document.getElementById('website').value}`;
   
   const result = await callAI([{role: "user", content: msg}], system);
-
-  // Exact UI Restoration for Score Strip
-  document.getElementById('scoreStrip').innerHTML = `
-    <div class="score-card"><div class="score-val green">72</div><div class="score-lbl">SEO</div></div>
-    <div class="score-card"><div class="score-val red">38</div><div class="score-lbl">GBP</div></div>
-    <div class="score-card"><div class="score-val green">84</div><div class="score-lbl">Reviews</div></div>
-    <div class="score-card"><div class="score-val red">21</div><div class="score-lbl">Social</div></div>
-  `;
-  
-  // Exact UI Restoration for Presence Grid
-  document.getElementById('presenceGrid').innerHTML = `
-    <div class="presence-card"><div class="presence-label">Google Search</div><div class="presence-status"><div class="status-dot green"></div>Found (Page 1)</div></div>
-    <div class="presence-card"><div class="presence-label">Google Maps</div><div class="presence-status"><div class="status-dot red"></div>Missing Optimization</div></div>
-    <div class="presence-card"><div class="presence-label">Meta/Facebook</div><div class="presence-status"><div class="status-dot red"></div>Inactive</div></div>
-  `;
-
   document.getElementById('findingsContent').innerText = result;
   goTo(3);
 }
 
 async function generatePitch() {
   goTo(5);
-  document.getElementById('pitchBody').innerText = "Analyzing findings and drafting your pitch...";
+  document.getElementById('pitchBody').innerText = "Drafting your pitch...";
   const context = document.getElementById('findingsContent').innerText;
-  const result = await callAI([{role: "user", content: `Based on these findings: ${context}, write a professional agency pitch.`}], "Expert Copywriter.");
+  const result = await callAI([{role: "user", content: `Write a professional pitch based on this research: ${context}`}], "Expert Agency Copywriter.");
   document.getElementById('pitchBody').innerText = result;
 }
 </script>
