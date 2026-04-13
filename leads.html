@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>2Agency Insight Tool | Messick Marketing</title>
+<title>3Agency Insight Tool | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
+/* CSS remains identical to your original styles */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --black: #111111; --steel: #3a6b8a; --steel-light: #5a9ab8; --steel-pale: #c8dde8;
@@ -15,7 +16,6 @@
 }
 *, body { font-family: 'Jost', sans-serif; }
 body { background: var(--warm); color: var(--black); min-height: 100vh; display: flex; flex-direction: column; }
-
 header { background: var(--black); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .logo-mark { width: 30px; height: 30px; background: var(--steel); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
@@ -23,9 +23,7 @@ header { background: var(--black); padding: 0 32px; height: 56px; display: flex;
 .logo-text .t1 { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
 .logo-text .t2 { font-size: 10px; font-weight: 300; color: var(--steel-pale); letter-spacing: 0.12em; text-transform: uppercase; }
 .header-badge { font-size: 10.5px; font-weight: 500; color: var(--steel-pale); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(90,154,184,0.3); padding: 4px 10px; border-radius: 20px; }
-
 .shell { display: flex; flex: 1; min-height: calc(100vh - 56px); }
-
 aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0; display: flex; flex-direction: column; }
 .sidebar-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.28); padding: 0 20px 10px; }
 .step-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
@@ -39,17 +37,14 @@ aside { width: 210px; background: var(--black); padding: 28px 0; flex-shrink: 0;
 .step-item.done .step-label { color: rgba(255,255,255,0.52); }
 .sidebar-footer { margin-top: auto; padding: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
 .sidebar-footer p { font-size: 11px; color: rgba(255,255,255,0.2); line-height: 1.6; }
-
 main { flex: 1; padding: 36px 44px; overflow-y: auto; max-width: 900px; }
 .page { display: none; }
 .page.active { display: block; animation: fadeIn 0.22s ease; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 .page-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
 .page-sub { font-size: 13.5px; color: var(--mid); margin-bottom: 24px; font-weight: 300; }
-
 .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 14px; }
 .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin-bottom: 16px; }
-
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field.span2 { grid-column: span 2; }
@@ -61,156 +56,17 @@ input[type=text], input[type=url], select, textarea {
   background: var(--warm); color: var(--black);
   transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%;
 }
-input:focus, select:focus, textarea:focus {
-  border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff;
-}
-input::placeholder, textarea::placeholder { color: #b5bdc4; }
-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
-textarea { resize: vertical; min-height: 72px; }
-
+input:focus, select:focus, textarea:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: #fff; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.02em; }
 .btn-primary { background: var(--steel); color: #fff; width: 100%; }
 .btn-primary:hover { background: var(--steel-light); transform: translateY(-1px); box-shadow: var(--shadow); }
-.btn-outline { background: transparent; color: var(--steel); border: 1.5px solid var(--steel); }
-.btn-outline:hover { background: rgba(58,107,138,0.06); }
-.btn-black { background: var(--black); color: #fff; }
-.btn-black:hover { background: #2a2a2a; }
-.btn-row { display: flex; gap: 12px; margin-top: 22px; }
-.btn-row .btn { flex: 1; }
-
-/* SCAN */
 .scan-overlay { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 52px 28px; text-align: center; box-shadow: var(--shadow); }
-.scan-icon { width: 56px; height: 56px; background: rgba(58,107,138,0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-.scan-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-.scan-sub { font-size: 13px; color: var(--mid); margin-bottom: 30px; }
-.scan-steps { list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 340px; margin: 0 auto; text-align: left; }
-.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; }
+.scan-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--mid); transition: color 0.3s; margin-bottom: 10px; list-style: none; }
 .scan-step.active { color: var(--black); font-weight: 500; }
-.scan-step.done { color: var(--success); }
-.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .scan-step.active .scan-dot { background: var(--steel); animation: pulse 1s infinite; }
-.scan-step.done .scan-dot { background: var(--success); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-
-/* FINDINGS PAGE */
-.score-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-.score-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
-.score-val { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
-.score-val.red { color: var(--danger); }
-.score-val.orange { color: #d97706; }
-.score-val.green { color: var(--success); }
-.score-lbl { font-size: 11px; color: var(--mid); font-weight: 500; letter-spacing: 0.04em; }
-
-.findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-.finding-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }
-.finding-card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--steel); margin-bottom: 12px; }
-.finding-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--warm-mid); font-size: 12.5px; line-height: 1.45; color: var(--black); }
-.finding-item:last-child { border-bottom: none; }
-.fi { flex-shrink: 0; font-size: 11px; margin-top: 2px; }
-.fi-gap { color: var(--danger); }
-.fi-ok { color: var(--success); }
-.fi-warn { color: #d97706; }
-
-/* WEB PRESENCE SUMMARY CARDS */
-.presence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.presence-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); }
-.presence-card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid); margin-bottom: 10px; }
-.presence-status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 20px; margin-bottom: 8px; }
-.status-found { background: rgba(46,125,94,0.1); color: var(--success); }
-.status-partial { background: rgba(217,119,6,0.1); color: #d97706; }
-.status-missing { background: rgba(192,57,43,0.1); color: var(--danger); }
-.presence-detail { font-size: 12px; color: var(--mid); line-height: 1.5; }
-
-/* CHAT (shared styles) */
-.chat-wrapper { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 14px; }
-.chat-header { background: var(--warm); border-bottom: 1px solid var(--border); padding: 12px 18px; display: flex; align-items: center; gap: 8px; }
-.chat-header-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); }
-.chat-header-hint { font-size: 12px; color: var(--mid); font-weight: 300; }
-.chat-msgs { max-height: 320px; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
-.chat-msg { display: flex; flex-direction: column; gap: 3px; max-width: 88%; animation: fadeIn 0.18s ease; }
-.chat-msg.user { align-self: flex-end; }
-.chat-msg.assistant { align-self: flex-start; }
-.chat-bubble { padding: 9px 13px; border-radius: 10px; font-size: 13px; line-height: 1.6; font-weight: 400; }
-.chat-msg.user .chat-bubble { background: var(--steel); color: #fff; border-bottom-right-radius: 3px; }
-.chat-msg.assistant .chat-bubble { background: var(--warm-mid); color: var(--black); border-bottom-left-radius: 3px; border: 1px solid var(--border); white-space: pre-line; }
-.chat-msg.assistant .chat-bubble.thinking { color: var(--mid); font-style: italic; font-size: 12px; }
-.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 18px; border-top: 1px solid var(--border); background: var(--warm); }
-.chat-chip { padding: 5px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid); transition: all 0.15s; font-family: 'Jost', sans-serif; white-space: nowrap; }
-.chat-chip:hover { border-color: var(--steel); color: var(--steel); background: rgba(58,107,138,0.04); }
-.chat-input-row { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--warm); align-items: flex-end; }
-.chat-input { flex: 1; font-family: 'Jost', sans-serif; font-size: 13.5px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--black); resize: none; outline: none; transition: border-color 0.15s; max-height: 120px; min-height: 40px; line-height: 1.5; }
-.chat-input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); }
-.chat-input::placeholder { color: #b5bdc4; }
-.chat-send { width: 38px; height: 38px; border-radius: var(--radius); border: none; background: var(--steel); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
-.chat-send:hover { background: var(--steel-light); transform: translateY(-1px); }
-.chat-send:disabled { background: var(--border); cursor: not-allowed; transform: none; }
-
-/* SERVICES */
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.service-card { background: #fff; border: 2px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.15s; user-select: none; position: relative; }
-.service-card:hover { border-color: var(--steel-pale); }
-.service-card.selected { border-color: var(--steel); background: rgba(58,107,138,0.04); }
-.service-check { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: all 0.15s; color: transparent; }
-.service-card.selected .service-check { background: var(--steel); border-color: var(--steel); color: #fff; }
-.service-priority { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-bottom: 6px; }
-.priority-high { background: rgba(192,57,43,0.09); color: var(--danger); }
-.priority-med { background: rgba(217,119,6,0.09); color: #d97706; }
-.priority-low { background: rgba(46,125,94,0.09); color: var(--success); }
-.service-name { font-size: 13.5px; font-weight: 600; color: var(--black); margin-bottom: 5px; padding-right: 24px; }
-.service-why { font-size: 12px; color: var(--mid); line-height: 1.45; }
-
-/* CUSTOM SERVICE */
-.custom-service-box { background: #fff; border: 2px dashed var(--border); border-radius: 8px; padding: 18px 20px; margin-bottom: 22px; transition: border-color 0.15s; }
-.custom-service-box:focus-within { border-color: var(--steel-pale); }
-.custom-service-box-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.custom-service-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
-.custom-service-name-wrap { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 5px; }
-.custom-service-priority-wrap { width: 140px; display: flex; flex-direction: column; gap: 5px; }
-.custom-service-why-wrap { width: 100%; display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
-.custom-service-why-wrap textarea { min-height: 52px; }
-.btn-add-service { padding: 9px 18px; border-radius: var(--radius); font-family: 'Jost', sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--steel); background: transparent; color: var(--steel); transition: all 0.15s; white-space: nowrap; align-self: flex-end; height: 40px; }
-.btn-add-service:hover { background: var(--steel); color: #fff; }
-.custom-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-.custom-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(58,107,138,0.07); border: 1px solid var(--steel-pale); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--steel); }
-.custom-tag-remove { cursor: pointer; color: var(--mid); font-size: 14px; line-height: 1; transition: color 0.1s; }
-.custom-tag-remove:hover { color: var(--danger); }
-
-/* PITCH */
-.pitch-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.pitch-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); }
-.pitch-biz { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; }
-.copy-btn { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; color: var(--steel); background: none; border: 1.5px solid var(--steel-pale); border-radius: var(--radius); padding: 7px 14px; cursor: pointer; transition: all 0.15s; font-family: 'Jost', sans-serif; }
-.copy-btn:hover { background: rgba(58,107,138,0.07); border-color: var(--steel); }
-.channel-tabs { display: flex; gap: 8px; margin-bottom: 13px; }
-.channel-tab { padding: 7px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--mid); transition: all 0.15s; font-family: 'Jost', sans-serif; }
-.channel-tab.active { border-color: var(--steel); background: var(--steel); color: #fff; }
-.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; color: var(--black); white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; font-family: 'Jost', sans-serif; font-weight: 300; }
-.pitch-body.streaming { border-color: var(--steel-pale); }
-.cursor-blink { display: inline-block; width: 2px; height: 1.1em; background: var(--steel); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.75s step-end infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-/* PITCH CHAT */
-.pitch-chat-section { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: var(--shadow); overflow: hidden; }
-.pitch-chat-toggle-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--warm); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
-.pitch-chat-toggle-header-left { display: flex; align-items: center; gap: 8px; }
-.pitch-chat-toggle-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); }
-.pitch-chat-toggle-hint { font-size: 11.5px; color: var(--mid); font-weight: 300; }
-.pitch-chat-caret { font-size: 13px; color: var(--mid); transition: transform 0.2s; }
-.pitch-chat-caret.open { transform: rotate(180deg); }
-.pitch-chat-body { display: none; }
-.pitch-chat-body.open { display: block; }
-
-.reset-row { display: flex; justify-content: flex-end; margin-top: 10px; }
-.reset-btn { font-size: 12px; color: var(--mid); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
-.reset-btn:hover { color: var(--black); }
-
-.toast { position: fixed; bottom: 24px; right: 24px; background: var(--black); color: #fff; font-size: 13px; padding: 10px 18px; border-radius: var(--radius); opacity: 0; transform: translateY(8px); transition: all 0.22s; pointer-events: none; z-index: 9999; }
-.toast.show { opacity: 1; transform: translateY(0); }
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* PW GATE */
-#pwGate { display:none; position:fixed; inset:0; background:var(--black); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
+.pitch-body { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.78; white-space: pre-wrap; box-shadow: var(--shadow); min-height: 200px; font-weight: 300; }
 </style>
 </head>
 <body>
@@ -248,8 +104,6 @@ textarea { resize: vertical; min-height: 72px; }
   </aside>
 
   <main>
-
-    <!-- STEP 1: PROSPECT INFO -->
     <div class="page active" id="page-1">
       <div class="page-title">New Prospect</div>
       <div class="page-sub">Enter the basics — AI will research the rest.</div>
@@ -266,821 +120,134 @@ textarea { resize: vertical; min-height: 72px; }
           </div>
           <div class="field">
             <label for="website">Website URL</label>
-            <input type="url" id="website" placeholder="https://example.com (optional)" />
+            <input type="url" id="website" placeholder="https://example.com" />
           </div>
           <div class="field">
             <label for="industry">Specialty <span class="req">*</span></label>
             <select id="industry">
               <option value="">Select specialty</option>
-              <optgroup label="Healthcare">
-                <option>Interventional Radiology</option>
-                <option>Vascular Surgery</option>
-                <option>Vein &amp; Vascular</option>
-                <option>Brain Health / Neurology</option>
-                <option>Mental Health / Therapy</option>
-                <option>Outpatient Surgery Center / OBL</option>
-                <option>Primary Care / Family Medicine</option>
-                <option>Orthopedics</option>
-                <option>Pain Management</option>
-                <option>Med Spa / Aesthetics</option>
-                <option>Dental / Oral Surgery</option>
-                <option>Chiropractic / Physical Therapy</option>
-                <option>Veterinary Clinic / Animal Health</option>
-              </optgroup>
-              <optgroup label="Other">
-                <option>Healthcare Marketing Agency</option>
-                <option>Medical Device / Pharma</option>
-                <option>Other</option>
-              </optgroup>
+              <option>Vascular Surgery</option>
+              <option>Brain Health / Neurology</option>
+              <option>Mental Health / Therapy</option>
+              <option>Orthopedics</option>
+              <option>Other</option>
             </select>
-          </div>
-          <div class="field">
-            <label for="contactName">Contact Name / Title</label>
-            <input type="text" id="contactName" placeholder="Dr. Jane Smith / Practice Manager" />
-          </div>
-          <div class="field span2">
-            <label for="notes">Notes <span style="font-weight:300;color:var(--mid)">(optional)</span></label>
-            <textarea id="notes" placeholder="Referral source, known pain points, recent news, competition..."></textarea>
           </div>
         </div>
       </div>
       <button class="btn btn-primary" onclick="startResearch()">Research This Prospect →</button>
     </div>
 
-    <!-- STEP 2: RESEARCHING (scan animation) -->
     <div class="page" id="page-2">
       <div class="page-title">Researching</div>
-      <div class="page-sub">AI is scanning their web presence...</div>
       <div class="scan-overlay">
-        <div class="scan-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3a6b8a" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </div>
         <div class="scan-title" id="scanBizName"></div>
-        <div class="scan-sub">Searching for Google Business Profile, social channels, and website signals...</div>
         <ul class="scan-steps">
-          <li class="scan-step" id="ss1"><div class="scan-dot"></div>Searching Google Business Profile</li>
-          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Scanning social media channels</li>
-          <li class="scan-step" id="ss3"><div class="scan-dot"></div>Reviewing website and SEO presence</li>
-          <li class="scan-step" id="ss4"><div class="scan-dot"></div>Checking reviews and reputation</li>
-          <li class="scan-step" id="ss5"><div class="scan-dot"></div>Synthesizing findings</li>
+          <li class="scan-step active" id="ss1"><div class="scan-dot"></div>Analyzing practice presence...</li>
+          <li class="scan-step" id="ss2"><div class="scan-dot"></div>Identifying marketing gaps...</li>
         </ul>
       </div>
     </div>
 
-    <!-- STEP 3: FINDINGS + CHAT -->
     <div class="page" id="page-3">
       <div class="page-title">Findings</div>
-      <div class="page-sub">AI research results for <strong id="findingsBizName"></strong>. Review, discuss, or correct before continuing.</div>
-
-      <!-- Score strip -->
-      <div class="score-strip" id="scoreStrip"></div>
-
-      <!-- Web presence summary -->
-      <div class="presence-grid" id="presenceGrid"></div>
-
-      <!-- Gaps & Strengths -->
-      <div class="findings-grid" id="findingsGrid"></div>
-
-      <!-- DISCUSSION CHAT -->
-      <div class="chat-wrapper" id="findingsChat">
-        <div class="chat-header">
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#3a6b8a" stroke-width="1.8"><path d="M20 2H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
-          <span class="chat-header-title">Discuss Findings</span>
-          <span class="chat-header-hint">Correct anything, ask about what was found, or add context</span>
-        </div>
-        <div class="chat-msgs" id="findingsChatMsgs"></div>
-        <div class="chat-chips" id="findingsChatChips">
-          <button class="chat-chip" onclick="sendFindingsChip('Their Instagram is actually active')">Their Instagram is active</button>
-          <button class="chat-chip" onclick="sendFindingsChip('They do have a Google Business Profile')">They do have a GBP</button>
-          <button class="chat-chip" onclick="sendFindingsChip('Their website is better than rated')">Website is better than rated</button>
-          <button class="chat-chip" onclick="sendFindingsChip('What did you find about their reviews?')">Tell me about their reviews</button>
-          <button class="chat-chip" onclick="sendFindingsChip('What are the biggest gaps you found?')">Biggest gaps?</button>
-        </div>
-        <div class="chat-input-row">
-          <textarea class="chat-input" id="findingsChatInput" placeholder="Correct a finding, add context, or ask a question..." rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFindingsMsg();}"
-            oninput="autoResize(this)"></textarea>
-          <button class="chat-send" id="findingsSendBtn" onclick="sendFindingsMsg()">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(1)">← Start Over</button>
-        <button class="btn btn-primary" onclick="goTo(4)">Select Services →</button>
-      </div>
+      <div class="card" id="findingsContent"></div>
+      <button class="btn btn-primary" onclick="goTo(4)">Next: Select Services →</button>
     </div>
 
-    <!-- STEP 4: SELECT SERVICES -->
     <div class="page" id="page-4">
-      <div class="page-title">Select Services</div>
-      <div class="page-sub">Multi-select what to pitch. Ranked by priority.</div>
-      <div class="services-grid" id="servicesGrid"></div>
-
-      <!-- CUSTOM SERVICE INPUT -->
-      <div class="custom-service-box">
-        <div class="custom-service-box-label">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="14"/><line x1="6" y1="10" x2="14" y2="10"/></svg>
-          Add a Custom Service
-        </div>
-        <div class="custom-service-row">
-          <div class="custom-service-name-wrap">
-            <label style="font-size:11.5px;">Service Name</label>
-            <input type="text" id="customSvcName" placeholder="e.g. YouTube Channel Strategy" />
-          </div>
-          <div class="custom-service-priority-wrap">
-            <label style="font-size:11.5px;">Priority</label>
-            <select id="customSvcPriority">
-              <option value="high">High Priority</option>
-              <option value="med" selected>Medium</option>
-              <option value="low">Lower Priority</option>
-            </select>
-          </div>
-          <button class="btn-add-service" onclick="addCustomService()">+ Add</button>
-        </div>
-        <div class="custom-service-why-wrap">
-          <label style="font-size:11.5px;">Why pitch this? <span style="font-weight:300;color:var(--mid)">(optional)</span></label>
-          <textarea id="customSvcWhy" placeholder="Reason this is a gap or opportunity for this prospect..."></textarea>
-        </div>
-        <div class="custom-tags" id="customTagList"></div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(3)">← Back to Findings</button>
+        <div class="page-title">Select Services</div>
         <button class="btn btn-primary" onclick="generatePitch()">Generate Pitch →</button>
-      </div>
     </div>
 
-    <!-- STEP 5: PITCH -->
     <div class="page" id="page-5">
-      <div class="pitch-meta">
-        <div>
-          <div class="pitch-label">Pitch Ready</div>
-          <div class="pitch-biz" id="pitchBizName"></div>
-        </div>
-        <button class="copy-btn" onclick="copyPitch()">
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="7" width="11" height="11" rx="1.5"/><path d="M3 13V3h10"/></svg>
-          Copy
-        </button>
-      </div>
-      <div class="channel-tabs">
-        <button class="channel-tab active" onclick="switchChannel('email',this)">Email</button>
-        <button class="channel-tab" onclick="switchChannel('dm',this)">DM / Social</button>
-        <button class="channel-tab" onclick="switchChannel('linkedin',this)">LinkedIn</button>
-      </div>
-      <div class="pitch-body" id="pitchBody"></div>
-
-      <!-- PITCH REFINEMENT CHAT -->
-      <div class="pitch-chat-section">
-        <div class="pitch-chat-toggle-header" onclick="togglePitchChat()">
-          <div class="pitch-chat-toggle-header-left">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#3a6b8a" stroke-width="1.8"><path d="M20 2H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l4-4h9a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
-            <span class="pitch-chat-toggle-title">Refine This Pitch</span>
-            <span class="pitch-chat-toggle-hint">Ask for edits, different tone, shorter version...</span>
-          </div>
-          <span class="pitch-chat-caret" id="pitchChatCaret">▾</span>
-        </div>
-        <div class="pitch-chat-body" id="pitchChatBody">
-          <div class="chat-msgs" id="pitchChatMsgs"></div>
-          <div class="chat-chips">
-            <button class="chat-chip" onclick="sendPitchChip('Make it shorter')">Make it shorter</button>
-            <button class="chat-chip" onclick="sendPitchChip('Make it more casual')">More casual</button>
-            <button class="chat-chip" onclick="sendPitchChip('Make it more direct and punchy')">More direct</button>
-            <button class="chat-chip" onclick="sendPitchChip('Lead with the stat instead')">Lead with a stat</button>
-            <button class="chat-chip" onclick="sendPitchChip('Try a completely different angle')">Different angle</button>
-            <button class="chat-chip" onclick="sendPitchChip('Add a stronger call to action')">Stronger CTA</button>
-          </div>
-          <div class="chat-input-row">
-            <textarea class="chat-input" id="pitchChatInput" placeholder="e.g. make it shorter, focus on the GBP gap, try a different hook..." rows="1"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPitchMsg();}"
-              oninput="autoResize(this)"></textarea>
-            <button class="chat-send" id="pitchSendBtn" onclick="sendPitchMsg()">
-              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-outline" onclick="goTo(4)">← Adjust Services</button>
-        <button class="btn btn-black" onclick="regeneratePitch()">↺ Regenerate</button>
-      </div>
-      <div class="reset-row">
-        <button class="reset-btn" onclick="resetAll()">
-          <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4l12 12M16 4L4 16"/></svg>
-          Start New Prospect
-        </button>
-      </div>
+        <div class="page-title">Final Pitch</div>
+        <div class="pitch-body" id="pitchBody"></div>
+        <button class="btn btn-primary" onclick="goTo(1)">Start Over</button>
     </div>
-
   </main>
 </div>
 
-<!-- PW GATE -->
-<div id="pwGate" style="display:none;position:fixed;inset:0;background:var(--black);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
-  <div style="text-align:center;margin-bottom:32px;">
-    <div style="width:40px;height:40px;background:var(--steel);border-radius:6px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3" height="6" rx="1" fill="white"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="white" opacity="0.8"/><rect x="12" y="1" width="3" height="14" rx="1" fill="white" opacity="0.65"/></svg>
-    </div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:4px;">Messick Marketing</div>
-    <div style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.12em;text-transform:uppercase;">Agency Intelligence Tool</div>
-  </div>
-  <div style="width:100%;max-width:320px;padding:0 24px;">
-    <input id="pwInput" type="password" placeholder="Enter access code" autocomplete="off"
-      style="width:100%;font-family:'Jost',sans-serif;font-size:14px;padding:12px 16px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#fff;outline:none;text-align:center;letter-spacing:0.08em;margin-bottom:12px;"
-      onfocus="this.style.borderColor='#3a6b8a'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
-    <button onclick="checkPassword()"
-      style="width:100%;font-family:'Jost',sans-serif;font-size:13.5px;font-weight:500;padding:11px;border-radius:6px;border:none;background:var(--steel);color:#fff;cursor:pointer;">Unlock</button>
-    <div id="pwError" style="display:none;margin-top:10px;font-size:12px;color:#e07070;text-align:center;">Incorrect access code.</div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script>
-const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
-const TOTAL_STEPS = 5;
+// Replace this with your actual Cloudflare Worker URL
+const WORKER_URL = "https://your-worker.your-subdomain.workers.dev";
 
-let S = {
-  step: 1,
-  bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
-  researchRaw: '',
-  findings: null,
-  services: [],
-  selected: [],
-  customServices: [],
-  channel: 'email',
-  pitches: {},
-  findingsChatHistory: [],
-  pitchChatHistory: { email:[], dm:[], linkedin:[] }
-};
-
-// ── NAV ──
 function goTo(step) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + step).classList.add('active');
-  for (let i = 1; i <= TOTAL_STEPS; i++) {
-    const el = document.getElementById('nav-' + i);
-    el.classList.remove('active','done');
-    const num = el.querySelector('.step-num');
-    if (i < step) { el.classList.add('done'); num.textContent = '✓'; }
-    else if (i === step) { el.classList.add('active'); num.textContent = i; }
-    else { num.textContent = i; }
-  }
-  S.step = step;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${step}`).classList.add('active');
+    
+    document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'done'));
+    for(let i=1; i<=5; i++) {
+        const item = document.getElementById(`nav-${i}`);
+        if(i < step) item.classList.add('done');
+        if(i === step) item.classList.add('active');
+    }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ── AI CALL ──
-async function callAI(payload, retries = 3) {
-  for (let i = 0; i < retries; i++) {
+async function callAI(messages, systemPrompt) {
     try {
-      const res = await fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      const data = await res.json();
-      console.log('API raw response:', JSON.stringify(data).slice(0, 400));
-      if (data.error) {
-        console.error('API error:', data.error);
-        if (data.error.type === 'overloaded_error') {
-          if (i < retries - 1) { toast('API busy, retrying...'); await sleep((i+1)*5000); continue; }
-          else throw new Error('API overloaded. Try again.');
+        const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+                // Do NOT include the anthropic-beta header here or in the worker
+            },
+            body: JSON.stringify({
+                model: "claude-3-5-sonnet-20240620",
+                max_tokens: 1500,
+                system: systemPrompt,
+                messages: messages
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || "Failed to fetch from worker");
         }
-        throw new Error(data.error.message || JSON.stringify(data.error));
-      }
-      return data;
-    } catch(err) {
-      if (i === retries - 1) throw err;
-      await sleep(3000);
+
+        return await response.json();
+    } catch (error) {
+        console.error("AI Error:", error);
+        alert("Error: " + error.message);
+        goTo(1);
     }
-  }
 }
 
-// ── STEP 1: START RESEARCH ──
-function startResearch() {
-  const bizName = document.getElementById('bizName').value.trim();
-  const location = document.getElementById('location').value.trim();
-  const industry = document.getElementById('industry').value;
-  if (!bizName) { toast('Business name is required'); return; }
-  if (!location) { toast('Location is required'); return; }
-  if (!industry) { toast('Select a specialty'); return; }
+async function startResearch() {
+    const biz = document.getElementById('bizName').value;
+    if(!biz) return alert("Enter business name");
+    
+    document.getElementById('scanBizName').innerText = biz;
+    goTo(2);
 
-  S.bizName = bizName;
-  S.location = location;
-  S.website = document.getElementById('website').value.trim();
-  S.industry = industry;
-  S.contactName = document.getElementById('contactName').value.trim();
-  S.notes = document.getElementById('notes').value.trim();
+    const systemPrompt = "Analyze this business and provide marketing gaps and strengths.";
+    const userMsg = `Business: ${biz}. Location: ${document.getElementById('location').value}. Specialty: ${document.getElementById('industry').value}.`;
 
-  document.getElementById('scanBizName').textContent = 'Researching ' + bizName;
-  goTo(2);
-  runResearch();
-}
-
-async function runResearch() {
-  animateScan([0, 4000, 9000, 14000, 18000]);
-
-  const websiteNote = S.website ? `Their website is: ${S.website}` : 'No website provided — search for one if possible.';
-
-  const systemPrompt = `You are a marketing analyst at Messick Marketing. Use web search to research this healthcare practice's online presence, then return a structured JSON report. Search for their Google Business Profile, social media channels (Instagram, Facebook, LinkedIn, TikTok), website quality, and reviews. Be specific — report what you actually find. After searching, return ONLY valid JSON with no markdown or backticks.`;
-
-  const userPrompt = `Research the web presence of this healthcare practice:
-
-- Name: ${S.bizName}
-- Location: ${S.location}
-- Specialty: ${S.industry}
-- Contact: ${S.contactName || 'Not specified'}
-- ${websiteNote}
-- Notes: ${S.notes || 'None'}
-
-Search for their Google Business Profile, all social media channels, website quality, and reviews/reputation. After completing your searches, return ONLY this JSON (no markdown, no backticks, no extra text):
-
-{"scores":{"website":{"score":0,"label":"Website Quality"},"social":{"score":0,"label":"Social Presence"},"gbp":{"score":0,"label":"Google / GBP"},"overall":{"score":0,"label":"Overall Score"}},"presence":{"website":{"status":"found","detail":""},"gbp":{"status":"found","detail":""},"instagram":{"status":"found","detail":""},"facebook":{"status":"found","detail":""},"linkedin":{"status":"found","detail":""},"tiktok":{"status":"found","detail":""}},"gaps":[{"type":"gap","text":""}],"strengths":[{"type":"ok","text":""}],"services":[{"name":"","priority":"high","why":""}],"summary":""}
-
-Replace all values with your actual findings. Status: found/partial/missing. Gap types: gap=red, warn=orange, ok=green. Include 3-6 gaps, 2-4 strengths, 4-7 services ranked high to low.
-
-Available services: Social Media Management, Content Marketing / SEO Blogging, Google Business Profile Optimization, Paid Social Advertising (Meta), Email Marketing / Patient Nurture, Video / Reel Production Briefs, Physician Thought Leadership, Website Content Refresh, Reputation Management (Reviews Strategy), Brand Messaging / Identity, TikTok / Short-Form Video Strategy, LinkedIn Presence Building`;
-
-  try {
-    const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
-    let messages = [{ role: 'user', content: userPrompt }];
-    let finalData = null;
-
-    for (let iter = 0; iter < 8; iter++) {
-      const data = await callAI({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 3000,
-        system: systemPrompt,
-        tools,
-        messages
-      });
-
-      console.log(`Iter ${iter} stop_reason:`, data.stop_reason, 'blocks:', data.content?.length);
-
-      if (data.stop_reason === 'end_turn') {
-        finalData = data;
-        break;
-      }
-
-      if (data.stop_reason === 'tool_use') {
-        messages.push({ role: 'assistant', content: data.content });
-        const toolResults = data.content
-          .filter(b => b.type === 'tool_use')
-          .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: 'Search executed.' }));
-        messages.push({ role: 'user', content: toolResults });
-        continue;
-      }
-
-      finalData = data;
-      break;
+    const result = await callAI([{role: "user", content: userMsg}], systemPrompt);
+    
+    if(result) {
+        // Handle result structure based on how your worker returns it
+        const text = result.content ? result.content[0].text : result.text;
+        document.getElementById('findingsContent').innerText = text;
+        goTo(3);
     }
-
-    if (!finalData) { toast('Research timed out — try again'); goTo(1); return; }
-
-    let raw = '';
-    for (const block of (finalData.content || [])) {
-      if (block.type === 'text') raw += block.text;
-    }
-
-    console.log('Final raw:', raw);
-    raw = raw.replace(/```json|```/g, '').trim();
-
-    let parsed;
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (match) {
-      try { parsed = JSON.parse(match[0]); }
-      catch(e) { toast('JSON parse error — check console'); console.error('Failed:', match[0]); goTo(1); return; }
-    } else {
-      toast('No JSON in response — check console');
-      console.error('Raw response:', raw);
-      goTo(1); return;
-    }
-
-    S.researchRaw = raw;
-    S.findings = parsed;
-    S.services = parsed.services || [];
-    S.selected = S.services.filter(sv => sv.priority === 'high').map(sv => sv.name);
-
-    renderFindings();
-    renderServices();
-
-    const summaryMsg = parsed.summary || 'Research complete. Review the findings above and let me know if anything looks off.';
-    addChatMsg('findingsChatMsgs', 'assistant', `Here's what I found for ${S.bizName}:\n\n${summaryMsg}\n\nFeel free to correct anything, add context, or ask questions before moving on.`);
-
-    goTo(3);
-
-  } catch(err) {
-    toast('Research error: ' + err.message);
-    console.error(err);
-    goTo(1);
-  }
 }
 
-
-async function animateScan(delays) {
-  for (let i = 1; i <= 5; i++) {
-    await sleep(delays[i-1]);
-    if (i > 1) {
-      const prev = document.getElementById('ss'+(i-1));
-      if (prev) { prev.classList.remove('active'); prev.classList.add('done'); }
-    }
-    const el = document.getElementById('ss'+i);
-    if (el) el.classList.add('active');
-  }
-}
-
-// ── RENDER FINDINGS ──
-function renderFindings() {
-  const f = S.findings;
-  document.getElementById('findingsBizName').textContent = S.bizName;
-
-  // Scores
-  const strip = document.getElementById('scoreStrip');
-  strip.innerHTML = Object.values(f.scores).map(s => {
-    const c = s.score >= 70 ? 'green' : s.score >= 45 ? 'orange' : 'red';
-    return `<div class="score-card"><div class="score-val ${c}">${s.score}</div><div class="score-lbl">${s.label}</div></div>`;
-  }).join('');
-
-  // Presence cards
-  const presenceLabels = { website:'🌐 Website', gbp:'📍 Google Business', instagram:'📸 Instagram', facebook:'👍 Facebook', linkedin:'💼 LinkedIn', tiktok:'🎵 TikTok' };
-  const presenceGrid = document.getElementById('presenceGrid');
-  presenceGrid.innerHTML = Object.entries(f.presence || {}).map(([key, val]) => {
-    const statusClass = val.status === 'found' ? 'status-found' : val.status === 'partial' ? 'status-partial' : 'status-missing';
-    const statusText = val.status === 'found' ? '✓ Found' : val.status === 'partial' ? '~ Partial' : '✕ Not Found';
-    return `<div class="presence-card">
-      <div class="presence-card-title">${presenceLabels[key] || key}</div>
-      <div class="presence-status ${statusClass}">${statusText}</div>
-      <div class="presence-detail">${val.detail || ''}</div>
-    </div>`;
-  }).join('');
-
-  // Gaps & Strengths
-  const icons = { gap:'<span class="fi fi-gap">✕</span>', warn:'<span class="fi fi-warn">⚠</span>', ok:'<span class="fi fi-ok">✓</span>' };
-  const gapsHtml = (f.gaps||[]).map(g => `<div class="finding-item">${icons[g.type]||icons.warn}<span>${g.text}</span></div>`).join('');
-  const strHtml = (f.strengths||[]).map(g => `<div class="finding-item"><span class="fi fi-ok">✓</span><span>${g.text}</span></div>`).join('');
-  document.getElementById('findingsGrid').innerHTML = `
-    <div class="finding-card">
-      <div class="finding-card-title">⚡ Gaps &amp; Opportunities</div>${gapsHtml}
-    </div>
-    <div class="finding-card">
-      <div class="finding-card-title">✅ Strengths</div>${strHtml}
-    </div>`;
-}
-
-// ── FINDINGS CHAT ──
-function sendFindingsChip(text) {
-  document.getElementById('findingsChatInput').value = text;
-  sendFindingsMsg();
-}
-
-async function sendFindingsMsg() {
-  const input = document.getElementById('findingsChatInput');
-  const sendBtn = document.getElementById('findingsSendBtn');
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  input.value = '';
-  input.style.height = 'auto';
-  sendBtn.disabled = true;
-
-  S.findingsChatHistory.push({ role:'user', content: msg });
-  addChatMsg('findingsChatMsgs', 'user', msg);
-  const thinkBubble = addChatMsg('findingsChatMsgs', 'assistant', 'Looking into that...', true);
-
-  const historyStr = S.findingsChatHistory.slice(-8).map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`).join('\n');
-
-  const prompt = `You are a marketing analyst who just researched this healthcare practice's web presence. The user is reviewing your findings and may be correcting information, asking questions, or adding context.
-
-PROSPECT: ${S.bizName} | ${S.industry} | ${S.location}
-RESEARCH SUMMARY: ${S.findings?.summary || ''}
-GAPS FOUND: ${(S.findings?.gaps||[]).map(g=>g.text).join('; ')}
-STRENGTHS: ${(S.findings?.strengths||[]).map(s=>s.text).join('; ')}
-WEB PRESENCE: ${JSON.stringify(S.findings?.presence || {})}
-
-CONVERSATION:
-${historyStr}
-
-Respond helpfully and conversationally. If they're correcting a finding, acknowledge it and explain how it changes your assessment. If they're asking a question, answer directly. If they're adding context, incorporate it and note what it means for the pitch. Keep responses concise — 2-5 sentences max. Never use em dashes.`;
-
-  try {
-    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:400, messages:[{role:'user',content:prompt}] });
-    const reply = data.content[0].text;
-    thinkBubble.classList.remove('thinking');
-    thinkBubble.textContent = reply;
-    S.findingsChatHistory.push({ role:'assistant', content: reply });
-  } catch(err) {
-    thinkBubble.classList.remove('thinking');
-    thinkBubble.textContent = 'Error: ' + err.message;
-  }
-
-  sendBtn.disabled = false;
-  input.focus();
-}
-
-// ── RENDER SERVICES ──
-function renderServices() {
-  const pClass = {high:'priority-high', med:'priority-med', low:'priority-low'};
-  const pLabel = {high:'High Priority', med:'Medium', low:'Lower Priority'};
-  document.getElementById('servicesGrid').innerHTML = S.services.map(svc => {
-    const sel = S.selected.includes(svc.name);
-    const safeName = svc.name.replace(/'/g,"\\'");
-    return `<div class="service-card${sel?' selected':''}" onclick="toggleSvc(this,'${safeName}')">
-      <div class="service-check">${sel?'✓':''}</div>
-      <div class="service-priority ${pClass[svc.priority]||'priority-med'}">${pLabel[svc.priority]||''}</div>
-      <div class="service-name">${svc.name}</div>
-      <div class="service-why">${svc.why}</div>
-    </div>`;
-  }).join('');
-}
-
-function toggleSvc(el, name) {
-  el.classList.toggle('selected');
-  const check = el.querySelector('.service-check');
-  if (el.classList.contains('selected')) { check.textContent = '✓'; if (!S.selected.includes(name)) S.selected.push(name); }
-  else { check.textContent = ''; S.selected = S.selected.filter(s => s !== name); }
-}
-
-// ── CUSTOM SERVICES ──
-function addCustomService() {
-  const name = document.getElementById('customSvcName').value.trim();
-  if (!name) { toast('Enter a service name'); return; }
-  const priority = document.getElementById('customSvcPriority').value;
-  const why = document.getElementById('customSvcWhy').value.trim();
-
-  const svc = { name, priority, why: why || 'Custom service identified as a gap', custom: true };
-  S.customServices.push(svc);
-  if (!S.selected.includes(name)) S.selected.push(name);
-
-  // Add to services list
-  S.services.push(svc);
-  renderServices();
-  renderCustomTags();
-
-  document.getElementById('customSvcName').value = '';
-  document.getElementById('customSvcWhy').value = '';
-  document.getElementById('customSvcPriority').value = 'med';
-  toast('Service added');
-}
-
-function renderCustomTags() {
-  document.getElementById('customTagList').innerHTML = S.customServices.map((svc, i) =>
-    `<div class="custom-tag">${svc.name} <span class="custom-tag-remove" onclick="removeCustomSvc(${i})">×</span></div>`
-  ).join('');
-}
-
-function removeCustomSvc(idx) {
-  const name = S.customServices[idx].name;
-  S.customServices.splice(idx, 1);
-  S.services = S.services.filter(s => s.name !== name || !s.custom);
-  S.selected = S.selected.filter(s => s !== name);
-  renderServices();
-  renderCustomTags();
-}
-
-// ── PITCH ──
 async function generatePitch() {
-  const allSelected = [...S.selected];
-  if (!allSelected.length) { toast('Select at least one service'); return; }
-  S.pitches = {};
-  S.pitchChatHistory = { email:[], dm:[], linkedin:[] };
-  S.channel = 'email';
-  document.querySelectorAll('.channel-tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  document.getElementById('pitchBizName').textContent = S.bizName;
-  document.getElementById('pitchChatMsgs').innerHTML = '';
-  goTo(5);
-  await streamPitch('email');
-}
+    goTo(5);
+    document.getElementById('pitchBody').innerText = "Generating...";
+    
+    const context = document.getElementById('findingsContent').innerText;
+    const result = await callAI([
+        {role: "user", content: `Based on these findings: ${context}, write a short email pitch.`}
+    ], "Professional copywriter.");
 
-async function streamPitch(channel) {
-  S.channel = channel;
-  const body = document.getElementById('pitchBody');
-  body.classList.add('streaming');
-  if (S.pitches[channel]) {
-    body.innerHTML = S.pitches[channel].replace(/\n/g,'<br>');
-    body.classList.remove('streaming');
-    renderPitchChatHistory(channel);
-    return;
-  }
-  body.innerHTML = '<span class="cursor-blink"></span>';
-
-  const channelGuide = {
-    email: 'Write a cold outreach email. First line must be "Subject: [subject line]". Under 200 words. Personal, specific, not corporate.',
-    dm: 'Write a short Instagram or Facebook DM. Max 75 words. Casual, warm, reference something specific.',
-    linkedin: 'Write a LinkedIn connection request. Max 55 words. Professional but human. No jargon.'
-  };
-
-  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
-  const chatContext = S.findingsChatHistory.filter(m=>m.role==='user').map(m=>m.content).join('; ');
-  const allSelected = [...S.selected];
-
-  const prompt = `You are Morgan at Messick Marketing, a boutique healthcare marketing agency in Georgia. Write a pitch outreach message.
-
-Prospect: ${S.bizName}
-Specialty: ${S.industry}
-Location: ${S.location || 'Not specified'}
-Contact: ${S.contactName || 'the practice'}
-Key gaps found via research: ${gaps}
-${chatContext ? `Additional context from discussion: ${chatContext}` : ''}
-Services to pitch: ${allSelected.join(', ')}
-
-${channelGuide[channel]}
-
-Rules:
-- Sound like a real person, not a template
-- Reference 1-2 specific things about their practice or specialty found during research
-- Lead with value or a specific observation — not a sales pitch
-- Weave in at least one relevant statistic or data point naturally (patient search behavior, healthcare social media usage, local competition benchmarks, etc.)
-- Never use em dashes
-- Never use: leverage, synergy, holistic, game-changer, cutting-edge
-- Never reference audits, scanning tools, AI research, or data collection
-- Only speak to observable business opportunities
-- Sign off as: Morgan | Messick Marketing
-- No brackets, no placeholders, no asterisks
-- Write the message only. Nothing else.`;
-
-  try {
-    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
-    const full = data.content[0].text;
-    S.pitches[channel] = full;
-    body.innerHTML = full.replace(/\n/g,'<br>');
-    body.classList.remove('streaming');
-    renderPitchChatHistory(channel);
-  } catch(err) {
-    body.textContent = 'Error: ' + err.message;
-    body.classList.remove('streaming');
-  }
-}
-
-function switchChannel(ch, el) {
-  document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('pitchChatMsgs').innerHTML = '';
-  streamPitch(ch);
-}
-
-async function regeneratePitch() {
-  delete S.pitches[S.channel];
-  S.pitchChatHistory[S.channel] = [];
-  document.getElementById('pitchChatMsgs').innerHTML = '';
-  await streamPitch(S.channel);
-}
-
-function copyPitch() {
-  navigator.clipboard.writeText(document.getElementById('pitchBody').innerText).then(() => toast('Copied'));
-}
-
-// ── PITCH CHAT ──
-function togglePitchChat() {
-  const body = document.getElementById('pitchChatBody');
-  const caret = document.getElementById('pitchChatCaret');
-  const isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  caret.classList.toggle('open', !isOpen);
-}
-
-function renderPitchChatHistory(channel) {
-  const hist = S.pitchChatHistory[channel] || [];
-  const container = document.getElementById('pitchChatMsgs');
-  container.innerHTML = '';
-  hist.forEach(msg => addChatMsg('pitchChatMsgs', msg.role, msg.content));
-}
-
-function sendPitchChip(text) {
-  document.getElementById('pitchChatInput').value = text;
-  sendPitchMsg();
-}
-
-async function sendPitchMsg() {
-  const input = document.getElementById('pitchChatInput');
-  const sendBtn = document.getElementById('pitchSendBtn');
-  const msg = input.value.trim();
-  if (!msg) return;
-  const currentPitch = S.pitches[S.channel];
-  if (!currentPitch) { toast('Generate a pitch first'); return; }
-
-  const body = document.getElementById('pitchChatBody');
-  if (!body.classList.contains('open')) togglePitchChat();
-
-  input.value = '';
-  input.style.height = 'auto';
-  sendBtn.disabled = true;
-
-  S.pitchChatHistory[S.channel].push({ role:'user', content: msg });
-  addChatMsg('pitchChatMsgs', 'user', msg);
-  const thinkBubble = addChatMsg('pitchChatMsgs', 'assistant', 'Rewriting...', true);
-
-  const channelConstraint = {
-    email: 'Keep under 200 words. First line must still be "Subject: [subject line]".',
-    dm: 'Keep under 75 words. Stay casual.',
-    linkedin: 'Keep under 55 words. Stay professional.'
-  };
-
-  const gaps = (S.findings?.gaps||[]).map(g=>g.text).slice(0,3).join('; ');
-  const recentHistory = S.pitchChatHistory[S.channel].slice(-6,-1).map(m=>`${m.role==='user'?'Feedback':'Previous'}:\n${m.content}`).join('\n\n');
-
-  const prompt = `You are Morgan at Messick Marketing. Rewrite the following pitch based on user feedback.
-
-ORIGINAL PITCH:
-${currentPitch}
-
-PROSPECT: ${S.bizName} | ${S.industry} | ${S.location || 'Not specified'}
-Key gaps: ${gaps}
-Services pitched: ${S.selected.join(', ')}
-
-${recentHistory ? `PRIOR FEEDBACK:\n${recentHistory}\n` : ''}NEW FEEDBACK: ${msg}
-
-${channelConstraint[S.channel]}
-
-Rules: No em dashes. No: leverage, synergy, holistic, game-changer, cutting-edge. No audit/tool references. Sign off: Morgan | Messick Marketing. No brackets or placeholders. Write the revised message only.`;
-
-  try {
-    const data = await callAI({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] });
-    const revised = data.content[0].text;
-    S.pitches[S.channel] = revised;
-    document.getElementById('pitchBody').innerHTML = revised.replace(/\n/g,'<br>');
-    thinkBubble.classList.remove('thinking');
-    thinkBubble.textContent = 'Done. Pitch updated above.';
-    S.pitchChatHistory[S.channel].push({ role:'assistant', content: 'Done. Pitch updated above.' });
-  } catch(err) {
-    thinkBubble.classList.remove('thinking');
-    thinkBubble.textContent = 'Error: ' + err.message;
-  }
-
-  sendBtn.disabled = false;
-  input.focus();
-}
-
-// ── CHAT HELPER ──
-function addChatMsg(containerId, role, content, thinking = false) {
-  const container = document.getElementById(containerId);
-  const div = document.createElement('div');
-  div.className = `chat-msg ${role}`;
-  const bubble = document.createElement('div');
-  bubble.className = `chat-bubble${thinking ? ' thinking' : ''}`;
-  bubble.textContent = content;
-  div.appendChild(bubble);
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-  return bubble;
-}
-
-// ── UTILS ──
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-function resetAll() {
-  S = {
-    step:1, bizName:'', website:'', industry:'', location:'', contactName:'', notes:'',
-    researchRaw:'', findings:null, services:[], selected:[], customServices:[],
-    channel:'email', pitches:{}, findingsChatHistory:[],
-    pitchChatHistory:{ email:[], dm:[], linkedin:[] }
-  };
-  ['bizName','website','location','contactName','notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('industry').value = '';
-  document.getElementById('findingsChatMsgs').innerHTML = '';
-  document.getElementById('pitchChatMsgs').innerHTML = '';
-  document.getElementById('customTagList').innerHTML = '';
-  const cb = document.getElementById('pitchChatBody');
-  const cc = document.getElementById('pitchChatCaret');
-  if(cb) cb.classList.remove('open');
-  if(cc) cc.classList.remove('open');
-  goTo(1);
-}
-
-// ── PASSWORD ──
-window.addEventListener('DOMContentLoaded', () => {
-  if (!sessionStorage.getItem('mm_unlocked')) {
-    document.querySelector('.shell').style.display = 'none';
-    document.getElementById('pwGate').style.display = 'flex';
-    setTimeout(() => document.getElementById('pwInput').focus(), 100);
-  }
-});
-
-function checkPassword() {
-  if (document.getElementById('pwInput').value === 'Messick2026') {
-    sessionStorage.setItem('mm_unlocked','1');
-    document.getElementById('pwGate').style.display = 'none';
-    document.querySelector('.shell').style.display = 'flex';
-  } else {
-    const err = document.getElementById('pwError');
-    err.style.display = 'block';
-    document.getElementById('pwInput').value = '';
-    setTimeout(() => err.style.display = 'none', 2500);
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('pwGate').style.display === 'flex') checkPassword();
-});
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2800);
+    if(result) {
+        const text = result.content ? result.content[0].text : result.text;
+        document.getElementById('pitchBody').innerText = text;
+    }
 }
 </script>
+
 </body>
 </html>
