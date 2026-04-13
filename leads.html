@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Leads Tool</title>
+<title>Messick Marketing | Cold Pitch Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -268,6 +268,23 @@
   .pitch-output ul li { margin-bottom: 7px; }
   .pitch-output strong { font-weight: 700; color: var(--black); }
 
+  /* ── PITCH EDITOR ── */
+  .pitch-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .pitch-chip {
+    background: var(--warm); border: 1px solid var(--border); border-radius: 20px;
+    padding: 7px 14px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--steel); cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .pitch-chip:hover { background: var(--steel); color: white; border-color: var(--steel); }
+  .pitch-chip.loading { background: var(--steel-dim); color: var(--steel); border-color: var(--border); cursor: not-allowed; }
+  .pitch-edit-row { display: flex; gap: 10px; }
+  .pitch-edit-row input {
+    flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; background: var(--warm);
+  }
+  .pitch-edit-row input:focus { border-color: var(--steel); background: white; }
+
   /* ── MISC ── */
   .row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
   .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--muted); margin-bottom: 12px; }
@@ -315,6 +332,7 @@
         <div class="field"><label>Practice / Business Name</label><input type="text" id="bizName" placeholder="e.g. NY Vascular Care"></div>
         <div class="field"><label>City, State</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
         <div class="field"><label>Website URL (optional)</label><input type="url" id="website" placeholder="https://..."></div>
+        <div class="field"><label>Your Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><textarea id="prospectNotes" placeholder="e.g. I noticed their Instagram hasn't posted in 3 months, they have no Google reviews, their homepage hero has no CTA..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea></div>
         <button class="btn-primary" onclick="startResearch()">Run Intelligence Report →</button>
       </div>
     </div>
@@ -402,19 +420,45 @@
       <div class="card" id="pitchLoadCard">
         <div class="loading-wrap">
           <div class="spinner"></div>
-          <div class="loading-status">Crafting your custom pitch...</div>
+          <div class="loading-status" id="pitchLoadStatus">Crafting your custom pitch...</div>
           <div class="loading-note">Tailoring the email and call script to this prospect's specific gaps.</div>
         </div>
       </div>
-      <div class="card" id="pitchCard" style="display:none;">
-        <div class="card-title">Your Custom Pitch</div>
-        <div class="card-sub">Tailored to this prospect's specific gaps and selected services. Includes an email version and call script.</div>
-        <div id="pitchOutput" class="pitch-output"></div>
-      </div>
-      <div class="row-actions" id="pitchActions" style="display:none;">
-        <button class="btn-ghost" onclick="copyPitch()">📋 Copy Pitch</button>
-        <button class="btn-ghost" onclick="goTo(4)">← Change Services</button>
-        <button class="btn-ghost" onclick="restart()">New Prospect</button>
+      <div id="pitchCard" style="display:none;">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:6px;">
+            <div>
+              <div class="card-title" style="margin-bottom:4px;">Your Custom Pitch</div>
+              <div class="card-sub" style="margin-bottom:0;">Tailored to this prospect's gaps and selected services.</div>
+            </div>
+            <div style="display:flex; gap:10px; flex-shrink:0;">
+              <button class="btn-ghost" onclick="copyPitch()">📋 Copy</button>
+              <button class="btn-ghost" onclick="goTo(4)">← Services</button>
+              <button class="btn-ghost" onclick="restart()">New Prospect</button>
+            </div>
+          </div>
+          <div id="pitchOutput" class="pitch-output"></div>
+        </div>
+
+        <div class="card" id="pitchEditCard">
+          <div class="card-title" style="font-size:20px; margin-bottom:4px;">Refine This Pitch</div>
+          <div class="card-sub" style="margin-bottom:16px;">Use quick commands or type your own instruction.</div>
+          <div class="pitch-chips" id="pitchChips">
+            <button class="pitch-chip" onclick="applyChip(this, 'Make it shorter and more punchy')">Shorten it</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Rewrite with more urgency — make the cost of inaction feel real')">Add urgency</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more professional and formal')">More formal</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more conversational and warm')">More casual</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Add relevant healthcare marketing statistics to strengthen the argument')">Add stats</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Make the subject line more compelling and click-worthy')">Better subject</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Strengthen the call to action — make it easier to say yes')">Stronger CTA</button>
+            <button class="pitch-chip" onclick="applyChip(this, 'Focus the pitch more on patient acquisition ROI')">Lead with ROI</button>
+          </div>
+          <div class="pitch-edit-row">
+            <input type="text" id="pitchEditInput" placeholder="Custom instruction, e.g. 'mention we work with vascular practices specifically'" onkeydown="if(event.key==='Enter')sendPitchEdit()">
+            <button class="chat-send" id="pitchEditSendBtn" onclick="sendPitchEdit()">➤</button>
+          </div>
+          <div id="pitchEditStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
+        </div>
       </div>
     </div>
 
@@ -456,8 +500,8 @@
   }
 
   function restart() {
-    state = { biz: '', loc: '', web: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [] };
-    ['bizName','location','website'].forEach(id => document.getElementById(id).value = '');
+    state = { biz: '', loc: '', web: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '' };
+    ['bizName','location','website','prospectNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('chatHistory').innerHTML = '';
     document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
     state.selectedServices = [];
@@ -470,6 +514,7 @@
     state.biz = document.getElementById('bizName').value.trim();
     state.loc = document.getElementById('location').value.trim();
     state.web = document.getElementById('website').value.trim();
+    state.notes = document.getElementById('prospectNotes').value.trim();
     if (!state.biz) { alert('Please enter a business name.'); return; }
     goTo(2);
     document.getElementById('loadStatus').textContent = 'Scraping website architecture and content...';
@@ -518,6 +563,7 @@ IMPORTANT ACCURACY RULES:
 - Only flag something as a gap if you have confirmed it is actually missing across ALL provided page data.
 - Be specific about what page or section you found evidence on.
 - Do not flag copyright years, date references, or any year-stamped content as an issue unless the year is more than 1 year behind ${new Date().getFullYear()}.
+- If "Notes from the sales rep" are included, treat them as high-priority first-hand observations that may confirm or override what the scrape data suggests. Always factor them into your findings.
 
 Return exactly this structure:
 {
@@ -541,7 +587,8 @@ Severity options: "critical", "high", "medium"
 Categories to cover (use as many as relevant): "Website & Conversion", "SEO & Local Search", "Google Business Profile", "Social Media", "Reputation & Reviews", "Content Strategy", "Paid & Ads"
 Include 4-6 findings total. Only flag real, confirmed gaps. Do not use em dashes.`;
 
-      const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}`);
+      const notesSection = state.notes ? `\n\nNotes from the sales rep who reviewed this prospect:\n${state.notes}` : '';
+      const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}${notesSection}`);
       
       let parsed;
       try {
@@ -901,17 +948,67 @@ Format with ## Email Version and ## Call Script as separate sections.
 Keep the email under 200 words. Keep the call script under 150 words.
 Do not use em dashes.`;
 
-      const pitchRes = await callAI(system, `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`);
+      const userMsg = `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`;
+      const pitchRes = await callAI(system, userMsg);
+      state.pitchSystem = system;
+      state.pitchMessages = [
+        { role: 'user', content: userMsg },
+        { role: 'assistant', content: pitchRes }
+      ];
       document.getElementById('pitchOutput').innerHTML = formatPitch(pitchRes);
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
-      document.getElementById('pitchActions').style.display = 'flex';
     } catch(e) {
       document.getElementById('pitchOutput').textContent = 'Error: ' + e.message;
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
-      document.getElementById('pitchActions').style.display = 'flex';
     }
+  }
+
+  function applyChip(btn, instruction) {
+    document.getElementById('pitchEditInput').value = instruction;
+    sendPitchEdit(btn);
+  }
+
+  async function sendPitchEdit(chipBtn) {
+    const input = document.getElementById('pitchEditInput');
+    const instruction = input.value.trim();
+    if (!instruction) return;
+
+    // lock UI
+    const sendBtn = document.getElementById('pitchEditSendBtn');
+    const status = document.getElementById('pitchEditStatus');
+    const chips = document.querySelectorAll('.pitch-chip');
+    input.disabled = true;
+    sendBtn.disabled = true;
+    chips.forEach(c => c.classList.add('loading'));
+    status.textContent = 'Rewriting pitch...';
+
+    // show inline spinner in pitch area
+    const pitchOut = document.getElementById('pitchOutput');
+    const prevHTML = pitchOut.innerHTML;
+    pitchOut.innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
+
+    try {
+      // append the edit instruction to the conversation
+      state.pitchMessages.push({ role: 'user', content: `Please revise the pitch with this instruction: ${instruction}. Return the full revised pitch only — no commentary, no preamble.` });
+
+      const res = await callAIWithHistory(state.pitchSystem, state.pitchMessages);
+      state.pitchMessages.push({ role: 'assistant', content: res });
+
+      pitchOut.innerHTML = formatPitch(res);
+      input.value = '';
+      status.textContent = '✓ Pitch updated';
+      setTimeout(() => status.textContent = '', 3000);
+    } catch(e) {
+      pitchOut.innerHTML = prevHTML;
+      status.textContent = 'Error updating pitch. Try again.';
+    }
+
+    input.disabled = false;
+    sendBtn.disabled = false;
+    chips.forEach(c => c.classList.remove('loading'));
+    if (chipBtn) chipBtn.classList.remove('loading');
   }
 
   function copyPitch() {
