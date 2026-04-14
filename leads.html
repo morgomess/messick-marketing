@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Lead Tool</title>
+<title>Messick Marketing | Leads Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -431,7 +431,8 @@
               <div class="card-title" style="margin-bottom:4px;">Your Custom Pitch</div>
               <div class="card-sub" style="margin-bottom:0;">Tailored to this prospect's gaps and selected services.</div>
             </div>
-            <div style="display:flex; gap:10px; flex-shrink:0;">
+            <div style="display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap;">
+              <button class="btn-ghost" id="undoPitchBtn" onclick="undoPitch()" style="display:none;">↩ Undo</button>
               <button class="btn-ghost" onclick="copyPitch()">📋 Copy</button>
               <button class="btn-ghost" onclick="goTo(4)">← Services</button>
               <button class="btn-ghost" onclick="restart()">New Prospect</button>
@@ -500,7 +501,7 @@
   }
 
   function restart() {
-    state = { biz: '', loc: '', web: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '' };
+    state = { biz: '', loc: '', web: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '', pitchHistory: [] };
     ['bizName','location','website','prospectNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('chatHistory').innerHTML = '';
     document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
@@ -932,20 +933,22 @@ Be direct, specific, and actionable. Do not use em dashes.`;
     const topIssues = findings.filter((f, i) => !dismissed.has(i) && (f.severity === 'critical' || f.severity === 'high')).map(f => f.title + ': ' + f.summary).join('\n');
 
     try {
-      const system = `You are writing a sales pitch on behalf of Messick Marketing, a healthcare social media and content marketing agency.
+      const system = `You are writing a cold outreach email on behalf of Morgan at Messick Marketing, a healthcare social media and content agency specializing in IR and vascular practices.
 
-Write a personalized, confident outreach pitch for the prospect based on the intelligence findings and selected services.
+STRICT RULES — follow every one exactly:
+1. 90-130 words total for the email body (not counting subject line). Count carefully.
+2. No bullet points. No numbered lists. No service lists. Prose only.
+3. No "I hope this finds you well" or any similar opener.
+4. Subject line: observation-style, all lowercase, no question mark, under 50 characters. Prefix it with "Subject: " on its own line.
+5. Open with a business trigger observed about this specific practice — something happening at the practice (new service, expansion, hiring signal, recent press, seasonal campaign, new location). NOT a LinkedIn compliment. NOT generic.
+6. Follow with one sentence naming a persona-level pain point — a pattern across IR/vascular practices in general, not accusatory toward this practice specifically.
+7. One line of social proof — a specific, believable outcome from a comparable healthcare client. Make it concrete (e.g. "helped a vascular practice in Houston grow their Google review count from 12 to 80 in 4 months").
+8. Final line is exactly: "Worth a quick call?"
+9. Sign off as: Morgan | Messick Marketing
+10. Do not use em dashes.
+11. Do not mention specific services by name. Do not list what you offer.
 
-The pitch should:
-- Open by referencing one specific real problem you found (not generic)
-- Briefly introduce Messick Marketing (healthcare specialist, AI-powered content, real patient-focused strategy)
-- Address each selected service with a 1-2 sentence benefit tied to their specific gaps
-- Close with a clear, low-friction CTA (short discovery call, no commitment)
-- Feel consultative and confident, not salesy
-
-Format with ## Email Version and ## Call Script as separate sections.
-Keep the email under 200 words. Keep the call script under 150 words.
-Do not use em dashes.`;
+After the email, add a ## Call Script section (under 100 words, prose, same tone rules).`;
 
       const userMsg = `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`;
       const pitchRes = await callAI(system, userMsg);
@@ -954,6 +957,7 @@ Do not use em dashes.`;
         { role: 'user', content: userMsg },
         { role: 'assistant', content: pitchRes }
       ];
+      state.pitchHistory = [pitchRes];
       document.getElementById('pitchOutput').innerHTML = formatPitch(pitchRes);
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
@@ -996,7 +1000,9 @@ Do not use em dashes.`;
       const res = await callAIWithHistory(state.pitchSystem, state.pitchMessages);
       state.pitchMessages.push({ role: 'assistant', content: res });
 
+      state.pitchHistory.push(res);
       pitchOut.innerHTML = formatPitch(res);
+      document.getElementById('undoPitchBtn').style.display = state.pitchHistory.length > 1 ? 'inline-flex' : 'none';
       input.value = '';
       status.textContent = '✓ Pitch updated';
       setTimeout(() => status.textContent = '', 3000);
@@ -1009,6 +1015,23 @@ Do not use em dashes.`;
     sendBtn.disabled = false;
     chips.forEach(c => c.classList.remove('loading'));
     if (chipBtn) chipBtn.classList.remove('loading');
+  }
+
+  function undoPitch() {
+    if (state.pitchHistory.length <= 1) return;
+    // pop current, restore previous
+    state.pitchHistory.pop();
+    // also pop the last two messages from pitchMessages (user instruction + assistant response)
+    if (state.pitchMessages.length > 2) {
+      state.pitchMessages.pop();
+      state.pitchMessages.pop();
+    }
+    const prev = state.pitchHistory[state.pitchHistory.length - 1];
+    document.getElementById('pitchOutput').innerHTML = formatPitch(prev);
+    document.getElementById('pitchEditStatus').textContent = '↩ Restored previous version';
+    setTimeout(() => document.getElementById('pitchEditStatus').textContent = '', 3000);
+    // hide undo btn if back to original
+    document.getElementById('undoPitchBtn').style.display = state.pitchHistory.length > 1 ? 'inline-flex' : 'none';
   }
 
   function copyPitch() {
