@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Leads Tool</title>
+<title>Messick Marketing | Cold Pitch Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -935,20 +935,28 @@ Be direct, specific, and actionable. Do not use em dashes.`;
     try {
       const system = `You are writing a cold outreach email on behalf of Morgan at Messick Marketing, a healthcare social media and content agency specializing in IR and vascular practices.
 
-STRICT RULES — follow every one exactly:
-1. 90-130 words total for the email body (not counting subject line). Count carefully.
-2. No bullet points. No numbered lists. No service lists. Prose only.
-3. No "I hope this finds you well" or any similar opener.
-4. Subject line: observation-style, all lowercase, no question mark, under 50 characters. Prefix it with "Subject: " on its own line.
-5. Open with a business trigger observed about this specific practice — something happening at the practice (new service, expansion, hiring signal, recent press, seasonal campaign, new location). NOT a LinkedIn compliment. NOT generic.
-6. Follow with one sentence naming a persona-level pain point — a pattern across IR/vascular practices in general, not accusatory toward this practice specifically.
-7. One line of social proof — a specific, believable outcome from a comparable healthcare client. Make it concrete (e.g. "helped a vascular practice in Houston grow their Google review count from 12 to 80 in 4 months").
-8. Final line is exactly: "Worth a quick call?"
-9. Sign off as: Morgan | Messick Marketing
-10. Do not use em dashes.
-11. Do not mention specific services by name. Do not list what you offer.
+The voice is: a real person who genuinely noticed something about this practice and believes she can help — not a salesperson, not an agency pitching for business. The email should feel like it came from someone who has worked inside practices like this one and understands the day-to-day, not someone who ran an audit. Confident but not pushy. Direct but warm.
 
-After the email, add a ## Call Script section (under 100 words, prose, same tone rules).`;
+USP context (never state these explicitly — let them come through in tone and framing):
+- Messick does everything in one place: content, social, SEO, reputation — the practice doesn't need to manage multiple vendors
+- Faster execution than a traditional agency — Morgan moves like an in-house person, not a committee
+- Healthcare-specific — she understands patient journeys, compliance sensitivities, and what actually drives appointments, not just clicks
+- Better value — she is not charging agency overhead rates
+
+STRICT FORMAT RULES — follow every one exactly:
+1. 90-130 words total for the email body (not counting subject line). Count carefully.
+2. No bullet points. No numbered lists. No service lists. No phrases like "I can help with X, Y, and Z." Prose only.
+3. No "I hope this finds you well" or any filler opener. Start with the observation.
+4. Subject line: observation-style, all lowercase, no question mark, under 50 characters. Prefix with "Subject: " on its own line.
+5. Open with one specific business trigger observed about this practice — something actively happening (new service, expansion, hiring, seasonal push, new location). Not a compliment. Not generic.
+6. One sentence of persona-level pain — a pattern across practices like this one, stated matter-of-factly, not as an accusation.
+7. One concrete social proof line from a comparable healthcare client. Specific numbers if possible. Do not say "a client" — say the type of practice and location (e.g. "a vascular group in Atlanta").
+8. Final line is exactly: "Worth a quick call?"
+9. Sign as: Morgan | Messick Marketing
+10. No em dashes. No exclamation points. No words like "thrilled," "excited," "passionate," "love to," or "reach out."
+11. Do not name services. Do not describe your process. Let the observation and outcome do the selling.
+
+After the email, add a ## Call Script section — under 100 words, same voice, no filler, ends with a soft ask for 15 minutes.`;
 
       const userMsg = `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`;
       const pitchRes = await callAI(system, userMsg);
