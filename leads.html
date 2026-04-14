@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messick Marketing | Cold Pitch Tool</title>
+<title>Messick Marketing | Lead Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -925,7 +925,6 @@ Be direct, specific, and actionable. Do not use em dashes.`;
     goTo(5);
     document.getElementById('pitchLoadCard').style.display = 'block';
     document.getElementById('pitchCard').style.display = 'none';
-    document.getElementById('pitchActions').style.display = 'none';
 
     const selectedNames = allSelected().join(', ');
     const findings = state.intelRaw?.findings || [];
@@ -959,7 +958,8 @@ Do not use em dashes.`;
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
     } catch(e) {
-      document.getElementById('pitchOutput').textContent = 'Error: ' + e.message;
+      console.error('Pitch generation error:', e);
+      document.getElementById('pitchOutput').innerHTML = '<div style="color:#c0392b;padding:20px;background:#fff5f4;border-radius:8px;border:1px solid #f5bfb8;font-size:14px;"><strong>Error generating pitch:</strong> ' + e.message + '<br><br>Check the browser console for details, or try going back and regenerating.</div>';
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
     }
