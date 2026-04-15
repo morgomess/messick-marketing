@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2Content Generator — Messick Marketing</title>
+<title>Content Generator — Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -232,18 +232,22 @@
 
       <div>
         <div class="section-label">Content Type</div>
-        <div class="type-grid">
+        <div class="type-grid" style="grid-template-columns: repeat(4, 1fr);">
           <button class="type-btn active" data-type="graphic" onclick="selectType(this)">
             <div class="icon">🖼️</div>
             <span class="lbl">Graphic</span>
           </button>
-          <button class="type-btn" data-type="carousel" onclick="selectType(this)">
-            <div class="icon">📱</div>
-            <span class="lbl">Carousel</span>
-          </button>
           <button class="type-btn" data-type="reel" onclick="selectType(this)">
             <div class="icon">🎬</div>
             <span class="lbl">Reel</span>
+          </button>
+          <button class="type-btn" data-type="caption" onclick="selectType(this)">
+            <div class="icon">✍️</div>
+            <span class="lbl">Caption</span>
+          </button>
+          <button class="type-btn" data-type="hashtags" onclick="selectType(this)">
+            <div class="icon">#</div>
+            <span class="lbl">Hashtags</span>
           </button>
         </div>
       </div>
@@ -534,7 +538,7 @@
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
     const imgRules = `Imagen 4 text rendering rules:
-- Maximum 1 text element per image for carousels, maximum 2 for single graphics
+- Maximum 2 text elements in the entire image
 - Each text element must be 3 words or fewer — shorter = more accurate rendering
 - Write exact text strings in quotes, e.g. text: "KNEE PAIN?" not "include headline about knee pain"
 - Specify exact placement: top-center, bottom-left, center, etc.
@@ -546,12 +550,16 @@
 - Strong single visual + minimal text only
 - End with: "Photorealistic, high resolution, crisp sharp text, professional social media graphic, no distorted letters, no placeholder elements"`;
 
+    // Caption-only and hashtags-only don't need image context
+    const captionOnly = selectedType === 'caption';
+    const hashtagsOnly = selectedType === 'hashtags';
+
     return `You are an expert social media content strategist for a healthcare marketing agency. All content is cross-posted so avoid platform-specific references.
 
 Brand: ${d.brandName}
-Content Type: ${selectedType} — ${ratio} aspect ratio
+${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType} — ${ratio} aspect ratio`}
 ${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
-${d.brandStyle ? 'Visual Style / Colors: ' + d.brandStyle : ''}
+${d.brandStyle && !captionOnly && !hashtagsOnly ? 'Visual Style / Colors: ' + d.brandStyle : ''}
 ${d.objective ? 'Objective: ' + d.objective : ''}
 ${d.audience ? 'Target Audience: ' + d.audience : ''}
 ${d.tone ? 'Tone: ' + d.tone : ''}
@@ -561,12 +569,10 @@ ${d.notes ? 'Additional Notes: ' + d.notes : ''}
 Respond with a single valid JSON object and nothing else — no markdown, no backticks, no explanation.
 
 Required JSON keys:
-- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags.
-- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)
+${hashtagsOnly ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags.'}
+${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)'}
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base visual style description for a cohesive 4-slide carousel series. Describe the photographic or illustrative style, color palette, lighting, mood, and background treatment. Do NOT describe any text, UI elements, templates, icons, placeholder shapes, or layout chrome — Imagen must render real photography or clean brand visuals, not design templates. ${imgRules}
-- "carousel_slides": array of exactly 4 objects, each with: slide_number (int), headline (string, max 3 words — punchy, unique per slide), body_text (string, max 6 words — distinct supporting point, not a repeat of the headline). All 4 slides must cover different angles of the topic so together they tell a complete story. No two slides should share the same headline or body concept.` : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3:4 social media graphic. ${imgRules}` : ''}`;
   }
 
@@ -638,47 +644,44 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
       document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
 
       const isReel = selectedType === 'reel';
-      const isCarousel = selectedType === 'carousel';
+      const isGraphic = selectedType === 'graphic';
+      const isCaption = selectedType === 'caption';
+      const isHashtags = selectedType === 'hashtags';
+      const isCopyOnly = isCaption || isHashtags;
 
-      show('card-image', !isReel);
-      show('card-carousel-slides', isCarousel);
+      // Show/hide output cards based on type
+      show('card-image', isGraphic);
+      show('card-carousel-slides', false);
       show('card-reel', isReel);
       show('card-reel-prompt', isReel);
       show('card-reel-apps', isReel);
       show('download-all-btn', false);
 
+      // Caption card: hide for hashtags-only
+      document.getElementById('caption-output').closest('.output-card').style.display = isHashtags ? 'none' : 'block';
+      // Hashtags card: hide for caption-only
+      document.getElementById('hashtags-output').closest('.output-card').style.display = isCaption ? 'none' : 'block';
+
       if (isReel) {
         document.getElementById('reel-script-output').textContent = parsed.reel_script || '';
         document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
-      } else {
-        document.getElementById('image-card-title').textContent = isCarousel ? 'Generated Carousel Images' : 'Generated Graphic';
+      } else if (isGraphic) {
+        document.getElementById('image-card-title').textContent = 'Generated Graphic';
         document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
-
-        if (isCarousel && parsed.carousel_slides) {
-          const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
-          document.getElementById('carousel-slides-output').textContent = slides.map(s => `Slide ${s.slide_number}\n${s.headline}\n${s.body_text}`).join('\n\n---\n\n');
-        }
-
-        // Set up image grid placeholders
-        const count = isCarousel ? 4 : 1;
         const grid = document.getElementById('image-grid');
-        grid.className = `image-grid ${isCarousel ? 'carousel' : 'graphic'}`;
-        grid.innerHTML = Array(count).fill(null).map(() =>
-          `<div class="image-slot ratio-45"><div class="img-placeholder">Generating...</div></div>`
-        ).join('');
+        grid.className = 'image-grid graphic';
+        grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Generating...</div></div>`;
       }
 
       showOutput();
 
-      // Image generation
-      if (!isReel && parsed.image_prompt) {
+      // Image generation — graphic only
+      if (isGraphic && parsed.image_prompt) {
         const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
-
-        // FIX 2 & 3: Use parseStyleForImage so raw user text never hits Imagen
         const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
         const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
-        if (isCarousel && parsed.carousel_slides) {
+        if (false) {  // carousel removed
           const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
           const slots = document.getElementById('image-grid').querySelectorAll('.image-slot');
 
@@ -777,13 +780,15 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
   async function regenerateCopy() {
     const d = getFormData();
     if (!d.brandName) return alert('Please enter a brand name.');
-    document.getElementById('caption-output').textContent = 'Regenerating...';
-    document.getElementById('hashtags-output').textContent = '';
+    const isHashtags = selectedType === 'hashtags';
+    const isCaption = selectedType === 'caption';
+    if (!isHashtags) document.getElementById('caption-output').textContent = 'Regenerating...';
+    if (!isCaption) document.getElementById('hashtags-output').textContent = '';
     try {
       const result = await callWorker('claude', { prompt: buildPrompt(d) });
       const parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
-      document.getElementById('caption-output').textContent = parsed.caption || '';
-      document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
+      if (!isHashtags) document.getElementById('caption-output').textContent = parsed.caption || '';
+      if (!isCaption) document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
     } catch (e) {
       document.getElementById('caption-output').textContent = 'Error: ' + e.message;
     }
