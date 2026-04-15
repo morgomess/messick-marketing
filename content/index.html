@@ -145,7 +145,7 @@
   }
   .image-slot.ratio-45 { aspect-ratio: 4/5; }
   .image-slot.ratio-916 { aspect-ratio: 9/16; }
-  .image-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .image-slot img.generated { width: 100%; height: 100%; object-fit: cover; display: block; }
   .img-placeholder { font-size: 12px; color: var(--muted); text-align: center; padding: 16px; line-height: 1.6; }
   .img-placeholder.error { color: #e8533a; }
 
@@ -158,6 +158,15 @@
     opacity: 0; transition: opacity 0.18s;
   }
   .image-slot:hover .dl-overlay { opacity: 1; }
+
+  /* Logo overlay on image */
+  .image-slot .logo-overlay {
+    position: absolute; bottom: 10px; left: 10px;
+    max-height: 32px; max-width: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+    pointer-events: none;
+  }
 
   /* REEL APP RECOMMENDATIONS */
   .reel-apps { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -440,7 +449,7 @@
   const PASSWORD = 'Messick2026';
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
-  let generatedImages = []; // store base64 for download
+  let generatedImages = [];
 
   function checkPassword() {
     if (document.getElementById('pw-input').value === PASSWORD) {
@@ -511,6 +520,16 @@
     };
   }
 
+  // FIX 2 & 3: Strip instructional/connective language from brand style input
+  // so only visual descriptors (colors, hex codes, style words) hit the image prompt.
+  function parseStyleForImage(styleInput) {
+    return styleInput
+      .replace(/\b(and|with|use|please|include|make|the|it|should|be|have|also|a|an|to|on|in|for|of)\b/gi, '')
+      .replace(/[^\w\s#,./%-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function buildPrompt(d) {
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
@@ -531,7 +550,6 @@ Brand: ${d.brandName}
 Content Type: ${selectedType} — ${ratio} aspect ratio
 ${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
 ${d.brandStyle ? 'Visual Style / Colors: ' + d.brandStyle : ''}
-${d.logoUrl ? 'Logo URL: ' + d.logoUrl : ''}
 ${d.objective ? 'Objective: ' + d.objective : ''}
 ${d.audience ? 'Target Audience: ' + d.audience : ''}
 ${d.tone ? 'Tone: ' + d.tone : ''}
@@ -545,8 +563,8 @@ Required JSON keys:
 - "hashtags": 30 relevant hashtags as a single space-separated string
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base style prompt establishing the visual design system for all 4 slides — background, colors, layout, decorative elements, brand feel. Do NOT include any specific text in this prompt. ${imgRules}
-- "carousel_slides": array of 4 objects each with slide_number (int), headline (string, max 5 words, this will be rendered as large text on the image), and body_text (string, max 1 sentence, this will be rendered as smaller text on the image)` : ''}
+${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base style prompt establishing the visual design system for all 4 slides — background, colors, layout, decorative elements, brand feel. Do NOT include any specific text content in this prompt. ${imgRules}
+- "carousel_slides": array of exactly 4 objects, each with slide_number (int), headline (string, max 5 words — must be unique and specific to that slide's topic), and body_text (string, max 1 sentence — must be unique content distinct from all other slides). Each slide must cover a different angle or point so the set tells a complete story.` : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3:4 social media graphic. ${imgRules}` : ''}`;
   }
 
@@ -559,6 +577,16 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
     return data;
+  }
+
+  // FIX 4: Overlay logo on a rendered image slot
+  function applyLogoOverlay(slot, logoUrl) {
+    if (!logoUrl) return;
+    const logo = document.createElement('img');
+    logo.src = logoUrl;
+    logo.className = 'logo-overlay';
+    logo.onerror = () => logo.remove(); // silently remove if URL is broken
+    slot.appendChild(logo);
   }
 
   async function generate() {
@@ -605,12 +633,12 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
           document.getElementById('carousel-slides-output').textContent = slides.map(s => `Slide ${s.slide_number}\n${s.headline}\n${s.body_text}`).join('\n\n---\n\n');
         }
 
-        // Set up image grid
+        // Set up image grid placeholders
         const count = isCarousel ? 4 : 1;
         const grid = document.getElementById('image-grid');
         grid.className = `image-grid ${isCarousel ? 'carousel' : 'graphic'}`;
         grid.innerHTML = Array(count).fill(null).map(() =>
-          `<div class="image-slot ${isCarousel ? 'ratio-45' : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`
+          `<div class="image-slot ratio-45"><div class="img-placeholder">Generating...</div></div>`
         ).join('');
       }
 
@@ -619,39 +647,45 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
       // Image generation
       if (!isReel && parsed.image_prompt) {
         const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
-        const styleNote = d.brandStyle ? ' Style: ' + d.brandStyle : '';
-        const suffix = '. 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+
+        // FIX 2 & 3: Use parseStyleForImage so raw user text never hits Imagen
+        const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
+        const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
         if (isCarousel && parsed.carousel_slides) {
-          // Generate each slide individually with its own prompt
           const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
           const slots = document.getElementById('image-grid').querySelectorAll('.image-slot');
 
-          const slidePromises = slides.map((slide, i) => {
-            // Build a per-slide prompt using the base image_prompt as the style foundation
-            // but injecting this slide's specific headline and content
-            const slidePrompt = `${parsed.image_prompt} This is slide ${slide.slide_number} of 4. ` +
-              `Prominently display the text: "${slide.headline}" in large bold typography. ` +
-              `Below it in smaller text: "${slide.body_text.substring(0, 60)}" — keep text minimal and legible. ` +
-              `Maintain consistent brand style across all slides${suffix}`;
-
+          // FIX 1: True sequential await loop — each slide is a separate awaited call
+          // so each gets its own unique prompt and generates independently
+          for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i];
             document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
 
-            return callWorker('imagen', { prompt: slidePrompt, count: 1 })
-              .then(result => ({ slide: i, prediction: (result.predictions || [])[0] }))
-              .catch(err => ({ slide: i, error: err.message }));
-          });
+            const slidePrompt = `${parsed.image_prompt} Slide ${slide.slide_number} of 4 in a cohesive series. ` +
+              `This slide focuses on: "${slide.headline}". ` +
+              `Display headline text "${slide.headline}" prominently in large bold typography. ` +
+              `Below it, smaller supporting text: "${slide.body_text.substring(0, 60)}". ` +
+              `Keep the visual composition and color palette consistent with the other slides in the series, but use a distinct layout or focal image for this slide.` +
+              suffix;
 
-          // Run sequentially to avoid rate limits
-          for (let i = 0; i < slidePromises.length; i++) {
-            document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
-            const result = await slidePromises[i];
-            const slot = slots[result.slide];
-            if (result.prediction && result.prediction.bytesBase64Encoded) {
-              const b64 = result.prediction.bytesBase64Encoded;
+            let imgResult, prediction;
+            try {
+              imgResult = await callWorker('imagen', { prompt: slidePrompt, count: 1 });
+              prediction = (imgResult.predictions || [])[0];
+            } catch (err) {
+              const slot = slots[i];
+              if (slot) slot.innerHTML = `<div class="img-placeholder error">${err.message || 'Failed'} — use prompt in Nanobanana.io</div>`;
+              continue;
+            }
+
+            const slot = slots[i];
+            if (prediction && prediction.bytesBase64Encoded) {
+              const b64 = prediction.bytesBase64Encoded;
               generatedImages.push(b64);
               const img = document.createElement('img');
               img.src = `data:image/png;base64,${b64}`;
+              img.className = 'generated';
               const dlBtn = document.createElement('button');
               dlBtn.className = 'dl-overlay';
               dlBtn.textContent = 'Download';
@@ -659,8 +693,10 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
               slot.innerHTML = '';
               slot.appendChild(img);
               slot.appendChild(dlBtn);
+              // FIX 4: Overlay logo on each carousel slide
+              applyLogoOverlay(slot, d.logoUrl);
             } else if (slot) {
-              slot.innerHTML = `<div class="img-placeholder error">${result.error || 'Failed'} — use prompt in Nanobanana.io</div>`;
+              slot.innerHTML = `<div class="img-placeholder error">Generation failed — use prompt in Nanobanana.io</div>`;
             }
           }
 
@@ -681,6 +717,7 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
               generatedImages.push(b64);
               const img = document.createElement('img');
               img.src = `data:image/png;base64,${b64}`;
+              img.className = 'generated';
               const dlBtn = document.createElement('button');
               dlBtn.className = 'dl-overlay';
               dlBtn.textContent = 'Download';
@@ -688,6 +725,8 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
               slot.innerHTML = '';
               slot.appendChild(img);
               slot.appendChild(dlBtn);
+              // FIX 4: Overlay logo on single graphic
+              applyLogoOverlay(slot, d.logoUrl);
             } else if (slot) {
               slot.innerHTML = `<div class="img-placeholder error">Use the prompt above in Nanobanana.io</div>`;
             }
