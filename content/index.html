@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2Content Generator — Messick Marketing</title>
+<title>Content Generator — Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -159,9 +159,9 @@
   }
   .image-slot:hover .dl-overlay { opacity: 1; }
 
-  /* Logo overlay on image */
+  /* Logo overlay on image — position set dynamically by JS based on prompt analysis */
   .image-slot .logo-overlay {
-    position: absolute; bottom: 10px; left: 10px;
+    position: absolute;
     max-height: 32px; max-width: 80px;
     object-fit: contain;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
@@ -560,7 +560,7 @@ Respond with a single valid JSON object and nothing else — no markdown, no bac
 
 Required JSON keys:
 - "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags.
-- "hashtags": 30 relevant hashtags as a single space-separated string
+- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
 ${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base style prompt establishing the visual design system for all 4 slides — background, colors, layout, decorative elements, brand feel. Do NOT include any specific text content in this prompt. ${imgRules}
@@ -579,13 +579,37 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
     return data;
   }
 
-  // FIX 4: Overlay logo on a rendered image slot
-  function applyLogoOverlay(slot, logoUrl) {
+  // FIX 4: Overlay logo — reads the image prompt to detect where text elements
+  // are positioned, then picks the cleanest available corner for the logo.
+  function getLogoPlacement(imagePrompt) {
+    const p = (imagePrompt || '').toLowerCase();
+    const topLeft      = /top-left|top left/.test(p);
+    const topRight     = /top-right|top right/.test(p);
+    const topCenter    = /top-center|top center/.test(p);
+    const bottomLeft   = /bottom-left|bottom left/.test(p);
+    const bottomRight  = /bottom-right|bottom right/.test(p);
+    const bottomCenter = /bottom-center|bottom center/.test(p);
+
+    // Try each corner in priority order; pick first one with no text declared nearby
+    if (!topLeft && !topCenter)        return { top: '10px',  bottom: 'auto', left: '10px',  right: 'auto' };
+    if (!topRight && !topCenter)       return { top: '10px',  bottom: 'auto', left: 'auto',  right: '10px' };
+    if (!bottomLeft && !bottomCenter)  return { top: 'auto',  bottom: '10px', left: '10px',  right: 'auto' };
+    if (!bottomRight && !bottomCenter) return { top: 'auto',  bottom: '10px', left: 'auto',  right: '10px' };
+    // All corners occupied — default top-left (most common safe zone)
+    return { top: '10px', bottom: 'auto', left: '10px', right: 'auto' };
+  }
+
+  function applyLogoOverlay(slot, logoUrl, imagePrompt) {
     if (!logoUrl) return;
+    const pos = getLogoPlacement(imagePrompt);
     const logo = document.createElement('img');
     logo.src = logoUrl;
     logo.className = 'logo-overlay';
-    logo.onerror = () => logo.remove(); // silently remove if URL is broken
+    logo.style.top    = pos.top;
+    logo.style.bottom = pos.bottom;
+    logo.style.left   = pos.left;
+    logo.style.right  = pos.right;
+    logo.onerror = () => logo.remove();
     slot.appendChild(logo);
   }
 
@@ -693,8 +717,8 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
               slot.innerHTML = '';
               slot.appendChild(img);
               slot.appendChild(dlBtn);
-              // FIX 4: Overlay logo on each carousel slide
-              applyLogoOverlay(slot, d.logoUrl);
+              // FIX 4: Overlay logo — pass prompt so placement avoids text elements
+              applyLogoOverlay(slot, d.logoUrl, slidePrompt);
             } else if (slot) {
               slot.innerHTML = `<div class="img-placeholder error">Generation failed — use prompt in Nanobanana.io</div>`;
             }
@@ -725,8 +749,8 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
               slot.innerHTML = '';
               slot.appendChild(img);
               slot.appendChild(dlBtn);
-              // FIX 4: Overlay logo on single graphic
-              applyLogoOverlay(slot, d.logoUrl);
+              // FIX 4: Overlay logo — pass prompt so placement avoids text elements
+              applyLogoOverlay(slot, d.logoUrl, parsed.image_prompt);
             } else if (slot) {
               slot.innerHTML = `<div class="img-placeholder error">Use the prompt above in Nanobanana.io</div>`;
             }
