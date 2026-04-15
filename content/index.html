@@ -512,7 +512,19 @@
   }
 
   function buildPrompt(d) {
-    const ratio = selectedType === 'reel' ? '9:16 vertical' : '4:5';
+    const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
+
+    const imgRules = `Imagen 4 text rendering rules:
+- Maximum 2 text elements in the entire image
+- Each text element must be 3 words or fewer — shorter = more accurate rendering
+- Write exact text strings in quotes, e.g. text: "KNEE PAIN?" not "include headline about knee pain"
+- Specify exact placement: top-center, bottom-left, center, etc.
+- Specify font style: bold sans-serif, condensed, etc.
+- Use high contrast: white text on dark backgrounds, black on light
+- NO bullet points, numbered lists, paragraphs, or multiple lines of small text in the image
+- Strong single visual + minimal text only
+- End with: "Photorealistic, high resolution, crisp sharp text, professional social media graphic, no distorted letters"`;
+
     return `You are an expert social media content strategist for a healthcare marketing agency. All content is cross-posted so avoid platform-specific references.
 
 Brand: ${d.brandName}
@@ -533,9 +545,9 @@ Required JSON keys:
 - "hashtags": 30 relevant hashtags as a single space-separated string
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'carousel' ? `- "image_prompt": detailed Imagen 3 prompt for the hero/cover slide of a 4:5 carousel — describe composition, brand colors, typography placement, and overall style
-- "carousel_slides": array of 4 objects each with slide_number (int), headline (string), and body_text (string)` : ''}
-${selectedType === 'graphic' ? `- "image_prompt": detailed Imagen 3 image generation prompt for a single 4:5 social media graphic — describe composition, brand colors${d.logoUrl ? ', logo placement' : ''}, typography, mood, and visual style` : ''}`;
+${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base style prompt establishing the visual design system for all 4 slides — background, colors, layout, decorative elements, brand feel. Do NOT include any specific text in this prompt. ${imgRules}
+- "carousel_slides": array of 4 objects each with slide_number (int), headline (string, max 5 words, this will be rendered as large text on the image), and body_text (string, max 1 sentence, this will be rendered as smaller text on the image)` : ''}
+${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3:4 social media graphic. ${imgRules}` : ''}`;
   }
 
   async function callWorker(route, body) {
@@ -606,19 +618,65 @@ ${selectedType === 'graphic' ? `- "image_prompt": detailed Imagen 3 image genera
 
       // Image generation
       if (!isReel && parsed.image_prompt) {
-        document.getElementById('loading-msg').textContent = 'Generating image(s)...';
-        const count = isCarousel ? 4 : 1;
+        const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
+        const styleNote = d.brandStyle ? ' Style: ' + d.brandStyle : '';
+        const suffix = '. 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
-        try {
-          const imgResult = await callWorker('imagen', {
-            prompt: `${parsed.image_prompt}. 4:5 vertical aspect ratio. High quality production-ready social media graphic.${d.brandStyle ? ' Style: ' + d.brandStyle : ''}`,
-            count
-          });
-          const predictions = imgResult.predictions || [];
+        if (isCarousel && parsed.carousel_slides) {
+          // Generate each slide individually with its own prompt
+          const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
           const slots = document.getElementById('image-grid').querySelectorAll('.image-slot');
 
-          predictions.forEach((pred, i) => {
-            if (slots[i] && pred.bytesBase64Encoded) {
+          const slidePromises = slides.map((slide, i) => {
+            // Build a per-slide prompt using the base image_prompt as the style foundation
+            // but injecting this slide's specific headline and content
+            const slidePrompt = `${parsed.image_prompt} This is slide ${slide.slide_number} of 4. ` +
+              `Prominently display the text: "${slide.headline}" in large bold typography. ` +
+              `Below it in smaller text: "${slide.body_text.substring(0, 60)}" — keep text minimal and legible. ` +
+              `Maintain consistent brand style across all slides${suffix}`;
+
+            document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
+
+            return callWorker('imagen', { prompt: slidePrompt, count: 1 })
+              .then(result => ({ slide: i, prediction: (result.predictions || [])[0] }))
+              .catch(err => ({ slide: i, error: err.message }));
+          });
+
+          // Run sequentially to avoid rate limits
+          for (let i = 0; i < slidePromises.length; i++) {
+            document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
+            const result = await slidePromises[i];
+            const slot = slots[result.slide];
+            if (result.prediction && result.prediction.bytesBase64Encoded) {
+              const b64 = result.prediction.bytesBase64Encoded;
+              generatedImages.push(b64);
+              const img = document.createElement('img');
+              img.src = `data:image/png;base64,${b64}`;
+              const dlBtn = document.createElement('button');
+              dlBtn.className = 'dl-overlay';
+              dlBtn.textContent = 'Download';
+              dlBtn.onclick = () => downloadImage(b64, `${brand}-slide-${i + 1}.png`);
+              slot.innerHTML = '';
+              slot.appendChild(img);
+              slot.appendChild(dlBtn);
+            } else if (slot) {
+              slot.innerHTML = `<div class="img-placeholder error">${result.error || 'Failed'} — use prompt in Nanobanana.io</div>`;
+            }
+          }
+
+          show('download-all-btn', generatedImages.length > 1);
+
+        } else {
+          // Single graphic
+          document.getElementById('loading-msg').textContent = 'Generating graphic...';
+          try {
+            const imgResult = await callWorker('imagen', {
+              prompt: parsed.image_prompt + suffix,
+              count: 1
+            });
+            const pred = (imgResult.predictions || [])[0];
+            const slot = document.getElementById('image-grid').querySelector('.image-slot');
+            if (pred && pred.bytesBase64Encoded) {
               const b64 = pred.bytesBase64Encoded;
               generatedImages.push(b64);
               const img = document.createElement('img');
@@ -626,30 +684,18 @@ ${selectedType === 'graphic' ? `- "image_prompt": detailed Imagen 3 image genera
               const dlBtn = document.createElement('button');
               dlBtn.className = 'dl-overlay';
               dlBtn.textContent = 'Download';
-              const idx = generatedImages.length - 1;
-              const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
-              dlBtn.onclick = () => downloadImage(b64, `${brand}-${selectedType}-${idx + 1}.png`);
-              slots[i].innerHTML = '';
-              slots[i].appendChild(img);
-              slots[i].appendChild(dlBtn);
-            }
-          });
-
-          // Any slots without images
-          slots.forEach((slot, i) => {
-            if (!slot.querySelector('img')) {
+              dlBtn.onclick = () => downloadImage(b64, `${brand}-graphic.png`);
+              slot.innerHTML = '';
+              slot.appendChild(img);
+              slot.appendChild(dlBtn);
+            } else if (slot) {
               slot.innerHTML = `<div class="img-placeholder error">Use the prompt above in Nanobanana.io</div>`;
             }
-          });
-
-          if (generatedImages.length > 0) {
-            show('download-all-btn', isCarousel && generatedImages.length > 1);
+          } catch (imgErr) {
+            document.getElementById('image-grid').querySelectorAll('.image-slot').forEach(slot => {
+              slot.innerHTML = `<div class="img-placeholder error">${imgErr.message || 'Image gen failed'} — use the prompt above in Nanobanana.io</div>`;
+            });
           }
-
-        } catch (imgErr) {
-          document.getElementById('image-grid').querySelectorAll('.image-slot').forEach(slot => {
-            slot.innerHTML = `<div class="img-placeholder error">${imgErr.message || 'Image gen failed'} — use the prompt above in Nanobanana.io</div>`;
-          });
         }
       }
 
