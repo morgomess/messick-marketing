@@ -534,15 +534,17 @@
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
     const imgRules = `Imagen 4 text rendering rules:
-- Maximum 2 text elements in the entire image
+- Maximum 1 text element per image for carousels, maximum 2 for single graphics
 - Each text element must be 3 words or fewer — shorter = more accurate rendering
 - Write exact text strings in quotes, e.g. text: "KNEE PAIN?" not "include headline about knee pain"
 - Specify exact placement: top-center, bottom-left, center, etc.
 - Specify font style: bold sans-serif, condensed, etc.
 - Use high contrast: white text on dark backgrounds, black on light
 - NO bullet points, numbered lists, paragraphs, or multiple lines of small text in the image
+- NO design templates, NO placeholder shapes, NO checkered circles, NO UI chrome, NO layout grids
+- Generate real photography or clean brand graphic only
 - Strong single visual + minimal text only
-- End with: "Photorealistic, high resolution, crisp sharp text, professional social media graphic, no distorted letters"`;
+- End with: "Photorealistic, high resolution, crisp sharp text, professional social media graphic, no distorted letters, no placeholder elements"`;
 
     return `You are an expert social media content strategist for a healthcare marketing agency. All content is cross-posted so avoid platform-specific references.
 
@@ -563,8 +565,8 @@ Required JSON keys:
 - "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base style prompt establishing the visual design system for all 4 slides — background, colors, layout, decorative elements, brand feel. Do NOT include any specific text content in this prompt. ${imgRules}
-- "carousel_slides": array of exactly 4 objects, each with slide_number (int), headline (string, max 5 words — must be unique and specific to that slide's topic), and body_text (string, max 1 sentence — must be unique content distinct from all other slides). Each slide must cover a different angle or point so the set tells a complete story.` : ''}
+${selectedType === 'carousel' ? `- "image_prompt": Imagen 4 base visual style description for a cohesive 4-slide carousel series. Describe the photographic or illustrative style, color palette, lighting, mood, and background treatment. Do NOT describe any text, UI elements, templates, icons, placeholder shapes, or layout chrome — Imagen must render real photography or clean brand visuals, not design templates. ${imgRules}
+- "carousel_slides": array of exactly 4 objects, each with: slide_number (int), headline (string, max 3 words — punchy, unique per slide), body_text (string, max 6 words — distinct supporting point, not a repeat of the headline). All 4 slides must cover different angles of the topic so together they tell a complete story. No two slides should share the same headline or body concept.` : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3:4 social media graphic. ${imgRules}` : ''}`;
   }
 
@@ -686,11 +688,13 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
             const slide = slides[i];
             document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
 
-            const slidePrompt = `${parsed.image_prompt} Slide ${slide.slide_number} of 4 in a cohesive series. ` +
-              `This slide focuses on: "${slide.headline}". ` +
-              `Display headline text "${slide.headline}" prominently in large bold typography. ` +
-              `Below it, smaller supporting text: "${slide.body_text.substring(0, 60)}". ` +
-              `Keep the visual composition and color palette consistent with the other slides in the series, but use a distinct layout or focal image for this slide.` +
+            // Build slide prompt: base style + this slide's single unique text element only
+            // Body text intentionally omitted from image prompt — Imagen can't render sentences cleanly
+            const headlineShort = slide.headline.substring(0, 20);
+            const slidePrompt = `${parsed.image_prompt} ` +
+              `Real photography or clean brand graphic — no templates, no placeholder shapes, no UI chrome. ` +
+              `Display only this text: "${headlineShort}" in large bold sans-serif, high contrast placement. ` +
+              `No other text. Unique visual composition distinct from other slides in the series.` +
               suffix;
 
             let imgResult, prediction;
