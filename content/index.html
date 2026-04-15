@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Generator — Messick Marketing</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #111111;
+    --warm-white: #faf8f5;
+    --steel: #3a6b8a;
+    --steel-light: #5a9ab8;
+    --border: rgba(17,17,17,0.12);
+    --muted: rgba(17,17,17,0.45);
+    --surface: #f0ede8;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Jost', sans-serif; background: var(--warm-white); color: var(--black); min-height: 100vh; }
+
+  #pw-screen {
+    position: fixed; inset: 0; background: var(--black);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; flex-direction: column; gap: 24px;
+  }
+  #pw-screen h1 { font-family: 'Dancing Script', cursive; color: var(--warm-white); font-size: 2.2rem; }
+  #pw-screen .sub { color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+  #pw-box { display: flex; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden; }
+  #pw-input {
+    background: rgba(255,255,255,0.07); border: none; outline: none;
+    color: white; font-family: 'Jost', sans-serif; font-size: 15px;
+    padding: 12px 18px; width: 240px;
+  }
+  #pw-input::placeholder { color: rgba(255,255,255,0.25); }
+  #pw-btn {
+    background: var(--steel); border: none; color: white;
+    font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 12px 20px; cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  #pw-btn:hover { background: var(--steel-light); }
+  #pw-error { color: #e8533a; font-size: 13px; opacity: 0; transition: opacity 0.3s; }
+  #pw-error.show { opacity: 1; }
+
+  #app { display: none; min-height: 100vh; }
+
+  header {
+    background: var(--black); padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-family: 'Dancing Script', cursive; color: var(--warm-white); font-size: 1.6rem; }
+  header span { color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .layout { display: grid; grid-template-columns: 420px 1fr; min-height: calc(100vh - 57px); }
+
+  .panel-left {
+    background: var(--card); border-right: 1px solid var(--border);
+    padding: 28px 28px 48px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .type-btn {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--warm-white);
+    padding: 16px 8px; cursor: pointer; text-align: center;
+    transition: all 0.18s; font-family: 'Jost', sans-serif;
+  }
+  .type-btn:hover { border-color: var(--steel); }
+  .type-btn.active { border-color: var(--steel); background: #eef4f8; }
+  .type-btn .icon { font-size: 20px; margin-bottom: 6px; }
+  .type-btn .lbl { font-size: 13px; font-weight: 500; color: var(--black); display: block; }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; }
+  label .req { color: #e8533a; }
+  label .opt { font-weight: 400; }
+  input[type="text"], input[type="url"], textarea, select {
+    font-family: 'Jost', sans-serif; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--warm-white); color: var(--black);
+    padding: 10px 12px; outline: none; width: 100%;
+    transition: border-color 0.18s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--steel); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  select { cursor: pointer; }
+
+  #generate-btn {
+    background: var(--black); color: var(--warm-white);
+    border: none; border-radius: 8px; padding: 15px;
+    font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; width: 100%; transition: background 0.2s;
+  }
+  #generate-btn:hover { background: var(--steel); }
+  #generate-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .panel-right { background: var(--warm-white); padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; color: var(--muted); }
+  .empty-state .big-icon { font-size: 48px; opacity: 0.25; }
+  .empty-state p { font-size: 14px; line-height: 1.6; max-width: 280px; }
+
+  .loading-state { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--border); border-top-color: var(--steel); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-msg { font-size: 13px; color: var(--muted); }
+
+  .output-section { display: none; flex-direction: column; gap: 20px; }
+
+  .output-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .output-card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .output-card-header h3 { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .header-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+  .action-btn {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500;
+    color: var(--muted); padding: 4px 10px; cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .action-btn:hover { border-color: var(--steel); color: var(--steel); }
+  .action-btn.copied { border-color: #2a9a5e; color: #2a9a5e; }
+  .action-btn.download { border-color: var(--steel); color: var(--steel); }
+  .action-btn.download:hover { background: var(--steel); color: white; }
+
+  .output-body { padding: 18px; font-size: 14px; line-height: 1.75; color: var(--black); white-space: pre-wrap; }
+  .output-body.small { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); }
+
+  /* IMAGE GRID */
+  .image-grid { padding: 18px; display: grid; gap: 12px; }
+  .image-grid.graphic { grid-template-columns: 1fr; max-width: 320px; }
+  .image-grid.carousel { grid-template-columns: repeat(2, 1fr); }
+
+  .image-slot {
+    border-radius: 8px; overflow: hidden;
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .image-slot.ratio-45 { aspect-ratio: 4/5; }
+  .image-slot.ratio-916 { aspect-ratio: 9/16; }
+  .image-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .img-placeholder { font-size: 12px; color: var(--muted); text-align: center; padding: 16px; line-height: 1.6; }
+  .img-placeholder.error { color: #e8533a; }
+
+  /* Download overlay on image */
+  .image-slot .dl-overlay {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(17,17,17,0.75); border: none; border-radius: 4px;
+    color: white; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 500;
+    padding: 5px 10px; cursor: pointer; letter-spacing: 0.05em; text-transform: uppercase;
+    opacity: 0; transition: opacity 0.18s;
+  }
+  .image-slot:hover .dl-overlay { opacity: 1; }
+
+  /* REEL APP RECOMMENDATIONS */
+  .reel-apps { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .app-card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px; transition: border-color 0.18s;
+  }
+  .app-card:hover { border-color: var(--steel); }
+  .app-card.recommended { border-color: var(--steel); background: #f5f9fc; }
+  .app-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--steel); color: white; padding: 3px 8px; border-radius: 3px;
+    white-space: nowrap;
+  }
+  .app-info { flex: 1; }
+  .app-name { font-size: 14px; font-weight: 500; color: var(--black); }
+  .app-desc { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .app-link {
+    font-size: 12px; font-weight: 500; color: var(--steel);
+    text-decoration: none; white-space: nowrap; letter-spacing: 0.04em;
+    border: 1px solid var(--steel); border-radius: 4px; padding: 5px 12px;
+    transition: all 0.18s;
+  }
+  .app-link:hover { background: var(--steel); color: white; }
+
+  .reel-note { background: #eef4f8; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--steel); line-height: 1.5; margin: 0 18px; }
+
+  .regen-row { display: flex; gap: 10px; }
+  .regen-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--muted); padding: 8px 14px; cursor: pointer;
+    letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.18s;
+  }
+  .regen-btn:hover { border-color: var(--steel); color: var(--steel); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .panel-right { min-height: 60vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="pw-screen">
+  <h1>Messick Marketing</h1>
+  <p class="sub">Internal Access Only</p>
+  <div id="pw-box">
+    <input type="password" id="pw-input" placeholder="Enter password" />
+    <button id="pw-btn" onclick="checkPassword()">Enter</button>
+  </div>
+  <p id="pw-error">Incorrect password. Try again.</p>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Content Generator</h1>
+    <span>Messick Marketing — Internal</span>
+  </header>
+
+  <div class="layout">
+    <div class="panel-left">
+
+      <div>
+        <div class="section-label">Content Type</div>
+        <div class="type-grid">
+          <button class="type-btn active" data-type="graphic" onclick="selectType(this)">
+            <div class="icon">🖼️</div>
+            <span class="lbl">Graphic</span>
+          </button>
+          <button class="type-btn" data-type="carousel" onclick="selectType(this)">
+            <div class="icon">📱</div>
+            <span class="lbl">Carousel</span>
+          </button>
+          <button class="type-btn" data-type="reel" onclick="selectType(this)">
+            <div class="icon">🎬</div>
+            <span class="lbl">Reel</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Brand Details</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Brand Name <span class="req">*</span></label>
+              <input type="text" id="brand-name" placeholder="e.g. JVI Medical" />
+            </div>
+            <div class="form-group">
+              <label>Brand Voice</label>
+              <input type="text" id="brand-voice" placeholder="e.g. Trustworthy, clinical" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Colors / Fonts / Style</label>
+            <input type="text" id="brand-style" placeholder="e.g. Navy, white, clean minimal" />
+          </div>
+          <div class="form-group">
+            <label>Logo URL <span class="opt">(optional)</span></label>
+            <input type="url" id="logo-url" placeholder="https://example.com/logo.png" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Content Objective <span class="req">*</span></label>
+              <select id="objective">
+                <option value="">Select objective</option>
+                <option>Educate / Awareness</option>
+                <option>Promote a Service</option>
+                <option>Drive Appointments</option>
+                <option>Build Trust / Social Proof</option>
+                <option>Seasonal / Timely</option>
+                <option>Community / Engagement</option>
+                <option>Recruitment / Hiring</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Target Audience</label>
+              <input type="text" id="audience" placeholder="e.g. Women 40-65" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tone</label>
+              <select id="tone">
+                <option value="">Select tone</option>
+                <option>Professional</option>
+                <option>Empathetic</option>
+                <option>Educational</option>
+                <option>Conversational</option>
+                <option>Motivational</option>
+                <option>Urgent / CTA-focused</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Industry / Niche</label>
+              <input type="text" id="industry" placeholder="e.g. Interventional Radiology" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes / Topic / Hashtag Hints</label>
+            <textarea id="notes" placeholder="e.g. Focus on GAE for knee pain, include #MinimallyInvasive"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button id="generate-btn" onclick="generate()">Generate Content</button>
+    </div>
+
+    <div class="panel-right">
+
+      <div class="empty-state" id="empty-state">
+        <div class="big-icon">✦</div>
+        <p>Fill in your brand details and hit Generate to create ready-to-publish content.</p>
+      </div>
+
+      <div class="loading-state" id="loading-state">
+        <div class="spinner"></div>
+        <p class="loading-msg" id="loading-msg">Generating content...</p>
+      </div>
+
+      <div class="output-section" id="output-section">
+
+        <div class="output-card">
+          <div class="output-card-header">
+            <h3>Caption</h3>
+            <div class="header-actions">
+              <button class="action-btn" onclick="copyEl('caption-output', this)">Copy</button>
+            </div>
+          </div>
+          <div class="output-body" id="caption-output"></div>
+        </div>
+
+        <div class="output-card">
+          <div class="output-card-header">
+            <h3>Hashtags</h3>
+            <div class="header-actions">
+              <button class="action-btn" onclick="copyEl('hashtags-output', this)">Copy</button>
+            </div>
+          </div>
+          <div class="output-body" id="hashtags-output"></div>
+        </div>
+
+        <!-- Graphic / Carousel images -->
+        <div class="output-card" id="card-image" style="display:none;">
+          <div class="output-card-header">
+            <h3 id="image-card-title">Generated Graphic</h3>
+            <div class="header-actions">
+              <button class="action-btn download" id="download-all-btn" onclick="downloadAll()" style="display:none;">Download All</button>
+              <button class="action-btn" onclick="copyEl('image-prompt-output', this)">Copy Prompt</button>
+            </div>
+          </div>
+          <div class="image-grid" id="image-grid"></div>
+          <div class="output-body small" id="image-prompt-output"></div>
+        </div>
+
+        <!-- Carousel slide copy -->
+        <div class="output-card" id="card-carousel-slides" style="display:none;">
+          <div class="output-card-header">
+            <h3>Carousel Slide Copy</h3>
+            <div class="header-actions">
+              <button class="action-btn" onclick="copyEl('carousel-slides-output', this)">Copy</button>
+            </div>
+          </div>
+          <div class="output-body" id="carousel-slides-output"></div>
+        </div>
+
+        <!-- Reel script -->
+        <div class="output-card" id="card-reel" style="display:none;">
+          <div class="output-card-header">
+            <h3>Reel Script</h3>
+            <div class="header-actions">
+              <button class="action-btn" onclick="copyEl('reel-script-output', this)">Copy</button>
+            </div>
+          </div>
+          <div class="output-body" id="reel-script-output"></div>
+        </div>
+
+        <!-- Reel video prompt -->
+        <div class="output-card" id="card-reel-prompt" style="display:none;">
+          <div class="output-card-header">
+            <h3>Video Prompt</h3>
+            <div class="header-actions">
+              <button class="action-btn" onclick="copyEl('reel-prompt-output', this)">Copy Prompt</button>
+            </div>
+          </div>
+          <div class="reel-note">Copy this prompt into one of the recommended tools below.</div>
+          <div class="output-body" id="reel-prompt-output"></div>
+        </div>
+
+        <!-- Reel app recommendations -->
+        <div class="output-card" id="card-reel-apps" style="display:none;">
+          <div class="output-card-header">
+            <h3>Recommended Tools</h3>
+          </div>
+          <div class="reel-apps">
+            <div class="app-card recommended">
+              <span class="app-badge">Best Pick</span>
+              <div class="app-info">
+                <div class="app-name">Nanobanana</div>
+                <div class="app-desc">Text-to-video and image-to-video via Veo 3.1, Sora 2, and Kling. 9:16 native output. Fast generation, no watermark on paid plans.</div>
+              </div>
+              <a class="app-link" href="https://nanobanana.io" target="_blank">Open</a>
+            </div>
+            <div class="app-card">
+              <div class="app-info">
+                <div class="app-name">Pictory</div>
+                <div class="app-desc">Script-to-video with stock footage, voiceover, and captions. Great for educational or talking-head style healthcare reels.</div>
+              </div>
+              <a class="app-link" href="https://pictory.ai" target="_blank">Open</a>
+            </div>
+            <div class="app-card">
+              <div class="app-info">
+                <div class="app-name">CapCut</div>
+                <div class="app-desc">Free AI video editor with script-to-reel, auto-captions, and templates. Best for quick turnaround on mobile-first content.</div>
+              </div>
+              <a class="app-link" href="https://capcut.com" target="_blank">Open</a>
+            </div>
+            <div class="app-card">
+              <div class="app-info">
+                <div class="app-name">Runway Gen-3</div>
+                <div class="app-desc">High-quality cinematic AI video generation. Best for premium brand content where visual quality matters most.</div>
+              </div>
+              <a class="app-link" href="https://runwayml.com" target="_blank">Open</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="regen-row">
+          <button class="regen-btn" onclick="generate()">↻ Regenerate All</button>
+          <button class="regen-btn" onclick="regenerateCopy()">↻ Caption Only</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PASSWORD = 'Messick2026';
+  const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+  let selectedType = 'graphic';
+  let generatedImages = []; // store base64 for download
+
+  function checkPassword() {
+    if (document.getElementById('pw-input').value === PASSWORD) {
+      document.getElementById('pw-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else {
+      const err = document.getElementById('pw-error');
+      err.classList.add('show');
+      document.getElementById('pw-input').value = '';
+      setTimeout(() => err.classList.remove('show'), 3000);
+    }
+  }
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+
+  function selectType(btn) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedType = btn.dataset.type;
+  }
+
+  function copyEl(id, btn) {
+    navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function downloadImage(base64, filename) {
+    const a = document.createElement('a');
+    a.href = `data:image/png;base64,${base64}`;
+    a.download = filename;
+    a.click();
+  }
+
+  function downloadAll() {
+    const brand = document.getElementById('brand-name').value.trim().replace(/\s+/g, '-').toLowerCase() || 'graphic';
+    generatedImages.forEach((b64, i) => {
+      setTimeout(() => downloadImage(b64, `${brand}-${selectedType}-${i + 1}.png`), i * 200);
+    });
+  }
+
+  function showLoading(msg) {
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('output-section').style.display = 'none';
+    document.getElementById('loading-state').style.display = 'flex';
+    document.getElementById('loading-msg').textContent = msg;
+  }
+  function showOutput() {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('output-section').style.display = 'flex';
+  }
+
+  function show(id, visible) {
+    document.getElementById(id).style.display = visible ? 'block' : 'none';
+  }
+
+  function getFormData() {
+    return {
+      brandName: document.getElementById('brand-name').value.trim(),
+      brandVoice: document.getElementById('brand-voice').value.trim(),
+      brandStyle: document.getElementById('brand-style').value.trim(),
+      logoUrl: document.getElementById('logo-url').value.trim(),
+      objective: document.getElementById('objective').value,
+      audience: document.getElementById('audience').value.trim(),
+      tone: document.getElementById('tone').value,
+      industry: document.getElementById('industry').value.trim(),
+      notes: document.getElementById('notes').value.trim(),
+    };
+  }
+
+  function buildPrompt(d) {
+    const ratio = selectedType === 'reel' ? '9:16 vertical' : '4:5';
+    return `You are an expert social media content strategist for a healthcare marketing agency. All content is cross-posted so avoid platform-specific references.
+
+Brand: ${d.brandName}
+Content Type: ${selectedType} — ${ratio} aspect ratio
+${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
+${d.brandStyle ? 'Visual Style / Colors: ' + d.brandStyle : ''}
+${d.logoUrl ? 'Logo URL: ' + d.logoUrl : ''}
+${d.objective ? 'Objective: ' + d.objective : ''}
+${d.audience ? 'Target Audience: ' + d.audience : ''}
+${d.tone ? 'Tone: ' + d.tone : ''}
+${d.industry ? 'Industry: ' + d.industry : ''}
+${d.notes ? 'Additional Notes: ' + d.notes : ''}
+
+Respond with a single valid JSON object and nothing else — no markdown, no backticks, no explanation.
+
+Required JSON keys:
+- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags.
+- "hashtags": 30 relevant hashtags as a single space-separated string
+${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
+- "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
+${selectedType === 'carousel' ? `- "image_prompt": detailed Imagen 3 prompt for the hero/cover slide of a 4:5 carousel — describe composition, brand colors, typography placement, and overall style
+- "carousel_slides": array of 4 objects each with slide_number (int), headline (string), and body_text (string)` : ''}
+${selectedType === 'graphic' ? `- "image_prompt": detailed Imagen 3 image generation prompt for a single 4:5 social media graphic — describe composition, brand colors${d.logoUrl ? ', logo placement' : ''}, typography, mood, and visual style` : ''}`;
+  }
+
+  async function callWorker(route, body) {
+    const res = await fetch(`${WORKER}/${route}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+    return data;
+  }
+
+  async function generate() {
+    const d = getFormData();
+    if (!d.brandName) return alert('Please enter a brand name.');
+    if (!d.objective) return alert('Please select a content objective.');
+
+    const btn = document.getElementById('generate-btn');
+    btn.disabled = true;
+    generatedImages = [];
+    showLoading('Writing caption + hashtags...');
+
+    try {
+      const result = await callWorker('claude', { prompt: buildPrompt(d) });
+      let parsed;
+      try {
+        parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
+      } catch {
+        throw new Error('Could not parse AI response. Try again.');
+      }
+
+      document.getElementById('caption-output').textContent = parsed.caption || '';
+      document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
+
+      const isReel = selectedType === 'reel';
+      const isCarousel = selectedType === 'carousel';
+
+      show('card-image', !isReel);
+      show('card-carousel-slides', isCarousel);
+      show('card-reel', isReel);
+      show('card-reel-prompt', isReel);
+      show('card-reel-apps', isReel);
+      show('download-all-btn', false);
+
+      if (isReel) {
+        document.getElementById('reel-script-output').textContent = parsed.reel_script || '';
+        document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
+      } else {
+        document.getElementById('image-card-title').textContent = isCarousel ? 'Generated Carousel Images' : 'Generated Graphic';
+        document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
+
+        if (isCarousel && parsed.carousel_slides) {
+          const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
+          document.getElementById('carousel-slides-output').textContent = slides.map(s => `Slide ${s.slide_number}\n${s.headline}\n${s.body_text}`).join('\n\n---\n\n');
+        }
+
+        // Set up image grid
+        const count = isCarousel ? 4 : 1;
+        const grid = document.getElementById('image-grid');
+        grid.className = `image-grid ${isCarousel ? 'carousel' : 'graphic'}`;
+        grid.innerHTML = Array(count).fill(null).map(() =>
+          `<div class="image-slot ${isCarousel ? 'ratio-45' : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`
+        ).join('');
+      }
+
+      showOutput();
+
+      // Image generation
+      if (!isReel && parsed.image_prompt) {
+        document.getElementById('loading-msg').textContent = 'Generating image(s)...';
+        const count = isCarousel ? 4 : 1;
+
+        try {
+          const imgResult = await callWorker('imagen', {
+            prompt: `${parsed.image_prompt}. 4:5 vertical aspect ratio. High quality production-ready social media graphic.${d.brandStyle ? ' Style: ' + d.brandStyle : ''}`,
+            count
+          });
+          const predictions = imgResult.predictions || [];
+          const slots = document.getElementById('image-grid').querySelectorAll('.image-slot');
+
+          predictions.forEach((pred, i) => {
+            if (slots[i] && pred.bytesBase64Encoded) {
+              const b64 = pred.bytesBase64Encoded;
+              generatedImages.push(b64);
+              const img = document.createElement('img');
+              img.src = `data:image/png;base64,${b64}`;
+              const dlBtn = document.createElement('button');
+              dlBtn.className = 'dl-overlay';
+              dlBtn.textContent = 'Download';
+              const idx = generatedImages.length - 1;
+              const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
+              dlBtn.onclick = () => downloadImage(b64, `${brand}-${selectedType}-${idx + 1}.png`);
+              slots[i].innerHTML = '';
+              slots[i].appendChild(img);
+              slots[i].appendChild(dlBtn);
+            }
+          });
+
+          // Any slots without images
+          slots.forEach((slot, i) => {
+            if (!slot.querySelector('img')) {
+              slot.innerHTML = `<div class="img-placeholder error">Use the prompt above in Nanobanana.io</div>`;
+            }
+          });
+
+          if (generatedImages.length > 0) {
+            show('download-all-btn', isCarousel && generatedImages.length > 1);
+          }
+
+        } catch (imgErr) {
+          document.getElementById('image-grid').querySelectorAll('.image-slot').forEach(slot => {
+            slot.innerHTML = `<div class="img-placeholder error">${imgErr.message || 'Image gen failed'} — use the prompt above in Nanobanana.io</div>`;
+          });
+        }
+      }
+
+    } catch (err) {
+      showOutput();
+      document.getElementById('caption-output').textContent = 'Error: ' + err.message;
+    }
+
+    btn.disabled = false;
+  }
+
+  async function regenerateCopy() {
+    const d = getFormData();
+    if (!d.brandName) return alert('Please enter a brand name.');
+    document.getElementById('caption-output').textContent = 'Regenerating...';
+    document.getElementById('hashtags-output').textContent = '';
+    try {
+      const result = await callWorker('claude', { prompt: buildPrompt(d) });
+      const parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
+      document.getElementById('caption-output').textContent = parsed.caption || '';
+      document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
+    } catch (e) {
+      document.getElementById('caption-output').textContent = 'Error: ' + e.message;
+    }
+  }
+</script>
+</body>
+</html>
