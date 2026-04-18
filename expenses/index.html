@@ -80,7 +80,7 @@ h1,h2,h3,h4{font-family:'Cormorant Garamond',serif;font-weight:600}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--gray-500);flex-shrink:0}
 .sync-dot.synced{background:#2ecc71}
 .sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
-.sync-dot.failed{background:var(--error)}
+.sync-dot.error{background:var(--error)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .logout-btn{font-size:.78rem;color:rgba(255,255,255,.38);cursor:pointer;display:flex;align-items:center;gap:6px;transition:color .2s}
 .logout-btn:hover{color:rgba(255,255,255,.7)}
@@ -167,6 +167,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
 .ai-box{padding:12px 14px;border-radius:3px;font-size:.84rem;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ai-loading{background:var(--steel-pale);border:1px solid rgba(90,154,184,.3);color:var(--steel)}
 .ai-done{background:rgba(45,122,79,.08);border:1px solid rgba(45,122,79,.2);color:var(--success)}
+.ai-error{background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.2);color:var(--error)}
 .spinner{width:14px;height:14px;border:2px solid rgba(90,154,184,.3);border-top-color:var(--steel);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -258,7 +259,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
       <div class="sidebar-footer">
         <div class="sync-status">
           <div class="sync-dot" id="sync-dot"></div>
-          <span id="sync-text">No sync configured</span>
+          <span id="sync-text">Connecting…</span>
         </div>
         <div class="logout-btn" onclick="handleLogout()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -450,6 +451,7 @@ tbody td{padding:11px 14px;vertical-align:middle}
         <div class="spinner"></div>AI is categorizing this expense…
       </div>
       <div id="ai-done" class="ai-box ai-done hidden"></div>
+      <div id="ai-error" class="ai-box ai-error hidden"></div>
       <div class="form-row">
         <div class="form-group">
           <label>Amount *</label>
@@ -535,8 +537,10 @@ tbody td{padding:11px 14px;vertical-align:middle}
 // ─── CONFIG ───────────────────────────────────────────────────
 const CONFIG = {
   PASSWORD: "Messick2026",
-  ANTHROPIC_API_KEY: "",
-  SHEETS_WEBHOOK_URL: "",
+  // AI via Cloudflare Worker proxy (no API key exposed in client)
+  AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
+  // Google Apps Script web app for Sheets sync
+  SHEETS_URL: "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbzmZ_i8PKENxCVDb8Pvz9bu9qNDkClCJ2-LUj8qYjNlEzscjX9qNoA8YxQ6P7Yb_pXh/exec",
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -555,6 +559,7 @@ let deletingId = null;
 let pendingImport = [];
 let catChart = null;
 let syncTimer = null;
+let fBiz = "", fCat = "", fTax = "", fSearch = "";
 
 // ─── AUTH ─────────────────────────────────────────────────────
 function checkAuth() {
@@ -584,15 +589,18 @@ function showApp() {
 // ─── INIT ─────────────────────────────────────────────────────
 async function initApp() {
   loadLocal();
-  if (expenses.length === 0 && CONFIG.SHEETS_WEBHOOK_URL) {
+  setSyncStatus("syncing");
+  try {
     await restoreFromSheets();
+  } catch(e) {
+    // fall through — local data already loaded
+    setSyncStatus("error");
   }
   processRecurring();
   document.getElementById("e-date").value = today();
   renderDashboard();
   renderTable();
   setupDropzone();
-  if (!CONFIG.SHEETS_WEBHOOK_URL) setSyncStatus("none");
 }
 
 function today() {
@@ -618,7 +626,7 @@ function loadLocal() {
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-  syncToSheets();
+  scheduleSheetsSync();
 }
 
 function uid() {
@@ -626,98 +634,122 @@ function uid() {
 }
 
 // ─── SHEETS SYNC ──────────────────────────────────────────────
-function syncToSheets() {
-  if (!CONFIG.SHEETS_WEBHOOK_URL) return;
+// Debounced — batches rapid changes into a single write
+function scheduleSheetsSync() {
   setSyncStatus("syncing");
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(async () => {
-    try {
-      await fetch(CONFIG.SHEETS_WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(expenses)
-      });
-      setSyncStatus("synced");
-    } catch {
-      setSyncStatus("failed");
-    }
-  }, 800);
+  syncTimer = setTimeout(() => pushToSheets(), 1200);
+}
+
+async function pushToSheets() {
+  try {
+    const res = await fetch(CONFIG.SHEETS_URL, {
+      method: "POST",
+      // Google Apps Script requires text/plain to avoid CORS preflight issues
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "write", data: expenses })
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    setSyncStatus("synced");
+  } catch(err) {
+    console.error("Sheets push failed:", err);
+    setSyncStatus("error");
+  }
 }
 
 async function restoreFromSheets() {
-  if (!CONFIG.SHEETS_WEBHOOK_URL) return;
   try {
-    setSyncStatus("syncing");
-    const res = await fetch(CONFIG.SHEETS_WEBHOOK_URL);
-    const rows = await res.json();
-    if (Array.isArray(rows) && rows.length) {
-      expenses = rows.map(r => ({
-        id: r.id || uid(),
-        date: r.date || "",
-        merchant: r.merchant || "",
-        amount: parseFloat(r.amount) || 0,
-        note: r.note || "",
-        category: r.category || "Other",
-        business: r.business || "Messick Marketing",
-        taxDeductible: r.taxDeductible === true || r.taxDeductible === "true" || r.taxDeductible === "TRUE",
-        aiCategorized: r.aiCategorized === true || r.aiCategorized === "true",
-        recurring: r.recurring === true || r.recurring === "true",
-        recurringFrequency: r.recurringFrequency || null,
-        recurringNextDue: r.recurringNextDue || null
-      }));
+    const res = await fetch(CONFIG.SHEETS_URL + "?action=read", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const rows = json.data || json; // support both {data:[]} and bare []
+    if (Array.isArray(rows) && rows.length > 0) {
+      const remote = rows.map(normalizeRow);
+      // Merge: remote is source of truth on init; local additions not yet pushed are preserved
+      const localIds = new Set(expenses.map(e => e.id));
+      const remoteIds = new Set(remote.map(e => e.id));
+      // Keep local-only rows (added while offline), merge rest from remote
+      const localOnly = expenses.filter(e => !remoteIds.has(e.id));
+      expenses = [...remote, ...localOnly];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-      toast("Restored " + expenses.length + " expenses from Sheets", "success");
+      if (localOnly.length > 0) {
+        // Push merged state back so Sheets is up to date
+        await pushToSheets();
+      }
+      toast("Synced " + expenses.length + " expenses from Sheets", "success");
     }
     setSyncStatus("synced");
-  } catch {
-    setSyncStatus("failed");
+  } catch(err) {
+    console.error("Sheets restore failed:", err);
+    setSyncStatus("error");
+    toast("Could not sync from Sheets — using local data", "info");
+    throw err;
   }
+}
+
+function normalizeRow(r) {
+  return {
+    id:                 r.id || uid(),
+    date:               r.date || "",
+    merchant:           r.merchant || "",
+    amount:             isFinite(parseFloat(r.amount)) ? Math.abs(parseFloat(r.amount)) : 0,
+    note:               r.note || "",
+    category:           r.category || "Other",
+    business:           r.business || "Messick Marketing",
+    taxDeductible:      r.taxDeductible === true || r.taxDeductible === "true" || r.taxDeductible === "TRUE",
+    aiCategorized:      r.aiCategorized === true || r.aiCategorized === "true",
+    recurring:          r.recurring === true || r.recurring === "true",
+    recurringFrequency: r.recurringFrequency || null,
+    recurringNextDue:   r.recurringNextDue || null
+  };
 }
 
 function setSyncStatus(st) {
   const dot = document.getElementById("sync-dot");
   const txt = document.getElementById("sync-text");
-  dot.className = "sync-dot" + (st !== "none" ? " " + st : "");
+  // Remove all state classes, add the relevant one
+  dot.className = "sync-dot" + (["synced","syncing","error"].includes(st) ? " " + st : "");
   if (st === "synced") txt.textContent = "Synced " + new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
   else if (st === "syncing") txt.textContent = "Syncing…";
-  else if (st === "failed") txt.textContent = "Sync failed";
-  else txt.textContent = "No sync configured";
+  else if (st === "error") txt.textContent = "Sync failed";
+  else txt.textContent = "Not connected";
 }
 
-// ─── AI ───────────────────────────────────────────────────────
+// ─── AI via CLOUDFLARE WORKER ─────────────────────────────────
 async function aiCategorize(merchant, note) {
-  if (!CONFIG.ANTHROPIC_API_KEY) return null;
   const prompt = `You are an expense categorizer for two businesses:
-- Messick Marketing: digital marketing agency (ads, SEO, social, content, client tools)
-- Virtueasy: a software/app product business (dev tools, SaaS subscriptions for the product)
+- Messick Marketing: a healthcare-focused social media and content marketing agency (ads, software tools, contractors, client work)
+- Virtueasy: a digital products brand for virtual assistants (software, ads, platform fees)
 
-Given merchant and note, return ONLY valid JSON (no markdown, no explanation):
+Given the merchant name and optional note, return ONLY valid JSON with no markdown, no explanation, no extra text:
 {"category":"<one of: Ads|Software|Contractors|Equipment|Travel|Meals|Education|Other>","business":"<Messick Marketing|Virtueasy>","taxDeductible":<true|false>}
 
 Merchant: ${merchant}
 Note: ${note || "none"}`;
+
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(CONFIG.AI_PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": CONFIG.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 150,
         messages: [{ role: "user", content: prompt }]
       })
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error("Worker returned " + res.status + ": " + errText);
+    }
     const d = await res.json();
-    const text = d.content[0].text.trim();
+    const text = (d.content?.[0]?.text || "").trim();
     const m = text.match(/\{[\s\S]*?\}/);
-    return m ? JSON.parse(m[0]) : null;
-  } catch { return null; }
+    if (!m) throw new Error("No JSON in response: " + text);
+    return JSON.parse(m[0]);
+  } catch(err) {
+    console.error("AI categorize error:", err);
+    return null;
+  }
 }
 
 // ─── MODAL ────────────────────────────────────────────────────
@@ -735,8 +767,7 @@ function openAddModal() {
   document.getElementById("e-freq").value = "monthly";
   document.getElementById("e-freq-group").style.display = "none";
   document.getElementById("e-date").value = today();
-  document.getElementById("ai-loading").classList.add("hidden");
-  document.getElementById("ai-done").classList.add("hidden");
+  hideAIBoxes();
   document.getElementById("exp-modal").classList.add("open");
   setTimeout(() => document.getElementById("e-amount").focus(), 100);
 }
@@ -757,13 +788,18 @@ function openEditModal(id) {
   document.getElementById("e-recurring").checked = e.recurring || false;
   document.getElementById("e-freq").value = e.recurringFrequency || "monthly";
   document.getElementById("e-freq-group").style.display = e.recurring ? "block" : "none";
-  document.getElementById("ai-loading").classList.add("hidden");
-  document.getElementById("ai-done").classList.add("hidden");
+  hideAIBoxes();
   document.getElementById("exp-modal").classList.add("open");
 }
 
 function closeModal() {
   document.getElementById("exp-modal").classList.remove("open");
+}
+
+function hideAIBoxes() {
+  document.getElementById("ai-loading").classList.add("hidden");
+  document.getElementById("ai-done").classList.add("hidden");
+  document.getElementById("ai-error").classList.add("hidden");
 }
 
 async function saveExpense() {
@@ -776,14 +812,15 @@ async function saveExpense() {
   let taxDeductible = document.getElementById("e-tax").checked;
   let aiCategorized = false;
 
-  if (!amount || !merchant || !date) {
+  if (!amount || isNaN(amount) || !merchant || !date) {
     toast("Amount, merchant, and date are required", "error");
     return;
   }
 
-  if (CONFIG.ANTHROPIC_API_KEY && (!category || !business)) {
+  // Run AI if either category or business is unset
+  if (!category || !business) {
+    hideAIBoxes();
     document.getElementById("ai-loading").classList.remove("hidden");
-    document.getElementById("ai-done").classList.add("hidden");
     document.getElementById("save-btn").disabled = true;
 
     const result = await aiCategorize(merchant, note);
@@ -793,27 +830,46 @@ async function saveExpense() {
 
     if (result) {
       aiCategorized = true;
-      if (!category && result.category) { category = result.category; document.getElementById("e-cat").value = category; }
-      if (!business && result.business) { business = result.business; document.getElementById("e-biz").value = business; }
-      if (result.taxDeductible !== undefined) { taxDeductible = result.taxDeductible; document.getElementById("e-tax").checked = taxDeductible; }
+      if (!category && result.category) {
+        category = result.category;
+        document.getElementById("e-cat").value = category;
+      }
+      if (!business && result.business) {
+        business = result.business;
+        document.getElementById("e-biz").value = business;
+      }
+      if (result.taxDeductible !== undefined) {
+        taxDeductible = result.taxDeductible;
+        document.getElementById("e-tax").checked = taxDeductible;
+      }
       const box = document.getElementById("ai-done");
       box.classList.remove("hidden");
-      box.textContent = "✓ AI suggested: " + category + " · " + business + " · " + (taxDeductible ? "Tax deductible" : "Not deductible");
-      await new Promise(r => setTimeout(r, 700));
+      box.textContent = "AI suggested: " + category + " · " + business + " · " + (taxDeductible ? "Tax deductible" : "Not deductible");
+      await new Promise(r => setTimeout(r, 600));
+    } else {
+      // AI failed — show error but don't block saving
+      const errBox = document.getElementById("ai-error");
+      errBox.classList.remove("hidden");
+      errBox.textContent = "AI categorization unavailable — please select category and business manually.";
+      // If still missing required fields, stop here
+      if (!category || !business) {
+        toast("Please select category and business", "error");
+        return;
+      }
     }
   }
 
-  // Re-read in case user changed after AI
+  // Re-read fields in case user changed after AI
   category = document.getElementById("e-cat").value || "Other";
   business = document.getElementById("e-biz").value || "Messick Marketing";
   taxDeductible = document.getElementById("e-tax").checked;
   const recurring = document.getElementById("e-recurring").checked;
   const recurringFrequency = recurring ? document.getElementById("e-freq").value : null;
   let recurringNextDue = null;
+
   if (recurring) {
     if (editingId) {
       const prev = expenses.find(x => x.id === editingId);
-      // Preserve existing nextDue if frequency unchanged, otherwise recalculate
       if (prev && prev.recurring && prev.recurringFrequency === recurringFrequency && prev.recurringNextDue) {
         recurringNextDue = prev.recurringNextDue;
       } else {
@@ -828,11 +884,20 @@ async function saveExpense() {
     const idx = expenses.findIndex(x => x.id === editingId);
     if (idx !== -1) {
       const prev = expenses[idx];
-      expenses[idx] = { ...prev, date, merchant, amount, note, category, business, taxDeductible, aiCategorized: aiCategorized || prev.aiCategorized, recurring, recurringFrequency, recurringNextDue };
+      expenses[idx] = {
+        ...prev,
+        date, merchant, amount, note, category, business,
+        taxDeductible,
+        aiCategorized: aiCategorized || prev.aiCategorized,
+        recurring, recurringFrequency, recurringNextDue
+      };
     }
     toast("Expense updated", "success");
   } else {
-    expenses.push({ id: uid(), date, merchant, amount, note, category, business, taxDeductible, aiCategorized, recurring, recurringFrequency, recurringNextDue });
+    expenses.push({
+      id: uid(), date, merchant, amount, note, category, business,
+      taxDeductible, aiCategorized, recurring, recurringFrequency, recurringNextDue
+    });
     toast("Expense saved", "success");
   }
 
@@ -892,7 +957,8 @@ function periodLabel() {
 }
 
 function fmt(n) {
-  return "$" + (n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num = isFinite(n) ? n : 0;
+  return "$" + num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function sub(n) { return n + " expense" + (n !== 1 ? "s" : ""); }
@@ -901,18 +967,18 @@ function renderDashboard() {
   const data = getTimePeriod();
   document.getElementById("dash-period").textContent = periodLabel();
 
-  const total = data.reduce((s, e) => s + e.amount, 0);
+  const total = data.reduce((s, e) => s + (isFinite(e.amount) ? e.amount : 0), 0);
   const mm = data.filter(e => e.business === "Messick Marketing");
   const ve = data.filter(e => e.business === "Virtueasy");
   const td = data.filter(e => e.taxDeductible);
 
   document.getElementById("s-total").textContent = fmt(total);
   document.getElementById("s-total-sub").textContent = sub(data.length);
-  document.getElementById("s-mm").textContent = fmt(mm.reduce((s,e)=>s+e.amount,0));
+  document.getElementById("s-mm").textContent = fmt(mm.reduce((s,e) => s + (isFinite(e.amount) ? e.amount : 0), 0));
   document.getElementById("s-mm-sub").textContent = sub(mm.length);
-  document.getElementById("s-ve").textContent = fmt(ve.reduce((s,e)=>s+e.amount,0));
+  document.getElementById("s-ve").textContent = fmt(ve.reduce((s,e) => s + (isFinite(e.amount) ? e.amount : 0), 0));
   document.getElementById("s-ve-sub").textContent = sub(ve.length);
-  document.getElementById("s-tax").textContent = fmt(td.reduce((s,e)=>s+e.amount,0));
+  document.getElementById("s-tax").textContent = fmt(td.reduce((s,e) => s + (isFinite(e.amount) ? e.amount : 0), 0));
   document.getElementById("s-tax-sub").textContent = sub(td.length);
 
   renderCatChart(data);
@@ -922,7 +988,11 @@ function renderDashboard() {
 function renderCatChart(data) {
   const totals = {};
   CATS.forEach(c => totals[c] = 0);
-  data.forEach(e => { if (totals[e.category] !== undefined) totals[e.category] += e.amount; else totals["Other"] += e.amount; });
+  data.forEach(e => {
+    const amt = isFinite(e.amount) ? e.amount : 0;
+    if (totals[e.category] !== undefined) totals[e.category] += amt;
+    else totals["Other"] += amt;
+  });
   const labels = CATS.filter(c => totals[c] > 0);
   const values = labels.map(c => totals[c]);
   const palette = ["#3a6b8a","#5a9ab8","#7ab8d0","#a8d4e6","#2d5a72","#1e3d4f","#8fb8cc","#b8d8e8"];
@@ -931,7 +1001,15 @@ function renderCatChart(data) {
   const ctx = document.getElementById("cat-chart").getContext("2d");
   catChart = new Chart(ctx, {
     type: "bar",
-    data: { labels, datasets: [{ data: values, backgroundColor: palette.slice(0, labels.length), borderRadius: 3, borderSkipped: false }] },
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: palette.slice(0, labels.length),
+        borderRadius: 3,
+        borderSkipped: false
+      }]
+    },
     options: {
       responsive: true,
       plugins: {
@@ -950,8 +1028,8 @@ function renderCatChart(data) {
 }
 
 function renderBizSplit(data, total) {
-  const mmT = data.filter(e => e.business === "Messick Marketing").reduce((s,e)=>s+e.amount,0);
-  const veT = data.filter(e => e.business === "Virtueasy").reduce((s,e)=>s+e.amount,0);
+  const mmT = data.filter(e => e.business === "Messick Marketing").reduce((s,e) => s + (isFinite(e.amount) ? e.amount : 0), 0);
+  const veT = data.filter(e => e.business === "Virtueasy").reduce((s,e) => s + (isFinite(e.amount) ? e.amount : 0), 0);
   const rows = [
     { name: "Messick Marketing", t: mmT, color: "#3a6b8a" },
     { name: "Virtueasy", t: veT, color: "#5a9ab8" }
@@ -969,8 +1047,6 @@ function renderBizSplit(data, total) {
 }
 
 // ─── EXPENSES TABLE ───────────────────────────────────────────
-let fBiz = "", fCat = "", fTax = "", fSearch = "";
-
 function applyFilters() {
   fBiz = document.getElementById("f-biz").value;
   fCat = document.getElementById("f-cat").value;
@@ -992,19 +1068,24 @@ function renderTable() {
   if (fCat) list = list.filter(e => e.category === fCat);
   if (fTax === "yes") list = list.filter(e => e.taxDeductible);
   if (fTax === "no") list = list.filter(e => !e.taxDeductible);
-  if (fSearch) list = list.filter(e => (e.merchant||"").toLowerCase().includes(fSearch) || (e.note||"").toLowerCase().includes(fSearch));
+  if (fSearch) list = list.filter(e =>
+    (e.merchant||"").toLowerCase().includes(fSearch) ||
+    (e.note||"").toLowerCase().includes(fSearch)
+  );
 
   filtered = list;
 
   list.sort((a, b) => {
     let va = a[sortField], vb = b[sortField];
-    if (sortField === "amount") { va = +va; vb = +vb; }
+    if (sortField === "amount") {
+      va = isFinite(+va) ? +va : 0;
+      vb = isFinite(+vb) ? +vb : 0;
+    }
     if (va < vb) return -sortDir;
     if (va > vb) return sortDir;
     return 0;
   });
 
-  // Update sort indicators
   ["date","merchant","amount","category","business"].forEach(f => {
     const el = document.getElementById("sort-" + f);
     if (el) el.textContent = sortField === f ? (sortDir === 1 ? "↑" : "↓") : "↕";
@@ -1036,7 +1117,7 @@ function renderTable() {
         <td style="white-space:nowrap">
           ${e.taxDeductible ? '<span class="badge badge-tax">✓ Tax</span>' : '<span style="color:var(--gray-300);font-size:.8rem">—</span>'}
           ${e.aiCategorized ? ' <span class="badge badge-ai" title="AI categorized">AI</span>' : ""}
-          ${e.recurring ? ` <span class="badge badge-recur" title="Recurring — next due ${e.recurringNextDue||""}">↻ ${capFirst(e.recurringFrequency)}</span>` : ""}
+          ${e.recurring ? ` <span class="badge badge-recur" title="Recurring — next due ${esc(e.recurringNextDue||"")}">↻ ${capFirst(e.recurringFrequency)}</span>` : ""}
         </td>
         <td onclick="event.stopPropagation()" style="text-align:right">
           <button class="btn btn-ghost btn-sm" title="Delete" style="color:var(--error);padding:4px 8px;line-height:1" onclick="openDelModal('${e.id}')">✕</button>
@@ -1073,10 +1154,12 @@ function goPage(p) { currentPage = p; renderTable(); }
 
 // ─── CSV EXPORT ───────────────────────────────────────────────
 function exportCSV() {
-  const list = filtered.length > 0 ? filtered : expenses;
-  const headers = ["id","date","merchant","amount","note","category","business","taxDeductible","aiCategorized"];
+  // Export filtered list if filters are active, otherwise all expenses
+  const hasFilter = fBiz || fCat || fSearch || fTax;
+  const list = hasFilter && filtered.length > 0 ? filtered : expenses;
+  const headers = ["id","date","merchant","amount","note","category","business","taxDeductible","aiCategorized","recurring","recurringFrequency"];
   const rows = [headers, ...list.map(e => headers.map(h => {
-    const v = String(e[h] ?? "");
+    const v = String(e[h] != null ? e[h] : "");
     return v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g,'""')}"` : v;
   }))];
   const csv = rows.map(r => r.join(",")).join("\n");
@@ -1101,10 +1184,10 @@ function setupDropzone() {
 }
 
 const COL_ALIASES = {
-  amount: ["amount","total","cost","price","charge","sum","debit","credit"],
+  amount:   ["amount","total","cost","price","charge","sum","debit","credit"],
   merchant: ["merchant","vendor","payee","description","name","store","company","memo","narrative"],
-  date: ["date","transaction date","txn date","posted date","purchase date","post date","trans date"],
-  note: ["note","notes","memo","comment","details","reference","description","remarks"]
+  date:     ["date","transaction date","txn date","posted date","purchase date","post date","trans date"],
+  note:     ["note","notes","memo","comment","details","reference","description","remarks"]
 };
 
 function findCol(headers, key) {
@@ -1122,7 +1205,8 @@ function findCol(headers, key) {
 
 function parseAmt(str) {
   if (!str) return 0;
-  return Math.abs(parseFloat(String(str).replace(/[$,\s]/g, "")) || 0);
+  const n = parseFloat(String(str).replace(/[$,\s]/g, ""));
+  return isFinite(n) ? Math.abs(n) : 0;
 }
 
 function parseDateStr(str) {
@@ -1154,19 +1238,19 @@ function handleCSVFile(file) {
 
 async function processCSV(rows) {
   const headers = Object.keys(rows[0]);
-  const cAmt = findCol(headers, "amount");
-  const cMer = findCol(headers, "merchant");
+  const cAmt  = findCol(headers, "amount");
+  const cMer  = findCol(headers, "merchant");
   const cDate = findCol(headers, "date");
   const cNote = findCol(headers, "note");
 
   const parsed = rows.map(row => ({
-    id: uid(),
-    date: parseDateStr(cDate ? row[cDate] : ""),
-    merchant: (cMer ? row[cMer] : Object.values(row)[0]) || "Unknown",
-    amount: parseAmt(cAmt ? row[cAmt] : 0),
-    note: cNote ? row[cNote] : "",
-    category: "Other",
-    business: "Messick Marketing",
+    id:           uid(),
+    date:         parseDateStr(cDate ? row[cDate] : ""),
+    merchant:     (cMer ? row[cMer] : Object.values(row)[0]) || "Unknown",
+    amount:       parseAmt(cAmt ? row[cAmt] : 0),
+    note:         cNote ? row[cNote] : "",
+    category:     "Other",
+    business:     "Messick Marketing",
     taxDeductible: true,
     aiCategorized: false
   }));
@@ -1177,14 +1261,12 @@ async function processCSV(rows) {
   const BATCH = 5;
   for (let i = 0; i < parsed.length; i += BATCH) {
     await Promise.all(parsed.slice(i, i + BATCH).map(async exp => {
-      if (CONFIG.ANTHROPIC_API_KEY) {
-        const r = await aiCategorize(exp.merchant, exp.note);
-        if (r) {
-          exp.category = r.category || exp.category;
-          exp.business = r.business || exp.business;
-          exp.taxDeductible = r.taxDeductible !== undefined ? r.taxDeductible : exp.taxDeductible;
-          exp.aiCategorized = true;
-        }
+      const r = await aiCategorize(exp.merchant, exp.note);
+      if (r) {
+        exp.category      = r.category      || exp.category;
+        exp.business      = r.business      || exp.business;
+        exp.taxDeductible = r.taxDeductible !== undefined ? r.taxDeductible : exp.taxDeductible;
+        exp.aiCategorized = true;
       }
     }));
     const done = Math.min(i + BATCH, parsed.length);
@@ -1192,33 +1274,41 @@ async function processCSV(rows) {
     document.getElementById("prog-text").textContent = done + " / " + parsed.length + " rows categorized";
   }
 
-  // Recurring detection pass
   detectRecurring(parsed);
 
   pendingImport = parsed;
   document.getElementById("import-progress").classList.add("hidden");
   document.getElementById("import-preview").classList.remove("hidden");
   document.getElementById("preview-count").textContent = parsed.length;
+
+  // Reset "mark all recurring" checkbox to checked
+  const markAll = document.getElementById("mark-recur-all");
+  if (markAll) markAll.checked = true;
+
   document.getElementById("preview-tbody").innerHTML = parsed.map((e, i) => `
     <tr>
       <td>${e.date}</td>
       <td>
         ${esc(e.merchant)}
-        ${e._detectedRecurring ? `<span class="badge badge-recur" style="margin-left:4px">↻ Likely ${capFirst(e._detectedFreq)}</span>` : ""}
+        ${e._detectedRecurring && !e._recurringTemplate ? `<span class="badge badge-recur" style="margin-left:4px;opacity:.55">↻ ${capFirst(e._detectedFreq)}</span>` : ""}
       </td>
       <td class="text-right">${fmt(e.amount)}</td>
-      <td>${e.category}</td>
-      <td>${e.business}</td>
+      <td>${esc(e.category)}</td>
+      <td>${esc(e.business)}</td>
       <td>${e.taxDeductible ? "✓" : "—"}</td>
       <td style="color:var(--gray-500)">${esc(e.note||"—")}</td>
       <td style="text-align:center">
-        ${e._recurringTemplate ? `<input type="checkbox" class="recur-chk" data-idx="${i}" checked style="accent-color:var(--warn);width:13px;height:13px">` : ""}
+        ${e._recurringTemplate
+          ? `<label style="display:flex;align-items:center;justify-content:center;gap:4px;font-size:.72rem;cursor:pointer">
+               <input type="checkbox" class="recur-chk" data-idx="${i}" checked style="accent-color:var(--warn);width:13px;height:13px">
+               <span class="badge badge-recur">↻ ${capFirst(e._detectedFreq)}</span>
+             </label>`
+          : ""}
       </td>
     </tr>`).join("");
 }
 
 function confirmImport() {
-  // Collect which template rows have their recurring checkbox checked
   const checkedIdxs = new Set(
     [...document.querySelectorAll(".recur-chk:checked")].map(cb => +cb.dataset.idx)
   );
@@ -1226,7 +1316,6 @@ function confirmImport() {
   const count = pendingImport.length;
   const toImport = pendingImport.map((e, i) => {
     const makeTemplate = e._recurringTemplate && checkedIdxs.has(i);
-    // Strip internal detection fields
     const { _detectedRecurring, _detectedFreq, _recurringTemplate, ...clean } = e;
     return makeTemplate
       ? { ...clean, recurring: true, recurringFrequency: e._detectedFreq, recurringNextDue: advanceDate(e.date, e._detectedFreq) }
@@ -1237,6 +1326,7 @@ function confirmImport() {
   persist();
   pendingImport = [];
   document.getElementById("import-preview").classList.add("hidden");
+  document.getElementById("import-progress").classList.add("hidden");
   document.getElementById("csv-input").value = "";
   toast(count + " expenses imported", "success");
   navigateTo("expenses");
@@ -1246,6 +1336,9 @@ function cancelImport() {
   pendingImport = [];
   document.getElementById("import-preview").classList.add("hidden");
   document.getElementById("import-progress").classList.add("hidden");
+  // Reset the "mark all" checkbox for next import
+  const markAll = document.getElementById("mark-recur-all");
+  if (markAll) markAll.checked = true;
   document.getElementById("csv-input").value = "";
 }
 
@@ -1261,9 +1354,9 @@ function toggleAllRecurring(checked) {
 
 function advanceDate(dateStr, freq) {
   const d = new Date(dateStr + "T12:00:00");
-  if (freq === "weekly")  d.setDate(d.getDate() + 7);
-  else if (freq === "monthly") d.setMonth(d.getMonth() + 1);
-  else if (freq === "yearly")  d.setFullYear(d.getFullYear() + 1);
+  if (freq === "weekly")   d.setDate(d.getDate() + 7);
+  else if (freq === "monthly")  d.setMonth(d.getMonth() + 1);
+  else if (freq === "yearly")   d.setFullYear(d.getFullYear() + 1);
   return d.toISOString().split("T")[0];
 }
 
@@ -1273,21 +1366,22 @@ function processRecurring() {
 
   expenses.forEach(tmpl => {
     if (!tmpl.recurring || !tmpl.recurringNextDue) return;
-    // Catch up all missed cycles
-    while (tmpl.recurringNextDue <= todayStr) {
+    let iterations = 0;
+    while (tmpl.recurringNextDue <= todayStr && iterations < 365) {
+      iterations++;
       newEntries.push({
-        id: uid(),
-        date: tmpl.recurringNextDue,
-        merchant: tmpl.merchant,
-        amount: tmpl.amount,
-        note: tmpl.note,
-        category: tmpl.category,
-        business: tmpl.business,
-        taxDeductible: tmpl.taxDeductible,
-        aiCategorized: false,
-        recurring: false,
+        id:                 uid(),
+        date:               tmpl.recurringNextDue,
+        merchant:           tmpl.merchant,
+        amount:             tmpl.amount,
+        note:               tmpl.note,
+        category:           tmpl.category,
+        business:           tmpl.business,
+        taxDeductible:      tmpl.taxDeductible,
+        aiCategorized:      false,
+        recurring:          false,
         recurringFrequency: null,
-        recurringNextDue: null
+        recurringNextDue:   null
       });
       tmpl.recurringNextDue = advanceDate(tmpl.recurringNextDue, tmpl.recurringFrequency);
     }
@@ -1301,7 +1395,6 @@ function processRecurring() {
 }
 
 function detectRecurring(parsed) {
-  // Group by merchant name (case-insensitive)
   const groups = {};
   parsed.forEach(e => {
     const key = e.merchant.toLowerCase().trim();
@@ -1315,7 +1408,7 @@ function detectRecurring(parsed) {
     const intervals = [];
     for (let i = 1; i < group.length; i++) {
       const da = new Date(group[i-1].date + "T12:00:00");
-      const db = new Date(group[i].date + "T12:00:00");
+      const db = new Date(group[i].date   + "T12:00:00");
       intervals.push(Math.round((db - da) / 86400000));
     }
     let freq = null;
@@ -1326,8 +1419,8 @@ function detectRecurring(parsed) {
 
     group.forEach((e, i) => {
       e._detectedRecurring = true;
-      e._detectedFreq = freq;
-      // Only the last (most-recent) occurrence becomes the recurring template
+      e._detectedFreq      = freq;
+      // Only the most recent occurrence becomes the template
       e._recurringTemplate = (i === group.length - 1);
     });
   });
@@ -1337,15 +1430,23 @@ function detectRecurring(parsed) {
 function capFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
 
 function esc(s) {
-  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s||"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
 }
 
 function fmtDate(str) {
   if (!str) return "—";
   try {
-    const [y,m,d] = str.split("-");
+    const parts = str.split("-");
+    if (parts.length !== 3) return str;
+    const [y, m, d] = parts;
     const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return M[+m-1] + " " + +d + ", " + y;
+    const month = M[+m - 1];
+    if (!month) return str;
+    return month + " " + +d + ", " + y;
   } catch { return str; }
 }
 
@@ -1358,7 +1459,7 @@ function toast(msg, type = "info") {
     el.style.transition = "opacity .3s";
     el.style.opacity = "0";
     setTimeout(() => el.remove(), 300);
-  }, 3000);
+  }, 3200);
 }
 
 // ─── EVENTS ───────────────────────────────────────────────────
