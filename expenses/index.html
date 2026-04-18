@@ -678,13 +678,11 @@ Given merchant and note, return ONLY valid JSON (no markdown, no explanation):
 Merchant: ${merchant}
 Note: ${note || "none"}`;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": CONFIG.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
+const res = await fetch("https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
