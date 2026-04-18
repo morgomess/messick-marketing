@@ -519,8 +519,9 @@ tbody td{padding:11px 14px;vertical-align:middle}
 // ─── CONFIG ───────────────────────────────────────────────────
 const CONFIG = {
   PASSWORD: "Messick2026",
-  ANTHROPIC_API_KEY: "",
-  SHEETS_WEBHOOK_URL: "",
+  AI_ENABLED: true,
+  CF_WORKER_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
+  SHEETS_WEBHOOK_URL: "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbzmZ_i8PKENxCVDb8Pvz9bu9qNDkClCJ2-LUj8qYjNlEzscjX9qNoA8YxQ6P7Yb_pXh/exec",
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -667,7 +668,7 @@ function setSyncStatus(st) {
 
 // ─── AI ───────────────────────────────────────────────────────
 async function aiCategorize(merchant, note) {
-  if (!CONFIG.ANTHROPIC_API_KEY) return null;
+  if (!CONFIG.AI_ENABLED) return null;
   const prompt = `You are an expense categorizer for two businesses:
 - Messick Marketing: digital marketing agency (ads, SEO, social, content, client tools)
 - Virtueasy: a software/app product business (dev tools, SaaS subscriptions for the product)
@@ -678,12 +679,9 @@ Given merchant and note, return ONLY valid JSON (no markdown, no explanation):
 Merchant: ${merchant}
 Note: ${note || "none"}`;
   try {
-const res = await fetch("https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-      },
+    const res = await fetch(CONFIG.CF_WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 150,
@@ -753,7 +751,7 @@ async function saveExpense() {
     return;
   }
 
-  if (CONFIG.ANTHROPIC_API_KEY && (!category || !business)) {
+  if (CONFIG.AI_ENABLED && (!category || !business)) {
     document.getElementById("ai-loading").classList.remove("hidden");
     document.getElementById("ai-done").classList.add("hidden");
     document.getElementById("save-btn").disabled = true;
@@ -960,7 +958,6 @@ function renderTable() {
     return 0;
   });
 
-  // Update sort indicators
   ["date","merchant","amount","category","business"].forEach(f => {
     const el = document.getElementById("sort-" + f);
     if (el) el.textContent = sortField === f ? (sortDir === 1 ? "↑" : "↓") : "↕";
@@ -1132,7 +1129,7 @@ async function processCSV(rows) {
   const BATCH = 5;
   for (let i = 0; i < parsed.length; i += BATCH) {
     await Promise.all(parsed.slice(i, i + BATCH).map(async exp => {
-      if (CONFIG.ANTHROPIC_API_KEY) {
+      if (CONFIG.AI_ENABLED) {
         const r = await aiCategorize(exp.merchant, exp.note);
         if (r) {
           exp.category = r.category || exp.category;
