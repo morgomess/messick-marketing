@@ -60,7 +60,17 @@
     position: sticky; top: 0; z-index: 100; flex-shrink: 0;
   }
   .header-logo { font-family: 'Cormorant Garamond'; font-size: 21px; letter-spacing: 1.5px; }
+  .header-right { display: flex; align-items: center; gap: 20px; }
   .header-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--steel-light); font-weight: 600; }
+  .header-nav { display: flex; gap: 4px; }
+  .header-nav-btn {
+    padding: 6px 14px; border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.2s; color: rgba(255,255,255,0.5);
+    background: transparent;
+  }
+  .header-nav-btn:hover { color: white; background: rgba(255,255,255,0.07); }
+  .header-nav-btn.active { color: white; border-color: var(--steel); background: rgba(58,107,138,0.2); }
 
   /* ── PROGRESS ── */
   .progress-wrap { background: var(--black); border-top: 1px solid #1e1e1e; padding: 0 36px; display: flex; overflow-x: auto; }
@@ -83,6 +93,10 @@
   /* ── SHELL ── */
   .shell { flex: 1; display: flex; justify-content: center; padding: 44px 24px 80px; }
   .panel { width: 100%; max-width: 920px; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
 
   /* ── PAGES ── */
   .page { display: none; }
@@ -120,6 +134,13 @@
     display: inline-flex; align-items: center; gap: 6px;
   }
   .btn-ghost:hover { border-color: var(--steel); background: rgba(58,107,138,0.05); }
+  .btn-save-lead {
+    background: var(--success); color: white; border: none; padding: 14px 26px;
+    border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-save-lead:hover { background: #1e6b45; }
 
   /* ── LOADING ── */
   .loading-wrap { text-align: center; padding: 80px 20px; }
@@ -200,21 +221,21 @@
     padding: 10px 14px; font-size: 13px; color: var(--danger-text); line-height: 1.5;
   }
   .finding-toggle { font-size: 11px; color: var(--steel); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-  .dismiss-btn {
-    background: none; border: 1px solid #e0d0cc; border-radius: 4px;
-    color: #b07060; font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 600;
-    letter-spacing: 1px; text-transform: uppercase; padding: 4px 8px; cursor: pointer;
-    transition: all 0.2s; white-space: nowrap;
-  }
-  .dismiss-btn:hover { background: #fff0ee; border-color: #c0392b; color: #c0392b; }
-  .finding-card.dismissed { opacity: 0; transform: scale(0.96); pointer-events: none; transition: opacity 0.25s, transform 0.25s; }
-  .finding-card.dismissed { opacity: 0.38; filter: grayscale(0.6); }
-  .finding-card.dismissed .finding-body { display: none; }
-  .finding-card.dismissed .finding-header { border-bottom: none; }
   .dismiss-btn { margin-left: auto; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #bbb; border: 1px solid #e0e0e0; border-radius: 4px; padding: 3px 9px; cursor: pointer; background: none; font-family: 'Jost', sans-serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
   .dismiss-btn:hover { color: #c0392b; border-color: #f5bfb8; background: #fff5f4; }
   .finding-card.dismissed .dismiss-btn { color: var(--steel); border-color: var(--border); background: none; }
   .finding-card.dismissed .dismiss-btn:hover { background: rgba(58,107,138,0.06); }
+  .finding-card.dismissed { opacity: 0.38; filter: grayscale(0.6); }
+  .finding-card.dismissed .finding-body { display: none; }
+  .finding-card.dismissed .finding-header { border-bottom: none; }
+
+  /* ── DUPLICATE GUARD ── */
+  .dup-warning {
+    background: #fff9ed; border: 1px solid #f5d89a; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: var(--warn-text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dup-warning strong { font-weight: 700; }
 
   /* ── CHAT ── */
   .chat-history { max-height: 360px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
@@ -278,8 +299,7 @@
   .pitch-chip {
     background: var(--warm); border: 1px solid var(--border); border-radius: 20px;
     padding: 7px 14px; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
-    color: var(--steel); cursor: pointer; transition: all 0.2s; white-space: nowrap;
-    letter-spacing: 0.3px;
+    color: var(--steel); cursor: pointer; transition: all 0.2s; white-space: nowrap; letter-spacing: 0.3px;
   }
   .pitch-chip:hover { background: var(--steel); color: white; border-color: var(--steel); }
   .pitch-chip.loading { background: var(--steel-dim); color: var(--steel); border-color: var(--border); cursor: not-allowed; }
@@ -290,9 +310,123 @@
   }
   .pitch-edit-row input:focus { border-color: var(--steel); background: white; }
 
+  /* ── LEADS VIEW ── */
+  .leads-summary {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .leads-stat {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 20px; text-align: center; min-width: 110px;
+  }
+  .leads-stat-val { font-family: 'Cormorant Garamond'; font-size: 28px; font-weight: 600; color: var(--black); line-height: 1; }
+  .leads-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+  .leads-stat.accent { background: var(--steel); border-color: var(--steel); }
+  .leads-stat.accent .leads-stat-val { color: white; }
+  .leads-stat.accent .leads-stat-label { color: rgba(255,255,255,0.6); }
+
+  .leads-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .leads-filter {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 13px; color: var(--black);
+    background: white; outline: none; cursor: pointer;
+  }
+  .leads-filter:focus { border-color: var(--steel); }
+
+  .leads-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .leads-table thead th {
+    padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+    border-bottom: 2px solid var(--border); white-space: nowrap;
+  }
+  .leads-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+  .leads-table tbody tr:hover { background: #f5f9fc; }
+  .leads-table tbody td { padding: 12px 14px; vertical-align: middle; }
+
+  .status-sel {
+    padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px;
+    font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; outline: none; background: white; transition: border-color 0.2s;
+  }
+  .status-sel:focus { border-color: var(--steel); }
+  .status-sel.s-emailed { color: var(--steel); border-color: #b8d4e8; background: #f0f7fb; }
+  .status-sel.s-followed { color: #7a3a8a; border-color: #dbbde8; background: #f8f0fc; }
+  .status-sel.s-responded { color: #2e7d5e; border-color: #9dd4b8; background: #f0faf5; }
+  .status-sel.s-closed { color: #1a5276; border-color: #9ab8d4; background: #edf4fa; }
+  .status-sel.s-not { color: #888; border-color: #ddd; background: #f5f5f5; }
+
+  .lead-del-btn {
+    background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px;
+    padding: 4px 8px; border-radius: 4px; transition: all 0.2s; line-height: 1;
+  }
+  .lead-del-btn:hover { color: #c0392b; background: #fff5f4; }
+
+  /* ── LEAD DETAIL PANEL ── */
+  .lead-detail-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500;
+    display: none; align-items: center; justify-content: center;
+  }
+  .lead-detail-overlay.open { display: flex; }
+  .lead-detail-panel {
+    background: var(--warm); border-radius: 12px; width: 520px; max-width: 92vw;
+    max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .ldp-header {
+    padding: 22px 26px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .ldp-header h3 { font-family: 'Cormorant Garamond'; font-size: 22px; font-weight: 600; }
+  .ldp-close { background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+  .ldp-close:hover { background: var(--border); }
+  .ldp-body { padding: 22px 26px; }
+  .ldp-row { display: flex; gap: 8px; margin-bottom: 12px; font-size: 14px; }
+  .ldp-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); min-width: 80px; margin-top: 2px; }
+  .ldp-val { color: var(--black); line-height: 1.5; word-break: break-all; }
+  .ldp-pitch { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 13px; color: #555; line-height: 1.65; font-style: italic; margin-top: 4px; }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 18px; border-radius: 6px; font-size: 13px; font-family: 'Jost', sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18); animation: slideIn 0.25s ease;
+    display: flex; align-items: center; gap: 8px; max-width: 320px;
+  }
+  @keyframes slideIn { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast-success { background: var(--success); color: white; }
+  .toast-error { background: #c0392b; color: white; }
+  .toast-info { background: var(--steel); color: white; }
+  .toast-warn { background: #e67e22; color: white; }
+
+  /* ── SYNC STATUS ── */
+  .sync-bar {
+    font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px;
+    padding: 6px 0; margin-bottom: 12px;
+  }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+  .sync-dot.synced { background: #2ecc71; }
+  .sync-dot.syncing { background: #e67e22; animation: pulse 1s infinite; }
+  .sync-dot.failed { background: #c0392b; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── CONFIRM MODAL ── */
+  .confirm-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 600;
+    display: none; align-items: center; justify-content: center;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: white; border-radius: 10px; padding: 32px 28px; text-align: center;
+    max-width: 340px; width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .confirm-box h3 { font-family: 'Cormorant Garamond'; font-size: 22px; margin-bottom: 8px; }
+  .confirm-box p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
   /* ── MISC ── */
   .row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
   .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--muted); margin-bottom: 12px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state h3 { font-family: 'Cormorant Garamond'; font-size: 22px; color: #aaa; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; }
 </style>
 </head>
 <body>
@@ -314,11 +448,17 @@
 <!-- HEADER -->
 <header>
   <div class="header-logo">Messick Marketing</div>
-  <div class="header-badge">Pitch Intelligence</div>
+  <div class="header-right">
+    <div class="header-nav">
+      <button class="header-nav-btn active" id="nav-tool" onclick="switchView('tool')">Pitch Tool</button>
+      <button class="header-nav-btn" id="nav-leads" onclick="switchView('leads')">Leads <span id="leads-count-badge" style="display:none;background:var(--steel);color:white;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;"></span></button>
+    </div>
+    <div class="header-badge">Pitch Intelligence</div>
+  </div>
 </header>
 
-<!-- PROGRESS -->
-<div class="progress-wrap">
+<!-- PROGRESS (tool only) -->
+<div class="progress-wrap" id="progress-wrap">
   <div class="progress-step active" id="ps1"><div class="num">1</div><span>Prospect</span></div>
   <div class="progress-step" id="ps2"><div class="num">2</div><span>Research</span></div>
   <div class="progress-step" id="ps3"><div class="num">3</div><span>Intelligence</span></div>
@@ -329,153 +469,239 @@
 <div class="shell">
   <div class="panel">
 
-    <!-- STEP 1 -->
-    <div id="p1" class="page active">
-      <div class="card">
-        <div class="card-title">New Prospect Analysis</div>
-        <div class="card-sub">Enter the prospect's details below. Website URL is optional but improves depth of analysis.</div>
-        <div class="field"><label>Practice / Business Name</label><input type="text" id="bizName" placeholder="e.g. NY Vascular Care"></div>
-        <div class="field"><label>City, State</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
-        <div class="field"><label>Website URL (optional)</label><input type="url" id="website" placeholder="https://..."></div>
-        <div class="field"><label>Your Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><textarea id="prospectNotes" placeholder="e.g. I noticed their Instagram hasn't posted in 3 months, they have no Google reviews, their homepage hero has no CTA..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea></div>
-        <button class="btn-primary" onclick="startResearch()">Run Intelligence Report →</button>
-      </div>
-    </div>
+    <!-- ══ TOOL VIEW ══ -->
+    <div id="view-tool" class="view active">
 
-    <!-- STEP 2: LOADING -->
-    <div id="p2" class="page">
-      <div class="card">
-        <div class="loading-wrap">
-          <div class="spinner"></div>
-          <div class="loading-status" id="loadStatus">Scraping website and social presence...</div>
-          <div class="loading-note">Pulling SEO signals, Google Business Profile data, social pages, and conversion gaps. This may take 20-30 seconds.</div>
+      <!-- STEP 1 -->
+      <div id="p1" class="page active">
+        <div class="card">
+          <div id="dup-guard-banner" style="display:none;" class="dup-warning">
+            ⚠️ <span id="dup-guard-text"></span>
+          </div>
+          <div class="card-title">New Prospect Analysis</div>
+          <div class="card-sub">Enter the prospect's details below. Website URL is optional but improves depth of analysis.</div>
+          <div class="field"><label>Practice / Business Name</label><input type="text" id="bizName" placeholder="e.g. NY Vascular Care" oninput="checkDuplicate()"></div>
+          <div class="field"><label>City, State</label><input type="text" id="location" placeholder="e.g. Atlanta, GA"></div>
+          <div class="field"><label>Website URL (optional)</label><input type="url" id="website" placeholder="https://..." oninput="checkDuplicate()"></div>
+          <div class="field"><label>Email Address <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><input type="email" id="prospectEmail" placeholder="contact@practice.com"></div>
+          <div class="field"><label>Your Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><textarea id="prospectNotes" placeholder="e.g. I noticed their Instagram hasn't posted in 3 months, they have no Google reviews, their homepage hero has no CTA..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea></div>
+          <button class="btn-primary" onclick="startResearch()">Run Intelligence Report →</button>
         </div>
       </div>
-    </div>
 
-    <!-- STEP 3: DASHBOARD INTELLIGENCE -->
-    <div id="p3" class="page">
-
-      <!-- Prospect header with score -->
-      <div class="dash-header">
-        <div class="dash-header-left">
-          <h2 id="dashName">—</h2>
-          <p id="dashLoc">—</p>
+      <!-- STEP 2: LOADING -->
+      <div id="p2" class="page">
+        <div class="card">
+          <div class="loading-wrap">
+            <div class="spinner"></div>
+            <div class="loading-status" id="loadStatus">Scraping website and social presence...</div>
+            <div class="loading-note">Pulling SEO signals, Google Business Profile data, social pages, and conversion gaps. This may take 20-30 seconds.</div>
+          </div>
         </div>
-        <div class="dash-header-right">
-          <div class="stat-chips" id="statChips"></div>
-          <div class="score-ring-wrap">
-            <div class="score-ring">
-              <svg width="72" height="72" viewBox="0 0 72 72">
-                <circle class="ring-bg" cx="36" cy="36" r="30"/>
-                <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30" stroke-dasharray="188.4" stroke-dashoffset="188.4"/>
-              </svg>
-              <div class="score-center">
-                <div class="score-num" id="scoreNum">—</div>
-                <div class="score-label">Score</div>
+      </div>
+
+      <!-- STEP 3: DASHBOARD INTELLIGENCE -->
+      <div id="p3" class="page">
+        <div class="dash-header">
+          <div class="dash-header-left">
+            <h2 id="dashName">—</h2>
+            <p id="dashLoc">—</p>
+          </div>
+          <div class="dash-header-right">
+            <div class="stat-chips" id="statChips"></div>
+            <div class="score-ring-wrap">
+              <div class="score-ring">
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                  <circle class="ring-bg" cx="36" cy="36" r="30"/>
+                  <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30" stroke-dasharray="188.4" stroke-dashoffset="188.4"/>
+                </svg>
+                <div class="score-center">
+                  <div class="score-num" id="scoreNum">—</div>
+                  <div class="score-label">Score</div>
+                </div>
+              </div>
+              <div class="score-grade" id="scoreGrade" style="color:white; text-align:center;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="quick-wins" id="quickWinsBanner" style="display:none;">
+          <div class="quick-wins-title">Quick Wins — Fix This Week</div>
+          <div class="quick-wins-list" id="quickWinsList"></div>
+        </div>
+        <div class="section-label">Critical Findings</div>
+        <div class="findings-grid" id="findingsGrid"></div>
+        <div class="card">
+          <div class="card-title" style="font-size:22px; margin-bottom:5px;">Dig Deeper</div>
+          <div class="card-sub" style="margin-bottom:18px;">Ask follow-up questions or request deeper analysis on any finding before you pitch.</div>
+          <div class="chat-history" id="chatHistory"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder='e.g. "Go deeper on their SEO gaps" or "How would you open the call?"' onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-send" id="chatSendBtn" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+        <div class="row-actions">
+          <button class="btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
+          <button class="btn-ghost" onclick="restart()">← Start Over</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: SERVICES -->
+      <div id="p4" class="page">
+        <div class="card">
+          <div class="card-title">Select Services to Pitch</div>
+          <div class="card-sub">Choose the services most relevant to this prospect's gaps. The pitch will be written around what you select. <span style="color:var(--steel);font-weight:600;">★ Recommended</span> services are highlighted based on the audit findings.</div>
+          <div class="services-grid" id="servicesGrid"></div>
+          <div class="row-actions">
+            <button class="btn-primary" id="generatePitchBtn" onclick="generatePitch()" disabled>Generate Pitch →</button>
+            <button class="btn-ghost" onclick="goTo(3)">← Back to Intel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: PITCH -->
+      <div id="p5" class="page">
+        <div class="card" id="pitchLoadCard">
+          <div class="loading-wrap">
+            <div class="spinner"></div>
+            <div class="loading-status" id="pitchLoadStatus">Crafting your custom pitch...</div>
+            <div class="loading-note">Tailoring the email and call script to this prospect's specific gaps.</div>
+          </div>
+        </div>
+        <div id="pitchCard" style="display:none;">
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:6px;">
+              <div>
+                <div class="card-title" style="margin-bottom:4px;">Your Custom Pitch</div>
+                <div class="card-sub" style="margin-bottom:0;">Tailored to this prospect's gaps and selected services.</div>
+              </div>
+              <div style="display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap;">
+                <button class="btn-ghost" id="undoPitchBtn" onclick="undoPitch()" style="display:none;">↩ Undo</button>
+                <button class="btn-ghost" onclick="copyPitch()">📋 Copy</button>
+                <button class="btn-ghost" onclick="goTo(4)">← Services</button>
+                <button class="btn-ghost" onclick="restart()">New Prospect</button>
               </div>
             </div>
-            <div class="score-grade" id="scoreGrade" style="color:white; text-align:center;"></div>
+            <div id="pitchOutput" class="pitch-output"></div>
           </div>
-        </div>
-      </div>
 
-      <!-- Quick wins banner -->
-      <div class="quick-wins" id="quickWinsBanner" style="display:none;">
-        <div class="quick-wins-title">Quick Wins — Fix This Week</div>
-        <div class="quick-wins-list" id="quickWinsList"></div>
-      </div>
-
-      <!-- Findings -->
-      <div class="section-label">Critical Findings</div>
-      <div class="findings-grid" id="findingsGrid"></div>
-
-      <!-- Chat -->
-      <div class="card">
-        <div class="card-title" style="font-size:22px; margin-bottom:5px;">Dig Deeper</div>
-        <div class="card-sub" style="margin-bottom:18px;">Ask follow-up questions or request deeper analysis on any finding before you pitch.</div>
-        <div class="chat-history" id="chatHistory"></div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder='e.g. "Go deeper on their SEO gaps" or "How would you open the call?"' onkeydown="if(event.key==='Enter')sendChat()">
-          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">➤</button>
-        </div>
-      </div>
-
-      <div class="row-actions">
-        <button class="btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
-        <button class="btn-ghost" onclick="restart()">← Start Over</button>
-      </div>
-    </div>
-
-    <!-- STEP 4: SERVICES -->
-    <div id="p4" class="page">
-      <div class="card">
-        <div class="card-title">Select Services to Pitch</div>
-        <div class="card-sub">Choose the services most relevant to this prospect's gaps. The pitch will be written around what you select. <span style="color:var(--steel);font-weight:600;">★ Recommended</span> services are highlighted based on the audit findings.</div>
-        <div class="services-grid" id="servicesGrid"></div>
-        <div class="row-actions">
-          <button class="btn-primary" id="generatePitchBtn" onclick="generatePitch()" disabled>Generate Pitch →</button>
-          <button class="btn-ghost" onclick="goTo(3)">← Back to Intel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 5: PITCH -->
-    <div id="p5" class="page">
-      <div class="card" id="pitchLoadCard">
-        <div class="loading-wrap">
-          <div class="spinner"></div>
-          <div class="loading-status" id="pitchLoadStatus">Crafting your custom pitch...</div>
-          <div class="loading-note">Tailoring the email and call script to this prospect's specific gaps.</div>
-        </div>
-      </div>
-      <div id="pitchCard" style="display:none;">
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:6px;">
-            <div>
-              <div class="card-title" style="margin-bottom:4px;">Your Custom Pitch</div>
-              <div class="card-sub" style="margin-bottom:0;">Tailored to this prospect's gaps and selected services.</div>
-            </div>
-            <div style="display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap;">
-              <button class="btn-ghost" id="undoPitchBtn" onclick="undoPitch()" style="display:none;">↩ Undo</button>
-              <button class="btn-ghost" onclick="copyPitch()">📋 Copy</button>
-              <button class="btn-ghost" onclick="goTo(4)">← Services</button>
-              <button class="btn-ghost" onclick="restart()">New Prospect</button>
+          <!-- SAVE LEAD -->
+          <div class="card" style="background:#f0faf5; border-color:#9dd4b8;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <div>
+                <div style="font-weight:700; font-size:15px; margin-bottom:4px;">Save this lead</div>
+                <div style="font-size:13px; color:var(--muted);">Log <strong id="save-lead-name">this prospect</strong> to your leads list for follow-up tracking.</div>
+                <div id="save-lead-dup-warning" style="display:none; font-size:12px; color:var(--warn-text); margin-top:6px; background:var(--warn-bg); padding:6px 10px; border-radius:4px;"></div>
+              </div>
+              <button class="btn-save-lead" id="saveLeadBtn" onclick="saveLead()">+ Save Lead</button>
             </div>
           </div>
-          <div id="pitchOutput" class="pitch-output"></div>
-        </div>
 
-        <div class="card" id="pitchEditCard">
-          <div class="card-title" style="font-size:20px; margin-bottom:4px;">Refine This Pitch</div>
-          <div class="card-sub" style="margin-bottom:16px;">Use quick commands or type your own instruction.</div>
-          <div class="pitch-chips" id="pitchChips">
-            <button class="pitch-chip" onclick="applyChip(this, 'Make it shorter and more punchy')">Shorten it</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Rewrite with more urgency — make the cost of inaction feel real')">Add urgency</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more professional and formal')">More formal</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more conversational and warm')">More casual</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Add relevant healthcare marketing statistics to strengthen the argument')">Add stats</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Make the subject line more compelling and click-worthy')">Better subject</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Strengthen the call to action — make it easier to say yes')">Stronger CTA</button>
-            <button class="pitch-chip" onclick="applyChip(this, 'Focus the pitch more on patient acquisition ROI')">Lead with ROI</button>
+          <div class="card" id="pitchEditCard">
+            <div class="card-title" style="font-size:20px; margin-bottom:4px;">Refine This Pitch</div>
+            <div class="card-sub" style="margin-bottom:16px;">Use quick commands or type your own instruction.</div>
+            <div class="pitch-chips" id="pitchChips">
+              <button class="pitch-chip" onclick="applyChip(this, 'Make it shorter and more punchy')">Shorten it</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Rewrite with more urgency — make the cost of inaction feel real')">Add urgency</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more professional and formal')">More formal</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Make the tone more conversational and warm')">More casual</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Add relevant healthcare marketing statistics to strengthen the argument')">Add stats</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Make the subject line more compelling and click-worthy')">Better subject</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Strengthen the call to action — make it easier to say yes')">Stronger CTA</button>
+              <button class="pitch-chip" onclick="applyChip(this, 'Focus the pitch more on patient acquisition ROI')">Lead with ROI</button>
+            </div>
+            <div class="pitch-edit-row">
+              <input type="text" id="pitchEditInput" placeholder="Custom instruction, e.g. 'mention we work with vascular practices specifically'" onkeydown="if(event.key==='Enter')sendPitchEdit()">
+              <button class="chat-send" id="pitchEditSendBtn" onclick="sendPitchEdit()">➤</button>
+            </div>
+            <div id="pitchEditStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
           </div>
-          <div class="pitch-edit-row">
-            <input type="text" id="pitchEditInput" placeholder="Custom instruction, e.g. 'mention we work with vascular practices specifically'" onkeydown="if(event.key==='Enter')sendPitchEdit()">
-            <button class="chat-send" id="pitchEditSendBtn" onclick="sendPitchEdit()">➤</button>
-          </div>
-          <div id="pitchEditStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
         </div>
       </div>
-    </div>
+
+    </div><!-- end view-tool -->
+
+    <!-- ══ LEADS VIEW ══ -->
+    <div id="view-leads" class="view">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:'Cormorant Garamond'; font-size:32px; font-weight:600;">Leads</h2>
+          <div style="font-size:13px; color:var(--muted); margin-top:2px;">Track prospects you've contacted and follow up on.</div>
+        </div>
+        <div class="sync-bar">
+          <div class="sync-dot" id="leads-sync-dot"></div>
+          <span id="leads-sync-text">No sync configured</span>
+        </div>
+      </div>
+
+      <div class="leads-summary" id="leads-summary"></div>
+
+      <div class="card" style="padding:20px;">
+        <div class="leads-toolbar">
+          <select class="leads-filter" id="leads-filter" onchange="renderLeadsTable()">
+            <option value="">All Statuses</option>
+            <option value="Emailed">Emailed</option>
+            <option value="Followed Up">Followed Up</option>
+            <option value="Responded">Responded</option>
+            <option value="Closed">Closed</option>
+            <option value="Not Interested">Not Interested</option>
+          </select>
+          <span style="font-size:12px; color:var(--muted);" id="leads-count-label"></span>
+        </div>
+        <div id="leads-table-wrap"></div>
+      </div>
+    </div><!-- end view-leads -->
 
   </div>
 </div>
 
+<!-- LEAD DETAIL PANEL -->
+<div class="lead-detail-overlay" id="lead-detail-overlay" onclick="if(event.target===this)closeLeadDetail()">
+  <div class="lead-detail-panel">
+    <div class="ldp-header">
+      <div>
+        <h3 id="ldp-name">—</h3>
+        <div style="font-size:12px; color:var(--muted); margin-top:3px;" id="ldp-loc">—</div>
+      </div>
+      <button class="ldp-close" onclick="closeLeadDetail()">✕</button>
+    </div>
+    <div class="ldp-body">
+      <div class="ldp-row"><div class="ldp-label">Website</div><div class="ldp-val" id="ldp-web">—</div></div>
+      <div class="ldp-row"><div class="ldp-label">Email</div><div class="ldp-val" id="ldp-email">—</div></div>
+      <div class="ldp-row"><div class="ldp-label">Status</div><div class="ldp-val" id="ldp-status">—</div></div>
+      <div class="ldp-row"><div class="ldp-label">Saved</div><div class="ldp-val" id="ldp-saved">—</div></div>
+      <div style="margin-top:16px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px;">Pitch Snapshot</div>
+        <div class="ldp-pitch" id="ldp-pitch">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3>Delete this lead?</h3>
+    <p>This cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-primary" style="background:#c0392b;" onclick="confirmDeleteLead()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
 <script>
   const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
   const PASSWORD = "Messick2026";
+  const LEADS_KEY = "mm_leads";
+  const LEADS_SHEETS_WEBHOOK_URL = ""; // Paste your Google Apps Script URL here
 
-  let state = { biz: '', loc: '', web: '', scrapeData: null, intelRaw: null, selectedServices: [], chatMessages: [] };
+  let state = { biz: '', loc: '', web: '', email: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '', pitchHistory: [], recommendedServices: [], dismissedFindings: new Set() };
+  let leads = [];
+  let deletingLeadId = null;
+  let leadsSyncTimer = null;
 
   // ── LOGIN ──
   function checkPw() {
@@ -483,11 +709,256 @@
       const g = document.getElementById('loginGate');
       g.style.opacity = '0';
       setTimeout(() => g.style.display = 'none', 400);
+      initLeads();
     } else {
       document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
       document.getElementById('pwInput').value = '';
       document.getElementById('pwInput').focus();
     }
+  }
+
+  // ── LEADS INIT ──
+  async function initLeads() {
+    loadLeadsLocal();
+    if (leads.length === 0 && LEADS_SHEETS_WEBHOOK_URL) {
+      await restoreLeadsFromSheets();
+    }
+    updateLeadsBadge();
+    if (!LEADS_SHEETS_WEBHOOK_URL) setLeadsSyncStatus('none');
+  }
+
+  function loadLeadsLocal() {
+    try { leads = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]'); }
+    catch { leads = []; }
+  }
+
+  function persistLeads() {
+    localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
+    syncLeadsToSheets();
+    updateLeadsBadge();
+  }
+
+  // ── LEADS SHEETS SYNC ──
+  function syncLeadsToSheets() {
+    if (!LEADS_SHEETS_WEBHOOK_URL) return;
+    setLeadsSyncStatus('syncing');
+    clearTimeout(leadsSyncTimer);
+    leadsSyncTimer = setTimeout(async () => {
+      try {
+        await fetch(LEADS_SHEETS_WEBHOOK_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(leads)
+        });
+        setLeadsSyncStatus('synced');
+      } catch { setLeadsSyncStatus('failed'); }
+    }, 800);
+  }
+
+  async function restoreLeadsFromSheets() {
+    if (!LEADS_SHEETS_WEBHOOK_URL) return;
+    try {
+      setLeadsSyncStatus('syncing');
+      const res = await fetch(LEADS_SHEETS_WEBHOOK_URL);
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length) {
+        leads = rows.map(r => ({
+          id: r.id || uid(),
+          practiceName: r.practiceName || '',
+          website: r.website || '',
+          location: r.location || '',
+          email: r.email || '',
+          status: r.status || 'Emailed',
+          savedAt: r.savedAt || new Date().toISOString(),
+          pitchSnapshot: r.pitchSnapshot || ''
+        }));
+        localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
+        toast('Restored ' + leads.length + ' leads from Sheets', 'success');
+      }
+      setLeadsSyncStatus('synced');
+    } catch { setLeadsSyncStatus('failed'); }
+  }
+
+  function setLeadsSyncStatus(st) {
+    const dot = document.getElementById('leads-sync-dot');
+    const txt = document.getElementById('leads-sync-text');
+    if (!dot) return;
+    dot.className = 'sync-dot' + (st !== 'none' ? ' ' + st : '');
+    if (st === 'synced') txt.textContent = 'Synced ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    else if (st === 'syncing') txt.textContent = 'Syncing...';
+    else if (st === 'failed') txt.textContent = 'Sync failed';
+    else txt.textContent = 'No sync configured';
+  }
+
+  // ── VIEW SWITCHING ──
+  function switchView(v) {
+    document.getElementById('view-tool').classList.toggle('active', v === 'tool');
+    document.getElementById('view-leads').classList.toggle('active', v === 'leads');
+    document.getElementById('progress-wrap').style.display = v === 'tool' ? 'flex' : 'none';
+    document.getElementById('nav-tool').classList.toggle('active', v === 'tool');
+    document.getElementById('nav-leads').classList.toggle('active', v === 'leads');
+    if (v === 'leads') renderLeadsTable();
+  }
+
+  // ── DUPLICATE GUARD ──
+  function checkDuplicate() {
+    const biz = document.getElementById('bizName').value.trim().toLowerCase();
+    const web = document.getElementById('website').value.trim().toLowerCase();
+    const banner = document.getElementById('dup-guard-banner');
+    if (!biz && !web) { banner.style.display = 'none'; return; }
+    const match = leads.find(l =>
+      (biz && l.practiceName.toLowerCase() === biz) ||
+      (web && web.length > 5 && l.website.toLowerCase().includes(web.replace(/https?:\/\//,'')))
+    );
+    if (match) {
+      document.getElementById('dup-guard-text').innerHTML = `<strong>${match.practiceName}</strong> is already in your leads list as <strong>${match.status}</strong>. Saved ${fmtDate(match.savedAt)}.`;
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // ── SAVE LEAD ──
+  function saveLead() {
+    const pitchText = document.getElementById('pitchOutput').innerText || '';
+    const existing = leads.find(l =>
+      l.website && state.web && l.website.toLowerCase().includes(state.web.toLowerCase().replace(/https?:\/\//,''))
+    );
+    if (existing) {
+      const warn = document.getElementById('save-lead-dup-warning');
+      warn.textContent = `This practice is already in your leads list as "${existing.status}" (saved ${fmtDate(existing.savedAt)}). Saving again will add a duplicate.`;
+      warn.style.display = 'block';
+      // Give 2s for user to see warning, then allow save with a second click
+      document.getElementById('saveLeadBtn').textContent = 'Save Anyway';
+      document.getElementById('saveLeadBtn').onclick = () => doSaveLead(pitchText);
+      return;
+    }
+    doSaveLead(pitchText);
+  }
+
+  function doSaveLead(pitchText) {
+    const lead = {
+      id: uid(),
+      practiceName: state.biz || 'Unknown',
+      website: state.web || '',
+      location: state.loc || '',
+      email: state.email || '',
+      status: 'Emailed',
+      savedAt: new Date().toISOString(),
+      pitchSnapshot: pitchText.substring(0, 300)
+    };
+    leads.unshift(lead);
+    persistLeads();
+    toast(state.biz + ' saved to leads', 'success');
+    document.getElementById('saveLeadBtn').textContent = '✓ Saved';
+    document.getElementById('saveLeadBtn').disabled = true;
+    document.getElementById('save-lead-dup-warning').style.display = 'none';
+  }
+
+  // ── LEADS TABLE ──
+  function renderLeadsTable() {
+    const filter = document.getElementById('leads-filter').value;
+    const list = filter ? leads.filter(l => l.status === filter) : leads;
+    document.getElementById('leads-count-label').textContent = list.length + ' lead' + (list.length !== 1 ? 's' : '') + (filter ? ' (filtered)' : '');
+    renderLeadsSummary();
+    const wrap = document.getElementById('leads-table-wrap');
+    if (!list.length) {
+      wrap.innerHTML = `<div class="empty-state"><h3>No leads yet</h3><p>${filter ? 'No leads with status "' + filter + '".' : 'Save your first lead after generating a pitch.'}</p></div>`;
+      return;
+    }
+    wrap.innerHTML = `<table class="leads-table">
+      <thead><tr>
+        <th>Practice</th><th>Location</th><th>Email</th><th>Status</th><th>Saved</th><th></th>
+      </tr></thead>
+      <tbody>${list.map(l => `
+        <tr onclick="openLeadDetail('${l.id}')">
+          <td style="font-weight:600;">${esc(l.practiceName)}</td>
+          <td style="color:var(--muted);font-size:13px;">${esc(l.location || '—')}</td>
+          <td style="font-size:13px;">${l.email ? `<a href="mailto:${esc(l.email)}" onclick="event.stopPropagation()" style="color:var(--steel);">${esc(l.email)}</a>` : '<span style="color:#ccc;">—</span>'}</td>
+          <td onclick="event.stopPropagation()">
+            <select class="status-sel ${statusClass(l.status)}" onchange="updateLeadStatus('${l.id}', this.value)" title="Change status">
+              ${['Emailed','Followed Up','Responded','Closed','Not Interested'].map(s => `<option ${s===l.status?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </td>
+          <td style="font-size:12px;color:var(--muted);white-space:nowrap;">${fmtDate(l.savedAt)}</td>
+          <td onclick="event.stopPropagation()">
+            <button class="lead-del-btn" onclick="openConfirmDelete('${l.id}')" title="Delete lead">✕</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  function renderLeadsSummary() {
+    const statuses = ['Emailed','Followed Up','Responded','Closed','Not Interested'];
+    const counts = {};
+    statuses.forEach(s => counts[s] = leads.filter(l => l.status === s).length);
+    document.getElementById('leads-summary').innerHTML = `
+      <div class="leads-stat accent"><div class="leads-stat-val">${leads.length}</div><div class="leads-stat-label">Total</div></div>
+      ${statuses.map(s => `<div class="leads-stat"><div class="leads-stat-val">${counts[s]}</div><div class="leads-stat-label">${s}</div></div>`).join('')}
+    `;
+  }
+
+  function updateLeadsBadge() {
+    const badge = document.getElementById('leads-count-badge');
+    if (leads.length > 0) { badge.textContent = leads.length; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+  }
+
+  function updateLeadStatus(id, status) {
+    const lead = leads.find(l => l.id === id);
+    if (!lead) return;
+    lead.status = status;
+    persistLeads();
+    renderLeadsTable();
+    toast('Status updated to ' + status, 'info');
+  }
+
+  // ── LEAD DETAIL ──
+  function openLeadDetail(id) {
+    const l = leads.find(x => x.id === id);
+    if (!l) return;
+    document.getElementById('ldp-name').textContent = l.practiceName;
+    document.getElementById('ldp-loc').textContent = l.location || '—';
+    document.getElementById('ldp-web').innerHTML = l.website ? `<a href="${esc(l.website)}" target="_blank" style="color:var(--steel);">${esc(l.website)}</a>` : '—';
+    document.getElementById('ldp-email').innerHTML = l.email ? `<a href="mailto:${esc(l.email)}" style="color:var(--steel);">${esc(l.email)}</a>` : '—';
+    document.getElementById('ldp-status').textContent = l.status;
+    document.getElementById('ldp-saved').textContent = new Date(l.savedAt).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('ldp-pitch').textContent = l.pitchSnapshot ? l.pitchSnapshot + (l.pitchSnapshot.length >= 300 ? '...' : '') : 'No pitch snapshot saved.';
+    document.getElementById('lead-detail-overlay').classList.add('open');
+  }
+
+  function closeLeadDetail() {
+    document.getElementById('lead-detail-overlay').classList.remove('open');
+  }
+
+  // ── DELETE ──
+  function openConfirmDelete(id) {
+    deletingLeadId = id;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+    deletingLeadId = null;
+  }
+
+  function confirmDeleteLead() {
+    if (!deletingLeadId) return;
+    leads = leads.filter(l => l.id !== deletingLeadId);
+    persistLeads();
+    closeConfirm();
+    renderLeadsTable();
+    toast('Lead deleted', 'info');
+  }
+
+  // ── STATUS CLASS ──
+  function statusClass(s) {
+    if (s === 'Emailed') return 's-emailed';
+    if (s === 'Followed Up') return 's-followed';
+    if (s === 'Responded') return 's-responded';
+    if (s === 'Closed') return 's-closed';
+    return 's-not';
   }
 
   // ── NAV ──
@@ -506,14 +977,15 @@
   }
 
   function restart() {
-    state = { biz: '', loc: '', web: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '', pitchHistory: [], recommendedServices: [] };
-    ['bizName','location','website','prospectNotes'].forEach(id => document.getElementById(id).value = '');
+    state = { biz: '', loc: '', web: '', email: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '', pitchHistory: [], recommendedServices: [], dismissedFindings: new Set() };
+    ['bizName','location','website','prospectEmail','prospectNotes'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
     document.getElementById('chatHistory').innerHTML = '';
-    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('servicesGrid').innerHTML = '';
+    document.getElementById('dup-guard-banner').style.display = 'none';
+    document.getElementById('saveLeadBtn').textContent = '+ Save Lead';
+    document.getElementById('saveLeadBtn').disabled = false;
+    document.getElementById('saveLeadBtn').onclick = saveLead;
     buildServicesGrid();
-    state.selectedServices = [];
-    document.getElementById('generatePitchBtn').disabled = true;
     goTo(1);
   }
 
@@ -522,30 +994,29 @@
     state.biz = document.getElementById('bizName').value.trim();
     state.loc = document.getElementById('location').value.trim();
     state.web = document.getElementById('website').value.trim();
+    state.email = document.getElementById('prospectEmail').value.trim();
     state.notes = document.getElementById('prospectNotes').value.trim();
     if (!state.biz) { alert('Please enter a business name.'); return; }
+
+    // update save lead name
+    document.getElementById('save-lead-name').textContent = state.biz;
+
     goTo(2);
     document.getElementById('loadStatus').textContent = 'Scraping website architecture and content...';
 
     try {
-      // Step 1: scrape homepage
       document.getElementById('loadStatus').textContent = 'Scraping homepage...';
       const homepageRes = await fetch(WORKER_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'scrape', website: state.web, bizName: state.biz, location: state.loc })
       }).then(r => r.json());
 
-      // Step 2: extract internal links from homepage and scrape up to 4 key subpages
       const collectedPages = { homepage: homepageRes };
       if (state.web) {
         document.getElementById('loadStatus').textContent = 'Crawling treatment and service pages...';
         const baseUrl = new URL(state.web);
-        const linkText = JSON.stringify(homepageRes).toLowerCase();
-
-        // identify likely subpage paths from common patterns in scraped text
         const subpageCandidates = extractInternalLinks(homepageRes, baseUrl.origin);
         const toScrape = subpageCandidates.slice(0, 4);
-
         await Promise.allSettled(toScrape.map(async (url) => {
           try {
             const res = await fetch(WORKER_URL, {
@@ -554,7 +1025,7 @@
             }).then(r => r.json());
             const slug = url.replace(baseUrl.origin, '').replace(/\//g, '_').substring(0, 40) || '_root';
             collectedPages[slug] = res;
-          } catch(e) { /* skip failed subpage */ }
+          } catch(e) {}
         }));
       }
 
@@ -601,7 +1072,7 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
 
       const notesSection = state.notes ? `\n\nNotes from the sales rep who reviewed this prospect:\n${state.notes}` : '';
       const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}${notesSection}`);
-      
+
       let parsed;
       try {
         const clean = raw.replace(/```json|```/g,'').trim();
@@ -627,8 +1098,6 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
   function renderDashboard(data) {
     document.getElementById('dashName').textContent = state.biz;
     document.getElementById('dashLoc').textContent = state.loc || 'Location not provided';
-
-    // Score ring
     const score = Math.max(0, Math.min(100, data.score || 45));
     const circumference = 188.4;
     const offset = circumference - (score / 100) * circumference;
@@ -643,30 +1112,22 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
     document.getElementById('scoreGrade').textContent = grade;
     document.getElementById('scoreGrade').style.color = gradeColor;
 
-    // Stat chips
     const chips = document.getElementById('statChips');
     chips.innerHTML = '';
     const findings = data.findings || [];
     const crit = findings.filter(f => f.severity === 'critical').length;
     const high = findings.filter(f => f.severity === 'high').length;
     const med  = findings.filter(f => f.severity === 'medium').length;
-    const chipData = [
-      { val: crit, label: 'Critical', cls: crit > 0 ? 'danger' : '' },
-      { val: high, label: 'High',     cls: high > 0 ? 'warn' : '' },
-      { val: med,  label: 'Medium',   cls: '' },
-    ];
-    chipData.forEach(c => {
+    [{val:crit,label:'Critical',cls:crit>0?'danger':''},{val:high,label:'High',cls:high>0?'warn':''},{val:med,label:'Medium',cls:''}].forEach(c => {
       chips.innerHTML += `<div class="stat-chip ${c.cls}"><div class="chip-val">${c.val}</div><div class="chip-label">${c.label}</div></div>`;
     });
 
-    // Quick wins
     const qw = data.quickWins || [];
     if (qw.length) {
       document.getElementById('quickWinsBanner').style.display = 'block';
       document.getElementById('quickWinsList').innerHTML = qw.map(w => `<div class="quick-win-pill">${w}</div>`).join('');
     }
 
-    // Findings grid
     const grid = document.getElementById('findingsGrid');
     grid.innerHTML = '';
     findings.forEach((f, i) => {
@@ -732,7 +1193,7 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
         if (u.origin === origin && u.pathname !== '/' && u.pathname.length > 1) {
           found.add(u.href.split('#')[0].split('?')[0]);
         }
-      } catch(e) { /* skip */ }
+      } catch(e) {}
     }
     const priority = ['treatment','service','condition','procedure','vein','vascular','care','about','team'];
     return [...found].sort((a, b) => {
@@ -742,35 +1203,17 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
     });
   }
 
-
   function categoryColor(cat) {
     const map = {
-      'Website & Conversion': '#c0392b',
-      'SEO & Local Search': '#d4722a',
-      'Google Business Profile': '#b06000',
-      'Social Media': '#3a6b8a',
-      'Reputation & Reviews': '#7a3a8a',
-      'Content Strategy': '#2e7d5e',
-      'Paid & Ads': '#1a5276',
+      'Website & Conversion': '#c0392b', 'SEO & Local Search': '#d4722a',
+      'Google Business Profile': '#b06000', 'Social Media': '#3a6b8a',
+      'Reputation & Reviews': '#7a3a8a', 'Content Strategy': '#2e7d5e', 'Paid & Ads': '#1a5276',
     };
     return map[cat] || '#555';
   }
 
   function buildFallbackData(rawText) {
-    return {
-      score: 42,
-      criticalCount: 2,
-      highCount: 2,
-      quickWins: ['Optimize Google Business Profile', 'Add social proof to homepage', 'Create patient education content'],
-      findings: [{
-        category: 'Website & Conversion',
-        title: 'Analysis complete — review details',
-        severity: 'high',
-        summary: rawText.substring(0, 200) + '...',
-        bullets: [],
-        impact: 'See full analysis above.'
-      }]
-    };
+    return { score: 42, criticalCount: 2, highCount: 2, quickWins: ['Optimize Google Business Profile', 'Add social proof to homepage', 'Create patient education content'], findings: [{ category: 'Website & Conversion', title: 'Analysis complete — review details', severity: 'high', summary: rawText.substring(0, 200) + '...', bullets: [], impact: 'See full analysis above.' }] };
   }
 
   // ── CHAT ──
@@ -782,37 +1225,23 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
     document.getElementById('chatSendBtn').disabled = true;
     appendChat('user', msg);
     state.chatMessages.push({ role: 'user', content: msg });
-
     try {
       const scrapeSummary = state.scrapeData ? JSON.stringify(state.scrapeData).substring(0, 3000) : 'No scrape data available';
-      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}.
-
-You have access to the actual scraped website and page data for this prospect — use it to ground your answers. Do not make assumptions or state things as fact if they are not confirmed in the data below.
-
-If the user says something contradicts your findings (e.g. "they do post regularly" or "they have that page"), accept the correction and adjust your analysis accordingly. Never argue with the user about what the prospect does or doesn't have.
-
-Scraped data: ${scrapeSummary}
-
-Be direct, specific, and actionable. Do not use em dashes.`;
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}. You have access to the actual scraped website and page data. If the user says something contradicts your findings, accept the correction. Be direct, specific, and actionable. Do not use em dashes. Scraped data: ${scrapeSummary}`;
       const reply = await callAIWithHistory(system, state.chatMessages);
       state.chatMessages.push({ role: 'assistant', content: reply });
       appendChat('ai', reply);
     } catch(e) { appendChat('ai', 'Connection error. Please try again.'); }
-
     document.getElementById('chatSendBtn').disabled = false;
   }
 
   function formatChatText(text) {
-    return text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^### (.+)$/gm,'<strong>$1</strong>')
-      .replace(/^## (.+)$/gm,'<strong>$1</strong>')
-      .replace(/^- (.+)$/gm,'<li>$1</li>')
-      .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+      .replace(/^### (.+)$/gm,'<strong>$1</strong>').replace(/^## (.+)$/gm,'<strong>$1</strong>')
+      .replace(/^- (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
       .replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul style="margin:8px 0 8px 16px;">${m}</ul>`)
-      .replace(/\n\n/g,'</p><p style="margin:8px 0;">')
-      .replace(/\n/g,'<br>');
+      .replace(/\n\n/g,'</p><p style="margin:8px 0;">').replace(/\n/g,'<br>');
   }
 
   function appendChat(role, text) {
@@ -826,14 +1255,14 @@ Be direct, specific, and actionable. Do not use em dashes.`;
 
   // ── SERVICES ──
   const SERVICES = [
-    { id: 'social',     name: 'Social Media Management', desc: 'Content creation, scheduling, and engagement across Instagram, Facebook, LinkedIn' },
-    { id: 'seo',        name: 'SEO & Local Search',       desc: 'On-page SEO, local keyword targeting, and search visibility improvements' },
-    { id: 'gbp',        name: 'Google Business Profile',  desc: 'GBP setup, optimization, review strategy, and weekly post management' },
-    { id: 'content',    name: 'Content Marketing',        desc: 'Blog posts, patient education articles, video scripts, email newsletters' },
-    { id: 'ads',        name: 'Paid Social Ads',          desc: 'Meta ad campaigns for patient acquisition and brand awareness' },
-    { id: 'website',    name: 'Website Audit & Copy',     desc: 'CRO analysis, homepage rewrites, and landing page optimization' },
-    { id: 'reputation', name: 'Reputation Management',    desc: 'Review generation strategy, response protocols, and monitoring' },
-    { id: 'video',      name: 'Video & Reels Production', desc: 'Short-form video briefs, Reels scripts, and TikTok content strategy' },
+    { id: 'social', name: 'Social Media Management', desc: 'Content creation, scheduling, and engagement across Instagram, Facebook, LinkedIn' },
+    { id: 'seo', name: 'SEO & Local Search', desc: 'On-page SEO, local keyword targeting, and search visibility improvements' },
+    { id: 'gbp', name: 'Google Business Profile', desc: 'GBP setup, optimization, review strategy, and weekly post management' },
+    { id: 'content', name: 'Content Marketing', desc: 'Blog posts, patient education articles, video scripts, email newsletters' },
+    { id: 'ads', name: 'Paid Social Ads', desc: 'Meta ad campaigns for patient acquisition and brand awareness' },
+    { id: 'website', name: 'Website Audit & Copy', desc: 'CRO analysis, homepage rewrites, and landing page optimization' },
+    { id: 'reputation', name: 'Reputation Management', desc: 'Review generation strategy, response protocols, and monitoring' },
+    { id: 'video', name: 'Video & Reels Production', desc: 'Short-form video briefs, Reels scripts, and TikTok content strategy' },
   ];
 
   function buildServicesGrid() {
@@ -845,27 +1274,18 @@ Be direct, specific, and actionable. Do not use em dashes.`;
       card.className = 'service-card' + (isRec ? ' recommended' : '');
       card.innerHTML = `<div class="svc-rec-badge">★ Recommended</div><div class="svc-check">✓ Selected</div><div class="svc-name">${s.name}</div><div class="svc-desc">${s.desc}</div>`;
       card.onclick = () => {
-        if (state.selectedServices.includes(s.id)) {
-          state.selectedServices = state.selectedServices.filter(x => x !== s.id);
-          card.classList.remove('selected');
-        } else {
-          state.selectedServices.push(s.id);
-          card.classList.add('selected');
-        }
+        if (state.selectedServices.includes(s.id)) { state.selectedServices = state.selectedServices.filter(x => x !== s.id); card.classList.remove('selected'); }
+        else { state.selectedServices.push(s.id); card.classList.add('selected'); }
         document.getElementById('generatePitchBtn').disabled = allSelected().length === 0;
       };
       grid.appendChild(card);
     });
 
-    // Add custom service card
     const addCard = document.createElement('div');
     addCard.className = 'service-card add-custom';
     addCard.id = 'addCustomCard';
     addCard.innerHTML = `
-      <div id="addCustomPrompt">
-        <div class="add-custom-icon">+</div>
-        <div class="add-custom-label">Add Custom Service</div>
-      </div>
+      <div id="addCustomPrompt"><div class="add-custom-icon">+</div><div class="add-custom-label">Add Custom Service</div></div>
       <div class="custom-input-wrap" id="customInputWrap">
         <input type="text" id="customServiceName" placeholder="Service name" maxlength="60">
         <input type="text" id="customServiceDesc" placeholder="Short description (optional)" maxlength="100">
@@ -893,28 +1313,19 @@ Be direct, specific, and actionable. Do not use em dashes.`;
     const id = 'custom_' + Date.now();
     state.customServices = state.customServices || [];
     state.customServices.push({ id, name, desc });
-
-    // Insert new selected card before the add card
     const grid = document.getElementById('servicesGrid');
     const addCard = document.getElementById('addCustomCard');
     const card = document.createElement('div');
     card.className = 'service-card selected';
     card.dataset.customId = id;
     card.innerHTML = `<div class="svc-check">✓ Selected</div><div class="svc-name">${name}</div><div class="svc-desc">${desc || 'Custom service'}</div>`;
-    card.onclick = () => {
-      if (state.customServices) state.customServices = state.customServices.filter(s => s.id !== id);
-      card.remove();
-      document.getElementById('generatePitchBtn').disabled = allSelected().length === 0;
-    };
+    card.onclick = () => { if (state.customServices) state.customServices = state.customServices.filter(s => s.id !== id); card.remove(); document.getElementById('generatePitchBtn').disabled = allSelected().length === 0; };
     grid.insertBefore(card, addCard);
-
-    // Reset add card
     document.getElementById('customServiceName').value = '';
     document.getElementById('customServiceDesc').value = '';
     document.getElementById('customInputWrap').classList.remove('visible');
     document.getElementById('addCustomPrompt').style.display = '';
-    addCard.style.alignItems = '';
-    addCard.style.cursor = '';
+    addCard.style.alignItems = ''; addCard.style.cursor = '';
     document.getElementById('generatePitchBtn').disabled = false;
   }
 
@@ -925,8 +1336,7 @@ Be direct, specific, and actionable. Do not use em dashes.`;
     document.getElementById('customInputWrap').classList.remove('visible');
     document.getElementById('addCustomPrompt').style.display = '';
     const addCard = document.getElementById('addCustomCard');
-    addCard.style.alignItems = '';
-    addCard.style.cursor = '';
+    addCard.style.alignItems = ''; addCard.style.cursor = '';
   }
 
   function allSelected() {
@@ -951,55 +1361,45 @@ Be direct, specific, and actionable. Do not use em dashes.`;
 
 The voice is a real person who noticed specific problems and genuinely believes she can fix them — not an agency pitch, not a template. Direct, warm, credible. Reads like it came from someone who actually looked at this practice, not a form letter.
 
-USP context (never state these explicitly — let them show through specificity and confidence):
-- Everything in one place: no managing multiple vendors
-- Moves fast, like an in-house operator, not an agency committee
-- Healthcare-specific — understands patient psychology, compliance, and what actually drives appointments
-- Better value than a traditional agency
-
 EXACT FORMAT — follow this structure in this order, no deviations:
-
-1. Subject line: specific observation about this practice, lowercase, no question mark, under 55 characters. Can reference a real finding (e.g. "your site is working against your [X] patients"). Prefix with "Subject: " on its own line.
-
-2. Opening line: one sentence acknowledging something specific and real that this practice is actively doing or promoting (new service, expansion, seasonal campaign, hiring). Not a compliment — just a factual observation. No filler.
-
-3. Problem setup: one sentence that names the gap between what they are doing and what their digital presence is delivering. Make it feel real and slightly urgent — the kind of thing that costs them patients quietly.
-
-4. Specific findings block: 3 bullet points pulled directly from the intelligence data. Each bullet is one line. Specific — include actual details like scores, missing features, observable problems. No vague statements like "your SEO could be better."
-
-5. Social proof paragraph: 2-3 sentences. Name the type of practice and a real city. Describe the before/after with specific numbers or outcomes. Tie the outcome back to something relevant to this prospect.
-
-6. Stakes sentence: one sentence that makes the cost of inaction feel real and specific to this type of practice and patient. Not generic. No exclamation point.
-
+1. Subject line: specific observation about this practice, lowercase, no question mark, under 55 characters. Prefix with "Subject: " on its own line.
+2. Opening line: one sentence acknowledging something specific and real that this practice is actively doing or promoting.
+3. Problem setup: one sentence that names the gap between what they are doing and what their digital presence is delivering.
+4. Specific findings block: 3 bullet points pulled directly from the intelligence data. Specific, include actual details.
+5. Social proof paragraph: 2-3 sentences. Name the type of practice and a real city. Describe the before/after with specific numbers.
+6. Stakes sentence: one sentence that makes the cost of inaction feel real and specific.
 7. CTA: exactly "Worth a quick call to walk through what I found?"
+8. Sign as: Morgan
 
-8. Sign as: Morgan (no last name, no title, no company name in the sign-off)
+TONE RULES: No filler openers. No exclamation points. No em dashes. Do not list services by name. 150-200 words total for the email body.
 
-TONE RULES:
-- No "I hope this finds you well" or any filler opener
-- No exclamation points
-- No words like "thrilled," "excited," "passionate," "love to," "reach out," "leverage," "optimize," or "synergy"
-- No em dashes
-- Do not list services by name
-- Do not describe your process or methodology
-- 150-200 words total for the email body, not counting subject line
-
-After the email, add a ## Call Script section — under 120 words, same voice. Open with the observation, name the finding that matters most, reference the social proof outcome briefly, end with a soft ask: "Do you have 15 minutes this week?"`;
+After the email, add a ## Call Script section — under 120 words, same voice. Open with the observation, name the finding that matters most, reference the social proof outcome briefly, end with "Do you have 15 minutes this week?"`;
 
       const userMsg = `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`;
       const pitchRes = await callAI(system, userMsg);
       state.pitchSystem = system;
-      state.pitchMessages = [
-        { role: 'user', content: userMsg },
-        { role: 'assistant', content: pitchRes }
-      ];
+      state.pitchMessages = [{ role: 'user', content: userMsg }, { role: 'assistant', content: pitchRes }];
       state.pitchHistory = [pitchRes];
       document.getElementById('pitchOutput').innerHTML = formatPitch(pitchRes);
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
+
+      // reset save lead button
+      document.getElementById('saveLeadBtn').textContent = '+ Save Lead';
+      document.getElementById('saveLeadBtn').disabled = false;
+      document.getElementById('saveLeadBtn').onclick = saveLead;
+      document.getElementById('save-lead-dup-warning').style.display = 'none';
+
+      // check if already in leads
+      const existing = leads.find(l => l.website && state.web && l.website.toLowerCase().includes(state.web.toLowerCase().replace(/https?:\/\//,'')));
+      if (existing) {
+        const warn = document.getElementById('save-lead-dup-warning');
+        warn.textContent = `${state.biz} is already in your leads list as "${existing.status}".`;
+        warn.style.display = 'block';
+      }
+
     } catch(e) {
-      console.error('Pitch generation error:', e);
-      document.getElementById('pitchOutput').innerHTML = '<div style="color:#c0392b;padding:20px;background:#fff5f4;border-radius:8px;border:1px solid #f5bfb8;font-size:14px;"><strong>Error generating pitch:</strong> ' + e.message + '<br><br>Check the browser console for details, or try going back and regenerating.</div>';
+      document.getElementById('pitchOutput').innerHTML = '<div style="color:#c0392b;padding:20px;background:#fff5f4;border-radius:8px;border:1px solid #f5bfb8;font-size:14px;"><strong>Error generating pitch:</strong> ' + e.message + '</div>';
       document.getElementById('pitchLoadCard').style.display = 'none';
       document.getElementById('pitchCard').style.display = 'block';
     }
@@ -1014,66 +1414,44 @@ After the email, add a ## Call Script section — under 120 words, same voice. O
     const input = document.getElementById('pitchEditInput');
     const instruction = input.value.trim();
     if (!instruction) return;
-
-    // lock UI
     const sendBtn = document.getElementById('pitchEditSendBtn');
     const status = document.getElementById('pitchEditStatus');
     const chips = document.querySelectorAll('.pitch-chip');
-    input.disabled = true;
-    sendBtn.disabled = true;
+    input.disabled = true; sendBtn.disabled = true;
     chips.forEach(c => c.classList.add('loading'));
     status.textContent = 'Rewriting pitch...';
-
-    // show inline spinner in pitch area
     const pitchOut = document.getElementById('pitchOutput');
     const prevHTML = pitchOut.innerHTML;
     pitchOut.innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
-
     try {
-      // append the edit instruction to the conversation
       state.pitchMessages.push({ role: 'user', content: `Please revise the pitch with this instruction: ${instruction}. Return the full revised pitch only — no commentary, no preamble.` });
-
       const res = await callAIWithHistory(state.pitchSystem, state.pitchMessages);
       state.pitchMessages.push({ role: 'assistant', content: res });
-
       state.pitchHistory.push(res);
       pitchOut.innerHTML = formatPitch(res);
       document.getElementById('undoPitchBtn').style.display = state.pitchHistory.length > 1 ? 'inline-flex' : 'none';
-      input.value = '';
-      status.textContent = '✓ Pitch updated';
+      input.value = ''; status.textContent = '✓ Pitch updated';
       setTimeout(() => status.textContent = '', 3000);
-    } catch(e) {
-      pitchOut.innerHTML = prevHTML;
-      status.textContent = 'Error updating pitch. Try again.';
-    }
-
-    input.disabled = false;
-    sendBtn.disabled = false;
+    } catch(e) { pitchOut.innerHTML = prevHTML; status.textContent = 'Error updating pitch. Try again.'; }
+    input.disabled = false; sendBtn.disabled = false;
     chips.forEach(c => c.classList.remove('loading'));
     if (chipBtn) chipBtn.classList.remove('loading');
   }
 
   function undoPitch() {
     if (state.pitchHistory.length <= 1) return;
-    // pop current, restore previous
     state.pitchHistory.pop();
-    // also pop the last two messages from pitchMessages (user instruction + assistant response)
-    if (state.pitchMessages.length > 2) {
-      state.pitchMessages.pop();
-      state.pitchMessages.pop();
-    }
+    if (state.pitchMessages.length > 2) { state.pitchMessages.pop(); state.pitchMessages.pop(); }
     const prev = state.pitchHistory[state.pitchHistory.length - 1];
     document.getElementById('pitchOutput').innerHTML = formatPitch(prev);
     document.getElementById('pitchEditStatus').textContent = '↩ Restored previous version';
     setTimeout(() => document.getElementById('pitchEditStatus').textContent = '', 3000);
-    // hide undo btn if back to original
     document.getElementById('undoPitchBtn').style.display = state.pitchHistory.length > 1 ? 'inline-flex' : 'none';
   }
 
   function copyPitch() {
     navigator.clipboard.writeText(document.getElementById('pitchOutput').innerText).then(() => {
-      const btn = event.target;
-      const orig = btn.textContent;
+      const btn = event.target; const orig = btn.textContent;
       btn.textContent = '✓ Copied!';
       setTimeout(() => btn.textContent = orig, 2000);
     });
@@ -1100,11 +1478,9 @@ After the email, add a ## Call Script section — under 120 words, same voice. O
 
   // ── FORMAT PITCH ──
   function formatPitch(text) {
-    let html = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    let html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
-      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^### (.+)$/gm,'<h3>$1</h3>')
       .replace(/^- (.+)$/gm,'<li>$1</li>');
     html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`);
     html = html.split('\n\n').map(chunk => {
@@ -1114,6 +1490,24 @@ After the email, add a ## Call Script section — under 120 words, same voice. O
     return html;
   }
 
+  // ── UTILS ──
+  function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(str) {
+    if (!str) return '—';
+    try { return new Date(str).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}); }
+    catch { return str; }
+  }
+
+  function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + type;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+  }
+
+  // ── BOOT ──
   buildServicesGrid();
 </script>
 </body>
