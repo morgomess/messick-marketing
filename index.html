@@ -226,6 +226,19 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .contact-list li{font-size:.88rem;font-weight:300;color:var(--text-muted-light);padding:.6rem 0;border-bottom:1px solid var(--gray-mid);display:flex;align-items:center;gap:.7rem;line-height:1.5}
 .contact-list li:first-child{border-top:1px solid var(--gray-mid)}
 .contact-list li::before{content:'';width:6px;height:6px;min-width:6px;border-radius:50%;background:var(--steel);flex-shrink:0}
+.contact-form{display:flex;flex-direction:column;gap:1rem}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.cf-field{display:flex;flex-direction:column;gap:.35rem}
+.cf-field label{font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--steel)}
+.cf-field input,.cf-field textarea{font-family:'Inter',sans-serif;font-size:.9rem;font-weight:300;color:var(--black);background:var(--white);border:1px solid #d0ccc7;border-radius:2px;padding:.75rem 1rem;transition:border-color .2s,box-shadow .2s;outline:none;width:100%;box-sizing:border-box}
+.cf-field input:focus,.cf-field textarea:focus{border-color:var(--steel);box-shadow:0 0 0 3px rgba(58,107,138,.1)}
+.cf-field textarea{resize:vertical;min-height:110px;line-height:1.6}
+.cf-submit{background:var(--black);color:var(--white);border:none;padding:.85rem 2rem;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:background .2s,transform .15s;align-self:flex-start;display:inline-flex;align-items:center;gap:.5rem}
+.cf-submit:hover{background:#2a2a2a;transform:translateY(-1px)}
+.cf-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.cf-success{display:none;background:var(--steel-pale);border-left:3px solid var(--steel);padding:1rem 1.2rem;font-size:.9rem;font-weight:300;color:var(--steel);border-radius:0 2px 2px 0}
+.cf-error{display:none;background:#fff0ee;border-left:3px solid #c0392b;padding:1rem 1.2rem;font-size:.9rem;font-weight:300;color:#c0392b;border-radius:0 2px 2px 0}
+@media(max-width:600px){.cf-row{grid-template-columns:1fr}}
 
 /* ── FOOTER ── */
 footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
@@ -571,10 +584,35 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
         <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         <a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a>
       </div>
-      <a href="https://fillio.so/r/fHn8adjNQgsFZcsX1Wno" target="_blank" rel="noopener" class="btn btn-ink">
-        Contact Form
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
+      <form class="contact-form" id="contactForm" novalidate>
+        <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY">
+        <input type="hidden" name="subject" value="New inquiry from messickmarketing.com">
+        <input type="hidden" name="from_name" value="Messick Marketing Website">
+        <div class="cf-row">
+          <div class="cf-field">
+            <label for="cf-name">Name *</label>
+            <input type="text" id="cf-name" name="name" required placeholder="Your name">
+          </div>
+          <div class="cf-field">
+            <label for="cf-email">Email *</label>
+            <input type="email" id="cf-email" name="email" required placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="cf-field">
+          <label for="cf-phone">Phone <span style="font-size:.65rem;opacity:.6;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input type="tel" id="cf-phone" name="phone" placeholder="(555) 000-0000">
+        </div>
+        <div class="cf-field">
+          <label for="cf-message">Message *</label>
+          <textarea id="cf-message" name="message" required placeholder="Tell us about your goals…"></textarea>
+        </div>
+        <div class="cf-success" id="cf-success">Thanks! We'll be in touch within one business day.</div>
+        <div class="cf-error" id="cf-error">Something went wrong. Please email us directly at morgan@messickmarketing.com.</div>
+        <button type="submit" class="cf-submit" id="cf-submit">
+          Send Message
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </form>
     </div>
     <div class="fu">
       <ul class="contact-list">
@@ -679,6 +717,36 @@ document.getElementById('testiPrev').addEventListener('click', () => showTesti(c
 document.getElementById('testiNext').addEventListener('click', () => showTesti(cur + 1));
 // Auto-advance
 setInterval(() => showTesti(cur + 1), 6000);
+
+// ── CONTACT FORM ──
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('cf-submit');
+  const success = document.getElementById('cf-success');
+  const error = document.getElementById('cf-error');
+  success.style.display = 'none';
+  error.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(this)))
+    });
+    const data = await res.json();
+    if (data.success) {
+      success.style.display = 'block';
+      this.reset();
+    } else {
+      error.style.display = 'block';
+    }
+  } catch {
+    error.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.innerHTML = 'Send Message <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+});
 </script>
 </body>
 </html>
