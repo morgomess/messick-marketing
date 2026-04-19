@@ -747,8 +747,8 @@
       try {
         await fetch(LEADS_SHEETS_WEBHOOK_URL, {
           method: 'POST', redirect: 'follow',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(leads)
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'data=' + encodeURIComponent(JSON.stringify(leads))
         });
         setLeadsSyncStatus('synced');
       } catch { setLeadsSyncStatus('failed'); }
