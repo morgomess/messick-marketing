@@ -735,13 +735,16 @@ document.getElementById('contactForm').addEventListener('submit', async function
       body: JSON.stringify(Object.fromEntries(new FormData(this)))
     });
     const data = await res.json();
+    console.log('Web3Forms response:', data);
     if (data.success) {
       success.style.display = 'block';
       this.reset();
     } else {
+      error.textContent = data.message || 'Something went wrong. Please email us directly at morgan@messickmarketing.com.';
       error.style.display = 'block';
     }
-  } catch {
+  } catch(err) {
+    console.error('Contact form error:', err);
     error.style.display = 'block';
   }
   btn.disabled = false;
