@@ -746,8 +746,8 @@
     leadsSyncTimer = setTimeout(async () => {
       try {
         await fetch(LEADS_SHEETS_WEBHOOK_URL, {
-          method: 'POST', mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(leads)
         });
         setLeadsSyncStatus('synced');
