@@ -615,6 +615,30 @@
             </div>
             <div id="pitchEditStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
           </div>
+
+          <div class="card" id="followupCard">
+            <div class="card-title" style="font-size:20px; margin-bottom:4px;">Generate Follow-Up</div>
+            <div class="card-sub" style="margin-bottom:16px;">Paste the initial email text or snippet, then request a follow-up.</div>
+            <div class="field">
+              <label>Initial Email Context</label>
+              <textarea id="followupContext" placeholder="Paste the original email you sent..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea>
+            </div>
+            <div class="pitch-chips">
+              <button class="pitch-chip" onclick="generateFollowup(this, 'friendly 3-day check-in')">3-day check-in</button>
+              <button class="pitch-chip" onclick="generateFollowup(this, 'Week-later nudge with new insight')">7-day nudge</button>
+              <button class="pitch-chip" onclick="generateFollowup(this, 'Final attempt — brief and direct')">Final attempt</button>
+              <button class="pitch-chip" onclick="generateFollowup(this, 'Add a case study or portfolio link')">Add case study</button>
+            </div>
+            <div class="pitch-edit-row">
+              <input type="text" id="followupInstruction" placeholder="Custom instruction, e.g. 'mention I saw they posted on LinkedIn yesterday'" onkeydown="if(event.key==='Enter')generateFollowupCustom()">
+              <button class="chat-send" id="followupSendBtn" onclick="generateFollowupCustom()">➤</button>
+            </div>
+            <div id="followupStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
+            <div id="followupOutput" class="pitch-output" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);"></div>
+            <div id="followupActions" style="display:none; margin-top:12px; display:flex; gap:10px;">
+              <button class="btn-ghost" onclick="copyFollowup()">📋 Copy Follow-Up</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1367,14 +1391,14 @@ EXACT FORMAT — follow this structure in this order, no deviations:
 2. Opening line: one sentence acknowledging something specific and real that this practice is actively doing or promoting.
 3. Problem setup: one sentence that names the gap between what they are doing and what their digital presence is delivering.
 4. Specific findings block: 3 bullet points pulled directly from the intelligence data. Specific, include actual details.
-5. Social proof paragraph: 2-3 sentences. Name the type of practice and a real city. Describe the before/after with specific numbers.
+5. Action plan paragraph: 2-3 sentences explaining specifically how we can help address their issues. Connect the selected services to the findings. Be concrete and tactical.
 6. Stakes sentence: one sentence that makes the cost of inaction feel real and specific.
 7. CTA: exactly "Worth a quick call to walk through what I found?"
 8. Sign as: Morgan
 
 TONE RULES: No filler openers. No exclamation points. No em dashes. Do not list services by name. 150-200 words total for the email body.
 
-After the email, add a ## Call Script section — under 120 words, same voice. Open with the observation, name the finding that matters most, reference the social proof outcome briefly, end with "Do you have 15 minutes this week?"`;
+After the email, add a ## Call Script section — under 120 words, same voice. Open with the observation, name the finding that matters most, reference the action plan approach briefly, end with "Do you have 15 minutes this week?"`;
 
       const userMsg = `Prospect: ${state.biz} in ${state.loc}.\nSelected Services: ${selectedNames}\n\nTop Issues Found:\n${topIssues}`;
       const pitchRes = await callAI(system, userMsg);
@@ -1452,6 +1476,92 @@ After the email, add a ## Call Script section — under 120 words, same voice. O
 
   function copyPitch() {
     navigator.clipboard.writeText(document.getElementById('pitchOutput').innerText).then(() => {
+      const btn = event.target; const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  // ── FOLLOW-UP GENERATOR ──
+  async function generateFollowup(btn, instruction) {
+    const context = document.getElementById('followupContext').value.trim();
+    if (!context) {
+      document.getElementById('followupStatus').textContent = 'Please paste the initial email context first.';
+      setTimeout(() => document.getElementById('followupStatus').textContent = '', 3000);
+      return;
+    }
+    await runFollowupGeneration(instruction, btn);
+  }
+
+  async function generateFollowupCustom() {
+    const context = document.getElementById('followupContext').value.trim();
+    const instruction = document.getElementById('followupInstruction').value.trim();
+    if (!context) {
+      document.getElementById('followupStatus').textContent = 'Please paste the initial email context first.';
+      setTimeout(() => document.getElementById('followupStatus').textContent = '', 3000);
+      return;
+    }
+    if (!instruction) {
+      document.getElementById('followupStatus').textContent = 'Please provide an instruction.';
+      setTimeout(() => document.getElementById('followupStatus').textContent = '', 3000);
+      return;
+    }
+    await runFollowupGeneration(instruction, null);
+  }
+
+  async function runFollowupGeneration(instruction, chipBtn) {
+    const context = document.getElementById('followupContext').value.trim();
+    const status = document.getElementById('followupStatus');
+    const output = document.getElementById('followupOutput');
+    const actions = document.getElementById('followupActions');
+    const sendBtn = document.getElementById('followupSendBtn');
+    const chips = document.querySelectorAll('#followupCard .pitch-chip');
+
+    sendBtn.disabled = true;
+    chips.forEach(c => c.disabled = true);
+    if (chipBtn) chipBtn.classList.add('loading');
+    status.textContent = 'Generating follow-up...';
+    output.style.display = 'none';
+    actions.style.display = 'none';
+
+    try {
+      const system = `You are a healthcare marketing specialist writing follow-up emails. 
+
+CONTEXT: The user sent an initial cold outreach email and needs a follow-up.
+
+Your task: Write a follow-up email based on the user's instruction.
+
+FOLLOW-UP RULES:
+1. Subject line: Reference the original email or add a new angle. Lowercase, under 55 characters. Prefix with "Subject: " on its own line.
+2. Opening: Acknowledge you reached out before without being needy or apologetic.
+3. Body: Short. Add value, new insight, or make it easier to say yes. No filler.
+4. CTA: Specific and low-friction.
+5. Sign as: Morgan
+
+TONE: No exclamation points. No em dashes. No "just checking in" or "circling back". 100-150 words max for email body.`;
+
+      const userMsg = `Initial email context:\n${context}\n\nFollow-up instruction: ${instruction}`;
+      const res = await callAI(system, userMsg);
+      
+      output.innerHTML = formatPitch(res);
+      output.style.display = 'block';
+      actions.style.display = 'flex';
+      status.textContent = '✓ Follow-up generated';
+      document.getElementById('followupInstruction').value = '';
+      setTimeout(() => status.textContent = '', 3000);
+    } catch(e) {
+      output.innerHTML = '<div style="color:#c0392b;padding:20px;background:#fff5f4;border-radius:8px;border:1px solid #f5bfb8;font-size:14px;"><strong>Error generating follow-up:</strong> ' + e.message + '</div>';
+      output.style.display = 'block';
+      status.textContent = '';
+    }
+
+    sendBtn.disabled = false;
+    chips.forEach(c => c.disabled = false);
+    if (chipBtn) chipBtn.classList.remove('loading');
+  }
+
+  function copyFollowup() {
+    navigator.clipboard.writeText(document.getElementById('followupOutput').innerText).then(() => {
       const btn = event.target; const orig = btn.textContent;
       btn.textContent = '✓ Copied!';
       setTimeout(() => btn.textContent = orig, 2000);
