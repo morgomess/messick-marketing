@@ -615,30 +615,6 @@
             </div>
             <div id="pitchEditStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
           </div>
-
-          <div class="card" id="followupCard">
-            <div class="card-title" style="font-size:20px; margin-bottom:4px;">Generate Follow-Up</div>
-            <div class="card-sub" style="margin-bottom:16px;">Paste the initial email text or snippet, then request a follow-up.</div>
-            <div class="field">
-              <label>Initial Email Context</label>
-              <textarea id="followupContext" placeholder="Paste the original email you sent..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea>
-            </div>
-            <div class="pitch-chips">
-              <button class="pitch-chip" onclick="generateFollowup(this, 'friendly 3-day check-in')">3-day check-in</button>
-              <button class="pitch-chip" onclick="generateFollowup(this, 'Week-later nudge with new insight')">7-day nudge</button>
-              <button class="pitch-chip" onclick="generateFollowup(this, 'Final attempt — brief and direct')">Final attempt</button>
-              <button class="pitch-chip" onclick="generateFollowup(this, 'Add a case study or portfolio link')">Add case study</button>
-            </div>
-            <div class="pitch-edit-row">
-              <input type="text" id="followupInstruction" placeholder="Custom instruction, e.g. 'mention I saw they posted on LinkedIn yesterday'" onkeydown="if(event.key==='Enter')generateFollowupCustom()">
-              <button class="chat-send" id="followupSendBtn" onclick="generateFollowupCustom()">➤</button>
-            </div>
-            <div id="followupStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
-            <div id="followupOutput" class="pitch-output" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);"></div>
-            <div id="followupActions" style="display:none; margin-top:12px; display:flex; gap:10px;">
-              <button class="btn-ghost" onclick="copyFollowup()">📋 Copy Follow-Up</button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -672,6 +648,30 @@
           <span style="font-size:12px; color:var(--muted);" id="leads-count-label"></span>
         </div>
         <div id="leads-table-wrap"></div>
+      </div>
+
+      <div class="card" id="followupCard">
+        <div class="card-title" style="font-size:20px; margin-bottom:4px;">Generate Follow-Up</div>
+        <div class="card-sub" style="margin-bottom:16px;">Paste the initial email text or snippet, then request a follow-up.</div>
+        <div class="field">
+          <label>Initial Email Context</label>
+          <textarea id="followupContext" placeholder="Paste the original email you sent..." rows="4" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea>
+        </div>
+        <div class="pitch-chips">
+          <button class="pitch-chip" onclick="generateFollowup(this, 'friendly 3-day check-in')">3-day check-in</button>
+          <button class="pitch-chip" onclick="generateFollowup(this, 'Week-later nudge with new insight')">7-day nudge</button>
+          <button class="pitch-chip" onclick="generateFollowup(this, 'Final attempt — brief and direct')">Final attempt</button>
+          <button class="pitch-chip" onclick="generateFollowup(this, 'Add a case study or portfolio link')">Add case study</button>
+        </div>
+        <div class="pitch-edit-row">
+          <input type="text" id="followupInstruction" placeholder="Custom instruction, e.g. 'mention I saw they posted on LinkedIn yesterday'" onkeydown="if(event.key==='Enter')generateFollowupCustom()">
+          <button class="chat-send" id="followupSendBtn" onclick="generateFollowupCustom()">➤</button>
+        </div>
+        <div id="followupStatus" style="font-size:12px; color:var(--steel); font-style:italic; margin-top:10px; min-height:16px;"></div>
+        <div id="followupOutput" class="pitch-output" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);"></div>
+        <div id="followupActions" style="display:none; margin-top:12px; display:flex; gap:10px;">
+          <button class="btn-ghost" onclick="copyFollowup()">📋 Copy Follow-Up</button>
+        </div>
       </div>
     </div><!-- end view-leads -->
 
