@@ -434,118 +434,6 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
   .main-col, .side-col { padding: 20px; }
 }
 </style>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, collection, setDoc, getDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ── FIREBASE CONFIG ──
-const firebaseConfig = {
-  apiKey: "REPLACE_API_KEY",
-  authDomain: "REPLACE_AUTH_DOMAIN",
-  projectId: "REPLACE_PROJECT_ID",
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-
-// ── SYNC LAYER ──
-// localStorage is the source of truth for reads (fast, offline).
-// Firestore mirrors every write and pushes remote changes to localStorage + re-render.
-
-const COLLECTIONS = ['tasks_daily','tasks_ongoing','auto_daily','monthly','quarterly','focus','recur_meta'];
-
-// Push a single key to Firestore
-window.syncToFirestore = async function(key, value) {
-  try {
-    const parts = key.split('_');
-    // derive collection and docId from the localStorage key pattern
-    // mm_tasks_daily -> col: tasks_daily, doc: data
-    // mm_auto_daily_2024-4-5 -> col: auto_daily, doc: 2024-4-5
-    // mm_focus_2024-4-5 -> col: focus, doc: 2024-4-5
-    // mm_monthly_2024-4 -> col: monthly, doc: 2024-4
-    // mm_quarterly_2024-Q1 -> col: quarterly, doc: 2024-Q1
-    // mm_recur_rolled_2024-04-25 -> col: recur_meta, doc: 2024-04-25
-    let col, docId;
-    if (key === 'mm_tasks_daily')   { col = 'tasks_daily';  docId = 'data'; }
-    else if (key === 'mm_tasks_ongoing') { col = 'tasks_ongoing'; docId = 'data'; }
-    else if (key.startsWith('mm_auto_daily_')) { col = 'auto_daily'; docId = key.replace('mm_auto_daily_',''); }
-    else if (key.startsWith('mm_focus_'))      { col = 'focus';       docId = key.replace('mm_focus_',''); }
-    else if (key.startsWith('mm_monthly_'))    { col = 'monthly';     docId = key.replace('mm_monthly_',''); }
-    else if (key.startsWith('mm_quarterly_'))  { col = 'quarterly';   docId = key.replace('mm_quarterly_',''); }
-    else if (key.startsWith('mm_recur_rolled_')){ col = 'recur_meta'; docId = key.replace('mm_recur_rolled_',''); }
-    else return; // not a data key we sync
-
-    await setDoc(doc(db, col, docId), { value: JSON.stringify(value) });
-  } catch(e) { console.warn('Firestore write failed (offline?):', e.message); }
-};
-
-// Pull all data from Firestore into localStorage on login
-window.pullFromFirestore = async function() {
-  const now = new Date();
-  const todayKey  = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-  const monthKey  = `${now.getFullYear()}-${now.getMonth()}`;
-  const quarterKey= `${now.getFullYear()}-Q${Math.floor(now.getMonth()/3)}`;
-
-  const keysToFetch = [
-    { ls: 'mm_tasks_daily',              col: 'tasks_daily',  docId: 'data' },
-    { ls: 'mm_tasks_ongoing',            col: 'tasks_ongoing',docId: 'data' },
-    { ls: `mm_auto_daily_${todayKey}`,   col: 'auto_daily',   docId: todayKey },
-    { ls: `mm_focus_${todayKey}`,        col: 'focus',         docId: todayKey },
-    { ls: `mm_monthly_${monthKey}`,      col: 'monthly',       docId: monthKey },
-    { ls: `mm_quarterly_${quarterKey}`,  col: 'quarterly',     docId: quarterKey },
-    { ls: `mm_recur_rolled_${todayKey.replace(/-/g,'-')}`, col: 'recur_meta', docId: todayKey },
-  ];
-
-  await Promise.all(keysToFetch.map(async ({ls, col, docId}) => {
-    try {
-      const snap = await getDoc(doc(db, col, docId));
-      if (snap.exists()) {
-        localStorage.setItem(ls, snap.data().value);
-      }
-    } catch(e) { /* offline — use whatever is in localStorage */ }
-  }));
-};
-
-// Real-time listeners — push remote changes to localStorage and re-render
-function setupListeners() {
-  const now = new Date();
-  const todayKey   = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-  const monthKey   = `${now.getFullYear()}-${now.getMonth()}`;
-  const quarterKey = `${now.getFullYear()}-Q${Math.floor(now.getMonth()/3)}`;
-
-  const listeners = [
-    { ls: 'mm_tasks_daily',             col: 'tasks_daily',  docId: 'data' },
-    { ls: 'mm_tasks_ongoing',           col: 'tasks_ongoing',docId: 'data' },
-    { ls: `mm_auto_daily_${todayKey}`,  col: 'auto_daily',   docId: todayKey },
-    { ls: `mm_focus_${todayKey}`,       col: 'focus',         docId: todayKey },
-    { ls: `mm_monthly_${monthKey}`,     col: 'monthly',       docId: monthKey },
-    { ls: `mm_quarterly_${quarterKey}`, col: 'quarterly',     docId: quarterKey },
-  ];
-
-  listeners.forEach(({ ls, col, docId }) => {
-    onSnapshot(doc(db, col, docId), (snap) => {
-      if (!snap.exists()) return;
-      const remote = snap.data().value;
-      const local  = localStorage.getItem(ls);
-      if (remote !== local) {
-        localStorage.setItem(ls, remote);
-        // Re-render the right section
-        if (ls === 'mm_tasks_daily' || ls.startsWith('mm_auto_daily') || ls.startsWith('mm_focus')) {
-          if (window.renderAll) window.renderAll();
-        } else if (ls === 'mm_tasks_ongoing') {
-          if (window.renderAll) window.renderAll();
-        } else {
-          if (window.renderDeliverables) window.renderDeliverables();
-        }
-      }
-    }, (err) => { /* offline or permission error — silent */ });
-  });
-}
-
-// Expose to global scope so the non-module script can call them
-window.fbReady = true;
-window.fbSetupListeners = setupListeners;
-</script>
-
 </head>
 <body>
 
@@ -762,6 +650,134 @@ window.fbSetupListeners = setupListeners;
 </div>
 
 <script>
+/* ═══════════════════════════════════════
+   AIRTABLE SYNC
+   Base:         app1A2wGYWu3KFoPA
+   Tasks table:  tblqenY9WqpQW1gpX
+   State table:  tblAlydV9crl6J2Yy
+═══════════════════════════════════════ */
+const AT_BASE      = 'app1A2wGYWu3KFoPA';
+const AT_TASKS_TBL = 'tblqenY9WqpQW1gpX';
+const AT_STATE_TBL = 'tblAlydV9crl6J2Yy';
+const AT_TOKEN     = 'PASTE_YOUR_AIRTABLE_PAT_HERE';
+
+const F = {
+  id:'fldfMgamIy1AuEhCn', type:'fld9bzuyebNP28nh8', text:'fldYNeurFjyLea5BW',
+  brand:'fldfeT1N5CuivwyoA', priority:'fldF356UrlE7GyL4c', due:'fldYxZuwH1gZKJJ8u',
+  recur:'fldAnVTkm49AszyYy', done:'fldpKifusRGtsh3K2', addedAt:'fldkUjoTfIWjroHNs',
+  recurLastGen:'fldy1wO3PdrdWCsda', stateKey:'fldZmohx2nVkTrRi5', stateValue:'fld2WjTwjdmWCgpmV',
+};
+
+async function atFetch(url, opts={}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Authorization': `Bearer ${AT_TOKEN}`, 'Content-Type': 'application/json', ...(opts.headers||{}) },
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(`AT ${res.status}: ${e}`); }
+  return res.json();
+}
+function atUrl(tbl, params='') { return `https://api.airtable.com/v0/${AT_BASE}/${tbl}${params}`; }
+
+const atTaskRids  = {};  // taskId  -> airtable record id
+const atStateRids = {};  // lsKey   -> airtable record id
+
+async function atLoadTasks() {
+  let all=[], offset='';
+  do {
+    const d = await atFetch(atUrl(AT_TASKS_TBL, `?pageSize=100${offset?'&offset='+offset:''}`));
+    all = all.concat(d.records); offset = d.offset||'';
+  } while(offset);
+  const daily=[], ongoing=[];
+  all.forEach(r => {
+    const f=r.fields;
+    const t = {
+      id: f[F.id]||r.id, text: f[F.text]||'', brand: f[F.brand]||'other',
+      priority: f[F.priority]||'none', due: f[F.due]||null, recur: f[F.recur]||'none',
+      done: !!f[F.done], addedAt: f[F.addedAt]||0, recurLastGen: f[F.recurLastGen]||'',
+    };
+    atTaskRids[t.id] = r.id;
+    (f[F.type]==='ongoing' ? ongoing : daily).push(t);
+  });
+  localStorage.setItem('mm_tasks_daily',   JSON.stringify(daily));
+  localStorage.setItem('mm_tasks_ongoing', JSON.stringify(ongoing));
+}
+
+async function atSaveTask(type, task) {
+  const fields = {
+    [F.id]: task.id, [F.type]: type, [F.text]: task.text,
+    [F.brand]: task.brand||'other', [F.priority]: task.priority||'none',
+    [F.recur]: task.recur||'none', [F.done]: !!task.done,
+    [F.addedAt]: task.addedAt||0, [F.recurLastGen]: task.recurLastGen||'',
+  };
+  if (task.due) fields[F.due] = task.due;
+  const rid = atTaskRids[task.id];
+  if (rid) {
+    await atFetch(atUrl(AT_TASKS_TBL, `/${rid}`), { method:'PATCH', body:JSON.stringify({fields}) });
+  } else {
+    const r = await atFetch(atUrl(AT_TASKS_TBL), { method:'POST', body:JSON.stringify({fields}) });
+    atTaskRids[task.id] = r.id;
+  }
+}
+
+async function atDeleteTask(taskId) {
+  const rid = atTaskRids[taskId]; if(!rid) return;
+  await atFetch(atUrl(AT_TASKS_TBL, `/${rid}`), { method:'DELETE' });
+  delete atTaskRids[taskId];
+}
+
+async function atLoadState() {
+  let all=[], offset='';
+  do {
+    const d = await atFetch(atUrl(AT_STATE_TBL, `?pageSize=100${offset?'&offset='+offset:''}`));
+    all = all.concat(d.records); offset = d.offset||'';
+  } while(offset);
+  all.forEach(r => {
+    const k=r.fields[F.stateKey], v=r.fields[F.stateValue];
+    atStateRids[k] = r.id;
+    if(k && v) localStorage.setItem(k, v);
+  });
+}
+
+async function atSaveState(lsKey, value) {
+  const strVal = typeof value==='string' ? value : JSON.stringify(value);
+  const fields = { [F.stateKey]: lsKey, [F.stateValue]: strVal };
+  const rid = atStateRids[lsKey];
+  if (rid) {
+    await atFetch(atUrl(AT_STATE_TBL, `/${rid}`), { method:'PATCH', body:JSON.stringify({fields}) });
+  } else {
+    const r = await atFetch(atUrl(AT_STATE_TBL), { method:'POST', body:JSON.stringify({fields}) });
+    atStateRids[lsKey] = r.id;
+  }
+}
+
+window.pullFromAirtable = async function() {
+  try {
+    showSyncStatus('syncing');
+    await Promise.all([atLoadTasks(), atLoadState()]);
+    showSyncStatus('ready');
+  } catch(e) { console.warn('Airtable pull failed:', e.message); showSyncStatus('offline'); }
+};
+
+window.pushTaskToAirtable = async function(type, taskId) {
+  const tasks = loadTasks(type);
+  const task  = tasks.find(t => t.id===taskId);
+  if (!task) await atDeleteTask(taskId).catch(e=>console.warn('AT del:',e.message));
+  else       await atSaveTask(type, task).catch(e=>console.warn('AT save:',e.message));
+};
+
+window.pushStateToAirtable = async function(lsKey) {
+  const val = localStorage.getItem(lsKey);
+  if (val===null) return;
+  await atSaveState(lsKey, val).catch(e=>console.warn('AT state:',e.message));
+};
+
+function showSyncStatus(state) {
+  const el = document.getElementById('sync-dot'); if(!el) return;
+  const map = { syncing:['#f59e0b','Syncing...'], ready:['#22c55e','Synced'], offline:['#ef4444','Offline'] };
+  const [color,title] = map[state]||map.offline;
+  el.style.background=color; el.title=title;
+}
+
 /* ══════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════ */
@@ -825,7 +841,7 @@ function migrateTasks() {
     const tasks = loadTasks(type);
     let changed = false;
     tasks.forEach(t => { if (!t.id) { t.id = uid(); changed = true; } });
-    if (changed) saveTasks(type, tasks);
+    if (changed) { const ids = tasks.filter(t=>t.done===false).map(t=>t.id); saveTasks(type, tasks, ids); }
   });
   // Apply any saved deliverable label overrides
   const overrides = JSON.parse(localStorage.getItem('mm_deliverable_labels') || '{}');
@@ -896,10 +912,10 @@ function handleRecurring() {
         changed = true;
       }
     });
-    if (changed) saveTasks(type, tasks);
+    if (changed) { const ids = tasks.filter(t=>t.done===false).map(t=>t.id); saveTasks(type, tasks, ids); }
   });
   localStorage.setItem(rollKey, '1');
-  if (window.syncToFirestore) window.syncToFirestore(rollKey, '1');
+  if (window.pushStateToAirtable) window.pushStateToAirtable(rollKey).catch(()=>{});
 }
 
 /* ══════════════════════════════════════
@@ -909,7 +925,7 @@ function getAutoDailyState() { return JSON.parse(localStorage.getItem(`mm_auto_d
 function saveAutoDailyState(s) {
   const key = `mm_auto_daily_${getTodayKey()}`;
   localStorage.setItem(key, JSON.stringify(s));
-  if (window.syncToFirestore) window.syncToFirestore(key, s);
+  if (window.pushStateToAirtable) window.pushStateToAirtable(key).catch(()=>{});
 }
 function toggleAutoTask(i) {
   const s = getAutoDailyState(); s[i] = !s[i]; saveAutoDailyState(s);
@@ -921,10 +937,13 @@ function toggleAutoTask(i) {
    TASKS STORAGE
 ══════════════════════════════════════ */
 function loadTasks(type) { return JSON.parse(localStorage.getItem(`mm_tasks_${type}`) || '[]'); }
-function saveTasks(type, tasks) {
+function saveTasks(type, tasks, _changedIds) {
   const key = `mm_tasks_${type}`;
   localStorage.setItem(key, JSON.stringify(tasks));
-  if (window.syncToFirestore) window.syncToFirestore(key, tasks);
+  // Push changed/deleted task IDs to Airtable
+  if (window.pushTaskToAirtable && _changedIds) {
+    _changedIds.forEach(id => window.pushTaskToAirtable(type, id).catch(()=>{}));
+  }
 }
 
 /* ══════════════════════════════════════
@@ -1129,7 +1148,7 @@ function openTaskEdit(div, type, i, t) {
     tasks[i].priority = div.querySelector('.edit-priority').value;
     tasks[i].due      = div.querySelector('.edit-due').value || null;
     tasks[i].recur    = div.querySelector('.edit-recur').value;
-    saveTasks(type, tasks);
+    saveTasks(type, tasks, [tasks[i].id]);
     renderAll();
   });
 
@@ -1143,10 +1162,11 @@ function openTaskEdit(div, type, i, t) {
 function toggleTask(type, i) {
   const tasks = loadTasks(type);
   tasks[i].done = !tasks[i].done;
-  saveTasks(type, tasks);
+  saveTasks(type, tasks, [tasks[i].id]);
   if (tasks[i].done) fireConfetti();
   // sync focus pin done state by task id (index-drift safe)
   const taskId = tasks[i] ? tasks[i].id : null;
+  const deletedId = taskId;
   const pins = getFocusPins();
   pins.forEach((p, pi) => {
     if (!p || p.type !== type) return;
@@ -1160,6 +1180,7 @@ function toggleTask(type, i) {
 function deleteTask(type, i) {
   const tasks = loadTasks(type);
   const taskId = tasks[i] ? tasks[i].id : null;
+  const deletedId = taskId;
   // Remove from focus pins by id (immune to index drift)
   let pins = getFocusPins().map(p => {
     if (!p || p.type !== type) return p;
@@ -1170,7 +1191,7 @@ function deleteTask(type, i) {
   pins = pins.map(p => (p && p.type===type && p.idx>i) ? {...p, idx:p.idx-1} : p);
   saveFocusPins(pins);
   tasks.splice(i, 1);
-  saveTasks(type, tasks);
+  saveTasks(type, tasks, [deletedId]);
   renderAll();
 }
 
@@ -1179,7 +1200,7 @@ function addTask(type) {
   const text  = input.value.trim();
   if (!text) return;
   const tasks = loadTasks(type);
-  tasks.push({
+  const newTask = {
     id:           uid(),
     text,
     brand:        document.getElementById(`brand-input-${type}`).value,
@@ -1189,8 +1210,9 @@ function addTask(type) {
     done:         false,
     addedAt:      Date.now(),
     recurLastGen: todayStr(),
-  });
-  saveTasks(type, tasks);
+  };
+  tasks.push(newTask);
+  saveTasks(type, tasks, [newTask.id]);
   input.value = '';
   document.getElementById(`due-input-${type}`).value = '';
   document.getElementById(`priority-input-${type}`).value = 'none';
@@ -1217,7 +1239,7 @@ function getFocusPins() {
 function saveFocusPins(pins) {
   const key = `mm_focus_${getTodayKey()}`;
   localStorage.setItem(key, JSON.stringify(pins));
-  if (window.syncToFirestore) window.syncToFirestore(key, pins);
+  if (window.pushStateToAirtable) window.pushStateToAirtable(key).catch(()=>{});
 }
 
 function togglePin(type, idx) {
@@ -1421,7 +1443,7 @@ function openDeliverableEdit(item, type, d) {
     const overrides = JSON.parse(localStorage.getItem(overKey) || '{}');
     overrides[d.id] = newLabel;
     localStorage.setItem(overKey, JSON.stringify(overrides));
-    if (window.syncToFirestore) window.syncToFirestore(overKey, overrides);
+    if (window.pushStateToAirtable) window.pushStateToAirtable(overKey).catch(()=>{});
     // also update the live constant so re-renders show it without reload
     const arr = type === 'monthly' ? MONTHLY_DELIVERABLES : QUARTERLY_DELIVERABLES;
     const entry = arr.find(x => x.id === d.id);
@@ -1437,7 +1459,7 @@ function openDeliverableEdit(item, type, d) {
 function loadChecked(key)      { return JSON.parse(localStorage.getItem(key) || '{}'); }
 function saveChecked(key, obj) {
   localStorage.setItem(key, JSON.stringify(obj));
-  if (window.syncToFirestore) window.syncToFirestore(key, obj);
+  if (window.pushStateToAirtable) window.pushStateToAirtable(key).catch(()=>{});
 }
 
 function renderDeliverables() {
@@ -1525,14 +1547,14 @@ async function init() {
   setDate();
   showSyncStatus('syncing');
   // Pull latest data from Firestore before first render
-  if (window.pullFromFirestore) {
-    await window.pullFromFirestore();
+  if (window.pullFromAirtable) {
+    await window.pullFromAirtable();
   }
   migrateTasks();
   handleRecurring();
   renderAll();
   renderDeliverables();
-  if (window.fbSetupListeners) window.fbSetupListeners();
+  // Airtable is pull-on-load; no persistent listener needed
   showSyncStatus('ready');
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
@@ -1552,12 +1574,6 @@ window.onload = () => {
   }
 };
 
-function showSyncStatus(state) {
-  let el = document.getElementById('sync-dot');
-  if (!el) return;
-  el.title = state === 'syncing' ? 'Syncing...' : state === 'ready' ? 'Synced' : 'Offline';
-  el.style.background = state === 'syncing' ? '#f59e0b' : state === 'ready' ? '#22c55e' : '#ef4444';
-}
 </script>
 </body>
 </html>
