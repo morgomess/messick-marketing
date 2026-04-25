@@ -872,6 +872,7 @@ function getAutoDailyState() { return JSON.parse(localStorage.getItem(`mm_auto_d
 function saveAutoDailyState(s) {
   const key = `mm_auto_daily_${getTodayKey()}`;
   localStorage.setItem(key, JSON.stringify(s));
+  scheduleSave();
 }
 function toggleAutoTask(i) {
   const s = getAutoDailyState(); s[i] = !s[i]; saveAutoDailyState(s);
@@ -885,6 +886,7 @@ function toggleAutoTask(i) {
 function loadTasks(type) { return JSON.parse(localStorage.getItem(`mm_tasks_${type}`) || '[]'); }
 function saveTasks(type, tasks) {
   localStorage.setItem(`mm_tasks_${type}`, JSON.stringify(tasks));
+  scheduleSave();
 }
 
 /* ══════════════════════════════════════
@@ -1492,6 +1494,7 @@ function openDeliverableEdit(item, type, d) {
 function loadChecked(key)      { return JSON.parse(localStorage.getItem(key) || '{}'); }
 function saveChecked(key, obj) {
   localStorage.setItem(key, JSON.stringify(obj));
+  scheduleSave();
 }
 
 function renderDeliverables() {
@@ -1581,7 +1584,36 @@ function renderAll() {
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
-function init() {
+// SYNC
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxIyjBFVDx0q5KTzg2WIhoXwF9NJg5_v_EfZSt1DDZOV5SqR3nya9N0PffK5ryCFgg34g/exec';
+let syncTimer = null;
+
+async function loadFromCloud() {
+  try {
+    const res = await fetch(SYNC_URL);
+    const text = await res.text();
+    if (!text || text === '{}') return;
+    const data = JSON.parse(text);
+    Object.keys(data).forEach(k => localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k])));
+  } catch(e) { console.warn('Cloud load failed', e); }
+}
+
+async function saveToCloud() {
+  try {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('mm_'));
+    const data = {};
+    keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); } });
+    await fetch(SYNC_URL, { method: 'POST', body: JSON.stringify(data) });
+  } catch(e) { console.warn('Cloud save failed', e); }
+}
+
+function scheduleSave() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(saveToCloud, 1500);
+}
+
+async function init() {
+  await loadFromCloud();
   setDate();
   // Pull latest data from Firestore before first render
   migrateTasks();
