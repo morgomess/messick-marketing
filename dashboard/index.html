@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morgan's Dashboard | Messick Marketing</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #111111;
+    --blue: #3a6b8a;
+    --blue-light: #5a9ab8;
+    --blue-pale: #e8f1f6;
+    --blue-mist: #f0f6fa;
+    --white: #ffffff;
+    --off-white: #faf8f5;
+    --messick: #3a6b8a;
+    --virtueasy: #e0176a;
+    --border: rgba(58,107,138,0.15);
+    --text-muted: #8aa4b4;
+    --text-light: #b0c4cf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Jost', sans-serif; background: var(--blue-mist); color: var(--black); min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: linear-gradient(145deg, #1e3d52 0%, #2e5f7a 50%, #3a6b8a 100%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; flex-direction: column; gap: 32px;
+  }
+  .login-logo { text-align: center; }
+  .login-logo h1 { font-family: 'Dancing Script', cursive; color: #fff; font-size: 2.8rem; letter-spacing: 0.02em; line-height: 1; }
+  .login-logo p { color: rgba(255,255,255,0.45); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 6px; }
+  .login-card {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px); padding: 32px 28px; width: 300px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .login-card input {
+    padding: 13px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-family: 'Jost', sans-serif; font-size: 0.88rem; outline: none;
+    transition: border-color 0.2s; letter-spacing: 0.04em;
+  }
+  .login-card input::placeholder { color: rgba(255,255,255,0.35); }
+  .login-card input:focus { border-color: rgba(255,255,255,0.5); }
+  .login-card button {
+    padding: 13px; background: #fff; color: var(--blue); border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+  }
+  .login-card button:hover { background: var(--blue-pale); }
+  #login-error { color: #ffb3b3; font-size: 0.75rem; text-align: center; display: none; }
+
+  /* APP */
+  #app { display: none; }
+
+  /* HEADER */
+  header {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 0 36px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 8px rgba(58,107,138,0.07);
+  }
+  .header-left { display: flex; align-items: baseline; gap: 14px; }
+  header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-size: 1.75rem; line-height: 1; }
+  #today-date { font-family: 'Cormorant Garamond', serif; color: var(--text-muted); font-size: 0.9rem; font-style: italic; }
+  .logout-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* LAYOUT */
+  .layout { display: grid; grid-template-columns: 1fr 360px; min-height: calc(100vh - 60px); }
+  .main-col { padding: 30px 36px; border-right: 1px solid var(--border); background: var(--blue-mist); }
+  .side-col { padding: 30px 28px; background: #fff; }
+
+  /* SECTION HEADERS */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; color: var(--blue); letter-spacing: 0.01em; }
+  .add-btn {
+    background: var(--blue); color: #fff; border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 14px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .add-btn:hover { background: var(--blue-light); }
+
+  /* BRAND PILLS */
+  .brand-pill {
+    display: inline-block; font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 7px;
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .brand-messick { background: var(--blue-pale); color: var(--blue); }
+  .brand-virtueasy { background: #fce8f2; color: var(--virtueasy); }
+  .brand-other { background: #f0ede8; color: #7a6a52; }
+  .brand-daily { background: #e6f4ea; color: #2e7d4f; }
+
+  /* TASK LIST */
+  .task-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 16px; background: #fff;
+    border: 1px solid var(--border); border-left: 3px solid transparent;
+    transition: all 0.15s; animation: fadeIn 0.2s ease;
+    box-shadow: 0 1px 4px rgba(58,107,138,0.05);
+  }
+  .task-item:hover { border-left-color: var(--blue-light); box-shadow: 0 2px 10px rgba(58,107,138,0.1); }
+  .task-item.done { opacity: 0.4; }
+  .task-item.done .task-text { text-decoration: line-through; }
+  .task-item.auto-task { border-left-color: #b8dfc8; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .task-check {
+    width: 18px; height: 18px; border: 1.5px solid var(--blue-pale);
+    background: var(--blue-mist); cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; border-radius: 2px;
+  }
+  .task-check:hover { border-color: var(--blue); }
+  .task-check.checked { background: var(--blue); border-color: var(--blue); }
+  .task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: bold; }
+
+  .task-text { flex: 1; font-size: 0.86rem; line-height: 1.4; color: #2a3a44; }
+  .task-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+  .task-item:hover .task-actions { opacity: 1; }
+  .task-del {
+    background: none; border: none; color: var(--text-light);
+    font-size: 1.1rem; cursor: pointer; padding: 2px 4px; transition: color 0.15s; line-height: 1;
+  }
+  .task-del:hover { color: #d0455a; }
+
+  /* ADD TASK FORM */
+  .add-task-form {
+    display: none; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+    padding: 14px 16px; background: #fff;
+    border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(58,107,138,0.06);
+  }
+  .add-task-form.open { display: flex; }
+  .add-task-form input[type="text"] {
+    flex: 1; padding: 9px 12px; border: 1.5px solid var(--border);
+    background: var(--blue-mist); font-family: 'Jost', sans-serif; font-size: 0.84rem;
+    outline: none; min-width: 160px; transition: border-color 0.15s; color: var(--black);
+  }
+  .add-task-form input:focus { border-color: var(--blue-light); background: #fff; }
+  .add-task-form select {
+    padding: 9px 12px; border: 1.5px solid var(--border); background: var(--blue-mist);
+    font-family: 'Jost', sans-serif; font-size: 0.8rem; outline: none; cursor: pointer; color: var(--black);
+  }
+  .form-btns { display: flex; gap: 6px; }
+  .save-btn {
+    padding: 9px 18px; background: var(--blue); color: #fff; border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+  }
+  .save-btn:hover { background: var(--blue-light); }
+  .cancel-btn {
+    padding: 9px 14px; background: none; border: 1.5px solid var(--border);
+    font-family: 'Jost', sans-serif; font-size: 0.72rem; color: var(--text-muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .cancel-btn:hover { border-color: var(--blue-light); color: var(--blue); }
+
+  /* DAY LABEL */
+  .day-label {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.67rem; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;
+  }
+  .clear-done-btn {
+    background: none; border: none; color: var(--text-light);
+    font-family: 'Jost', sans-serif; font-size: 0.64rem; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; transition: color 0.15s;
+  }
+  .clear-done-btn:hover { color: #d0455a; }
+
+  .divider { height: 1px; background: var(--border); margin: 26px 0; }
+  .empty-state {
+    padding: 18px; text-align: center; color: var(--text-light);
+    font-size: 0.8rem; font-style: italic;
+    background: #fff; border: 1px dashed var(--border);
+  }
+
+  /* SCHEDULE */
+  .side-section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
+  .schedule-block { display: flex; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .schedule-time { font-size: 0.7rem; color: var(--text-light); white-space: nowrap; padding-top: 2px; min-width: 76px; font-weight: 500; letter-spacing: 0.04em; }
+  .schedule-label { font-size: 0.83rem; color: #2a3a44; line-height: 1.4; }
+  .schedule-label.break { color: var(--text-light); font-style: italic; }
+
+  /* PROGRESS */
+  .progress-wrap { margin: 18px 0 20px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 7px; letter-spacing: 0.05em; }
+  .progress-bar { height: 5px; background: var(--blue-pale); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-light)); border-radius: 10px; transition: width 0.5s ease; }
+
+  /* DELIVERABLES */
+  .deliverable-group { margin-bottom: 18px; }
+  .deliverable-group-label {
+    font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-light);
+    margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .deliverable-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(58,107,138,0.07); }
+  .deliverable-check {
+    width: 15px; height: 15px; border: 1.5px solid var(--blue-pale);
+    background: var(--blue-mist); cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; transition: all 0.15s;
+  }
+  .deliverable-check:hover { border-color: var(--blue); }
+  .deliverable-check.checked { background: var(--blue); border-color: var(--blue); }
+  .deliverable-check.checked::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
+  .deliverable-text { flex: 1; font-size: 0.8rem; line-height: 1.3; color: #2a3a44; }
+  .deliverable-item.done .deliverable-text { text-decoration: line-through; opacity: 0.35; }
+  .reset-note { font-size: 0.69rem; color: var(--text-light); font-style: italic; text-align: center; padding: 12px 0 0; }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    header { padding: 0 20px; }
+    .main-col, .side-col { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">
+    <h1>Messick Marketing</h1>
+    <p>Operations Dashboard</p>
+  </div>
+  <div class="login-card">
+    <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Enter Dashboard</button>
+    <span id="login-error">Incorrect password. Try again.</span>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <h1>Morgan's Dashboard</h1>
+      <span id="today-date"></span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log Out</button>
+  </header>
+
+  <div class="layout">
+    <div class="main-col">
+
+      <div class="section-header">
+        <span class="section-title">Today's Tasks</span>
+        <button class="add-btn" onclick="toggleAddForm('daily')">+ Add Task</button>
+      </div>
+
+      <div class="day-label">
+        <span id="today-label">Today</span>
+        <button class="clear-done-btn" onclick="clearDoneTasks()">Clear completed</button>
+      </div>
+
+      <div class="add-task-form" id="add-form-daily">
+        <input type="text" id="task-input-daily" placeholder="What needs to get done today?">
+        <select id="brand-input-daily">
+          <option value="messick">Messick Marketing</option>
+          <option value="virtueasy">Virtueasy</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="form-btns">
+          <button class="save-btn" onclick="addTask('daily')">Save</button>
+          <button class="cancel-btn" onclick="toggleAddForm('daily')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="task-list" id="daily-tasks"></div>
+
+      <div class="divider"></div>
+
+      <div class="section-header">
+        <span class="section-title">Ongoing / Project Tasks</span>
+        <button class="add-btn" onclick="toggleAddForm('ongoing')">+ Add Task</button>
+      </div>
+
+      <div class="add-task-form" id="add-form-ongoing">
+        <input type="text" id="task-input-ongoing" placeholder="Open project, build, or client item...">
+        <select id="brand-input-ongoing">
+          <option value="messick">Messick Marketing</option>
+          <option value="virtueasy">Virtueasy</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="form-btns">
+          <button class="save-btn" onclick="addTask('ongoing')">Save</button>
+          <button class="cancel-btn" onclick="toggleAddForm('ongoing')">Cancel</button>
+        </div>
+      </div>
+
+      <div class="task-list" id="ongoing-tasks"></div>
+    </div>
+
+    <div class="side-col">
+      <div class="side-section-title">Today's Schedule</div>
+      <div class="schedule-block"><span class="schedule-time">8:30 AM</span><span class="schedule-label">Morning work block</span></div>
+      <div class="schedule-block"><span class="schedule-time">11:30 AM</span><span class="schedule-label break">Break: dogs + lunch</span></div>
+      <div class="schedule-block"><span class="schedule-time">12:30 PM</span><span class="schedule-label">Afternoon work block</span></div>
+      <div class="schedule-block"><span class="schedule-time">3:30 – 5:00</span><span class="schedule-label break">Wrap up</span></div>
+
+      <div class="divider"></div>
+
+      <div class="side-section-title">Monthly Deliverables</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>This month's progress</span><span id="progress-count">0 / 0</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div id="deliverables-list"></div>
+      <p class="reset-note" id="reset-note"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASSWORD = 'Messick2026';
+
+const AUTO_DAILY_TASKS = [
+  { text: 'ECCO Medical: review ad comments', brand: 'daily' },
+  { text: 'JVI: review ad comments', brand: 'daily' },
+];
+
+const MONTHLY_DELIVERABLES = [
+  { id: 'blog-ecco',    label: 'ECCO Medical blog post' },
+  { id: 'blog-svv',     label: 'Sound Vascular & Vein blog post' },
+  { id: 'blog-txv',     label: 'Texas Vascular blog post' },
+  { id: 'blog-bttcf-1', label: 'BTTCF blog post #1' },
+  { id: 'blog-bttcf-2', label: 'BTTCF blog post #2' },
+  { id: 'blog-bttcf-3', label: 'BTTCF blog post #3' },
+  { id: 'blog-bttcf-4', label: 'BTTCF blog post #4' },
+  { id: 'reel-svv-1',   label: 'SVV extra reel #1' },
+  { id: 'reel-svv-2',   label: 'SVV extra reel #2' },
+  { id: 'reel-svv-3',   label: 'SVV extra reel #3' },
+  { id: 'reel-svv-4',   label: 'SVV extra reel #4' },
+];
+
+const QUARTERLY_DELIVERABLES = [
+  { id: 'q-ecco',  label: 'ECCO Medical analytics report' },
+  { id: 'q-jvi',   label: 'JVI analytics report' },
+  { id: 'q-svv',   label: 'SVV analytics report' },
+  { id: 'q-txv',   label: 'Texas Vascular analytics report' },
+  { id: 'q-mdt',   label: 'My Denver Therapy analytics report' },
+  { id: 'q-drcv',  label: 'Desert Cardiovascular analytics report' },
+  { id: 'q-kelli', label: 'Dr. Kelli analytics report' },
+];
+
+// AUTH
+function doLogin() {
+  if (document.getElementById('pw-input').value === PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    localStorage.setItem('mm_auth', '1');
+    init();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+function logout() { localStorage.removeItem('mm_auth'); location.reload(); }
+
+// KEYS
+function getTodayKey() { const n = new Date(); return `${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`; }
+function getMonthKey() { const n = new Date(); return `${n.getFullYear()}-${n.getMonth()}`; }
+function getQuarterKey() { const n = new Date(); return `${n.getFullYear()}-Q${Math.floor(n.getMonth()/3)}`; }
+
+// AUTO DAILY TASKS
+function getAutoDailyState() { return JSON.parse(localStorage.getItem(`mm_auto_daily_${getTodayKey()}`) || '{}'); }
+function saveAutoDailyState(s) { localStorage.setItem(`mm_auto_daily_${getTodayKey()}`, JSON.stringify(s)); }
+
+function toggleAutoTask(i) {
+  const s = getAutoDailyState(); s[i] = !s[i]; saveAutoDailyState(s);
+  renderTasks('daily');
+}
+
+// TASKS
+function loadTasks(type) { return JSON.parse(localStorage.getItem(`mm_tasks_${type}`) || '[]'); }
+function saveTasks(type, tasks) { localStorage.setItem(`mm_tasks_${type}`, JSON.stringify(tasks)); }
+
+function renderTasks(type) {
+  const list = document.getElementById(`${type}-tasks`);
+  list.innerHTML = '';
+
+  if (type === 'daily') {
+    const state = getAutoDailyState();
+    AUTO_DAILY_TASKS.forEach((t, i) => {
+      const done = !!state[i];
+      const div = document.createElement('div');
+      div.className = `task-item auto-task${done ? ' done' : ''}`;
+      div.innerHTML = `
+        <div class="task-check${done ? ' checked' : ''}" onclick="toggleAutoTask(${i})"></div>
+        <span class="task-text">${t.text}</span>
+        <span class="brand-pill brand-daily">Daily</span>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  const tasks = loadTasks(type);
+  if (tasks.length === 0 && type !== 'daily') {
+    list.innerHTML += `<div class="empty-state">No tasks yet. Add one above.</div>`;
+    return;
+  }
+
+  tasks.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = `task-item${t.done ? ' done' : ''}`;
+    const label = t.brand === 'messick' ? 'Messick' : t.brand === 'virtueasy' ? 'Virtueasy' : 'Other';
+    div.innerHTML = `
+      <div class="task-check${t.done ? ' checked' : ''}" onclick="toggleTask('${type}',${i})"></div>
+      <span class="task-text">${t.text}</span>
+      <span class="brand-pill brand-${t.brand}">${label}</span>
+      <div class="task-actions"><button class="task-del" onclick="deleteTask('${type}',${i})">×</button></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function toggleTask(type, i) { const t = loadTasks(type); t[i].done = !t[i].done; saveTasks(type, t); renderTasks(type); }
+function deleteTask(type, i) { const t = loadTasks(type); t.splice(i, 1); saveTasks(type, t); renderTasks(type); }
+
+function addTask(type) {
+  const input = document.getElementById(`task-input-${type}`);
+  const brand = document.getElementById(`brand-input-${type}`).value;
+  const text = input.value.trim();
+  if (!text) return;
+  const tasks = loadTasks(type);
+  tasks.push({ text, brand, done: false });
+  saveTasks(type, tasks);
+  input.value = '';
+  renderTasks(type);
+}
+
+function toggleAddForm(type) {
+  const form = document.getElementById(`add-form-${type}`);
+  if (form.classList.toggle('open')) document.getElementById(`task-input-${type}`).focus();
+}
+
+function clearDoneTasks() {
+  saveTasks('daily', loadTasks('daily').filter(t => !t.done));
+  renderTasks('daily');
+}
+
+// DELIVERABLES
+function loadChecked(key) { return JSON.parse(localStorage.getItem(key) || '{}'); }
+function saveChecked(key, obj) { localStorage.setItem(key, JSON.stringify(obj)); }
+
+function renderDeliverables() {
+  const mKey = `mm_monthly_${getMonthKey()}`;
+  const qKey = `mm_quarterly_${getQuarterKey()}`;
+  const mChecked = loadChecked(mKey);
+  const qChecked = loadChecked(qKey);
+  const container = document.getElementById('deliverables-list');
+  container.innerHTML = '';
+
+  ['monthly','quarterly'].forEach(type => {
+    const items = type === 'monthly' ? MONTHLY_DELIVERABLES : QUARTERLY_DELIVERABLES;
+    const checked = type === 'monthly' ? mChecked : qChecked;
+    const group = document.createElement('div');
+    group.className = 'deliverable-group';
+    group.innerHTML = `<div class="deliverable-group-label">${type === 'monthly' ? 'Monthly' : 'Quarterly'}</div>`;
+    items.forEach(d => {
+      const done = !!checked[d.id];
+      const item = document.createElement('div');
+      item.className = `deliverable-item${done ? ' done' : ''}`;
+      item.innerHTML = `
+        <div class="deliverable-check${done ? ' checked' : ''}" onclick="toggleDeliverable('${type}','${d.id}')"></div>
+        <span class="deliverable-text">${d.label}</span>
+        <span class="brand-pill brand-messick" style="font-size:0.54rem;padding:2px 5px;">MM</span>
+      `;
+      group.appendChild(item);
+    });
+    container.appendChild(group);
+  });
+
+  updateProgress(mChecked, qChecked);
+  updateResetNote();
+}
+
+function toggleDeliverable(type, id) {
+  const key = type === 'monthly' ? `mm_monthly_${getMonthKey()}` : `mm_quarterly_${getQuarterKey()}`;
+  const checked = loadChecked(key);
+  checked[id] = !checked[id];
+  saveChecked(key, checked);
+  renderDeliverables();
+}
+
+function updateProgress(mChecked, qChecked) {
+  const all = [...MONTHLY_DELIVERABLES, ...QUARTERLY_DELIVERABLES];
+  const merged = { ...mChecked, ...qChecked };
+  const done = all.filter(d => merged[d.id]).length;
+  document.getElementById('progress-count').textContent = `${done} / ${all.length}`;
+  document.getElementById('progress-fill').style.width = `${Math.round(done/all.length*100)}%`;
+}
+
+function updateResetNote() {
+  const now = new Date();
+  const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate() - now.getDate();
+  const month = now.toLocaleString('default', { month: 'long' });
+  document.getElementById('reset-note').textContent = `Monthly items reset each month. ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in ${month}.`;
+}
+
+// DATE
+function setDate() {
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('today-date').textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+  document.getElementById('today-label').textContent = days[now.getDay()];
+}
+
+// INIT
+function init() {
+  setDate();
+  renderTasks('daily');
+  renderTasks('ongoing');
+  renderDeliverables();
+  ['daily','ongoing'].forEach(type => {
+    document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTask(type);
+    });
+  });
+}
+
+window.onload = () => {
+  if (localStorage.getItem('mm_auth') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  }
+};
+</script>
+</body>
+</html>
