@@ -386,6 +386,45 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .deliverable-item.done .deliverable-text { text-decoration: line-through; opacity: 0.35; }
 .reset-note { font-size: 0.69rem; color: var(--text-light); font-style: italic; text-align: center; padding: 12px 0 0; }
 
+
+/* ── INLINE EDIT ── */
+.task-item.editing { background: #fffdf7; border-color: var(--blue-light) !important; border-left-width: 3px !important; flex-wrap: wrap; align-items: flex-start; gap: 0; padding: 0; }
+.edit-form { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; width: 100%; }
+.edit-form input[type="text"] {
+  width: 100%; padding: 8px 10px; border: 1.5px solid var(--border);
+  background: var(--blue-mist); font-family: 'Jost', sans-serif; font-size: 0.86rem;
+  outline: none; color: var(--black); transition: border-color 0.15s;
+}
+.edit-form input[type="text"]:focus { border-color: var(--blue-light); background: #fff; }
+.edit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.edit-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.edit-form select, .edit-form input[type="date"] {
+  padding: 6px 8px; border: 1.5px solid var(--border); background: var(--blue-mist);
+  font-family: 'Jost', sans-serif; font-size: 0.76rem; outline: none; cursor: pointer; color: var(--black);
+}
+.edit-form select:focus, .edit-form input[type="date"]:focus { border-color: var(--blue-light); }
+.edit-btns { display: flex; gap: 6px; margin-left: auto; }
+.edit-save-btn {
+  padding: 6px 16px; background: var(--blue); color: #fff; border: none;
+  font-family: 'Jost', sans-serif; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+}
+.edit-save-btn:hover { background: var(--blue-light); }
+.edit-cancel-btn {
+  padding: 6px 12px; background: none; border: 1.5px solid var(--border);
+  font-family: 'Jost', sans-serif; font-size: 0.7rem; color: var(--text-muted); cursor: pointer;
+}
+.edit-cancel-btn:hover { border-color: var(--blue-light); color: var(--blue); }
+/* deliverable inline edit */
+.deliverable-item.editing { flex-wrap: wrap; padding: 6px 0; }
+.del-edit-form { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; width: 100%; padding: 4px 0; }
+.del-edit-form input[type="text"] {
+  flex: 1; padding: 6px 9px; border: 1.5px solid var(--border);
+  background: var(--blue-mist); font-family: 'Jost', sans-serif; font-size: 0.8rem;
+  outline: none; min-width: 120px; color: var(--black);
+}
+.del-edit-form input[type="text"]:focus { border-color: var(--blue-light); background: #fff; }
+
 /* CONFETTI */
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none; }
 
@@ -395,6 +434,118 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
   .main-col, .side-col { padding: 20px; }
 }
 </style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, collection, setDoc, getDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── FIREBASE CONFIG ──
+const firebaseConfig = {
+  apiKey: "REPLACE_API_KEY",
+  authDomain: "REPLACE_AUTH_DOMAIN",
+  projectId: "REPLACE_PROJECT_ID",
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── SYNC LAYER ──
+// localStorage is the source of truth for reads (fast, offline).
+// Firestore mirrors every write and pushes remote changes to localStorage + re-render.
+
+const COLLECTIONS = ['tasks_daily','tasks_ongoing','auto_daily','monthly','quarterly','focus','recur_meta'];
+
+// Push a single key to Firestore
+window.syncToFirestore = async function(key, value) {
+  try {
+    const parts = key.split('_');
+    // derive collection and docId from the localStorage key pattern
+    // mm_tasks_daily -> col: tasks_daily, doc: data
+    // mm_auto_daily_2024-4-5 -> col: auto_daily, doc: 2024-4-5
+    // mm_focus_2024-4-5 -> col: focus, doc: 2024-4-5
+    // mm_monthly_2024-4 -> col: monthly, doc: 2024-4
+    // mm_quarterly_2024-Q1 -> col: quarterly, doc: 2024-Q1
+    // mm_recur_rolled_2024-04-25 -> col: recur_meta, doc: 2024-04-25
+    let col, docId;
+    if (key === 'mm_tasks_daily')   { col = 'tasks_daily';  docId = 'data'; }
+    else if (key === 'mm_tasks_ongoing') { col = 'tasks_ongoing'; docId = 'data'; }
+    else if (key.startsWith('mm_auto_daily_')) { col = 'auto_daily'; docId = key.replace('mm_auto_daily_',''); }
+    else if (key.startsWith('mm_focus_'))      { col = 'focus';       docId = key.replace('mm_focus_',''); }
+    else if (key.startsWith('mm_monthly_'))    { col = 'monthly';     docId = key.replace('mm_monthly_',''); }
+    else if (key.startsWith('mm_quarterly_'))  { col = 'quarterly';   docId = key.replace('mm_quarterly_',''); }
+    else if (key.startsWith('mm_recur_rolled_')){ col = 'recur_meta'; docId = key.replace('mm_recur_rolled_',''); }
+    else return; // not a data key we sync
+
+    await setDoc(doc(db, col, docId), { value: JSON.stringify(value) });
+  } catch(e) { console.warn('Firestore write failed (offline?):', e.message); }
+};
+
+// Pull all data from Firestore into localStorage on login
+window.pullFromFirestore = async function() {
+  const now = new Date();
+  const todayKey  = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const monthKey  = `${now.getFullYear()}-${now.getMonth()}`;
+  const quarterKey= `${now.getFullYear()}-Q${Math.floor(now.getMonth()/3)}`;
+
+  const keysToFetch = [
+    { ls: 'mm_tasks_daily',              col: 'tasks_daily',  docId: 'data' },
+    { ls: 'mm_tasks_ongoing',            col: 'tasks_ongoing',docId: 'data' },
+    { ls: `mm_auto_daily_${todayKey}`,   col: 'auto_daily',   docId: todayKey },
+    { ls: `mm_focus_${todayKey}`,        col: 'focus',         docId: todayKey },
+    { ls: `mm_monthly_${monthKey}`,      col: 'monthly',       docId: monthKey },
+    { ls: `mm_quarterly_${quarterKey}`,  col: 'quarterly',     docId: quarterKey },
+    { ls: `mm_recur_rolled_${todayKey.replace(/-/g,'-')}`, col: 'recur_meta', docId: todayKey },
+  ];
+
+  await Promise.all(keysToFetch.map(async ({ls, col, docId}) => {
+    try {
+      const snap = await getDoc(doc(db, col, docId));
+      if (snap.exists()) {
+        localStorage.setItem(ls, snap.data().value);
+      }
+    } catch(e) { /* offline — use whatever is in localStorage */ }
+  }));
+};
+
+// Real-time listeners — push remote changes to localStorage and re-render
+function setupListeners() {
+  const now = new Date();
+  const todayKey   = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const monthKey   = `${now.getFullYear()}-${now.getMonth()}`;
+  const quarterKey = `${now.getFullYear()}-Q${Math.floor(now.getMonth()/3)}`;
+
+  const listeners = [
+    { ls: 'mm_tasks_daily',             col: 'tasks_daily',  docId: 'data' },
+    { ls: 'mm_tasks_ongoing',           col: 'tasks_ongoing',docId: 'data' },
+    { ls: `mm_auto_daily_${todayKey}`,  col: 'auto_daily',   docId: todayKey },
+    { ls: `mm_focus_${todayKey}`,       col: 'focus',         docId: todayKey },
+    { ls: `mm_monthly_${monthKey}`,     col: 'monthly',       docId: monthKey },
+    { ls: `mm_quarterly_${quarterKey}`, col: 'quarterly',     docId: quarterKey },
+  ];
+
+  listeners.forEach(({ ls, col, docId }) => {
+    onSnapshot(doc(db, col, docId), (snap) => {
+      if (!snap.exists()) return;
+      const remote = snap.data().value;
+      const local  = localStorage.getItem(ls);
+      if (remote !== local) {
+        localStorage.setItem(ls, remote);
+        // Re-render the right section
+        if (ls === 'mm_tasks_daily' || ls.startsWith('mm_auto_daily') || ls.startsWith('mm_focus')) {
+          if (window.renderAll) window.renderAll();
+        } else if (ls === 'mm_tasks_ongoing') {
+          if (window.renderAll) window.renderAll();
+        } else {
+          if (window.renderDeliverables) window.renderDeliverables();
+        }
+      }
+    }, (err) => { /* offline or permission error — silent */ });
+  });
+}
+
+// Expose to global scope so the non-module script can call them
+window.fbReady = true;
+window.fbSetupListeners = setupListeners;
+</script>
+
 </head>
 <body>
 
@@ -422,6 +573,7 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
     </div>
     <div class="header-right">
       <span id="completion-stat">0 of 0 done today</span>
+      <span id="sync-dot" title="Syncing..." style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;transition:background 0.4s;" ></span>
       <button class="logout-btn" onclick="logout()">Log Out</button>
     </div>
   </header>
@@ -675,6 +827,11 @@ function migrateTasks() {
     tasks.forEach(t => { if (!t.id) { t.id = uid(); changed = true; } });
     if (changed) saveTasks(type, tasks);
   });
+  // Apply any saved deliverable label overrides
+  const overrides = JSON.parse(localStorage.getItem('mm_deliverable_labels') || '{}');
+  [...MONTHLY_DELIVERABLES, ...QUARTERLY_DELIVERABLES].forEach(d => {
+    if (overrides[d.id]) d.label = overrides[d.id];
+  });
 }
 
 /* ══════════════════════════════════════
@@ -742,13 +899,18 @@ function handleRecurring() {
     if (changed) saveTasks(type, tasks);
   });
   localStorage.setItem(rollKey, '1');
+  if (window.syncToFirestore) window.syncToFirestore(rollKey, '1');
 }
 
 /* ══════════════════════════════════════
    AUTO DAILY TASKS
 ══════════════════════════════════════ */
 function getAutoDailyState() { return JSON.parse(localStorage.getItem(`mm_auto_daily_${getTodayKey()}`) || '{}'); }
-function saveAutoDailyState(s) { localStorage.setItem(`mm_auto_daily_${getTodayKey()}`, JSON.stringify(s)); }
+function saveAutoDailyState(s) {
+  const key = `mm_auto_daily_${getTodayKey()}`;
+  localStorage.setItem(key, JSON.stringify(s));
+  if (window.syncToFirestore) window.syncToFirestore(key, s);
+}
 function toggleAutoTask(i) {
   const s = getAutoDailyState(); s[i] = !s[i]; saveAutoDailyState(s);
   if (s[i]) fireConfetti();
@@ -759,7 +921,11 @@ function toggleAutoTask(i) {
    TASKS STORAGE
 ══════════════════════════════════════ */
 function loadTasks(type) { return JSON.parse(localStorage.getItem(`mm_tasks_${type}`) || '[]'); }
-function saveTasks(type, tasks) { localStorage.setItem(`mm_tasks_${type}`, JSON.stringify(tasks)); }
+function saveTasks(type, tasks) {
+  const key = `mm_tasks_${type}`;
+  localStorage.setItem(key, JSON.stringify(tasks));
+  if (window.syncToFirestore) window.syncToFirestore(key, tasks);
+}
 
 /* ══════════════════════════════════════
    DUE DATE HELPERS
@@ -893,6 +1059,7 @@ function buildTaskEl(type, t, i) {
   const pinned = focus.some(f => f && f.type===type && f.idx===i);
 
   div.className = `task-item${t.done?' done':''}${pri!=='none'?' pri-'+pri:''}`;
+  div.title = 'Double-click to edit';
 
   let tagsHtml = `<div class="task-tags">`;
   if (pri !== 'none') tagsHtml += `<span class="priority-pill pill-${pri}">${pri}</span>`;
@@ -909,7 +1076,68 @@ function buildTaskEl(type, t, i) {
       <button class="pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin from Top 3':'Pin to Top 3'}" onclick="togglePin('${type}',${i})">◈</button>
       <button class="task-del" onclick="deleteTask('${type}',${i})">×</button>
     </div>`;
+
+  div.addEventListener('dblclick', (e) => {
+    if (e.target.classList.contains('task-check') || e.target.classList.contains('task-del') || e.target.classList.contains('pin-btn')) return;
+    openTaskEdit(div, type, i, t);
+  });
   return div;
+}
+
+function openTaskEdit(div, type, i, t) {
+  div.classList.add('editing');
+  div.innerHTML = `
+    <div class="edit-form">
+      <input type="text" class="edit-text" value="${t.text.replace(/"/g,'&quot;')}">
+      <div class="edit-row">
+        <span class="edit-label">Brand</span>
+        <select class="edit-brand">
+          <option value="messick"${t.brand==='messick'?' selected':''}>Messick Marketing</option>
+          <option value="virtueasy"${t.brand==='virtueasy'?' selected':''}>Virtueasy</option>
+          <option value="other"${t.brand==='other'?' selected':''}>Other</option>
+        </select>
+        <span class="edit-label">Priority</span>
+        <select class="edit-priority">
+          <option value="none"${(t.priority||'none')==='none'?' selected':''}>None</option>
+          <option value="critical"${t.priority==='critical'?' selected':''}>🔴 Critical</option>
+          <option value="high"${t.priority==='high'?' selected':''}>🟠 High</option>
+          <option value="medium"${t.priority==='medium'?' selected':''}>🔵 Medium</option>
+          <option value="low"${t.priority==='low'?' selected':''}>🟢 Low</option>
+        </select>
+        <span class="edit-label">Due</span>
+        <input type="date" class="edit-due" value="${t.due||''}">
+        <span class="edit-label">Recur</span>
+        <select class="edit-recur">
+          <option value="none"${(t.recur||'none')==='none'?' selected':''}>No</option>
+          <option value="daily"${t.recur==='daily'?' selected':''}>Daily</option>
+          <option value="weekly"${t.recur==='weekly'?' selected':''}>Weekly</option>
+          <option value="monthly"${t.recur==='monthly'?' selected':''}>Monthly</option>
+        </select>
+        <div class="edit-btns">
+          <button class="edit-save-btn">Save</button>
+          <button class="edit-cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+
+  div.querySelector('.edit-text').focus();
+
+  div.querySelector('.edit-save-btn').addEventListener('click', () => {
+    const tasks = loadTasks(type);
+    tasks[i].text     = div.querySelector('.edit-text').value.trim() || tasks[i].text;
+    tasks[i].brand    = div.querySelector('.edit-brand').value;
+    tasks[i].priority = div.querySelector('.edit-priority').value;
+    tasks[i].due      = div.querySelector('.edit-due').value || null;
+    tasks[i].recur    = div.querySelector('.edit-recur').value;
+    saveTasks(type, tasks);
+    renderAll();
+  });
+
+  div.querySelector('.edit-cancel-btn').addEventListener('click', () => renderAll());
+  div.querySelector('.edit-text').addEventListener('keydown', e => {
+    if (e.key === 'Enter') div.querySelector('.edit-save-btn').click();
+    if (e.key === 'Escape') renderAll();
+  });
 }
 
 function toggleTask(type, i) {
@@ -987,7 +1215,9 @@ function getFocusPins() {
   return JSON.parse(localStorage.getItem(`mm_focus_${getTodayKey()}`) || '[null,null,null]');
 }
 function saveFocusPins(pins) {
-  localStorage.setItem(`mm_focus_${getTodayKey()}`, JSON.stringify(pins));
+  const key = `mm_focus_${getTodayKey()}`;
+  localStorage.setItem(key, JSON.stringify(pins));
+  if (window.syncToFirestore) window.syncToFirestore(key, pins);
 }
 
 function togglePin(type, idx) {
@@ -1172,8 +1402,43 @@ function fireConfetti() {
 /* ══════════════════════════════════════
    DELIVERABLES
 ══════════════════════════════════════ */
+function openDeliverableEdit(item, type, d) {
+  item.classList.add('editing');
+  item.innerHTML = `
+    <div class="del-edit-form">
+      <input type="text" class="del-edit-text" value="${d.label.replace(/"/g,'&quot;')}">
+      <button class="edit-save-btn" style="padding:5px 14px">Save</button>
+      <button class="edit-cancel-btn" style="padding:5px 10px">Cancel</button>
+    </div>`;
+  const inp = item.querySelector('.del-edit-text');
+  inp.focus(); inp.select();
+
+  const save = () => {
+    const newLabel = inp.value.trim();
+    if (!newLabel) { renderDeliverables(); return; }
+    // patch the in-memory constant and persist to localStorage as an override map
+    const overKey = 'mm_deliverable_labels';
+    const overrides = JSON.parse(localStorage.getItem(overKey) || '{}');
+    overrides[d.id] = newLabel;
+    localStorage.setItem(overKey, JSON.stringify(overrides));
+    if (window.syncToFirestore) window.syncToFirestore(overKey, overrides);
+    // also update the live constant so re-renders show it without reload
+    const arr = type === 'monthly' ? MONTHLY_DELIVERABLES : QUARTERLY_DELIVERABLES;
+    const entry = arr.find(x => x.id === d.id);
+    if (entry) entry.label = newLabel;
+    renderDeliverables();
+  };
+
+  item.querySelector('.edit-save-btn').addEventListener('click', save);
+  item.querySelector('.edit-cancel-btn').addEventListener('click', () => renderDeliverables());
+  inp.addEventListener('keydown', e => { if (e.key==='Enter') save(); if (e.key==='Escape') renderDeliverables(); });
+}
+
 function loadChecked(key)      { return JSON.parse(localStorage.getItem(key) || '{}'); }
-function saveChecked(key, obj) { localStorage.setItem(key, JSON.stringify(obj)); }
+function saveChecked(key, obj) {
+  localStorage.setItem(key, JSON.stringify(obj));
+  if (window.syncToFirestore) window.syncToFirestore(key, obj);
+}
 
 function renderDeliverables() {
   const mKey = `mm_monthly_${getMonthKey()}`;
@@ -1192,10 +1457,15 @@ function renderDeliverables() {
       const done = !!checked[d.id];
       const item = document.createElement('div');
       item.className = `deliverable-item${done?' done':''}`;
+      item.title = 'Double-click to edit label';
       item.innerHTML = `
         <div class="deliverable-check${done?' checked':''}" onclick="toggleDeliverable('${type}','${d.id}')"></div>
         <span class="deliverable-text">${d.label}</span>
         <span class="brand-pill brand-messick" style="font-size:0.54rem;padding:2px 5px;">MM</span>`;
+      item.addEventListener('dblclick', (e) => {
+        if (e.target.classList.contains('deliverable-check')) return;
+        openDeliverableEdit(item, type, d);
+      });
       group.appendChild(item);
     });
     container.appendChild(group);
@@ -1251,12 +1521,19 @@ function renderAll() {
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
-function init() {
+async function init() {
   setDate();
+  showSyncStatus('syncing');
+  // Pull latest data from Firestore before first render
+  if (window.pullFromFirestore) {
+    await window.pullFromFirestore();
+  }
   migrateTasks();
   handleRecurring();
   renderAll();
   renderDeliverables();
+  if (window.fbSetupListeners) window.fbSetupListeners();
+  showSyncStatus('ready');
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask(type);
@@ -1274,6 +1551,13 @@ window.onload = () => {
     init();
   }
 };
+
+function showSyncStatus(state) {
+  let el = document.getElementById('sync-dot');
+  if (!el) return;
+  el.title = state === 'syncing' ? 'Syncing...' : state === 'ready' ? 'Synced' : 'Offline';
+  el.style.background = state === 'syncing' ? '#f59e0b' : state === 'ready' ? '#22c55e' : '#ef4444';
+}
 </script>
 </body>
 </html>
