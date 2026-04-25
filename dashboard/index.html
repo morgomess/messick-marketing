@@ -1430,13 +1430,14 @@ function fireConfetti() {
 /* ══════════════════════════════════════
    DELIVERABLES
 ══════════════════════════════════════ */
+function delMetaKey() { return `mm_del_meta_${getMonthKey()}`; }
 function getDelMeta(id) {
-  return JSON.parse(localStorage.getItem('mm_del_meta') || '{}')[id] || {};
+  return JSON.parse(localStorage.getItem(delMetaKey()) || '{}')[id] || {};
 }
 function saveDelMeta(id, patch) {
-  const all = JSON.parse(localStorage.getItem('mm_del_meta') || '{}');
+  const all = JSON.parse(localStorage.getItem(delMetaKey()) || '{}');
   all[id] = { ...(all[id]||{}), ...patch };
-  localStorage.setItem('mm_del_meta', JSON.stringify(all));
+  localStorage.setItem(delMetaKey(), JSON.stringify(all));
 }
 
 function openDeliverableEdit(item, type, d) {
