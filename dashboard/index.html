@@ -1542,13 +1542,13 @@ function toggleDeliverable(type, id) {
   renderDeliverables();
 }
 
-function updateProgress(mC, qC) {
-  const all    = [...MONTHLY_DELIVERABLES, ...QUARTERLY_DELIVERABLES];
-  const merged = {...mC, ...qC};
-  const done   = all.filter(d => merged[d.id]).length;
-  document.getElementById('progress-count').textContent = `${done} / ${all.length}`;
-  document.getElementById('progress-fill').style.width  = `${Math.round(done/all.length*100)}%`;
-}
+function updateProgress(mChecked, qChecked) {
+    const monthlyItems = MONTHLY_DELIVERABLES;
+    const done = monthlyItems.filter(d => mChecked[d.id]).length;
+    const total = monthlyItems.length;
+    document.getElementById('progress-count').textContent = `${done} / ${total}`;
+    document.getElementById('progress-fill').style.width = total > 0 ? `${Math.round(done/total*100)}%` : '0%';
+  }
 
 function updateResetNote() {
   const now = new Date();
