@@ -1789,12 +1789,12 @@ function renderClients() {
   clients.forEach(c => {
     const srvHtml = c.services.map(s => `<span class="service-tag">${s}</span>`).join('');
     
-    // Build contact rows
+    const ea = v => v.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     let contactHtml = '';
-    if (c.phone) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Phone" onclick="copyText(${JSON.stringify(c.phone)}, this)">📋</span> <strong>Phone:</strong> ${c.phone}</div>`;
-    if (c.email) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Email" onclick="copyText(${JSON.stringify(c.email)}, this)">📋</span> <strong>Email:</strong> ${c.email}</div>`;
-    if (c.address) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Address" onclick="copyText(${JSON.stringify(c.address)}, this)">📋</span> <strong>Address:</strong> ${c.address}</div>`;
-    if (c.website) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Website" onclick="copyText(${JSON.stringify(c.website)}, this)">📋</span> <strong>Website:</strong> <a href="${c.website}" target="_blank" style="color:var(--blue)">${c.website}</a></div>`;
+    if (c.phone)   contactHtml += `<div class="detail-row"><span class="copy-icon" data-copy="${ea(c.phone)}" title="Copy Phone">📋</span> <strong>Phone:</strong> ${c.phone}</div>`;
+    if (c.email)   contactHtml += `<div class="detail-row"><span class="copy-icon" data-copy="${ea(c.email)}" title="Copy Email">📋</span> <strong>Email:</strong> ${c.email}</div>`;
+    if (c.address) contactHtml += `<div class="detail-row"><span class="copy-icon" data-copy="${ea(c.address)}" title="Copy Address">📋</span> <strong>Address:</strong> ${c.address}</div>`;
+    if (c.website) contactHtml += `<div class="detail-row"><span class="copy-icon" data-copy="${ea(c.website)}" title="Copy Website">📋</span> <strong>Website:</strong> <a href="${c.website}" target="_blank" style="color:var(--blue)">${c.website}</a></div>`;
     
     list.innerHTML += `
       <div class="client-card">
@@ -1871,6 +1871,10 @@ async function init() {
   });
   document.getElementById('picker-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closePicker();
+  });
+  document.getElementById('clients-list').addEventListener('click', e => {
+    const el = e.target.closest('[data-copy]');
+    if (el) copyText(el.dataset.copy, el);
   });
 }
 
