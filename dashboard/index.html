@@ -457,7 +457,6 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .deliverable-item.done .deliverable-text { text-decoration: line-through; opacity: 0.35; }
 .reset-note { font-size: 0.69rem; color: var(--text-light); font-style: italic; text-align: center; padding: 12px 0 0; }
 
-
 /* ── INLINE EDIT ── */
 .task-item.editing { background: #fffdf7; border-color: var(--blue-light) !important; border-left-width: 3px !important; flex-wrap: wrap; align-items: flex-start; gap: 0; padding: 0; }
 .edit-form { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; width: 100%; }
@@ -496,6 +495,37 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 }
 .del-edit-form input[type="text"]:focus { border-color: var(--blue-light); background: #fff; }
 
+/* ── TABS & CLIENTS ── */
+.header-tabs { display: flex; gap: 14px; margin-left: 30px; }
+.tab-btn {
+  background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.85rem;
+  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-light);
+  cursor: pointer; padding: 6px 4px; border-bottom: 2px solid transparent; transition: all 0.2s;
+}
+.tab-btn:hover { color: var(--blue-light); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+.client-card {
+  background: #fff; border: 1px solid var(--border); padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(58,107,138,0.05); border-left: 4px solid var(--blue-light);
+}
+.client-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.client-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--blue); line-height: 1.1; }
+.client-industry { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); background: var(--blue-mist); padding: 3px 8px; border-radius: 12px; margin-top: 4px; display: inline-block; }
+.client-actions { display: flex; gap: 6px; }
+.client-details { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; padding: 10px; background: var(--off-white); border: 1px solid var(--border); border-radius: 4px; }
+.detail-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #2a3a44; }
+.copy-icon { cursor: pointer; color: var(--text-light); font-size: 0.9rem; transition: color 0.15s; }
+.copy-icon:hover { color: var(--blue); }
+.client-services { margin-top: 10px; }
+.client-services-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.services-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.service-tag { background: var(--blue-pale); color: var(--blue); font-size: 0.7rem; padding: 4px 10px; border-radius: 4px; font-weight: 500; }
+
+.services-checklist { display: flex; flex-direction: column; gap: 6px; background: var(--blue-mist); padding: 12px; border: 1px solid var(--border); max-height: 180px; overflow-y: auto; margin-bottom: 8px; }
+.service-opt { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; }
+.custom-service-input { display: none; margin-top: 6px; width: 100%; padding: 8px; border: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 0.8rem; outline: none; }
+
 /* CONFETTI */
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none; }
 
@@ -510,7 +540,6 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 
 <canvas id="confetti-canvas"></canvas>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-logo">
     <h1>Messick Marketing</h1>
@@ -523,12 +552,15 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <header>
     <div class="header-left">
       <h1>Morgan's Dashboard</h1>
       <span id="today-date"></span>
+      <div class="header-tabs">
+        <button class="tab-btn active" id="tab-tasks" onclick="switchTab('tasks')">Tasks</button>
+        <button class="tab-btn" id="tab-clients" onclick="switchTab('clients')">Clients</button>
+      </div>
     </div>
     <div class="header-right">
       <span id="completion-stat">0 of 0 done today</span>
@@ -539,153 +571,173 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
   <div class="layout">
     <div class="main-col">
 
-      <!-- TODAY FOCUS -->
-      <div class="focus-section">
-        <div class="focus-header">
-          <div>
-            <div class="focus-title">🎯 Today's Top 3</div>
-            <div class="focus-subtitle">Must-finish tasks for the day</div>
+      <div id="tasks-view">
+        <div class="focus-section">
+          <div class="focus-header">
+            <div>
+              <div class="focus-title">🎯 Today's Top 3</div>
+              <div class="focus-subtitle">Must-finish tasks for the day</div>
+            </div>
+            <button class="picker-btn" onclick="openPicker()">✦ Pick for me</button>
           </div>
-          <button class="picker-btn" onclick="openPicker()">✦ Pick for me</button>
+          <div class="focus-slots" id="focus-slots"></div>
+          <div class="focus-hint">Pin any task to this section using the ◈ icon</div>
         </div>
-        <div class="focus-slots" id="focus-slots"></div>
-        <div class="focus-hint">Pin any task to this section using the ◈ icon</div>
-      </div>
 
-      <!-- TODAY TASKS -->
-      <div class="section-header">
-        <span class="section-title">Today's Tasks</span>
-        <button class="add-btn" onclick="toggleAddForm('daily')">+ Add Task</button>
-      </div>
-      <div class="day-label">
-        <span id="today-label">Today</span>
-        <button class="clear-done-btn" onclick="clearDoneTasks()">Clear completed</button>
-      </div>
-
-      <!-- FILTERS -->
-      <div class="filter-bar">
-        <span class="filter-label">Filter</span>
-        <select id="filter-brand" onchange="renderAll()">
-          <option value="">All brands</option>
-          <option value="messick">Messick</option>
-          <option value="virtueasy">Virtueasy</option>
-          <option value="other">Other</option>
-          <option value="daily">Daily</option>
-        </select>
-        <select id="filter-priority" onchange="renderAll()">
-          <option value="">All priorities</option>
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-          <option value="none">None</option>
-        </select>
-        <select id="filter-status" onchange="renderAll()">
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="done">Done</option>
-          <option value="overdue">Overdue</option>
-          <option value="due-today">Due Today</option>
-          <option value="due-week">Due This Week</option>
-        </select>
-        <div class="filter-divider"></div>
-        <span class="filter-label">Sort</span>
-        <select id="sort-by" onchange="renderAll()">
-          <option value="priority">Priority first</option>
-          <option value="due">Due soonest</option>
-          <option value="added">Recently added</option>
-          <option value="brand">Brand grouped</option>
-        </select>
-        <button class="clear-filters-btn" onclick="clearFilters()">Reset</button>
-      </div>
-
-      <!-- ADD DAILY FORM -->
-      <div class="add-task-form" id="add-form-daily">
-        <div class="form-row">
-          <input type="text" id="task-input-daily" placeholder="What needs to get done today?">
+        <div class="section-header">
+          <span class="section-title">Today's Tasks</span>
+          <button class="add-btn" onclick="toggleAddForm('daily')">+ Add Task</button>
         </div>
-        <div class="form-row">
-          <span class="form-label">Brand</span>
-          <select id="brand-input-daily">
-            <option value="messick">Messick Marketing</option>
+        <div class="day-label">
+          <span id="today-label">Today</span>
+          <button class="clear-done-btn" onclick="clearDoneTasks()">Clear completed</button>
+        </div>
+
+        <div class="filter-bar">
+          <span class="filter-label">Filter</span>
+          <select id="filter-brand" onchange="renderAll()">
+            <option value="">All brands</option>
+            <option value="messick">Messick</option>
             <option value="virtueasy">Virtueasy</option>
             <option value="other">Other</option>
-          </select>
-          <span class="form-label">Priority</span>
-          <select id="priority-input-daily">
-            <option value="none">None</option>
-            <option value="critical">🔴 Critical</option>
-            <option value="high">🟠 High</option>
-            <option value="medium">🔵 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
-          <span class="form-label">Due</span>
-          <input type="date" id="due-input-daily">
-          <span class="form-label">Recur</span>
-          <select id="recur-input-daily">
-            <option value="none">No</option>
             <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
           </select>
-          <div class="form-btns">
-            <button class="save-btn" onclick="addTask('daily')">Save</button>
-            <button class="cancel-btn" onclick="toggleAddForm('daily')">Cancel</button>
+          <select id="filter-priority" onchange="renderAll()">
+            <option value="">All priorities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+            <option value="none">None</option>
+          </select>
+          <select id="filter-status" onchange="renderAll()">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="done">Done</option>
+            <option value="overdue">Overdue</option>
+            <option value="due-today">Due Today</option>
+            <option value="due-week">Due This Week</option>
+          </select>
+          <div class="filter-divider"></div>
+          <span class="filter-label">Sort</span>
+          <select id="sort-by" onchange="renderAll()">
+            <option value="priority">Priority first</option>
+            <option value="due">Due soonest</option>
+            <option value="added">Recently added</option>
+            <option value="brand">Brand grouped</option>
+          </select>
+          <button class="clear-filters-btn" onclick="clearFilters()">Reset</button>
+        </div>
+
+        <div class="add-task-form" id="add-form-daily">
+          <div class="form-row">
+            <input type="text" id="task-input-daily" placeholder="What needs to get done today?">
+          </div>
+          <div class="form-row">
+            <span class="form-label">Brand</span>
+            <select id="brand-input-daily">
+              <option value="messick">Messick Marketing</option>
+              <option value="virtueasy">Virtueasy</option>
+              <option value="other">Other</option>
+            </select>
+            <span class="form-label">Priority</span>
+            <select id="priority-input-daily">
+              <option value="none">None</option>
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🔵 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+            <span class="form-label">Due</span>
+            <input type="date" id="due-input-daily">
+            <span class="form-label">Recur</span>
+            <select id="recur-input-daily">
+              <option value="none">No</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            <div class="form-btns">
+              <button class="save-btn" onclick="addTask('daily')">Save</button>
+              <button class="cancel-btn" onclick="toggleAddForm('daily')">Cancel</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="task-list" id="daily-tasks"></div>
+        <div class="task-list" id="daily-tasks"></div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <!-- ONGOING TASKS -->
-      <div class="section-header">
-        <span class="section-title">Ongoing / Project Tasks</span>
-        <button class="add-btn" onclick="toggleAddForm('ongoing')">+ Add Task</button>
-      </div>
-
-      <!-- ADD ONGOING FORM -->
-      <div class="add-task-form" id="add-form-ongoing">
-        <div class="form-row">
-          <input type="text" id="task-input-ongoing" placeholder="Open project, build, or client item...">
+        <div class="section-header">
+          <span class="section-title">Ongoing / Project Tasks</span>
+          <button class="add-btn" onclick="toggleAddForm('ongoing')">+ Add Task</button>
         </div>
-        <div class="form-row">
-          <span class="form-label">Brand</span>
-          <select id="brand-input-ongoing">
-            <option value="messick">Messick Marketing</option>
-            <option value="virtueasy">Virtueasy</option>
-            <option value="other">Other</option>
-          </select>
-          <span class="form-label">Priority</span>
-          <select id="priority-input-ongoing">
-            <option value="none">None</option>
-            <option value="critical">🔴 Critical</option>
-            <option value="high">🟠 High</option>
-            <option value="medium">🔵 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
-          <span class="form-label">Due</span>
-          <input type="date" id="due-input-ongoing">
-          <span class="form-label">Recur</span>
-          <select id="recur-input-ongoing">
-            <option value="none">No</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-          <div class="form-btns">
-            <button class="save-btn" onclick="addTask('ongoing')">Save</button>
-            <button class="cancel-btn" onclick="toggleAddForm('ongoing')">Cancel</button>
+
+        <div class="add-task-form" id="add-form-ongoing">
+          <div class="form-row">
+            <input type="text" id="task-input-ongoing" placeholder="Open project, build, or client item...">
+          </div>
+          <div class="form-row">
+            <span class="form-label">Brand</span>
+            <select id="brand-input-ongoing">
+              <option value="messick">Messick Marketing</option>
+              <option value="virtueasy">Virtueasy</option>
+              <option value="other">Other</option>
+            </select>
+            <span class="form-label">Priority</span>
+            <select id="priority-input-ongoing">
+              <option value="none">None</option>
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🔵 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+            <span class="form-label">Due</span>
+            <input type="date" id="due-input-ongoing">
+            <span class="form-label">Recur</span>
+            <select id="recur-input-ongoing">
+              <option value="none">No</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            <div class="form-btns">
+              <button class="save-btn" onclick="addTask('ongoing')">Save</button>
+              <button class="cancel-btn" onclick="toggleAddForm('ongoing')">Cancel</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="task-list" id="ongoing-tasks"></div>
-    </div>
+        <div class="task-list" id="ongoing-tasks"></div>
+      </div> <div id="clients-view" style="display: none;">
+        <div class="section-header">
+          <span class="section-title">Client Directory</span>
+          <button class="add-btn" onclick="toggleAddForm('client')">+ Add Client</button>
+        </div>
 
-    <!-- SIDEBAR -->
-    <div class="side-col">
+        <div class="add-task-form" id="add-form-client">
+          <div class="form-row">
+            <input type="text" id="client-name" placeholder="Client Name" style="flex:1;">
+            <input type="text" id="client-industry" placeholder="Industry/Niche" style="flex:1;">
+          </div>
+          <div class="form-row">
+            <input type="text" id="client-phone" placeholder="Phone Number">
+            <input type="text" id="client-email" placeholder="Email Address">
+            <input type="text" id="client-address" placeholder="Physical Address" style="flex:2;">
+          </div>
+          <span class="form-label" style="margin-top:8px; display:block;">Services Provided (Select Multiple)</span>
+          <div class="services-checklist" id="client-services-list">
+            </div>
+          <input type="text" id="custom-service-text" class="custom-service-input" placeholder="Enter custom service...">
+          
+          <div class="form-btns" style="margin-top: 10px;">
+            <button class="save-btn" onclick="addClient()">Save Client</button>
+            <button class="cancel-btn" onclick="toggleAddForm('client')">Cancel</button>
+          </div>
+        </div>
+
+        <div id="clients-list"></div>
+      </div> </div> <div class="side-col">
       <div class="side-section-title">Today's Schedule</div>
       <div class="schedule-block"><span class="schedule-time">8:30 AM</span><span class="schedule-label">Morning work block</span></div>
       <div class="schedule-block"><span class="schedule-time">11:30 AM</span><span class="schedule-label break">Break: dogs + lunch</span></div>
@@ -703,7 +755,6 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
   </div>
 </div>
 
-<!-- PICKER MODAL -->
 <div id="picker-overlay">
   <div class="picker-modal">
     <div class="picker-modal-header" id="picker-header">
@@ -1162,7 +1213,10 @@ function addTask(type) {
 
 function toggleAddForm(type) {
   const form = document.getElementById(`add-form-${type}`);
-  if (form.classList.toggle('open')) document.getElementById(`task-input-${type}`).focus();
+  if (form.classList.toggle('open')) {
+      if (document.getElementById(`task-input-${type}`)) document.getElementById(`task-input-${type}`).focus();
+      if (type === 'client') document.getElementById('client-name').focus();
+  }
 }
 
 function clearDoneTasks() {
@@ -1582,6 +1636,135 @@ function renderAll() {
 }
 
 /* ══════════════════════════════════════
+   CLIENTS TRACKER
+══════════════════════════════════════ */
+const DEFAULT_SERVICES = [
+  "Social Media Management (Lite/Lite+)",
+  "Social Media Management (Basic)",
+  "Social Media Management (Growth)",
+  "Blog Posts/Copywriting",
+  "Website Design/Development",
+  "Graphic Design",
+  "Video Editing",
+  "Podcast Production"
+];
+
+function switchTab(tab) {
+  document.getElementById('tasks-view').style.display = tab === 'tasks' ? 'block' : 'none';
+  document.getElementById('clients-view').style.display = tab === 'clients' ? 'block' : 'none';
+  document.getElementById('tab-tasks').classList.toggle('active', tab === 'tasks');
+  document.getElementById('tab-clients').classList.toggle('active', tab === 'clients');
+  if (tab === 'clients') renderClients();
+}
+
+function loadClients() { return JSON.parse(localStorage.getItem('mm_clients') || '[]'); }
+function saveClients(clients) { localStorage.setItem('mm_clients', JSON.stringify(clients)); scheduleSave(); }
+
+function initServicesChecklist() {
+  const container = document.getElementById('client-services-list');
+  if (!container) return;
+  container.innerHTML = '';
+  DEFAULT_SERVICES.forEach((srv, i) => {
+    container.innerHTML += `<label class="service-opt"><input type="checkbox" value="${srv}" class="srv-check"> ${srv}</label>`;
+  });
+  container.innerHTML += `<label class="service-opt"><input type="checkbox" value="Other" id="check-other" onchange="toggleCustomService()"> Other (Specify)</label>`;
+}
+
+function toggleCustomService() {
+  const isChecked = document.getElementById('check-other').checked;
+  document.getElementById('custom-service-text').style.display = isChecked ? 'block' : 'none';
+}
+
+function addClient() {
+  const name = document.getElementById('client-name').value.trim();
+  if (!name) return alert("Client name is required!");
+
+  let selectedServices = Array.from(document.querySelectorAll('.srv-check:checked')).map(cb => cb.value);
+  if (document.getElementById('check-other').checked) {
+    const custom = document.getElementById('custom-service-text').value.trim();
+    if (custom) selectedServices.push(custom);
+  }
+
+  const clients = loadClients();
+  clients.push({
+    id: uid(),
+    name,
+    industry: document.getElementById('client-industry').value.trim(),
+    phone: document.getElementById('client-phone').value.trim(),
+    email: document.getElementById('client-email').value.trim(),
+    address: document.getElementById('client-address').value.trim(),
+    services: selectedServices
+  });
+  
+  saveClients(clients);
+  toggleAddForm('client');
+  
+  // Clear form
+  ['name','industry','phone','email','address'].forEach(id => document.getElementById(`client-${id}`).value = '');
+  document.getElementById('custom-service-text').value = '';
+  document.getElementById('custom-service-text').style.display = 'none';
+  initServicesChecklist();
+  
+  renderClients();
+}
+
+function deleteClient(id) {
+  if (!confirm("Remove this client?")) return;
+  saveClients(loadClients().filter(c => c.id !== id));
+  renderClients();
+}
+
+function copyText(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  // Optional: add a tiny visual feedback here if you want
+}
+
+function renderClients() {
+  const list = document.getElementById('clients-list');
+  const clients = loadClients();
+  list.innerHTML = '';
+  
+  if (clients.length === 0) {
+    list.innerHTML = `<div class="empty-state">No clients added yet.</div>`;
+    return;
+  }
+
+  clients.forEach(c => {
+    const srvHtml = c.services.map(s => `<span class="service-tag">${s}</span>`).join('');
+    
+    // Build contact rows
+    let contactHtml = '';
+    if (c.phone) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Phone" onclick="copyText('${c.phone}')">📋</span> <strong>Phone:</strong> ${c.phone}</div>`;
+    if (c.email) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Email" onclick="copyText('${c.email}')">📋</span> <strong>Email:</strong> ${c.email}</div>`;
+    if (c.address) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Address" onclick="copyText('${c.address}')">📋</span> <strong>Address:</strong> ${c.address}</div>`;
+    
+    list.innerHTML += `
+      <div class="client-card">
+        <div class="client-header">
+          <div>
+            <div class="client-name">${c.name}</div>
+            ${c.industry ? `<div class="client-industry">${c.industry}</div>` : ''}
+          </div>
+          <div class="client-actions">
+            <button class="task-del" onclick="deleteClient('${c.id}')" title="Delete Client">×</button>
+          </div>
+        </div>
+        
+        ${contactHtml ? `<div class="client-details">${contactHtml}</div>` : ''}
+        
+        ${c.services.length > 0 ? `
+          <div class="client-services">
+            <div class="client-services-title">Services Provided</div>
+            <div class="services-tags">${srvHtml}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  });
+}
+
+/* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
 // SYNC
@@ -1620,6 +1803,10 @@ async function init() {
   handleRecurring();
   renderAll();
   renderDeliverables();
+  
+  // Clients Init
+  initServicesChecklist();
+
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask(type);
