@@ -1753,13 +1753,27 @@ function deleteClient(id) {
 
 function copyText(text, el) {
   if (!text) return;
-  navigator.clipboard.writeText(text).then(() => {
+  const feedback = () => {
     if (!el) return;
     const orig = el.textContent;
     el.textContent = '✓';
     el.style.color = 'var(--p-low)';
     setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
-  });
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(feedback).catch(() => legacyCopy(text, feedback));
+  } else {
+    legacyCopy(text, feedback);
+  }
+}
+function legacyCopy(text, callback) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); if (callback) callback(); } catch(e) {}
+  document.body.removeChild(ta);
 }
 
 function renderClients() {
