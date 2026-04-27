@@ -725,6 +725,9 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
             <input type="text" id="client-email" placeholder="Email Address">
             <input type="text" id="client-address" placeholder="Physical Address" style="flex:2;">
           </div>
+          <div class="form-row">
+            <input type="text" id="client-website" placeholder="Website URL" style="flex:1;">
+          </div>
           <span class="form-label" style="margin-top:8px; display:block;">Services Provided (Select Multiple)</span>
           <div class="services-checklist" id="client-services-list">
             </div>
@@ -1296,6 +1299,38 @@ function renderFocus() {
     } else {
       div.innerHTML = `<div class="focus-num">${i+1}</div><span class="focus-slot-text">Empty — pin a task below</span>`;
     }
+
+    if (p) {
+      div.draggable = true;
+      div.style.cursor = 'grab';
+      div.addEventListener('dragstart', () => {
+        dragFocusIdx = i;
+        setTimeout(() => { div.style.opacity = '0.45'; }, 0);
+      });
+      div.addEventListener('dragend', () => {
+        div.style.opacity = '';
+        dragFocusIdx = null;
+        document.querySelectorAll('.focus-slot').forEach(s => s.style.outline = '');
+      });
+    }
+    div.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (dragFocusIdx !== null && dragFocusIdx !== i) {
+        div.style.outline = '2px dashed rgba(255,255,255,0.45)';
+      }
+    });
+    div.addEventListener('dragleave', () => { div.style.outline = ''; });
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      div.style.outline = '';
+      if (dragFocusIdx === null || dragFocusIdx === i) return;
+      const pins = getFocusPins();
+      [pins[dragFocusIdx], pins[i]] = [pins[i], pins[dragFocusIdx]];
+      saveFocusPins(pins);
+      dragFocusIdx = null;
+      renderAll();
+    });
+
     container.appendChild(div);
   }
 }
@@ -1304,6 +1339,7 @@ function renderFocus() {
    TASK PICKER MODAL
 ══════════════════════════════════════ */
 let pickerResult = null;
+let dragFocusIdx = null;
 
 function openPicker() {
   document.getElementById('picker-overlay').classList.add('open');
@@ -1693,6 +1729,7 @@ function addClient() {
     phone: document.getElementById('client-phone').value.trim(),
     email: document.getElementById('client-email').value.trim(),
     address: document.getElementById('client-address').value.trim(),
+    website: document.getElementById('client-website').value.trim(),
     services: selectedServices
   });
   
@@ -1700,7 +1737,7 @@ function addClient() {
   toggleAddForm('client');
   
   // Clear form
-  ['name','industry','phone','email','address'].forEach(id => document.getElementById(`client-${id}`).value = '');
+  ['name','industry','phone','email','address','website'].forEach(id => document.getElementById(`client-${id}`).value = '');
   document.getElementById('custom-service-text').value = '';
   document.getElementById('custom-service-text').style.display = 'none';
   initServicesChecklist();
@@ -1714,10 +1751,15 @@ function deleteClient(id) {
   renderClients();
 }
 
-function copyText(text) {
+function copyText(text, el) {
   if (!text) return;
-  navigator.clipboard.writeText(text);
-  // Optional: add a tiny visual feedback here if you want
+  navigator.clipboard.writeText(text).then(() => {
+    if (!el) return;
+    const orig = el.textContent;
+    el.textContent = '✓';
+    el.style.color = 'var(--p-low)';
+    setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
+  });
 }
 
 function renderClients() {
@@ -1735,9 +1777,10 @@ function renderClients() {
     
     // Build contact rows
     let contactHtml = '';
-    if (c.phone) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Phone" onclick="copyText('${c.phone}')">📋</span> <strong>Phone:</strong> ${c.phone}</div>`;
-    if (c.email) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Email" onclick="copyText('${c.email}')">📋</span> <strong>Email:</strong> ${c.email}</div>`;
-    if (c.address) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Address" onclick="copyText('${c.address}')">📋</span> <strong>Address:</strong> ${c.address}</div>`;
+    if (c.phone) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Phone" onclick="copyText(${JSON.stringify(c.phone)}, this)">📋</span> <strong>Phone:</strong> ${c.phone}</div>`;
+    if (c.email) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Email" onclick="copyText(${JSON.stringify(c.email)}, this)">📋</span> <strong>Email:</strong> ${c.email}</div>`;
+    if (c.address) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Address" onclick="copyText(${JSON.stringify(c.address)}, this)">📋</span> <strong>Address:</strong> ${c.address}</div>`;
+    if (c.website) contactHtml += `<div class="detail-row"><span class="copy-icon" title="Copy Website" onclick="copyText(${JSON.stringify(c.website)}, this)">📋</span> <strong>Website:</strong> <a href="${c.website}" target="_blank" style="color:var(--blue)">${c.website}</a></div>`;
     
     list.innerHTML += `
       <div class="client-card">
