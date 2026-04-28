@@ -203,6 +203,30 @@
   }
   .regen-btn:hover { border-color: var(--steel); color: var(--steel); }
 
+  /* Graphic edit panel */
+  .graphic-edit-panel {
+    display: none; padding: 14px 18px; border-top: 1px solid var(--border);
+    background: #f7f5f0; gap: 10px; flex-direction: column;
+  }
+  .graphic-edit-panel.open { display: flex; }
+  .graphic-edit-panel label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; }
+  .graphic-edit-panel textarea {
+    font-family: 'Jost', sans-serif; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--warm-white); color: var(--black);
+    padding: 10px 12px; outline: none; width: 100%; resize: vertical; min-height: 68px; line-height: 1.5;
+    transition: border-color 0.18s;
+  }
+  .graphic-edit-panel textarea:focus { border-color: var(--steel); }
+  .graphic-edit-panel .apply-btn {
+    background: var(--steel); color: white; border: none; border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500;
+    padding: 9px 18px; cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase;
+    align-self: flex-end; transition: background 0.2s;
+  }
+  .graphic-edit-panel .apply-btn:hover { background: var(--steel-light); }
+  .graphic-edit-panel .apply-btn:disabled { background: #aaa; cursor: not-allowed; }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .panel-right { min-height: 60vh; }
@@ -360,11 +384,17 @@
             <h3 id="image-card-title">Generated Graphic</h3>
             <div class="header-actions">
               <button class="action-btn download" id="download-all-btn" onclick="downloadAll()" style="display:none;">Download All</button>
+              <button class="action-btn" id="edit-graphic-btn" onclick="toggleGraphicEdit()" style="display:none;">Edit Graphic</button>
               <button class="action-btn" onclick="copyEl('image-prompt-output', this)">Copy Prompt</button>
             </div>
           </div>
           <div class="image-grid" id="image-grid"></div>
           <div class="output-body small" id="image-prompt-output"></div>
+          <div class="graphic-edit-panel" id="graphic-edit-panel">
+            <label>Edit instructions for the graphic</label>
+            <textarea id="graphic-edit-input" placeholder="e.g. Use more modern design work; no humans or faces; make it darker and more minimal; try abstract shapes instead..."></textarea>
+            <button class="apply-btn" id="graphic-apply-btn" onclick="regenerateGraphic()">↻ Apply &amp; Regenerate</button>
+          </div>
         </div>
 
         <!-- Carousel slide copy -->
@@ -667,6 +697,7 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
         document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
       } else if (isGraphic) {
         document.getElementById('image-card-title').textContent = 'Generated Graphic';
+        document.getElementById('edit-graphic-btn').style.display = '';
         document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
         const grid = document.getElementById('image-grid');
         grid.className = 'image-grid graphic';
@@ -775,6 +806,74 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
     }
 
     btn.disabled = false;
+  }
+
+  function toggleGraphicEdit() {
+    const panel = document.getElementById('graphic-edit-panel');
+    const btn = document.getElementById('edit-graphic-btn');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? 'Edit Graphic' : 'Close';
+  }
+
+  async function regenerateGraphic() {
+    const d = getFormData();
+    if (!d.brandName) return alert('Please enter a brand name.');
+
+    const editNote = document.getElementById('graphic-edit-input').value.trim();
+    const lastPromptEl = document.getElementById('image-prompt-output');
+    const basePrompt = lastPromptEl.textContent.replace(/^Prompt:\s*/i, '').trim();
+
+    if (!basePrompt) return alert('Generate a graphic first, then use Edit to refine it.');
+
+    const applyBtn = document.getElementById('graphic-apply-btn');
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Regenerating...';
+
+    // Rebuild the image prompt using the original base + edit instructions
+    const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
+    const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
+    const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+
+    const editedPrompt = editNote
+      ? `${basePrompt} Additional edit instructions: ${editNote}.`
+      : basePrompt;
+
+    const grid = document.getElementById('image-grid');
+    grid.className = 'image-grid graphic';
+    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Regenerating...</div></div>`;
+
+    try {
+      const imgResult = await callWorker('imagen', {
+        prompt: editedPrompt + suffix,
+        count: 1
+      });
+      const pred = (imgResult.predictions || [])[0];
+      const slot = grid.querySelector('.image-slot');
+      if (pred && pred.bytesBase64Encoded) {
+        const b64 = pred.bytesBase64Encoded;
+        generatedImages = [b64];
+        const img = document.createElement('img');
+        img.src = `data:image/png;base64,${b64}`;
+        img.className = 'generated';
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'dl-overlay';
+        dlBtn.textContent = 'Download';
+        dlBtn.onclick = () => downloadImage(b64, `${brand}-graphic.png`);
+        slot.innerHTML = '';
+        slot.appendChild(img);
+        slot.appendChild(dlBtn);
+        applyLogoOverlay(slot, d.logoUrl, editedPrompt);
+      } else if (slot) {
+        slot.innerHTML = `<div class="img-placeholder error">Generation failed — use prompt above in Nanobanana.io</div>`;
+      }
+    } catch (err) {
+      const slot = grid.querySelector('.image-slot');
+      if (slot) slot.innerHTML = `<div class="img-placeholder error">${err.message || 'Image gen failed'}</div>`;
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = '↻ Apply & Regenerate';
   }
 
   async function regenerateCopy() {
