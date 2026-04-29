@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>How to Create a Content Strategy from Scratch | Messick Marketing Blog</title>
+<meta name="description" content="A content strategy isn't a calendar or a topic list. It's a clear system that connects what you publish to how you grow. Here's how to build one that actually holds up."/>
+<meta property="og:title" content="How to Create a Content Strategy from Scratch (Even If You Have No Idea Where to Start)"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="https://messickmarketing.com/blog/how-to-create-a-content-strategy.html"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#111111;--white:#faf8f5;--gray:#f0eeeb;--steel:#3a6b8a;--steel-light:#5a9ab8;--steel-pale:#d4e8f2;--text-muted:#6b6560;--text-dark:#e8e4de;--text-muted-dark:#9a928c;}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--white);color:var(--black);line-height:1.7;font-weight:300;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.nav-logo{font-family:'Dancing Script',cursive;font-size:1.3rem;color:#fff;text-decoration:none}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{font-size:.73rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links .nav-cta{background:var(--steel);color:#fff!important;padding:.45rem 1.2rem;border-radius:2px;}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:#fff}
+@media(max-width:768px){.nav-links{display:none;position:fixed;top:68px;left:0;right:0;background:var(--black);flex-direction:column;align-items:flex-start;padding:1.5rem 5% 2rem;gap:1.2rem;border-top:1px solid rgba(255,255,255,.1)}.nav-links.open{display:flex}.hamburger{display:flex}}
+.post-hero{margin-top:68px;background:var(--black);padding:80px 5% 70px}
+.post-hero .inner{max-width:780px;margin:0 auto}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem}
+.breadcrumb a{font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none}
+.breadcrumb a:hover{color:#fff}
+.breadcrumb span{font-size:.68rem;color:rgba(255,255,255,.25)}
+.post-category{display:inline-block;font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);background:rgba(58,107,138,.25);padding:.3rem .75rem;border-radius:1px;margin-bottom:1.2rem}
+.post-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4vw,3.6rem);font-weight:300;color:#fff;line-height:1.15;margin-bottom:1.2rem}
+.post-hero h1 em{font-style:italic;color:var(--steel-light)}
+.post-meta{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.post-meta span{font-size:.72rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase}
+.post-meta .divider{width:1px;height:12px;background:rgba(255,255,255,.15)}
+.post-body{padding:72px 5% 80px}
+.post-body .inner{max-width:780px;margin:0 auto}
+.post-body p{font-size:1.05rem;line-height:1.9;color:#2a2a2a;margin-bottom:1.6rem;font-weight:300}
+.post-body h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:400;color:var(--black);margin:3rem 0 1rem;line-height:1.2}
+.post-body h3{font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin:2.4rem 0 .8rem}
+.post-body strong{font-weight:600;color:var(--black)}
+.post-body ul,.post-body ol{margin:1rem 0 1.6rem 1.4rem}
+.post-body li{font-size:1.05rem;line-height:1.8;color:#2a2a2a;margin-bottom:.5rem;font-weight:300}
+.pull-quote{border-left:3px solid var(--steel);padding:1.2rem 1.6rem;margin:2.4rem 0;background:var(--gray)}
+.pull-quote p{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;font-style:italic;color:var(--black);margin:0;line-height:1.5}
+.step-block{counter-reset:steps;margin:2.4rem 0}
+.step{display:flex;gap:1.4rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid #e2dfd9}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{flex-shrink:0;width:44px;height:44px;background:var(--steel);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;border-radius:2px}
+.step-content h4{font-size:1rem;font-weight:600;color:var(--black);margin-bottom:.5rem}
+.step-content p{font-size:.95rem;line-height:1.85;color:#2a2a2a;margin:0;font-weight:300}
+.author-bar{border-top:1px solid #e2dfd9;padding-top:2.4rem;margin-top:3rem}
+.author-info .author-name{font-size:.88rem;font-weight:600;color:var(--black);margin-bottom:.2rem}
+.author-info .author-bio{font-size:.83rem;font-weight:300;color:var(--text-muted);line-height:1.65}
+.related-section{background:var(--gray);padding:64px 5%}
+.related-section .inner{max-width:1100px;margin:0 auto}
+.related-section .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:2rem}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+@media(max-width:768px){.related-grid{grid-template-columns:1fr}}
+.related-card{background:var(--white);border:1px solid #e2dfd9;padding:1.6rem;text-decoration:none;color:inherit;transition:transform .2s;display:block}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.related-card .rc-cat{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);margin-bottom:.7rem}
+.related-card .rc-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;line-height:1.3;color:var(--black);margin-bottom:.6rem}
+.related-card .rc-arrow{font-size:.85rem;color:var(--steel)}
+.cta-strip{background:var(--steel);padding:64px 5%;text-align:center}
+.cta-strip h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:.8rem}
+.cta-strip h2 em{font-style:italic}
+.cta-strip p{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.8}
+.btn-white{display:inline-block;background:#fff;color:var(--steel);font-family:'Jost',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:.85rem 2.2rem;border-radius:2px}
+footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:'Dancing Script',cursive;font-size:1.2rem;color:#fff;text-decoration:none}
+.footer-copy{font-size:.7rem;color:var(--text-muted-dark)}
+.footer-email a{font-size:.72rem;color:var(--steel-light);text-decoration:none}
+.footer-email a:hover{color:#fff}
+</style>
+</head>
+<body>
+<nav id="mainNav">
+  <a href="/" class="nav-logo">Messick Marketing</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/#serve">Who We Serve</a></li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/#founder">About</a></li>
+    <li><a href="/blog/" class="active">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Let's Talk</a></li>
+  </ul>
+</nav>
+
+<section class="post-hero">
+  <div class="inner">
+    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><a href="#">Content Strategy</a></div>
+    <span class="post-category">Content Strategy</span>
+    <h1>How to Create a Content Strategy from Scratch <em>(Even If You Have No Idea Where to Start)</em></h1>
+    <div class="post-meta">
+      <span>Messick Marketing</span><span class="divider"></span>
+      <span>April 2026</span><span class="divider"></span>
+      <span>9 min read</span>
+    </div>
+  </div>
+</section>
+
+<article class="post-body">
+  <div class="inner">
+    <p>The phrase "content strategy" gets thrown around constantly in marketing conversations, and it's usually used interchangeably with "content calendar." They're not the same thing. A content calendar tells you what to post and when. A content strategy tells you why you're posting, who you're posting for, what you want them to do next, and how you'll know if it's working.</p>
+
+    <p>Most businesses have a calendar. Very few have a strategy. The ones with a real strategy are the ones generating actual results from their content.</p>
+
+    <p>Here's how to build one from scratch.</p>
+
+    <h2>Step One: Define What You're Actually Trying to Accomplish</h2>
+
+    <p>Before you write a single word or film a single video, you need to be clear about what you want your content to do for your business. This sounds obvious. Most businesses skip it anyway and end up publishing content without a clear purpose, then wonder why it isn't driving results.</p>
+
+    <p>Common content goals include: building brand awareness in a new market, driving more direct appointment requests, reducing dependence on a single referral source, establishing physician or founder visibility as a thought leader, or nurturing existing patients and clients so they return and refer others.</p>
+
+    <p>Your goal shapes everything else. Content designed to build awareness looks and performs differently than content designed to convert someone who's already interested. Trying to do both with the same piece of content usually means doing neither well.</p>
+
+    <h2>Step Two: Know Exactly Who You're Talking To</h2>
+
+    <p>The most common content strategy failure isn't bad writing or bad video production. It's content that's aimed at everyone and resonates with no one. Effective content starts with a specific person in mind.</p>
+
+    <p>For a healthcare practice, that specific person might be a 52-year-old woman who's been told she has varicose veins, who's been putting off treatment for two years because she doesn't understand what the procedure involves and whether her insurance covers it. Every piece of content you create for her should speak to exactly where she is in that decision process.</p>
+
+    <p>To get there, answer these questions honestly: Who is your ideal patient or client? What are they worried about before they find you? What questions do they ask at their first appointment? What almost stopped them from calling? What made them finally decide to reach out? The answers to those questions are your content strategy's foundation.</p>
+
+    <div class="pull-quote">
+      <p>"The best content doesn't feel like marketing. It feels like someone finally answered the question you've been carrying around."</p>
+    </div>
+
+    <h2>Step Three: Choose Your Channels Intentionally</h2>
+
+    <p>You don't need to be everywhere. You need to be where your audience actually is, and you need to be there consistently. The mistake most businesses make is spreading thin across every platform and doing none of them well.</p>
+
+    <p>For most healthcare practices and service businesses, a strong starting point is one or two social platforms, a regularly updated website blog, and an email list. That's it. Master those before adding anything else.</p>
+
+    <p>Platform selection should be based on where your audience spends time. Instagram and Facebook are strong for healthcare practices targeting patients in a local area. LinkedIn is effective for reaching referral partners, other physicians, and B2B audiences. YouTube is exceptionally valuable for long-form educational content that also ranks in search. Short-form video across Reels and TikTok is currently the highest-reach organic format available to most businesses.</p>
+
+    <h2>Step Four: Build Your Content Pillars</h2>
+
+    <p>Content pillars are the three to five topic categories that define what you talk about. They should sit at the intersection of what your audience cares about and what you're qualified to speak to. For a vascular practice, pillars might include patient education about procedures, lifestyle and vascular health, physician expertise and case studies, and the patient experience from first visit through recovery.</p>
+
+    <p>Pillars serve two purposes. They keep your content focused so you don't end up posting randomly and confusing your audience about what you actually do. And they make content creation easier because you're not starting from scratch every week. You're cycling through a defined set of topics that you know your audience cares about.</p>
+
+    <h2>A Framework for Building It Out</h2>
+
+    <div class="step-block">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Map your audience's questions to each stage of the decision process</h4>
+          <p>Top of funnel content answers awareness-level questions. "What is peripheral artery disease?" or "What causes varicose veins?" Middle funnel content helps people evaluate their options. "How do I know if I need vein treatment?" or "What should I expect from a vein consultation?" Bottom of funnel content removes friction for people who are ready to act. "How do I book an appointment?" and "What does my insurance typically cover?"</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Decide on your publishing cadence and hold to it</h4>
+          <p>One high-quality post per week for 52 weeks will outperform daily posting for a month followed by silence. Consistency is the variable that most directly determines whether a content strategy builds momentum or stalls. Pick a cadence you can actually sustain, then stick to it for at least 90 days before evaluating results.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Create a repurposing system</h4>
+          <p>One piece of long-form content, a blog post or video, can become five to ten shorter pieces. A 1,000-word blog post becomes three social captions, one email, and a short-form video script. A physician interview becomes a YouTube video, a Reel clip, and a LinkedIn post. Building this repurposing layer into your process is what makes content sustainable without requiring exponentially more effort.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Define how you'll measure success before you start</h4>
+          <p>Decide what you're tracking before you publish anything, not after. If your goal is more appointment requests, track website traffic from organic and social sources, form fills, and phone call volume. If your goal is referral partner visibility, track LinkedIn reach and direct messages from physicians. Measure what's connected to the goal, not what's easiest to see.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h4>Review and adjust at 90-day intervals</h4>
+          <p>A content strategy is a living document, not a one-time setup. Review your results every 90 days. Which posts got the most engagement? Which drove the most website traffic? Which content prompted direct messages or inquiries? Use that data to double down on what's working and deprioritize what isn't. Most businesses quit before the 90-day mark. The ones that stay the course long enough to see the data are the ones who win.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>What a Real Content Strategy Looks Like in Practice</h2>
+
+    <p>For a healthcare practice, a fully built content strategy includes a clear audience profile, three to five content pillars, a channel selection tied to where that audience lives, a monthly topic plan that maps to the patient decision journey, a publishing calendar with assigned formats (video, blog, caption, email), a repurposing workflow that extends each piece of content, and a monthly review process tied to concrete metrics.</p>
+
+    <p>It doesn't have to be a 40-page document. A one-page framework that answers those questions clearly is more useful than a detailed plan that never gets executed. Start there.</p>
+
+    <h2>The One Thing Most Strategies Miss</h2>
+
+    <p>The most overlooked element of a content strategy is the call to action. Even the best educational content fails to convert if there's no clear next step. Every piece of content should have a purpose and every purpose should have a direction. A blog post on varicose vein symptoms should point toward a consultation. A Reel about UFE recovery should direct viewers to a link in bio with more information. An email about a physician's background should include a way to book.</p>
+
+    <p>Content that educates without directing is a missed opportunity. You've earned the attention. Use it.</p>
+
+    <div class="author-bar">
+      <div class="author-info">
+        <div class="author-name">Messick Marketing</div>
+        <div class="author-bio">We build content strategies for healthcare practices and mission-driven businesses, then execute them. If you want a strategy that goes beyond a content calendar, let's talk about what that looks like for your practice.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<section class="related-section">
+  <div class="inner">
+    <p class="eyebrow">Keep Reading</p>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/what-is-content-marketing.html">
+        <div class="rc-cat">Content Marketing</div>
+        <div class="rc-title">What Is Content Marketing? A Straight Answer</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/why-video-works-on-social-media.html">
+        <div class="rc-cat">Social Media</div>
+        <div class="rc-title">Why Video Works So Well on Social Media</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/how-much-to-spend-on-marketing.html">
+        <div class="rc-cat">Strategy</div>
+        <div class="rc-title">How Much Should a Small Business Spend on Marketing?</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>Ready to build a strategy that<br><em>actually compounds?</em></h2>
+  <p>We'll build your content strategy and handle the execution. You focus on your practice. We'll handle making sure the right people find it.</p>
+  <a href="/#contact" class="btn-white">Let's Get Started</a>
+</section>
+
+<footer>
+  <a href="/" class="footer-logo">Messick Marketing</a>
+  <div class="footer-email"><a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></div>
+  <div class="footer-copy">&copy; 2026 Messick Marketing. All rights reserved.</div>
+</footer>
+<script>
+const nav=document.getElementById('mainNav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>30));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+</script>
+</body>
+</html>

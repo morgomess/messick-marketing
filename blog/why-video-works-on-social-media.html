@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Why Video Works So Well on Social Media | Messick Marketing Blog</title>
+<meta name="description" content="Video consistently outperforms every other content format on social media. Here's the science, the strategy, and why most businesses are still avoiding it."/>
+<meta property="og:title" content="Why Video Works So Well on Social Media (And Why Most Businesses Are Still Avoiding It)"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="https://messickmarketing.com/blog/why-video-works-on-social-media.html"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#111111;--white:#faf8f5;--gray:#f0eeeb;--steel:#3a6b8a;--steel-light:#5a9ab8;--steel-pale:#d4e8f2;--text-muted:#6b6560;--text-dark:#e8e4de;--text-muted-dark:#9a928c;}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--white);color:var(--black);line-height:1.7;font-weight:300;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.nav-logo{font-family:'Dancing Script',cursive;font-size:1.3rem;color:#fff;text-decoration:none}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{font-size:.73rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links .nav-cta{background:var(--steel);color:#fff!important;padding:.45rem 1.2rem;border-radius:2px;transition:background .2s!important}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:#fff}
+@media(max-width:768px){.nav-links{display:none;position:fixed;top:68px;left:0;right:0;background:var(--black);flex-direction:column;align-items:flex-start;padding:1.5rem 5% 2rem;gap:1.2rem;border-top:1px solid rgba(255,255,255,.1)}.nav-links.open{display:flex}.hamburger{display:flex}}
+.post-hero{margin-top:68px;background:var(--black);padding:80px 5% 70px}
+.post-hero .inner{max-width:780px;margin:0 auto}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem}
+.breadcrumb a{font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:#fff}
+.breadcrumb span{font-size:.68rem;color:rgba(255,255,255,.25)}
+.post-category{display:inline-block;font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);background:rgba(58,107,138,.25);padding:.3rem .75rem;border-radius:1px;margin-bottom:1.2rem}
+.post-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4vw,3.6rem);font-weight:300;color:#fff;line-height:1.15;margin-bottom:1.2rem}
+.post-hero h1 em{font-style:italic;color:var(--steel-light)}
+.post-meta{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.post-meta span{font-size:.72rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase}
+.post-meta .divider{width:1px;height:12px;background:rgba(255,255,255,.15)}
+.post-body{padding:72px 5% 80px}
+.post-body .inner{max-width:780px;margin:0 auto}
+.post-body p{font-size:1.05rem;line-height:1.9;color:#2a2a2a;margin-bottom:1.6rem;font-weight:300}
+.post-body h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:400;color:var(--black);margin:3rem 0 1rem;line-height:1.2}
+.post-body h3{font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin:2.4rem 0 .8rem}
+.post-body strong{font-weight:600;color:var(--black)}
+.post-body ul,.post-body ol{margin:1rem 0 1.6rem 1.4rem}
+.post-body li{font-size:1.05rem;line-height:1.8;color:#2a2a2a;margin-bottom:.5rem;font-weight:300}
+.pull-quote{border-left:3px solid var(--steel);padding:1.2rem 1.6rem;margin:2.4rem 0;background:var(--gray)}
+.pull-quote p{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;font-style:italic;color:var(--black);margin:0;line-height:1.5}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2dfd9;margin:2.4rem 0}
+@media(max-width:600px){.stat-row{grid-template-columns:1fr}}
+.stat-item{background:var(--white);padding:1.6rem 1.4rem;text-align:center}
+.stat-item .n{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--steel);line-height:1}
+.stat-item .l{font-size:.8rem;font-weight:300;color:var(--text-muted);margin-top:.4rem;line-height:1.5}
+.author-bar{border-top:1px solid #e2dfd9;padding-top:2.4rem;margin-top:3rem}
+.author-info .author-name{font-size:.88rem;font-weight:600;color:var(--black);margin-bottom:.2rem}
+.author-info .author-bio{font-size:.83rem;font-weight:300;color:var(--text-muted);line-height:1.65}
+.related-section{background:var(--gray);padding:64px 5%}
+.related-section .inner{max-width:1100px;margin:0 auto}
+.related-section .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:2rem}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+@media(max-width:768px){.related-grid{grid-template-columns:1fr}}
+.related-card{background:var(--white);border:1px solid #e2dfd9;padding:1.6rem;text-decoration:none;color:inherit;transition:transform .2s;display:block}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.related-card .rc-cat{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);margin-bottom:.7rem}
+.related-card .rc-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;line-height:1.3;color:var(--black);margin-bottom:.6rem}
+.related-card .rc-arrow{font-size:.85rem;color:var(--steel)}
+.cta-strip{background:var(--steel);padding:64px 5%;text-align:center}
+.cta-strip h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:.8rem}
+.cta-strip h2 em{font-style:italic}
+.cta-strip p{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.8}
+.btn-white{display:inline-block;background:#fff;color:var(--steel);font-family:'Jost',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:.85rem 2.2rem;border-radius:2px;transition:background .2s}
+.btn-white:hover{background:var(--steel-pale)}
+footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:'Dancing Script',cursive;font-size:1.2rem;color:#fff;text-decoration:none}
+.footer-copy{font-size:.7rem;color:var(--text-muted-dark)}
+.footer-email a{font-size:.72rem;color:var(--steel-light);text-decoration:none}
+.footer-email a:hover{color:#fff}
+</style>
+</head>
+<body>
+<nav id="mainNav">
+  <a href="/" class="nav-logo">Messick Marketing</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/#serve">Who We Serve</a></li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/#founder">About</a></li>
+    <li><a href="/blog/" class="active">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Let's Talk</a></li>
+  </ul>
+</nav>
+
+<section class="post-hero">
+  <div class="inner">
+    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><a href="#">Social Media</a></div>
+    <span class="post-category">Social Media</span>
+    <h1>Why Video Works So Well on Social Media (And Why Most Businesses Are <em>Still Avoiding It</em>)</h1>
+    <div class="post-meta">
+      <span>Messick Marketing</span><span class="divider"></span>
+      <span>April 2026</span><span class="divider"></span>
+      <span>6 min read</span>
+    </div>
+  </div>
+</section>
+
+<article class="post-body">
+  <div class="inner">
+    <p>Every platform has made the same bet. Instagram built Reels. LinkedIn pushed video in the feed. YouTube is the second-largest search engine in the world. TikTok built its entire identity around it. And the data behind that bet is overwhelming: video consistently generates more reach, more engagement, and more conversions than any other content type.</p>
+
+    <p>So why is it still the format most businesses are putting off?</p>
+
+    <p>Usually it comes down to one of three things: they think it requires expensive equipment, they're uncomfortable on camera, or they don't know what to say. All of those are solvable problems. The avoidance isn't.</p>
+
+    <h2>What the Data Actually Shows</h2>
+
+    <div class="stat-row">
+      <div class="stat-item">
+        <div class="n">91%</div>
+        <div class="l">of companies now use video as a marketing tool</div>
+      </div>
+      <div class="stat-item">
+        <div class="n">82%</div>
+        <div class="l">of marketers say video has directly increased sales</div>
+      </div>
+      <div class="stat-item">
+        <div class="n">104%</div>
+        <div class="l">ROI from short-form video, the highest of any content format in 2025</div>
+      </div>
+    </div>
+
+    <p>Video isn't a trend at this point. It's infrastructure. The platforms built their algorithm reward systems around it because video keeps people on the app longer, and time on app is how they make money. When you publish video, the platform has an incentive to show it. That's a built-in advantage no other content type gets to the same degree.</p>
+
+    <h2>The Neuroscience Behind It</h2>
+
+    <p>Video works because of how the brain processes information. The human brain processes visuals roughly 60,000 times faster than text. When you add motion, voice, and facial expression to that, you're triggering multiple sensory channels simultaneously. The result is faster comprehension, stronger emotional response, and better retention.</p>
+
+    <p>Studies on memory consistently show that people retain about 10 percent of what they read, but closer to 65 percent of what they see and hear together. For a healthcare practice trying to explain a complex procedure, or a service business trying to communicate trust, that gap matters enormously.</p>
+
+    <div class="pull-quote">
+      <p>"A 60-second video can communicate what a 600-word article can't. It's not about the information. It's about the connection."</p>
+    </div>
+
+    <h2>Why It Drives Trust Faster Than Anything Else</h2>
+
+    <p>Text is easy to manufacture. Anyone can write a polished bio or an impressive service description. Video is harder to fake. When a physician sits down and explains a procedure in plain language, patients hear their voice, read their body language, and form an impression. That impression happens in seconds, and it's far more durable than anything they'd get from a photo and a paragraph.</p>
+
+    <p>For service businesses and healthcare practices in particular, trust is the bottleneck. People don't buy services they don't trust. They don't book appointments with providers they don't feel connected to. Video shortens the distance between "I found you online" and "I'm ready to call."</p>
+
+    <h2>What Types of Video Perform Best</h2>
+
+    <h3>Short-form (Under 90 seconds)</h3>
+    <p>Reels, TikToks, and YouTube Shorts are where discoverability lives right now. These formats favor hook-driven, one-idea videos. The goal isn't to explain everything. It's to answer one specific question or make one specific point well enough that the viewer follows you or clicks through.</p>
+
+    <h3>Educational explainer videos</h3>
+    <p>For healthcare practices especially, these are invaluable. "What to expect during your first varicose vein consultation." "What is UFE and how long is recovery?" "Three signs you might have peripheral artery disease." These videos rank in search, get shared, and build credibility over time in a way that promotional content never does.</p>
+
+    <h3>Behind-the-scenes and culture content</h3>
+    <p>People want to know who they're trusting with their health or their business. Videos that show your team, your environment, your values, and your process humanize you in a way that static content rarely manages. These videos don't always go viral. They don't need to. They do the trust-building work for the people who are already interested.</p>
+
+    <h3>Testimonial and patient story videos</h3>
+    <p>Written testimonials are fine. Video testimonials are a different category entirely. Hearing a real person describe their experience, in their own voice, with their own emotion, is the most powerful social proof a healthcare practice can have. A 90-second patient story does more conversion work than a paragraph of text ever will.</p>
+
+    <h2>The Real Barrier Is Not What You Think</h2>
+
+    <p>Most businesses that aren't doing video have convinced themselves it requires a production budget or a full crew. It doesn't. The most effective healthcare and service business content being published right now is shot on a smartphone in a well-lit room with clear audio. The content is what matters. A physician who explains something clearly and confidently on camera will outperform a heavily produced video that says nothing of substance.</p>
+
+    <p>The businesses winning on video in 2026 are the ones who showed up consistently with something genuinely useful, not the ones who waited until they had a studio.</p>
+
+    <h2>How to Start If You Haven't Yet</h2>
+
+    <p>Start with one question your ideal patient or client asks all the time. Answer it on camera in 60 to 90 seconds. Don't read a script. Talk like you're explaining it to a friend. Post it. See what happens. Then do it again next week.</p>
+
+    <p>The bar for "good enough to post" is lower than most businesses think. The bar for "not posting at all" has a very real cost attached to it. Every week you're not publishing video, someone else in your market is.</p>
+
+    <div class="author-bar">
+      <div class="author-info">
+        <div class="author-name">Messick Marketing</div>
+        <div class="author-bio">Messick Marketing produces video content strategy and production briefs for healthcare practices and service businesses. We help you figure out what to say, how to say it, and where to put it.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<section class="related-section">
+  <div class="inner">
+    <p class="eyebrow">Keep Reading</p>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/what-is-content-marketing.html">
+        <div class="rc-cat">Content Marketing</div>
+        <div class="rc-title">What Is Content Marketing? A Straight Answer</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/what-is-social-media-marketing.html">
+        <div class="rc-cat">Social Media</div>
+        <div class="rc-title">What Is Social Media Marketing and Does It Actually Work?</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/how-to-create-a-content-strategy.html">
+        <div class="rc-cat">Content Strategy</div>
+        <div class="rc-title">How to Create a Content Strategy from Scratch</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>Ready to make video work<br><em>for your practice?</em></h2>
+  <p>We build video content strategies and production briefs that take the guesswork out of what to film and how to post it. Let's talk.</p>
+  <a href="/#contact" class="btn-white">Start the Conversation</a>
+</section>
+
+<footer>
+  <a href="/" class="footer-logo">Messick Marketing</a>
+  <div class="footer-email"><a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></div>
+  <div class="footer-copy">&copy; 2026 Messick Marketing. All rights reserved.</div>
+</footer>
+<script>
+const nav=document.getElementById('mainNav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>30));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+</script>
+</body>
+</html>

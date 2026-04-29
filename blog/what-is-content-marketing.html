@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What Is Content Marketing? | Messick Marketing Blog</title>
+<meta name="description" content="A clear, practical explanation of what content marketing actually is, why it works, and how to know if yours is doing anything. Written for business owners who are tired of vague answers."/>
+<meta property="og:title" content="What Is Content Marketing? A Straight Answer for Business Owners"/>
+<meta property="og:description" content="Everyone tells you to do content marketing. Fewer people explain what it actually means or why it works."/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="https://messickmarketing.com/blog/what-is-content-marketing.html"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#111111;
+  --white:#faf8f5;
+  --gray:#f0eeeb;
+  --steel:#3a6b8a;
+  --steel-light:#5a9ab8;
+  --steel-pale:#d4e8f2;
+  --text-muted:#6b6560;
+  --text-dark:#e8e4de;
+  --text-muted-dark:#9a928c;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--white);color:var(--black);line-height:1.7;font-weight:300;overflow-x:hidden}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.nav-logo{font-family:'Dancing Script',cursive;font-size:1.3rem;color:#fff;text-decoration:none;letter-spacing:.03em}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{font-size:.73rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links .nav-cta{background:var(--steel);color:#fff!important;padding:.45rem 1.2rem;border-radius:2px;transition:background .2s!important}
+.nav-links .nav-cta:hover{background:var(--steel-light)!important}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:#fff}
+@media(max-width:768px){
+  .nav-links{display:none;position:fixed;top:68px;left:0;right:0;background:var(--black);flex-direction:column;align-items:flex-start;padding:1.5rem 5% 2rem;gap:1.2rem;border-top:1px solid rgba(255,255,255,.1)}
+  .nav-links.open{display:flex}
+  .hamburger{display:flex}
+}
+
+.post-hero{margin-top:68px;background:var(--black);padding:80px 5% 70px}
+.post-hero .inner{max-width:780px;margin:0 auto}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem}
+.breadcrumb a{font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.breadcrumb a:hover{color:#fff}
+.breadcrumb span{font-size:.68rem;color:rgba(255,255,255,.25)}
+.post-category{display:inline-block;font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);background:rgba(58,107,138,.25);padding:.3rem .75rem;border-radius:1px;margin-bottom:1.2rem}
+.post-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4vw,3.6rem);font-weight:300;color:#fff;line-height:1.15;margin-bottom:1.2rem}
+.post-hero h1 em{font-style:italic;color:var(--steel-light)}
+.post-meta{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.post-meta span{font-size:.72rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase}
+.post-meta .divider{width:1px;height:12px;background:rgba(255,255,255,.15)}
+
+.post-body{padding:72px 5% 80px}
+.post-body .inner{max-width:780px;margin:0 auto}
+.post-body p{font-size:1.05rem;line-height:1.9;color:#2a2a2a;margin-bottom:1.6rem;font-weight:300}
+.post-body h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:400;color:var(--black);margin:3rem 0 1rem;line-height:1.2}
+.post-body h3{font-family:'Jost',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin:2.4rem 0 .8rem}
+.post-body strong{font-weight:600;color:var(--black)}
+.post-body ul,.post-body ol{margin:1rem 0 1.6rem 1.4rem}
+.post-body li{font-size:1.05rem;line-height:1.8;color:#2a2a2a;margin-bottom:.5rem;font-weight:300}
+.pull-quote{border-left:3px solid var(--steel);padding:1.2rem 1.6rem;margin:2.4rem 0;background:var(--gray);border-radius:0 4px 4px 0}
+.pull-quote p{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;font-style:italic;color:var(--black);margin:0;line-height:1.5}
+.stat-box{background:var(--black);padding:2rem 2.2rem;margin:2.4rem 0;border-radius:4px}
+.stat-box .stat-num{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:300;color:var(--steel-light);line-height:1}
+.stat-box .stat-label{font-size:.85rem;color:var(--text-dark);margin-top:.4rem;line-height:1.6}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2dfd9;margin:2.4rem 0}
+@media(max-width:600px){.stat-row{grid-template-columns:1fr}}
+.stat-item{background:var(--white);padding:1.6rem 1.4rem;text-align:center}
+.stat-item .n{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--steel);line-height:1}
+.stat-item .l{font-size:.8rem;font-weight:300;color:var(--text-muted);margin-top:.4rem;line-height:1.5}
+
+.author-bar{border-top:1px solid #e2dfd9;padding-top:2.4rem;margin-top:3rem;display:flex;gap:1.4rem;align-items:flex-start}
+.author-info .author-name{font-size:.88rem;font-weight:600;color:var(--black);margin-bottom:.2rem}
+.author-info .author-bio{font-size:.83rem;font-weight:300;color:var(--text-muted);line-height:1.65}
+
+.related-section{background:var(--gray);padding:64px 5%}
+.related-section .inner{max-width:1100px;margin:0 auto}
+.related-section .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:2rem}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+@media(max-width:768px){.related-grid{grid-template-columns:1fr}}
+.related-card{background:var(--white);border:1px solid #e2dfd9;padding:1.6rem;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s;display:block}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.related-card .rc-cat{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);margin-bottom:.7rem}
+.related-card .rc-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;line-height:1.3;color:var(--black);margin-bottom:.6rem}
+.related-card .rc-arrow{font-size:.85rem;color:var(--steel)}
+
+.cta-strip{background:var(--steel);padding:64px 5%;text-align:center}
+.cta-strip h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:.8rem}
+.cta-strip h2 em{font-style:italic}
+.cta-strip p{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.8}
+.btn-white{display:inline-block;background:#fff;color:var(--steel);font-family:'Jost',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:.85rem 2.2rem;border-radius:2px;transition:background .2s}
+.btn-white:hover{background:var(--steel-pale)}
+
+footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:'Dancing Script',cursive;font-size:1.2rem;color:#fff;text-decoration:none}
+.footer-copy{font-size:.7rem;color:var(--text-muted-dark);letter-spacing:.04em}
+.footer-email a{font-size:.72rem;color:var(--steel-light);text-decoration:none;transition:color .2s}
+.footer-email a:hover{color:#fff}
+</style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <a href="/" class="nav-logo">Messick Marketing</a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/#serve">Who We Serve</a></li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/#founder">About</a></li>
+    <li><a href="/blog/" class="active">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Let's Talk</a></li>
+  </ul>
+</nav>
+
+<section class="post-hero">
+  <div class="inner">
+    <div class="breadcrumb">
+      <a href="/blog/">Blog</a>
+      <span>/</span>
+      <a href="#">Content Marketing</a>
+    </div>
+    <span class="post-category">Content Marketing</span>
+    <h1>What Is Content Marketing? A Straight Answer for Business Owners Who Are <em>Tired of Vague Explanations</em></h1>
+    <div class="post-meta">
+      <span>Messick Marketing</span>
+      <span class="divider"></span>
+      <span>April 2026</span>
+      <span class="divider"></span>
+      <span>8 min read</span>
+    </div>
+  </div>
+</section>
+
+<article class="post-body">
+  <div class="inner">
+
+    <p>If you've ever typed "what is content marketing" into Google, you've probably gotten a definition that sounds like it was written for a marketing textbook. Something about "creating and distributing valuable, relevant content to attract and retain a defined audience." Technically correct. Practically useless for a business owner who just wants to know whether this thing actually works and whether they should be doing it.</p>
+
+    <p>So let's be direct about it.</p>
+
+    <h2>The Simple Version</h2>
+
+    <p>Content marketing is the practice of publishing useful, relevant material, such as articles, videos, social media posts, emails, and podcasts, that helps your target audience solve a problem or answer a question. Instead of interrupting people with ads, you're earning their attention by giving them something worth reading, watching, or listening to.</p>
+
+    <p>The goal isn't to go viral. The goal is to show up consistently for the people who are already looking for what you offer, so that when they're ready to make a decision, you're the name they already trust.</p>
+
+    <div class="pull-quote">
+      <p>"Content marketing is the difference between being found and being overlooked. The business that answers the question first wins the relationship."</p>
+    </div>
+
+    <h2>How It Actually Works</h2>
+
+    <p>Think about the last time you searched for something before making a purchase or booking a service. You probably read a few articles, watched a couple of videos, maybe looked at a few social profiles. That research phase is where content marketing does its job.</p>
+
+    <p>When a patient searches "what is PAE for prostate" and finds a detailed, clear answer on a practice's website, that practice just earned a significant amount of trust before the phone has even rung. When a business owner searches "how to create a content strategy" and reads a post like this one, they're starting to understand what a content marketing agency actually does and whether it might be worth talking to one.</p>
+
+    <p>That's the mechanism. Create content that matches what your audience is already searching for, and let it work on your behalf around the clock.</p>
+
+    <h3>The Three Things Good Content Does</h3>
+
+    <ul>
+      <li><strong>Builds awareness.</strong> People can't choose you if they don't know you exist. Content helps you show up where your audience is already looking.</li>
+      <li><strong>Builds trust.</strong> Helpful, accurate, well-produced content signals expertise. It tells potential clients or patients that you know your field and that you take communication seriously.</li>
+      <li><strong>Drives action.</strong> Content that answers the right questions at the right time moves people from curious to ready. That's when the consult requests, form fills, and phone calls happen.</li>
+    </ul>
+
+    <div class="stat-row">
+      <div class="stat-item">
+        <div class="n">6x</div>
+        <div class="l">more conversions than outbound marketing, at 62% lower cost</div>
+      </div>
+      <div class="stat-item">
+        <div class="n">67%</div>
+        <div class="l">more leads generated by companies that blog consistently</div>
+      </div>
+      <div class="stat-item">
+        <div class="n">58%</div>
+        <div class="l">of consumers trust brands more when content is educational, not promotional</div>
+      </div>
+    </div>
+
+    <h2>What Content Marketing Is Not</h2>
+
+    <p>Posting on Instagram three times a week without a strategy is not content marketing. It's noise. Running ads is not content marketing. It's paid interruption. Sending a monthly newsletter that's really just a company update nobody asked for is not content marketing. It's a missed opportunity.</p>
+
+    <p>Real content marketing starts with understanding what your audience needs to know, and then building a system to deliver that consistently over time. The content is the vehicle. The strategy is what makes it go somewhere.</p>
+
+    <h2>Why Most Businesses Get It Wrong</h2>
+
+    <p>The most common mistake isn't a lack of effort. It's a lack of clarity about who you're talking to and what problem you're solving for them. Businesses post about themselves, their awards, their team lunches, and their service offerings. Their audience doesn't care about any of that yet. They care about their own problems first.</p>
+
+    <p>The second most common mistake is inconsistency. Content marketing compounds over time. A post published today might bring in a patient six months from now when they finally start searching. A year of consistent, strategic publishing builds an asset that keeps working. Posting for three weeks and stopping builds nothing.</p>
+
+    <h2>What Good Content Marketing Looks Like in Practice</h2>
+
+    <p>For a healthcare practice, good content marketing might look like a series of Instagram posts that explain common procedures in plain language, a website blog that answers the top 20 questions patients ask before booking, a YouTube channel where physicians walk through what to expect, and email campaigns that nurture the people who've shown interest but haven't committed yet.</p>
+
+    <p>For a service-based business, it might look like detailed guides that rank on Google, a LinkedIn presence that demonstrates expertise to referral partners, and social content that shows the culture and values behind the work.</p>
+
+    <p>The format is less important than the intention. Every piece of content should answer a real question, speak to a real concern, or move someone one step closer to trusting you.</p>
+
+    <h2>How Do You Know If It's Working?</h2>
+
+    <p>Content marketing isn't as immediately trackable as a paid ad campaign, but it's far more durable. Here's what to watch:</p>
+
+    <ul>
+      <li>Website traffic from organic search (people finding you through Google without you paying for it)</li>
+      <li>Growth in your email list or social following from people who match your ideal audience</li>
+      <li>Inbound inquiries that mention something they read or watched</li>
+      <li>Longer time on site and lower bounce rates, which signal that your content is actually being consumed</li>
+      <li>Ranking improvements for keywords your ideal clients are searching</li>
+    </ul>
+
+    <p>None of these happen overnight. Most content marketing strategies take 3 to 6 months to show measurable traction, and 6 to 12 months to show significant results. That's not a weakness of the channel. It's just how compounding works. The businesses that start now are the ones who win the long game.</p>
+
+    <h2>The Bottom Line</h2>
+
+    <p>Content marketing is how businesses build visibility, trust, and a steady pipeline of leads without paying for every click and impression forever. It works because it's built around what your audience actually needs, not what you want to say about yourself.</p>
+
+    <p>Done well, it's the most cost-effective, sustainable growth strategy available to a small or mid-size business. Done poorly, it's just more noise on the internet. The difference is almost entirely in the strategy behind it.</p>
+
+    <div class="author-bar">
+      <div class="author-info">
+        <div class="author-name">Messick Marketing</div>
+        <div class="author-bio">Messick Marketing is a full-service content marketing agency specializing in healthcare practices, mission-driven businesses, and organizations doing work that matters. We handle strategy, execution, and everything in between.</div>
+      </div>
+    </div>
+
+  </div>
+</article>
+
+<section class="related-section">
+  <div class="inner">
+    <p class="eyebrow">Keep Reading</p>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/why-video-works-on-social-media.html">
+        <div class="rc-cat">Social Media</div>
+        <div class="rc-title">Why Video Works So Well on Social Media</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/how-to-create-a-content-strategy.html">
+        <div class="rc-cat">Content Strategy</div>
+        <div class="rc-title">How to Create a Content Strategy from Scratch</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+      <a class="related-card" href="/blog/what-is-social-media-marketing.html">
+        <div class="rc-cat">Social Media</div>
+        <div class="rc-title">What Is Social Media Marketing and Does It Actually Work?</div>
+        <div class="rc-arrow">↗</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>Want a content strategy that<br><em>actually does something?</em></h2>
+  <p>We build content systems for healthcare practices and mission-driven businesses. Let's talk about what consistent, strategic content could do for yours.</p>
+  <a href="/#contact" class="btn-white">Start the Conversation</a>
+</section>
+
+<footer>
+  <a href="/" class="footer-logo">Messick Marketing</a>
+  <div class="footer-email"><a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></div>
+  <div class="footer-copy">&copy; 2026 Messick Marketing. All rights reserved.</div>
+</footer>
+
+<script>
+const nav=document.getElementById('mainNav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>30));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+</script>
+</body>
+</html>
