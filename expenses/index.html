@@ -539,8 +539,10 @@ const CONFIG = {
   PASSWORD: "Messick2026",
   // AI via Cloudflare Worker proxy (no API key exposed in client)
   AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
-  // Google Apps Script web app for Sheets sync
-  SHEETS_URL: "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbzmZ_i8PKENxCVDb8Pvz9bu9qNDkClCJ2-LUj8qYjNlEzscjX9qNoA8YxQ6P7Yb_pXh/exec",
+  // JSONBin.io sync
+  JSONBIN_BIN_ID: '69f3591f36566621a80cd676',
+  JSONBIN_API_KEY: '$2a$10$yvdpzezSCdDj.QVucmfCve8TBPtKmC3qB4tV2IBw3tjD4OVa7N7iG',
+  get SHEETS_URL() { return `https://api.jsonbin.io/v3/b/${this.JSONBIN_BIN_ID}`; },
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -644,45 +646,47 @@ function scheduleSheetsSync() {
 async function pushToSheets() {
   try {
     const res = await fetch(CONFIG.SHEETS_URL, {
-      method: "POST",
-      // Google Apps Script requires text/plain to avoid CORS preflight issues
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ action: "write", data: expenses })
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CONFIG.JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ expenses })
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    setSyncStatus("synced");
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setSyncStatus('synced');
   } catch(err) {
-    console.error("Sheets push failed:", err);
-    setSyncStatus("error");
+    console.error('JSONBin push failed:', err);
+    setSyncStatus('error');
   }
 }
 
 async function restoreFromSheets() {
   try {
-    const res = await fetch(CONFIG.SHEETS_URL + "?action=read", { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    const res = await fetch(CONFIG.SHEETS_URL + '/latest', {
+      cache: 'no-store',
+      headers: { 'X-Master-Key': CONFIG.JSONBIN_API_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    const rows = json.data || json; // support both {data:[]} and bare []
+    const record = json.record || {};
+    const rows = record.expenses || [];
     if (Array.isArray(rows) && rows.length > 0) {
       const remote = rows.map(normalizeRow);
-      // Merge: remote is source of truth on init; local additions not yet pushed are preserved
-      const localIds = new Set(expenses.map(e => e.id));
       const remoteIds = new Set(remote.map(e => e.id));
-      // Keep local-only rows (added while offline), merge rest from remote
       const localOnly = expenses.filter(e => !remoteIds.has(e.id));
       expenses = [...remote, ...localOnly];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
       if (localOnly.length > 0) {
-        // Push merged state back so Sheets is up to date
         await pushToSheets();
       }
-      toast("Synced " + expenses.length + " expenses from Sheets", "success");
+      toast('Synced ' + expenses.length + ' expenses', 'success');
     }
-    setSyncStatus("synced");
+    setSyncStatus('synced');
   } catch(err) {
-    console.error("Sheets restore failed:", err);
-    setSyncStatus("error");
-    toast("Could not sync from Sheets — using local data", "info");
+    console.error('JSONBin restore failed:', err);
+    setSyncStatus('error');
+    toast('Could not sync — using local data', 'info');
     throw err;
   }
 }

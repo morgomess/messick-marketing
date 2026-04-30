@@ -1865,17 +1865,25 @@ function renderClients() {
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
-// SYNC
-const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxIyjBFVDx0q5KTzg2WIhoXwF9NJg5_v_EfZSt1DDZOV5SqR3nya9N0PffK5ryCFgg34g/exec';
+// SYNC — JSONBin.io
+const JSONBIN_BIN_ID = '69f358e7aaba88219756a2aa';
+const JSONBIN_API_KEY = '$2a$10$yvdpzezSCdDj.QVucmfCve8TBPtKmC3qB4tV2IBw3tjD4OVa7N7iG';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 let syncTimer = null;
 
 async function loadFromCloud() {
   try {
-    const res = await fetch(SYNC_URL);
-    const text = await res.text();
-    if (!text || text === '{}') return;
-    const data = JSON.parse(text);
-    Object.keys(data).forEach(k => localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k])));
+    const res = await fetch(JSONBIN_URL + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const data = json.record;
+    if (!data || Object.keys(data).length === 0) return;
+    Object.keys(data).forEach(k => {
+      if (k === 'data' && data[k] === 'init') return;
+      localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
+    });
   } catch(e) { console.warn('Cloud load failed', e); }
 }
 
@@ -1884,7 +1892,14 @@ async function saveToCloud() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('mm_'));
     const data = {};
     keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); } });
-    await fetch(SYNC_URL, { method: 'POST', body: JSON.stringify(data) });
+    await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify(data)
+    });
   } catch(e) { console.warn('Cloud save failed', e); }
 }
 
