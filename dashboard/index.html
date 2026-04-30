@@ -553,9 +553,98 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none; }
 
 @media (max-width: 800px) {
+  /* HEADER */
+  header {
+    padding: 10px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .header-left {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+  header h1 { font-size: 1.5rem; }
+  #today-date { font-size: 0.75rem; }
+  .header-tabs { margin-left: 0; gap: 10px; }
+  .tab-btn { font-size: 0.72rem; padding: 4px 2px; }
+  .header-right { width: 100%; justify-content: space-between; }
+  #completion-stat { font-size: 0.62rem; padding: 4px 10px; }
+  .logout-btn { font-size: 0.62rem; padding: 5px 10px; }
+
+  /* LAYOUT */
   .layout { grid-template-columns: 1fr; }
-  header { padding: 0 20px; }
-  .main-col, .side-col { padding: 20px; }
+  .main-col { padding: 14px 16px; border-right: none; }
+  .side-col { padding: 14px 16px; border-left: none; border-top: 1px solid var(--border); }
+
+  /* FOCUS SECTION */
+  .focus-section { padding: 14px; margin-bottom: 16px; }
+  .focus-header { flex-wrap: wrap; gap: 8px; }
+  .focus-title { font-size: 1rem; }
+  .picker-btn { font-size: 0.6rem; padding: 6px 10px; width: 100%; text-align: center; }
+  .focus-slot { padding: 10px 10px; min-height: 48px; }
+  .focus-slot-text { font-size: 0.8rem; }
+  .focus-num { font-size: 1rem; }
+
+  /* FILTER BAR */
+  .filter-bar { flex-wrap: wrap; gap: 6px; }
+  .filter-bar select { font-size: 0.78rem; padding: 6px 8px; flex: 1; min-width: 120px; }
+  .filter-divider { display: none; }
+  .clear-filters-btn { font-size: 0.65rem; }
+
+  /* SECTION HEADERS */
+  .section-title { font-size: 1.25rem; }
+  .add-btn { font-size: 0.62rem; padding: 6px 12px; }
+  .day-label { font-size: 0.62rem; }
+
+  /* ADD TASK FORM */
+  .add-task-form { padding: 12px; }
+  .form-row { flex-direction: column; gap: 8px; }
+  .add-task-form input[type="text"] { min-width: unset; width: 100%; }
+  .add-task-form select,
+  .add-task-form input[type="date"] { width: 100%; font-size: 0.82rem; padding: 8px 10px; }
+  .form-btns { margin-left: 0; justify-content: flex-end; }
+  .form-label { font-size: 0.6rem; }
+
+  /* TASK ITEMS */
+  .task-item { padding: 12px 12px; gap: 10px; }
+  .task-text { font-size: 0.95rem; }
+  .task-tags { flex-wrap: wrap; justify-content: flex-start; gap: 4px; }
+  .task-actions { opacity: 1; }
+  .brand-pill { font-size: 0.65rem; padding: 2px 7px; }
+  .priority-pill { font-size: 0.63rem; padding: 2px 6px; }
+  .due-pill, .day-pill { font-size: 0.63rem; padding: 2px 7px; }
+  .task-check { width: 22px; height: 22px; flex-shrink: 0; }
+
+  /* SECTION DIVIDER */
+  .divider { margin: 18px 0; }
+
+  /* SIDEBAR */
+  .side-section-title { font-size: 1.1rem; }
+  .schedule-block { padding: 8px 0; }
+  .schedule-time { font-size: 0.68rem; min-width: 64px; }
+  .schedule-label { font-size: 0.8rem; }
+
+  /* DELIVERABLES */
+  .deliverable-item { padding: 8px 0; }
+  .deliverable-text { font-size: 0.88rem; }
+  .deliverable-check { width: 20px; height: 20px; flex-shrink: 0; }
+  .progress-wrap { margin: 12px 0 16px; }
+
+  /* CLIENT CARDS */
+  .client-card { padding: 14px; }
+  .client-name { font-size: 1.1rem; }
+  .detail-row { font-size: 0.78rem; }
+  .service-tag { font-size: 0.68rem; }
+
+  /* PICKER MODAL */
+  .picker-modal { width: 95vw; }
+  .picker-modal-header { padding: 20px 20px 16px; }
+  .picker-task-reveal { font-size: 1rem; }
+  .picker-modal-body { padding: 14px 16px; gap: 6px; }
+  .picker-accept-btn { font-size: 0.68rem; padding: 12px; }
+  .picker-respin-btn { font-size: 0.68rem; padding: 12px 12px; }
 }
 </style>
 </head>
