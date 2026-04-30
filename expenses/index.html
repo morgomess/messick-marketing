@@ -539,10 +539,8 @@ const CONFIG = {
   PASSWORD: "Messick2026",
   // AI via Cloudflare Worker proxy (no API key exposed in client)
   AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
-  // JSONBin.io sync
-  JSONBIN_BIN_ID: '69f3591f36566621a80cd676',
-  JSONBIN_API_KEY: '$2a$10$yvdpzezSCdDj.QVucmfCve8TBPtKmC3qB4tV2IBw3tjD4OVa7N7iG',
-  get SHEETS_URL() { return `https://api.jsonbin.io/v3/b/${this.JSONBIN_BIN_ID}`; },
+  // Cloudflare Worker KV sync
+  SHEETS_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses',
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -646,31 +644,24 @@ function scheduleSheetsSync() {
 async function pushToSheets() {
   try {
     const res = await fetch(CONFIG.SHEETS_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': CONFIG.JSONBIN_API_KEY
-      },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ expenses })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     setSyncStatus('synced');
   } catch(err) {
-    console.error('JSONBin push failed:', err);
+    console.error('KV push failed:', err);
     setSyncStatus('error');
   }
 }
 
 async function restoreFromSheets() {
   try {
-    const res = await fetch(CONFIG.SHEETS_URL + '/latest', {
-      cache: 'no-store',
-      headers: { 'X-Master-Key': CONFIG.JSONBIN_API_KEY }
-    });
+    const res = await fetch(CONFIG.SHEETS_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    const record = json.record || {};
-    const rows = record.expenses || [];
+    const rows = (json.expenses) || [];
     if (Array.isArray(rows) && rows.length > 0) {
       const remote = rows.map(normalizeRow);
       const remoteIds = new Set(remote.map(e => e.id));
@@ -684,7 +675,7 @@ async function restoreFromSheets() {
     }
     setSyncStatus('synced');
   } catch(err) {
-    console.error('JSONBin restore failed:', err);
+    console.error('KV restore failed:', err);
     setSyncStatus('error');
     toast('Could not sync — using local data', 'info');
     throw err;
