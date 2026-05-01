@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Messick Marketing — Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <style>
 :root {
   --black: #111111;
@@ -539,8 +539,8 @@ const CONFIG = {
   PASSWORD: "Messick2026",
   // AI via Cloudflare Worker proxy (no API key exposed in client)
   AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
-  // Google Apps Script web app for Sheets sync
-  SHEETS_URL: "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbzmZ_i8PKENxCVDb8Pvz9bu9qNDkClCJ2-LUj8qYjNlEzscjX9qNoA8YxQ6P7Yb_pXh/exec",
+  // Cloudflare Worker KV sync
+  SHEETS_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses',
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -644,45 +644,40 @@ function scheduleSheetsSync() {
 async function pushToSheets() {
   try {
     const res = await fetch(CONFIG.SHEETS_URL, {
-      method: "POST",
-      // Google Apps Script requires text/plain to avoid CORS preflight issues
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ action: "write", data: expenses })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expenses })
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    setSyncStatus("synced");
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setSyncStatus('synced');
   } catch(err) {
-    console.error("Sheets push failed:", err);
-    setSyncStatus("error");
+    console.error('KV push failed:', err);
+    setSyncStatus('error');
   }
 }
 
 async function restoreFromSheets() {
   try {
-    const res = await fetch(CONFIG.SHEETS_URL + "?action=read", { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    const res = await fetch(CONFIG.SHEETS_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    const rows = json.data || json; // support both {data:[]} and bare []
+    const rows = (json.expenses) || [];
     if (Array.isArray(rows) && rows.length > 0) {
       const remote = rows.map(normalizeRow);
-      // Merge: remote is source of truth on init; local additions not yet pushed are preserved
-      const localIds = new Set(expenses.map(e => e.id));
       const remoteIds = new Set(remote.map(e => e.id));
-      // Keep local-only rows (added while offline), merge rest from remote
       const localOnly = expenses.filter(e => !remoteIds.has(e.id));
       expenses = [...remote, ...localOnly];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
       if (localOnly.length > 0) {
-        // Push merged state back so Sheets is up to date
         await pushToSheets();
       }
-      toast("Synced " + expenses.length + " expenses from Sheets", "success");
+      toast('Synced ' + expenses.length + ' expenses', 'success');
     }
-    setSyncStatus("synced");
+    setSyncStatus('synced');
   } catch(err) {
-    console.error("Sheets restore failed:", err);
-    setSyncStatus("error");
-    toast("Could not sync from Sheets — using local data", "info");
+    console.error('KV restore failed:', err);
+    setSyncStatus('error');
+    toast('Could not sync — using local data', 'info');
     throw err;
   }
 }

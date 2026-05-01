@@ -31,7 +31,7 @@
   --p-low:     #34d399;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--black); min-height: 100vh; }
+body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--black); min-height: 100vh; font-size: 17px; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 4px; }
@@ -79,7 +79,7 @@ header {
   box-shadow: 0 1px 0 var(--border);
 }
 .header-left { display: flex; align-items: baseline; gap: 14px; }
-header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-size: 1.75rem; line-height: 1; }
+header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-size: 2.1rem; line-height: 1; }
 #today-date { font-family: 'Cormorant Garamond', serif; color: var(--text-muted); font-size: 0.9rem; font-style: italic; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 #completion-stat {
@@ -271,7 +271,7 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .filter-label { font-size: 0.63rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
 .filter-bar select {
   padding: 6px 9px; border: 1.5px solid var(--border); background: var(--surface);
-  font-family: 'Jost', sans-serif; font-size: 0.72rem; color: var(--black);
+  font-family: 'Jost', sans-serif; font-size: 0.84rem; color: var(--black);
   outline: none; cursor: pointer; transition: border-color 0.15s;
 }
 .filter-bar select:hover, .filter-bar select:focus { border-color: var(--blue-light); }
@@ -285,7 +285,7 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 
 /* SECTION HEADERS */
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; color: var(--blue); }
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 600; color: var(--blue); }
 .add-btn {
   background: var(--blue); color: #fff; border: none;
   font-family: 'Jost', sans-serif; font-size: 0.68rem; font-weight: 600;
@@ -352,8 +352,8 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 
 .task-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px; background: var(--surface);
-  border: 1px solid var(--border); border-left: 3px solid transparent;
+  padding: 13px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-left: 4px solid transparent;
   transition: all 0.15s; animation: fadeIn 0.2s ease;
   box-shadow: 0 1px 6px rgba(0,0,0,0.2);
 }
@@ -377,13 +377,13 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .task-check:hover { border-color: var(--blue); }
 .task-check.checked { background: var(--blue); border-color: var(--blue); }
 .task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: bold; }
-.task-text { flex: 1; font-size: 0.86rem; line-height: 1.4; color: var(--black); }
+.task-text { flex: 1; font-size: 1.05rem; line-height: 1.45; color: var(--black); }
 
 .task-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
 
 .brand-pill {
-  display: inline-block; font-size: 0.58rem; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; flex-shrink: 0;
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; flex-shrink: 0;
 }
 .brand-messick   { background: rgba(90,154,184,0.14); color: var(--blue-light); }
 .brand-virtueasy { background: rgba(240,62,138,0.13); color: #f472b6; }
@@ -391,8 +391,8 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .brand-daily     { background: rgba(52,211,153,0.12); color: #34d399; }
 
 .priority-pill {
-  display: inline-block; font-size: 0.55rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; flex-shrink: 0;
+  display: inline-block; font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; flex-shrink: 0;
 }
 .pill-critical { background: rgba(248,113,113,0.14); color: var(--p-critical); }
 .pill-high     { background: rgba(251,146,60,0.14);  color: var(--p-high); }
@@ -400,8 +400,8 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .pill-low      { background: rgba(52,211,153,0.14);  color: var(--p-low); }
 
 .due-pill {
-  display: inline-block; font-size: 0.55rem; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; flex-shrink: 0;
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; flex-shrink: 0;
 }
 .due-overdue  { background: rgba(248,113,113,0.14); color: var(--p-critical); }
 .due-today    { background: rgba(251,146,60,0.14);  color: var(--p-high); }
@@ -437,7 +437,7 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 }
 
 /* SIDEBAR */
-.side-section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
+.side-section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
 .schedule-block { display: flex; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
 .schedule-time { font-size: 0.7rem; color: var(--text-light); white-space: nowrap; padding-top: 2px; min-width: 76px; font-weight: 500; letter-spacing: 0.04em; }
 .schedule-label { font-size: 0.83rem; color: var(--black); line-height: 1.4; }
@@ -462,7 +462,7 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .deliverable-check:hover { border-color: var(--blue); }
 .deliverable-check.checked { background: var(--blue); border-color: var(--blue); }
 .deliverable-check.checked::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
-.deliverable-text { flex: 1; font-size: 0.8rem; line-height: 1.3; color: var(--black); }
+.deliverable-text { flex: 1; font-size: 0.95rem; line-height: 1.35; color: var(--black); }
 .deliverable-item.done .deliverable-text { text-decoration: line-through; opacity: 0.35; }
 .reset-note { font-size: 0.69rem; color: var(--text-light); font-style: italic; text-align: center; padding: 12px 0 0; }
 
@@ -535,13 +535,116 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
 .service-opt { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; }
 .custom-service-input { display: none; margin-top: 6px; width: 100%; padding: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--black); font-family: 'Jost', sans-serif; font-size: 0.8rem; outline: none; }
 
+/* DAY-OF-WEEK PILLS */
+.day-pill {
+  display: inline-block; font-size: 0.75rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px;
+  border-radius: 3px; flex-shrink: 0; border: 1.5px solid transparent;
+}
+.day-sun { background: rgba(251,146,60,0.18); color: #fb923c; border-color: rgba(251,146,60,0.4); }
+.day-mon { background: rgba(96,165,250,0.18); color: #60a5fa; border-color: rgba(96,165,250,0.4); }
+.day-tue { background: rgba(167,139,250,0.18); color: #a78bfa; border-color: rgba(167,139,250,0.4); }
+.day-wed { background: rgba(52,211,153,0.18); color: #34d399; border-color: rgba(52,211,153,0.4); }
+.day-thu { background: rgba(244,114,182,0.18); color: #f472b6; border-color: rgba(244,114,182,0.4); }
+.day-fri { background: rgba(250,204,21,0.18); color: #facc15; border-color: rgba(250,204,21,0.4); }
+.day-sat { background: rgba(248,113,113,0.18); color: #f87171; border-color: rgba(248,113,113,0.4); }
+
 /* CONFETTI */
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none; }
 
 @media (max-width: 800px) {
+  /* HEADER */
+  header {
+    padding: 10px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .header-left {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+  header h1 { font-size: 1.5rem; }
+  #today-date { font-size: 0.75rem; }
+  .header-tabs { margin-left: 0; gap: 10px; }
+  .tab-btn { font-size: 0.72rem; padding: 4px 2px; }
+  .header-right { width: 100%; justify-content: space-between; }
+  #completion-stat { font-size: 0.62rem; padding: 4px 10px; }
+  .logout-btn { font-size: 0.62rem; padding: 5px 10px; }
+
+  /* LAYOUT */
   .layout { grid-template-columns: 1fr; }
-  header { padding: 0 20px; }
-  .main-col, .side-col { padding: 20px; }
+  .main-col { padding: 14px 16px; border-right: none; }
+  .side-col { padding: 14px 16px; border-left: none; border-top: 1px solid var(--border); }
+
+  /* FOCUS SECTION */
+  .focus-section { padding: 14px; margin-bottom: 16px; }
+  .focus-header { flex-wrap: wrap; gap: 8px; }
+  .focus-title { font-size: 1rem; }
+  .picker-btn { font-size: 0.6rem; padding: 6px 10px; width: 100%; text-align: center; }
+  .focus-slot { padding: 10px 10px; min-height: 48px; }
+  .focus-slot-text { font-size: 0.8rem; }
+  .focus-num { font-size: 1rem; }
+
+  /* FILTER BAR */
+  .filter-bar { flex-wrap: wrap; gap: 6px; }
+  .filter-bar select { font-size: 0.78rem; padding: 6px 8px; flex: 1; min-width: 120px; }
+  .filter-divider { display: none; }
+  .clear-filters-btn { font-size: 0.65rem; }
+
+  /* SECTION HEADERS */
+  .section-title { font-size: 1.25rem; }
+  .add-btn { font-size: 0.62rem; padding: 6px 12px; }
+  .day-label { font-size: 0.62rem; }
+
+  /* ADD TASK FORM */
+  .add-task-form { padding: 12px; }
+  .form-row { flex-direction: column; gap: 8px; }
+  .add-task-form input[type="text"] { min-width: unset; width: 100%; }
+  .add-task-form select,
+  .add-task-form input[type="date"] { width: 100%; font-size: 0.82rem; padding: 8px 10px; }
+  .form-btns { margin-left: 0; justify-content: flex-end; }
+  .form-label { font-size: 0.6rem; }
+
+  /* TASK ITEMS */
+  .task-item { padding: 12px 12px; gap: 10px; }
+  .task-text { font-size: 0.95rem; }
+  .task-tags { flex-wrap: wrap; justify-content: flex-start; gap: 4px; }
+  .task-actions { opacity: 1; }
+  .brand-pill { font-size: 0.65rem; padding: 2px 7px; }
+  .priority-pill { font-size: 0.63rem; padding: 2px 6px; }
+  .due-pill, .day-pill { font-size: 0.63rem; padding: 2px 7px; }
+  .task-check { width: 22px; height: 22px; flex-shrink: 0; }
+
+  /* SECTION DIVIDER */
+  .divider { margin: 18px 0; }
+
+  /* SIDEBAR */
+  .side-section-title { font-size: 1.1rem; }
+  .schedule-block { padding: 8px 0; }
+  .schedule-time { font-size: 0.68rem; min-width: 64px; }
+  .schedule-label { font-size: 0.8rem; }
+
+  /* DELIVERABLES */
+  .deliverable-item { padding: 8px 0; }
+  .deliverable-text { font-size: 0.88rem; }
+  .deliverable-check { width: 20px; height: 20px; flex-shrink: 0; }
+  .progress-wrap { margin: 12px 0 16px; }
+
+  /* CLIENT CARDS */
+  .client-card { padding: 14px; }
+  .client-name { font-size: 1.1rem; }
+  .detail-row { font-size: 0.78rem; }
+  .service-tag { font-size: 0.68rem; }
+
+  /* PICKER MODAL */
+  .picker-modal { width: 95vw; }
+  .picker-modal-header { padding: 20px 20px 16px; }
+  .picker-task-reveal { font-size: 1rem; }
+  .picker-modal-body { padding: 14px 16px; gap: 6px; }
+  .picker-accept-btn { font-size: 0.68rem; padding: 12px; }
+  .picker-respin-btn { font-size: 0.68rem; padding: 12px 12px; }
 }
 </style>
 </head>
@@ -966,15 +1069,29 @@ function dueStatus(due) {
 function duePillClass(s) {
   return { overdue:'due-overdue', 'due-today':'due-today', 'due-week':'due-week', future:'due-future' }[s] || '';
 }
+function dayPillClass(due) {
+  if (!due) return '';
+  const dt = new Date(due + 'T00:00:00');
+  return ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'][dt.getDay()];
+}
+function dayPillLabel(due) {
+  if (!due) return '';
+  const dt = new Date(due + 'T00:00:00');
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[dt.getDay()] + ' · ' + months[dt.getMonth()] + ' ' + dt.getDate();
+}
 function duePillLabel(s, due) {
-  if (s === 'overdue')   return 'Overdue';
-  if (s === 'due-today') return 'Due Today';
+  if (s === 'overdue')   return 'Overdue · ' + fmtDate(due);
+  if (s === 'due-today') return 'Today';
   return fmtDate(due);
 }
 function fmtDate(d) {
   if (!d) return '';
-  const [,m,day] = d.split('-');
-  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1] + ' ' + parseInt(day);
+  const dt = new Date(d + 'T00:00:00');
+  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[dt.getDay()] + ' ' + months[dt.getMonth()] + ' ' + dt.getDate();
 }
 
 /* ══════════════════════════════════════
@@ -1088,7 +1205,11 @@ function buildTaskEl(type, t, i) {
 
   let tagsHtml = `<div class="task-tags">`;
   if (pri !== 'none') tagsHtml += `<span class="priority-pill pill-${pri}">${pri}</span>`;
-  if (ds)             tagsHtml += `<span class="due-pill ${duePillClass(ds)}">${duePillLabel(ds, t.due)}</span>`;
+  if (ds && (ds === 'overdue' || ds === 'due-today')) {
+    tagsHtml += `<span class="due-pill ${duePillClass(ds)}">${duePillLabel(ds, t.due)}</span>`;
+  } else if (ds && t.due) {
+    tagsHtml += `<span class="day-pill ${dayPillClass(t.due)}">${dayPillLabel(t.due)}</span>`;
+  }
   tagsHtml += `<span class="brand-pill brand-${t.brand}">${{messick:'Messick',virtueasy:'Virtueasy',other:'Other'}[t.brand]||t.brand}</span>`;
   if (t.recur && t.recur !== 'none') tagsHtml += `<span class="recur-icon" title="Recurring ${t.recur}">↻</span>`;
   tagsHtml += `</div>`;
@@ -1833,17 +1954,19 @@ function renderClients() {
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
-// SYNC
-const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxIyjBFVDx0q5KTzg2WIhoXwF9NJg5_v_EfZSt1DDZOV5SqR3nya9N0PffK5ryCFgg34g/exec';
+// SYNC — Cloudflare Worker KV
+const SYNC_URL = 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=dashboard';
 let syncTimer = null;
 
 async function loadFromCloud() {
   try {
     const res = await fetch(SYNC_URL);
-    const text = await res.text();
-    if (!text || text === '{}') return;
-    const data = JSON.parse(text);
-    Object.keys(data).forEach(k => localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k])));
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || Object.keys(data).length === 0) return;
+    Object.keys(data).forEach(k => {
+      localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
+    });
   } catch(e) { console.warn('Cloud load failed', e); }
 }
 
@@ -1852,7 +1975,11 @@ async function saveToCloud() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('mm_'));
     const data = {};
     keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); } });
-    await fetch(SYNC_URL, { method: 'POST', body: JSON.stringify(data) });
+    await fetch(SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
   } catch(e) { console.warn('Cloud save failed', e); }
 }
 
