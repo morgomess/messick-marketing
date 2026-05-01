@@ -211,7 +211,6 @@ h2.sh.on-dark em{color:var(--steel-light)}
 /* PORTFOLIO */
 #portfolio{background:var(--black);color:var(--white)}
 .portfolio-head{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:end;margin-bottom:3.2rem}
-.portfolio-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(250,248,245,.14);border:1px solid rgba(250,248,245,.12)}
 .portfolio-stat{background:#151515;padding:2rem 1.4rem;min-height:190px;display:flex;flex-direction:column;justify-content:space-between;transition:background .2s,transform .2s}
 .portfolio-stat:hover{background:#1d1d1d;transform:translateY(-3px)}
 .portfolio-number{font-family:var(--font-heading);font-size:clamp(2rem,3vw,3.4rem);font-weight:700;line-height:1;color:var(--white);letter-spacing:0;margin-bottom:1.2rem}
@@ -234,7 +233,7 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .insight-list{list-style:none;display:grid;gap:.85rem}
 .insight-list li{color:var(--text-muted-dark);font-size:.9rem;line-height:1.7;padding-left:1.4rem;position:relative}
 .insight-list li::before{content:'';position:absolute;left:0;top:.72rem;width:7px;height:7px;background:var(--steel-light)}
-.client-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--gray-mid);border:1px solid var(--gray-mid)}
+.client-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gray-mid);border:1px solid var(--gray-mid)}
 .client-card{background:var(--white);padding:2.2rem 1.5rem;min-height:230px;transition:background .2s,transform .2s}
 .client-card:hover{background:var(--gray);transform:translateY(-2px)}
 .client-label{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--steel);font-weight:700;margin-bottom:1rem}
@@ -265,7 +264,7 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .contact-proof{font-size:.78rem;color:var(--text-muted-light);line-height:1.75;margin-top:1.5rem;max-width:420px}
 @media(max-width:1100px){.client-grid{grid-template-columns:repeat(2,1fr)}.why-grid,.process-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:960px){.insight-grid{grid-template-columns:1fr;gap:3rem}.proof-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:580px){.hero-inner{padding:78px 0 74px}.hero-logo{width:min(155px,52vw);margin-bottom:1.8rem}.hero-headline{font-size:clamp(2.15rem,11.5vw,3.1rem);line-height:1.08}.hero-actions .btn{width:100%;padding:.95rem 1.1rem}.hero-specs{flex-direction:column;align-items:flex-start}.hero-specs li{width:100%;text-align:center}.hero-proof{font-size:.68rem;line-height:1.65}.client-grid,.credential-row,.proof-grid,.why-grid,.process-grid{grid-template-columns:1fr}.system-item{grid-template-columns:1fr;gap:.8rem}.client-card,.proof-card,.why-card,.process-step{min-height:auto}.nav-logo img{height:30px;max-width:170px}}
+@media(max-width:580px){.hero-inner{padding:78px 0 74px}.hero-logo{width:min(155px,52vw);margin-bottom:1.8rem}.hero-headline{font-size:clamp(2.15rem,11.5vw,3.1rem);line-height:1.08}.hero-actions .btn{width:100%;padding:.95rem 1.1rem}.hero-specs{flex-direction:column;align-items:flex-start}.hero-specs li{width:100%;text-align:center}.hero-proof{font-size:.68rem;line-height:1.65}.client-grid,.proof-grid,.why-grid,.process-grid{grid-template-columns:1fr}.system-item{grid-template-columns:1fr;gap:.8rem}.client-card,.proof-card,.why-card,.process-step{min-height:auto}.nav-logo img{height:30px;max-width:170px}}
 #founder{background:var(--white)}
 .founder-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:360px 1fr;gap:6rem;align-items:center}
 .founder-frame{position:relative}
@@ -332,7 +331,6 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 /* ── MOBILE ── */
 @media(max-width:960px){
   .vis-grid,.serve-head,.portfolio-head,.founder-grid,.contact-grid{grid-template-columns:1fr;gap:3rem}
-  .portfolio-grid{grid-template-columns:repeat(2,1fr)}
   .svc-layout{grid-template-columns:1fr;gap:3rem}
   .svc-sticky{position:static}
   .serve-tiles{grid-template-columns:repeat(2,1fr)}
@@ -346,7 +344,6 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 }
 @media(max-width:580px){
   section{padding:70px 5%}
-  .portfolio-grid{grid-template-columns:1fr}
   .portfolio-stat{min-height:auto}
   .ai-panel{padding-left:1.4rem}
   .serve-tiles{grid-template-columns:1fr!important}
