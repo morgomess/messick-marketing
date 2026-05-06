@@ -847,13 +847,46 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
     const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
     const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
-    const editedPrompt = editNote
-      ? `${basePrompt} Additional edit instructions: ${editNote}.`
-      : basePrompt;
-
+    // Show loading state immediately
     const grid = document.getElementById('image-grid');
     grid.className = 'image-grid graphic';
-    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Regenerating...</div></div>`;
+    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Rewriting prompt...</div></div>`;
+
+    let editedPrompt = basePrompt;
+
+    if (editNote) {
+      // Route through Claude to fully rewrite the image prompt based on edit instructions
+      applyBtn.textContent = 'Rewriting prompt...';
+      try {
+        const rewriteResult = await callWorker('claude', {
+          prompt: `You are an expert Imagen 4 prompt engineer. Rewrite the following image prompt based on the user's edit instructions. Produce ONLY the new image prompt — no explanation, no preamble, no JSON, no quotes around it. The output must be a single paragraph that fully replaces the original prompt.
+
+Original prompt:
+${basePrompt}
+
+Edit instructions from user:
+${editNote}
+
+Rules for the rewritten prompt:
+- Fully incorporate the edit instructions — do not just append them, restructure the whole prompt
+- Maximum 2 short text elements (3 words or fewer each) if text is needed
+- Specify subject, composition/framing, lighting, mood, background, brand colors
+- End with: "Photorealistic high resolution. Crisp sharp text. Professional social media graphic. No distorted letters. No placeholder elements. No watermarks. Shot on high-end camera, editorial quality."
+- Output the prompt only, nothing else`
+        });
+        const rewritten = (rewriteResult.text || '').replace(/```[a-z]*|```/g, '').trim();
+        if (rewritten) {
+          editedPrompt = rewritten;
+          document.getElementById('image-prompt-output').textContent = 'Prompt: ' + editedPrompt;
+        }
+      } catch (e) {
+        // Fall back to original prompt if Claude call fails
+        editedPrompt = basePrompt;
+      }
+    }
+
+    grid.querySelector('.image-slot').innerHTML = `<div class="img-placeholder">Generating...</div>`;
+    applyBtn.textContent = 'Generating...';
 
     try {
       const imgResult = await callWorker('imagen', {
