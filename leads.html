@@ -257,6 +257,59 @@
   .chat-send:hover { background: #2c526a; }
   .chat-send:disabled { background: #aaa; cursor: not-allowed; }
 
+  /* ── PDF EXPORT ── */
+  #pdf-export-container { display: none; }
+
+  @media print {
+    body * { visibility: hidden !important; }
+    #pdf-export-container, #pdf-export-container * { visibility: visible !important; }
+    #pdf-export-container { display: block !important; position: absolute; inset: 0; padding: 0; margin: 0; background: white; }
+    @page { margin: 18mm 16mm; size: A4; }
+  }
+
+  .pdf-page { font-family: 'Jost', sans-serif; color: #111; background: white; max-width: 780px; }
+  .pdf-header { border-bottom: 3px solid #3a6b8a; padding-bottom: 18px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .pdf-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; letter-spacing: 1.5px; color: #111; }
+  .pdf-logo span { font-family: 'Jost', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #3a6b8a; display: block; margin-top: 3px; font-weight: 600; }
+  .pdf-meta { text-align: right; font-size: 12px; color: #666; line-height: 1.6; }
+  .pdf-score-bar { background: #f4f9fd; border: 1px solid #c8d8e4; border-radius: 8px; padding: 16px 22px; margin-bottom: 28px; display: flex; align-items: center; gap: 28px; }
+  .pdf-score-num { font-size: 42px; font-weight: 700; line-height: 1; }
+  .pdf-score-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #666; margin-top: 3px; font-weight: 600; }
+  .pdf-score-grade { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .pdf-score-right { flex: 1; }
+  .pdf-score-desc { font-size: 13px; color: #444; margin-bottom: 10px; }
+  .pdf-chips-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pdf-chip { border-radius: 5px; padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .pdf-chip.danger { background: #fff0ee; color: #c0392b; border: 1px solid #f5c0b8; }
+  .pdf-chip.warn { background: #fff5e8; color: #b06000; border: 1px solid #f5d89a; }
+  .pdf-chip.ok { background: #f0faf5; color: #1e6b45; border: 1px solid #9dd4b8; }
+  .pdf-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #3a6b8a; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #dde5ea; }
+  .pdf-quick-wins { margin-bottom: 28px; }
+  .pdf-qw-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pdf-qw-pill { background: #edf4f9; border: 1px solid #c8d8e4; border-radius: 16px; padding: 5px 14px; font-size: 12px; color: #2c526a; }
+  .pdf-findings { margin-bottom: 28px; }
+  .pdf-finding { border: 1px solid #e0e8ee; border-radius: 8px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid; }
+  .pdf-finding-head { padding: 12px 16px; display: flex; justify-content: space-between; align-items: flex-start; background: #f8fbfd; border-bottom: 1px solid #e0e8ee; }
+  .pdf-finding-cat { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 4px; }
+  .pdf-finding-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .pdf-sev { border-radius: 4px; padding: 3px 9px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .pdf-sev.crit { background: #fff0ee; color: #c0392b; border: 1px solid #f5c0b8; }
+  .pdf-sev.high { background: #fff5e8; color: #b06000; border: 1px solid #f5d89a; }
+  .pdf-sev.med  { background: #fefce8; color: #7a6000; border: 1px solid #ede9a0; }
+  .pdf-finding-body { padding: 12px 16px; }
+  .pdf-finding-summary { font-size: 13px; color: #333; line-height: 1.6; margin-bottom: 8px; }
+  .pdf-finding-bullets { margin: 0 0 10px 16px; }
+  .pdf-finding-bullets li { font-size: 12px; color: #555; margin-bottom: 4px; line-height: 1.5; }
+  .pdf-finding-impact { background: #fff5f4; border-left: 3px solid #d4622a; padding: 8px 12px; font-size: 12px; color: #a33020; line-height: 1.5; border-radius: 0 4px 4px 0; }
+  .pdf-chat { margin-bottom: 28px; }
+  .pdf-msg { margin-bottom: 12px; page-break-inside: avoid; }
+  .pdf-msg-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .pdf-msg-label.user { color: #111; }
+  .pdf-msg-label.ai { color: #3a6b8a; }
+  .pdf-msg-bubble { font-size: 13px; line-height: 1.65; color: #333; background: #f8f8f8; border: 1px solid #e5e5e5; border-radius: 6px; padding: 10px 14px; }
+  .pdf-msg-bubble.user { background: #edf4f9; border-color: #c8d8e4; }
+  .pdf-footer { border-top: 1px solid #dde5ea; padding-top: 14px; font-size: 11px; color: #aaa; display: flex; justify-content: space-between; }
+
   /* ── SERVICES ── */
   .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
   .service-card { border: 2px solid var(--border); border-radius: 8px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; user-select: none; }
@@ -541,6 +594,7 @@
         </div>
         <div class="row-actions">
           <button class="btn-primary" onclick="goTo(4)">Select Services to Pitch →</button>
+          <button class="btn-ghost" onclick="exportAuditPDF()">⬇ Export PDF</button>
           <button class="btn-ghost" onclick="restart()">← Start Over</button>
         </div>
       </div>
@@ -715,6 +769,9 @@
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
+
+<!-- PDF EXPORT CONTAINER (hidden, print-only) -->
+<div id="pdf-export-container"></div>
 
 <script>
   const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
@@ -1616,6 +1673,122 @@ TONE: No exclamation points. No em dashes. No "just checking in" or "circling ba
     el.textContent = msg;
     document.getElementById('toast-container').appendChild(el);
     setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+  }
+
+  // ── PDF EXPORT ──
+  function exportAuditPDF() {
+    if (!state.intelRaw) { toast('Run an audit first before exporting.', 'info'); return; }
+    const data = state.intelRaw;
+    const score = Math.max(0, Math.min(100, data.score || 0));
+    const grade = score >= 70 ? 'Healthy' : score >= 45 ? 'At Risk' : 'Critical';
+    const gradeColor = score >= 70 ? '#2e7d5e' : score >= 45 ? '#8a5a00' : '#c0392b';
+    const findings = (data.findings || []).filter((_, i) => !state.dismissedFindings || !state.dismissedFindings.has(i));
+    const crit = findings.filter(f => f.severity === 'critical').length;
+    const high = findings.filter(f => f.severity === 'high').length;
+    const med  = findings.filter(f => f.severity === 'medium').length;
+    const qw   = data.quickWins || [];
+    const now  = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Build findings HTML
+    const findingsHTML = findings.map(f => {
+      const sevClass = f.severity === 'critical' ? 'crit' : f.severity === 'high' ? 'high' : 'med';
+      const sevLabel = f.severity === 'critical' ? 'Critical' : f.severity === 'high' ? 'High' : 'Medium';
+      const catColor = categoryColor(f.category);
+      const bulletsHTML = (f.bullets || []).length
+        ? `<ul class="pdf-finding-bullets">${f.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+      const impactHTML = f.impact ? `<div class="pdf-finding-impact">${esc(f.impact)}</div>` : '';
+      return `
+        <div class="pdf-finding">
+          <div class="pdf-finding-head">
+            <div>
+              <div class="pdf-finding-cat" style="color:${catColor}">${esc(f.category || 'General')}</div>
+              <div class="pdf-finding-title">${esc(f.title)}</div>
+            </div>
+            <div class="pdf-sev ${sevClass}">${sevLabel}</div>
+          </div>
+          <div class="pdf-finding-body">
+            <div class="pdf-finding-summary">${esc(f.summary)}</div>
+            ${bulletsHTML}
+            ${impactHTML}
+          </div>
+        </div>`;
+    }).join('');
+
+    // Build chat HTML (skip the auto-generated first AI message)
+    const chatMsgs = (state.chatMessages || []).slice(1);
+    const chatHTML = chatMsgs.length ? chatMsgs.map(m => {
+      const isUser = m.role === 'user';
+      const label = isUser ? 'You' : 'Messick AI';
+      const bubbleClass = isUser ? 'user' : 'ai';
+      // Strip HTML tags for plain text in PDF
+      const tmp = document.createElement('div');
+      tmp.innerHTML = m.content;
+      const plain = tmp.innerText || m.content;
+      return `
+        <div class="pdf-msg">
+          <div class="pdf-msg-label ${bubbleClass}">${label}</div>
+          <div class="pdf-msg-bubble ${bubbleClass}">${plain.replace(/
+/g,'<br>')}</div>
+        </div>`;
+    }).join('') : '';
+
+    const chatSection = chatHTML ? `
+      <div class="pdf-chat">
+        <div class="pdf-section-title">Analysis Chat</div>
+        ${chatHTML}
+      </div>` : '';
+
+    const qwSection = qw.length ? `
+      <div class="pdf-quick-wins">
+        <div class="pdf-section-title">Quick Wins - Fix This Week</div>
+        <div class="pdf-qw-list">${qw.map(w => `<div class="pdf-qw-pill">${esc(w)}</div>`).join('')}</div>
+      </div>` : '';
+
+    const html = `
+      <div class="pdf-page">
+        <div class="pdf-header">
+          <div class="pdf-logo">Messick Marketing<span>Agency Insight Report</span></div>
+          <div class="pdf-meta">
+            <strong>${esc(state.biz)}</strong><br>
+            ${state.loc ? esc(state.loc) + '<br>' : ''}
+            ${state.web ? esc(state.web) + '<br>' : ''}
+            Generated ${now}
+          </div>
+        </div>
+
+        <div class="pdf-score-bar">
+          <div>
+            <div class="pdf-score-num" style="color:${gradeColor}">${score}</div>
+            <div class="pdf-score-label">Marketing Health Score</div>
+            <div class="pdf-score-grade" style="color:${gradeColor}">${grade}</div>
+          </div>
+          <div class="pdf-score-right">
+            <div class="pdf-score-desc">Overall audit score based on website, SEO, social presence, reputation, and conversion readiness.</div>
+            <div class="pdf-chips-row">
+              <div class="pdf-chip danger">${crit} Critical</div>
+              <div class="pdf-chip warn">${high} High</div>
+              <div class="pdf-chip ok">${med} Medium</div>
+            </div>
+          </div>
+        </div>
+
+        ${qwSection}
+
+        <div class="pdf-findings">
+          <div class="pdf-section-title">Critical Findings</div>
+          ${findingsHTML}
+        </div>
+
+        ${chatSection}
+
+        <div class="pdf-footer">
+          <span>Messick Marketing - Confidential</span>
+          <span>messickmarketing.com</span>
+        </div>
+      </div>`;
+
+    document.getElementById('pdf-export-container').innerHTML = html;
+    window.print();
   }
 
   // ── BOOT ──
