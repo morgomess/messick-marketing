@@ -1727,8 +1727,7 @@ TONE: No exclamation points. No em dashes. No "just checking in" or "circling ba
       return `
         <div class="pdf-msg">
           <div class="pdf-msg-label ${bubbleClass}">${label}</div>
-          <div class="pdf-msg-bubble ${bubbleClass}">${plain.replace(/
-/g,'<br>')}</div>
+          <div class="pdf-msg-bubble ${bubbleClass}">${plain.replace(/\n/g,'<br>')}</div>
         </div>`;
     }).join('') : '';
 
