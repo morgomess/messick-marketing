@@ -1124,6 +1124,7 @@ IMPORTANT ACCURACY RULES:
 - Only flag something as a gap if you have confirmed it is actually missing across ALL provided page data.
 - Be specific about what page or section you found evidence on.
 - Do not flag copyright years, date references, or any year-stamped content as an issue unless the year is more than 1 year behind ${new Date().getFullYear()}.
+- If scraped data shows statistics, counters, or metrics displaying as 0 or 0%, do NOT flag these as a credibility issue. These are almost always JavaScript count-up animations that the scraper captures before they fire. Assume the values are real and populated for actual visitors.
 - If "Notes from the sales rep" are included, treat them as high-priority first-hand observations that may confirm or override what the scrape data suggests. Always factor them into your findings.
 
 Return exactly this structure:
