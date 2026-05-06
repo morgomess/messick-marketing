@@ -1125,7 +1125,7 @@ IMPORTANT ACCURACY RULES:
 - Be specific about what page or section you found evidence on.
 - Do not flag copyright years, date references, or any year-stamped content as an issue unless the year is more than 1 year behind ${new Date().getFullYear()}.
 - If scraped data shows statistics, counters, or metrics displaying as 0 or 0%, do NOT flag these as a credibility issue. These are almost always JavaScript count-up animations that the scraper captures before they fire. Assume the values are real and populated for actual visitors.
-- If "Notes from the sales rep" are included, treat them as high-priority first-hand observations that may confirm or override what the scrape data suggests. Always factor them into your findings.
+- If "Notes from the user" are included, treat them as high-priority first-hand observations that may confirm or override what the scrape data suggests. Always factor them into your findings.
 
 Return exactly this structure:
 {
@@ -1153,7 +1153,7 @@ Include 4-6 findings total. Only flag real, confirmed gaps. Do not use em dashes
 For recommendedServices, choose 2-4 service IDs from this list that directly address the findings above. Only recommend what the data actually supports.
 Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
 
-      const notesSection = state.notes ? `\n\nNotes from the sales rep who reviewed this prospect:\n${state.notes}` : '';
+      const notesSection = state.notes ? `\n\nNotes from the user:\n${state.notes}` : '';
       const raw = await callAI(system, `Business: ${state.biz}, Location: ${state.loc}.\nOnline Data: ${JSON.stringify(state.scrapeData)}${notesSection}`);
 
       let parsed;
