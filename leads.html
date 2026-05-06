@@ -1309,7 +1309,7 @@ Available IDs: social, seo, gbp, content, ads, website, reputation, video`;
     state.chatMessages.push({ role: 'user', content: msg });
     try {
       const scrapeSummary = state.scrapeData ? JSON.stringify(state.scrapeData).substring(0, 3000) : 'No scrape data available';
-      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}. You have access to the actual scraped website and page data. If the user says something contradicts your findings, accept the correction. Be direct, specific, and actionable. Do not use em dashes. Scraped data: ${scrapeSummary}`;
+      const system = `You are a sharp healthcare marketing consultant for Messick Marketing. The current year is ${new Date().getFullYear()}. The user is reviewing an intelligence report on ${state.biz} in ${state.loc}. You have access to the actual scraped website and page data. If the user says something contradicts your findings, accept the correction. Be direct, specific, and actionable. Do not use em dashes. Do not treat any year-stamped content as outdated unless it is more than 1 year behind ${new Date().getFullYear()}. Scraped data: ${scrapeSummary}`;
       const reply = await callAIWithHistory(system, state.chatMessages);
       state.chatMessages.push({ role: 'assistant', content: reply });
       appendChat('ai', reply);
