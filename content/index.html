@@ -472,6 +472,7 @@
         <div class="regen-row">
           <button class="regen-btn" onclick="generate()">↻ Regenerate All</button>
           <button class="regen-btn" onclick="regenerateCopy()">↻ Caption Only</button>
+          <button class="regen-btn" id="regen-graphic-btn" onclick="regenGraphicOnly()" style="display:none;">↻ Graphic Only</button>
         </div>
 
       </div>
@@ -567,18 +568,27 @@
   function buildPrompt(d) {
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
-    const imgRules = `Imagen 4 text rendering rules:
-- Maximum 2 text elements in the entire image
-- Each text element must be 3 words or fewer — shorter = more accurate rendering
-- Write exact text strings in quotes, e.g. text: "KNEE PAIN?" not "include headline about knee pain"
+    const imgRules = `Imagen 4 image generation rules:
+TEXT (critical — Imagen renders text poorly at scale):
+- Maximum 2 short text elements total in the entire image
+- Each text element must be 3 words or fewer — never full sentences
+- Specify exact quoted strings: text: "KNEE PAIN?" not "add a headline about knee pain"
 - Specify exact placement: top-center, bottom-left, center, etc.
-- Specify font style: bold sans-serif, condensed, etc.
-- Use high contrast: white text on dark backgrounds, black on light
-- NO bullet points, numbered lists, paragraphs, or multiple lines of small text in the image
-- NO design templates, NO placeholder shapes, NO checkered circles, NO UI chrome, NO layout grids
-- Generate real photography or clean brand graphic only
-- Strong single visual + minimal text only
-- End with: "Photorealistic, high resolution, crisp sharp text, professional social media graphic, no distorted letters, no placeholder elements"`;
+- Specify font style: bold condensed sans-serif
+- Use maximum contrast: pure white on dark, or black on bright/light backgrounds
+- NO bullet points, numbered lists, paragraphs, or multi-line small text anywhere in the image
+
+COMPOSITION & VISUAL:
+- Lead with one strong, clear hero subject — a person, an object, an environment, or an abstract shape
+- Specify the camera angle and framing: e.g. close-up, wide shot, low angle, overhead, eye-level
+- Specify lighting: natural soft window light, dramatic side lighting, golden hour, studio clean white, moody dark gradient
+- Background must be intentional: blurred bokeh, solid gradient, textured, architectural, natural environment
+- If using a person: describe them specifically — age, expression, activity, clothing style. Never vague.
+- If abstract/brand graphic: specify color palette, shape language, and mood explicitly
+- NO design templates, NO placeholder circles or boxes, NO UI chrome, NO layout grids, NO mock device frames
+
+QUALITY FOOTER (always end the prompt with this):
+"Photorealistic high resolution. Crisp sharp text. Professional social media graphic. No distorted letters. No placeholder elements. No watermarks. No lorem ipsum. Shot on high-end camera, editorial quality."`;
 
     // Caption-only and hashtags-only don't need image context
     const captionOnly = selectedType === 'caption';
@@ -603,7 +613,7 @@ ${hashtagsOnly ? '' : '- "caption": full post caption with line breaks, emojis w
 ${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)'}
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3:4 social media graphic. ${imgRules}` : ''}`;
+${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${imgRules}` : ''}`;
   }
 
   async function callWorker(route, body) {
@@ -686,6 +696,8 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
       show('card-reel-prompt', isReel);
       show('card-reel-apps', isReel);
       show('download-all-btn', false);
+      const regenGraphicBtn = document.getElementById('regen-graphic-btn');
+      if (regenGraphicBtn) regenGraphicBtn.style.display = isGraphic ? '' : 'none';
 
       // Caption card: hide for hashtags-only
       document.getElementById('caption-output').closest('.output-card').style.display = isHashtags ? 'none' : 'block';
@@ -874,6 +886,84 @@ ${selectedType === 'graphic' ? `- "image_prompt": Imagen 4 prompt for a single 3
 
     applyBtn.disabled = false;
     applyBtn.textContent = '↻ Apply & Regenerate';
+  }
+
+  async function regenGraphicOnly() {
+    const d = getFormData();
+    if (!d.brandName) return alert('Please enter a brand name.');
+
+    const btn = document.getElementById('regen-graphic-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
+    const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
+    const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+
+    // Re-use last prompt if available, otherwise ask Claude for a new one
+    const lastPromptEl = document.getElementById('image-prompt-output');
+    let imagePrompt = lastPromptEl ? lastPromptEl.textContent.replace(/^Prompt:\s*/i, '').trim() : '';
+
+    if (!imagePrompt) {
+      // No existing prompt — generate a fresh one from Claude first
+      try {
+        const result = await callWorker('claude', { prompt: buildPrompt(d) });
+        const parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
+        imagePrompt = parsed.image_prompt || '';
+        if (imagePrompt) {
+          lastPromptEl.textContent = 'Prompt: ' + imagePrompt;
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '↻ Graphic Only';
+        return alert('Failed to get image prompt: ' + e.message);
+      }
+    }
+
+    if (!imagePrompt) {
+      btn.disabled = false;
+      btn.textContent = '↻ Graphic Only';
+      return alert('No image prompt available. Generate content first.');
+    }
+
+    // Show the image card and reset the slot
+    show('card-image', true);
+    const grid = document.getElementById('image-grid');
+    grid.className = 'image-grid graphic';
+    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Regenerating graphic...</div></div>`;
+    document.getElementById('edit-graphic-btn').style.display = '';
+
+    try {
+      const imgResult = await callWorker('imagen', {
+        prompt: imagePrompt + suffix,
+        count: 1
+      });
+      const pred = (imgResult.predictions || [])[0];
+      const slot = grid.querySelector('.image-slot');
+      if (pred && pred.bytesBase64Encoded) {
+        const b64 = pred.bytesBase64Encoded;
+        generatedImages = [b64];
+        const img = document.createElement('img');
+        img.src = `data:image/png;base64,${b64}`;
+        img.className = 'generated';
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'dl-overlay';
+        dlBtn.textContent = 'Download';
+        dlBtn.onclick = () => downloadImage(b64, `${brand}-graphic.png`);
+        slot.innerHTML = '';
+        slot.appendChild(img);
+        slot.appendChild(dlBtn);
+        applyLogoOverlay(slot, d.logoUrl, imagePrompt);
+      } else if (slot) {
+        slot.innerHTML = `<div class="img-placeholder error">Generation failed — try again or use prompt in Nanobanana.io</div>`;
+      }
+    } catch (err) {
+      const slot = grid.querySelector('.image-slot');
+      if (slot) slot.innerHTML = `<div class="img-placeholder error">${err.message || 'Image gen failed'}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = '↻ Graphic Only';
   }
 
   async function regenerateCopy() {
