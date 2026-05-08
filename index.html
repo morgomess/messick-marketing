@@ -233,6 +233,12 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .insight-list{list-style:none;display:grid;gap:.85rem}
 .insight-list li{color:var(--text-muted-dark);font-size:.9rem;line-height:1.7;padding-left:1.4rem;position:relative}
 .insight-list li::before{content:'';position:absolute;left:0;top:.72rem;width:7px;height:7px;background:var(--steel-light)}
+.svc-card-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5rem;margin-top:2.5rem}
+.svc-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:1.6rem 1.3rem}
+.svc-card h3{font-family:var(--font-heading);font-size:1rem;color:var(--white);margin-bottom:.6rem;line-height:1.3}
+.svc-card p{font-size:.82rem;line-height:1.7;color:var(--text-muted-dark)}
+@media(max-width:960px){.svc-card-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:580px){.svc-card-grid{grid-template-columns:repeat(2,1fr)}}
 .client-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gray-mid);border:1px solid var(--gray-mid)}
 .client-card{background:var(--white);padding:2.2rem 1.5rem;min-height:230px;transition:background .2s,transform .2s}
 .client-card:hover{background:var(--gray);transform:translateY(-2px)}
@@ -441,59 +447,21 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 </section>
 
 <section id="visibility" class="insight-section">
-  <div class="inner insight-grid">
-    <div>
-      <p class="eyebrow light fu">Market Reality</p>
-      <h2 class="sh on-dark fu">Outpatient growth is exposing weak acquisition systems.</h2>
-    </div>
-    <div class="fu">
-      <p class="insight-lead">The highest-performing vascular, vein, and interventional groups are scaling through outpatient procedure growth, multi-location expansion, and stronger patient acquisition systems. But many still rely on outdated websites, inconsistent content, and underbuilt follow-up systems.</p>
-      <ul class="insight-list">
-        <li>OBLs and specialty groups need clear digital pathways from symptom search to consultation request.</li>
-        <li>Multi-location expansion requires local search visibility, consistent service-line messaging, and location-specific conversion strategy.</li>
-        <li>Referral flow improves when clinical credibility, reputation, content, and follow-up operate as one system.</li>
-        <li>Website conversion matters because high-consideration patients need trust, clarity, and low-friction next steps before they act.</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- WHO WE SERVE -->
-<section id="serve">
   <div class="inner">
-    <div class="serve-head">
-      <div>
-        <p class="eyebrow fu">Who We Work With</p>
-        <h2 class="sh fu">Who We Work With</h2>
-      </div>
-      <p class="sub fu">We work with specialty healthcare practices ready to grow patient volume.</p>
-    </div>
-    <div class="client-grid">
-      <article class="client-card fu"><div class="client-label">01</div><h3>Vascular Surgery Practices</h3><p>Practices growing PAD, DVT, limb salvage, dialysis access, carotid, aneurysm, and endovascular service lines across competitive local markets.</p></article>
-      <article class="client-card fu"><div class="client-label">02</div><h3>Vein Clinics and Vein Centers</h3><p>Single and multi-location vein groups that need stronger visibility for varicose veins, venous insufficiency, symptoms, treatments, and consultation demand.</p></article>
-      <article class="client-card fu"><div class="client-label">03</div><h3>Interventional Radiology Clinics (OBLs)</h3><p>IR practices educating patients on UFE, PAE, GAE, PAD, endovascular care, and alternatives to surgery while building trust before referral or self-scheduled consults.</p></article>
-      <article class="client-card fu"><div class="client-label">04</div><h3>Private and Multi-Location Healthcare Groups</h3><p>Healthcare groups that need location-level strategy, consistent brand standards, and patient acquisition systems that scale across multiple markets.</p></article>
+    <p class="eyebrow light fu">What We Do</p>
+    <h2 class="sh on-dark fu">Full-service content, built around your specialty</h2>
+    <p class="insight-lead fu">We don't use generic healthcare templates. Every caption, blog post, and email is written with a real understanding of the procedures you perform and the patients you serve.</p>
+    <div class="svc-card-grid fu">
+      <div class="svc-card"><h3>Content creation</h3><p>Captions, blogs, scripts, graphics, and copy - all done for you</p></div>
+      <div class="svc-card"><h3>Social media management</h3><p>Scheduling, posting, comment moderation, and monthly reporting</p></div>
+      <div class="svc-card"><h3>Website design</h3><p>Custom responsive sites built for specialty practices</p></div>
+      <div class="svc-card"><h3>AI integration</h3><p>Tools and automations built into your existing workflow</p></div>
+      <div class="svc-card"><h3>Email campaigns</h3><p>Patient education sequences and seasonal campaigns</p></div>
     </div>
   </div>
 </section>
 
-<!-- SERVICES -->
-<section id="services">
-  <div class="svc-layout">
-    <div class="svc-sticky">
-      <p class="eyebrow light fu">What We Do</p>
-      <h2 class="sh on-dark fu">Our Services</h2>
-      <p class="sub on-dark fu">We provide end-to-end patient acquisition systems for healthcare practices.</p>
-    </div>
-    <div class="system-list">
-      <article class="system-item fu"><div class="system-num">01</div><div><h3>Website Design for Healthcare Practices</h3><p>Conversion-optimized, mobile-first websites built to turn visitors into patient inquiries.</p></div></article>
-      <article class="system-item fu"><div class="system-num">02</div><div><h3>SEO and Content Marketing</h3><p>Patient acquisition through organic search &mdash; condition pages, service-line content, and local SEO built for specialty practices.</p></div></article>
-      <article class="system-item fu"><div class="system-num">03</div><div><h3>Video and Social Media Marketing</h3><p>Video and social content built for medical practices &mdash; educational, trust-building, and designed to generate patient demand.</p></div></article>
-      <article class="system-item fu"><div class="system-num">04</div><div><h3>Paid Advertising</h3><p>Google Ads and Meta Ads campaigns targeted to patients actively searching for vascular, vein, and interventional care.</p></div></article>
-      <article class="system-item fu"><div class="system-num">05</div><div><h3>Lead Capture and Patient Funnel Optimization</h3><p>Inquiry forms, follow-up systems, and conversion paths designed around how high-consideration healthcare patients actually decide.</p></div></article>
-    </div>
-  </div>
-</section>
+<!-- SERVICES REMOVED - merged into visibility section above -->
 
 <!-- CALLOUT -->
 <section id="callout">
