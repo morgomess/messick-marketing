@@ -239,6 +239,16 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .svc-card p{font-size:.82rem;line-height:1.7;color:var(--text-muted-dark)}
 @media(max-width:960px){.svc-card-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:580px){.svc-card-grid{grid-template-columns:repeat(2,1fr)}}
+.specialty-pills{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:2rem}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--white);font-family:var(--font-body);font-size:.82rem;padding:.45rem 1rem;border-radius:99px;letter-spacing:.03em}
+.bar-chart{margin-top:2.5rem;display:grid;gap:1.2rem}
+.bar-row{display:grid;grid-template-columns:100px 1fr 48px;gap:1rem;align-items:center}
+.bar-label{font-size:.85rem;color:var(--text-muted-light);font-family:var(--font-body)}
+.bar-track{background:var(--gray-mid);border-radius:4px;height:12px;overflow:hidden}
+.bar-fill{height:100%;background:var(--steel);border-radius:4px;transition:width .6s ease}
+.bar-pct{font-size:.8rem;color:var(--text-muted-light);font-family:var(--font-body)}
+.btn-outline-light{background:transparent;border:1.5px solid var(--white);color:var(--white)}
+.btn-outline-light:hover{background:var(--white);color:var(--black)}
 .client-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gray-mid);border:1px solid var(--gray-mid)}
 .client-card{background:var(--white);padding:2.2rem 1.5rem;min-height:230px;transition:background .2s,transform .2s}
 .client-card:hover{background:var(--gray);transform:translateY(-2px)}
@@ -555,55 +565,62 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
   </div>
 </section>
 
-<!-- WHY CHOOSE -->
+<!-- SPECIALTIES -->
 <section id="ai-tools">
   <div class="inner">
-    <p class="eyebrow fu">Why Healthcare Groups Choose Us</p>
-    <h2 class="sh fu">Built for high-trust, high-consideration patient journeys.</h2>
-    <p class="sub fu">Sophisticated healthcare operators do not need generic agency activity. They need a partner who understands how clinical trust, patient education, local search, and follow-up affect patient volume.</p>
-    <div class="why-grid">
-      <article class="why-card fu"><h3>Specialty buying behavior</h3><p>We understand how patients evaluate complex procedures, second opinions, alternatives to surgery, and physician-led specialty care.</p></article>
-      <article class="why-card fu"><h3>High-trust journeys</h3><p>We build for high-consideration decisions where clarity, credibility, and clinical confidence drive conversion.</p></article>
-      <article class="why-card fu"><h3>Connected growth systems</h3><p>We connect content, websites, SEO, reputation, and follow-up into one system instead of managing channels in isolation.</p></article>
-      <article class="why-card fu"><h3>Operator-level metrics</h3><p>We think in terms of patient volume, location performance, service-line demand, and revenue -- not just impressions.</p></article>
+    <p class="eyebrow light fu">Our Specialties</p>
+    <h2 class="sh on-dark fu">We write about the procedures most agencies Google</h2>
+    <p class="sub on-dark fu" style="color:var(--steel-light)">UFE, GAE, PAE, kyphoplasty, DVT, PAD, CVI, embolization - this is our daily vocabulary, not a learning curve.</p>
+    <div class="specialty-pills fu">
+      <span class="pill">Interventional Radiology</span>
+      <span class="pill">Vascular &amp; Vein</span>
+      <span class="pill">Brain Health</span>
+      <span class="pill">OBL / MSO</span>
+      <span class="pill">Women's Health</span>
+      <span class="pill">Mental Health</span>
+      <span class="pill">Orthopedic</span>
+      <span class="pill">Multi-location Groups</span>
     </div>
   </div>
 </section>
 
-<!-- PROCESS -->
+<!-- PLATFORM BREAKDOWN -->
 <section id="process">
   <div class="inner">
-    <p class="eyebrow light fu">How It Works</p>
-    <h2 class="sh on-dark fu">Our Process</h2>
-    <p class="sub on-dark fu">A clear, four-step process to build a patient acquisition system that drives consistent growth.</p>
-    <div class="process-grid">
-      <article class="process-step fu"><span>01</span><h3>Audit</h3><p>We audit your current marketing and patient flow &mdash; identifying gaps in your website, search visibility, content, and lead capture.</p></article>
-      <article class="process-step fu"><span>02</span><h3>Build</h3><p>We build a conversion-focused website and funnel designed to turn visitors into patient inquiries.</p></article>
-      <article class="process-step fu"><span>03</span><h3>Launch</h3><p>We launch content and advertising systems &mdash; SEO, Google Ads, Meta Ads, and social content &mdash; to drive targeted patient traffic.</p></article>
-      <article class="process-step fu"><span>04</span><h3>Optimize</h3><p>We optimize for consistent patient acquisition &mdash; refining campaigns, content, and conversion paths based on real performance data.</p></article>
+    <p class="eyebrow fu">Platform Breakdown</p>
+    <h2 class="sh fu">Where specialty healthcare content performs best</h2>
+    <p class="sub fu">Based on our client accounts.</p>
+    <div class="bar-chart fu">
+      <div class="bar-row">
+        <span class="bar-label">Facebook</span>
+        <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+        <span class="bar-pct">60%+</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">LinkedIn</span>
+        <div class="bar-track"><div class="bar-fill" style="width:58%"></div></div>
+        <span class="bar-pct">38%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Instagram</span>
+        <div class="bar-track"><div class="bar-fill" style="width:36%"></div></div>
+        <span class="bar-pct">24%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">TikTok</span>
+        <div class="bar-track"><div class="bar-fill" style="width:18%"></div></div>
+        <span class="bar-pct">12%</span>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section id="faq" style="background:var(--black);padding:100px 5%">
+<!-- CTA FOOTER -->
+<section id="faq" style="background:var(--black);padding:100px 5%;text-align:center">
   <div class="inner">
-    <p class="eyebrow light fu">FAQ</p>
-    <h2 class="sh on-dark fu">Common Questions</h2>
-    <div class="faq-list">
-      <div class="faq-item">
-        <h3 class="faq-q">What does a healthcare marketing agency do?</h3>
-        <p class="faq-a">A healthcare marketing agency helps medical practices attract new patients through websites, SEO, advertising, and content strategies.</p>
-      </div>
-      <div class="faq-item">
-        <h3 class="faq-q">How do vascular clinics get more patients?</h3>
-        <p class="faq-a">Vascular clinics typically grow through a combination of local SEO, targeted advertising, referral optimization, and conversion-focused websites.</p>
-      </div>
-      <div class="faq-item">
-        <h3 class="faq-q">How much does healthcare marketing cost?</h3>
-        <p class="faq-a">Costs vary depending on services, but most practices invest in website development, advertising, and ongoing content to drive consistent patient flow.</p>
-      </div>
-    </div>
+    <h2 class="sh on-dark fu">Ready to stop guessing at content?</h2>
+    <p class="sub on-dark fu" style="max-width:500px;margin:1rem auto 2.5rem">Let's talk about your practice - no pitch decks, just a conversation.</p>
+    <a href="https://fillio.so/r/fHn8adjNQgsFZcsX1Wno" class="btn btn-outline-light fu">Book a 20-min call</a>
   </div>
 </section>
 
