@@ -463,30 +463,94 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 
 <!-- SERVICES REMOVED - merged into visibility section above -->
 
-<!-- CALLOUT -->
-<section id="callout">
-  <div class="callout-inner fu">
-    <p class="eyebrow">Operating Thesis</p>
-    <p class="callout-quote">Patient volume is built through infrastructure: local visibility, clinical trust, conversion, and follow-up.</p>
-    <p class="callout-body">For high-revenue healthcare groups, marketing cannot live as a calendar of disconnected tasks. It has to support location performance, service-line growth, and operator-level decisions.</p>
-    <a href="#contact" class="btn btn-ink">Request a Growth Assessment</a>
+<!-- RESULTS CHART -->
+<section id="callout" style="background:var(--black);padding:100px 5%">
+  <div class="inner">
+    <p class="eyebrow light fu">Results That Actually Show Up</p>
+    <h2 class="sh on-dark fu">Content that builds reach - month over month</h2>
+    <p class="sub on-dark fu">What consistent, specialty-specific content does for a practice's organic reach over 12 months.</p>
+    <div class="chart-wrap fu">
+      <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:900px;display:block;margin:2rem auto 0">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#3a6b8a"/>
+            <stop offset="100%" stop-color="#5a9ab8"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        <line x1="60" y1="20" x2="880" y2="20" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <line x1="60" y1="60" x2="880" y2="60" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <line x1="60" y1="100" x2="880" y2="100" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <line x1="60" y1="140" x2="880" y2="140" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <line x1="60" y1="180" x2="880" y2="180" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <line x1="60" y1="220" x2="880" y2="220" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+        <!-- Y axis labels -->
+        <text x="50" y="24" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">12k</text>
+        <text x="50" y="64" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">10k</text>
+        <text x="50" y="104" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">8k</text>
+        <text x="50" y="144" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">6k</text>
+        <text x="50" y="184" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">4k</text>
+        <text x="50" y="224" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">2k</text>
+        <!-- Data line: Jan-Dec steady growth from ~2k to ~12k -->
+        <polyline points="60,220 140,210 220,200 300,185 380,170 460,155 540,130 620,108 700,88 780,68 860,48 880,30" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- Dots -->
+        <circle cx="60" cy="220" r="4" fill="#5a9ab8"/>
+        <circle cx="140" cy="210" r="4" fill="#5a9ab8"/>
+        <circle cx="220" cy="200" r="4" fill="#5a9ab8"/>
+        <circle cx="300" cy="185" r="4" fill="#5a9ab8"/>
+        <circle cx="380" cy="170" r="4" fill="#5a9ab8"/>
+        <circle cx="460" cy="155" r="4" fill="#5a9ab8"/>
+        <circle cx="540" cy="130" r="4" fill="#5a9ab8"/>
+        <circle cx="620" cy="108" r="4" fill="#5a9ab8"/>
+        <circle cx="700" cy="88" r="4" fill="#5a9ab8"/>
+        <circle cx="780" cy="68" r="4" fill="#5a9ab8"/>
+        <circle cx="860" cy="48" r="4" fill="#5a9ab8"/>
+        <circle cx="880" cy="30" r="4" fill="#5a9ab8"/>
+        <!-- X axis labels -->
+        <text x="60" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Jan</text>
+        <text x="140" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Feb</text>
+        <text x="220" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Mar</text>
+        <text x="300" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Apr</text>
+        <text x="380" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">May</text>
+        <text x="460" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Jun</text>
+        <text x="540" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Jul</text>
+        <text x="620" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Aug</text>
+        <text x="700" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Sep</text>
+        <text x="780" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Oct</text>
+        <text x="860" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Nov</text>
+        <text x="880" y="260" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="11" font-family="Jost,sans-serif">Dec</text>
+        <text x="880" y="290" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Jost,sans-serif">Illustrative composite from client accounts. Results vary by practice size and market.</text>
+      </svg>
+    </div>
   </div>
 </section>
 
-<!-- PORTFOLIO -->
+<!-- HOW IT WORKS -->
 <section id="portfolio">
   <div class="inner">
-    <div class="portfolio-head">
-      <div>
-        <p class="eyebrow light fu">Results</p>
-        <h2 class="sh on-dark fu">Results We Drive for Healthcare Practices</h2>
-      </div>
-      <p class="sub on-dark fu">Real outcomes from healthcare marketing work &mdash; patient inquiries, website performance, and consistent lead generation for specialty practices.</p>
-    </div>
-    <div class="proof-grid">
-      <article class="proof-card fu"><div><div class="proof-kicker">Patient Inquiries</div><div class="proof-number">+400%</div><div class="proof-label">Increase in 90 days</div></div><p class="proof-note">Increased patient inquiries for specialty practices within the first 90 days of launching targeted campaigns.</p></article>
-      <article class="proof-card fu"><div><div class="proof-kicker">Website</div><div class="proof-number">&#10003;</div><div class="proof-label">High-converting healthcare websites</div></div><p class="proof-note">Built high-converting websites for specialty clinics &mdash; optimized for trust, mobile performance, and patient inquiry.</p></article>
-      <article class="proof-card fu"><div><div class="proof-kicker">Lead Flow</div><div class="proof-number">Consistent</div><div class="proof-label">Inbound patient leads</div></div><p class="proof-note">Helped practices generate consistent inbound leads through SEO, paid ads, and conversion-focused content.</p></article>
+    <p class="eyebrow fu">How It Works</p>
+    <h2 class="sh fu">Simple enough that you'll actually use it</h2>
+    <div class="process-grid fu" style="margin-top:3rem">
+      <article class="process-step fu">
+        <span>1</span>
+        <h3>We learn your practice</h3>
+        <p>Procedures, patients, providers - we do a deep dive before writing a single word.</p>
+      </article>
+      <article class="process-step fu">
+        <span>2</span>
+        <h3>Monthly content, delivered on time</h3>
+        <p>Captions, blog posts, and video briefs arrive before your posting schedule starts.</p>
+      </article>
+      <article class="process-step fu">
+        <span>3</span>
+        <h3>You approve, we post</h3>
+        <p>Quick review, one round of edits, then it goes live. No back-and-forth marathons.</p>
+      </article>
+      <article class="process-step fu">
+        <span>4</span>
+        <h3>Monthly reporting</h3>
+        <p>You see exactly what's working - reach, engagement, top posts - every single month.</p>
+      </article>
     </div>
   </div>
 </section>
