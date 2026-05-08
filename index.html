@@ -355,6 +355,11 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 .faq-item{padding:2rem 0;border-bottom:1px solid rgba(250,248,245,.12)}
 .faq-q{font-family:var(--font-heading);font-size:1.2rem;color:var(--white);line-height:1.3;margin-bottom:.8rem}
 .faq-a{font-size:.9rem;line-height:1.8;color:var(--text-muted-dark)}
+.stats-bar{background:var(--white);border-top:1px solid rgba(58,107,138,.12);border-bottom:1px solid rgba(58,107,138,.12);padding:2.2rem 0}
+.stats-bar .inner{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:1rem}
+.stat-num{font-family:var(--font-heading);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:var(--black);line-height:1}
+.stat-label{font-size:.78rem;font-weight:400;color:rgba(17,17,17,.55);margin-top:.35rem;letter-spacing:.04em}
+@media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
 </style>
 <script type="application/ld+json">
 {
@@ -417,6 +422,24 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 </section>
 
 <!-- STRATEGIC INSIGHT -->
+<!-- STATS BAR -->
+<section class="stats-bar fu">
+  <div class="inner">
+    <div>
+      <div class="stat-num">2M+</div>
+      <div class="stat-label">views on client content so far this year</div>
+    </div>
+    <div>
+      <div class="stat-num">IR, Vascular &amp; Brain Health</div>
+      <div class="stat-label">specialty niches we know inside out</div>
+    </div>
+    <div>
+      <div class="stat-num">All-in-one</div>
+      <div class="stat-label">social, blogs, video, web &amp; email</div>
+    </div>
+  </div>
+</section>
+
 <section id="visibility" class="insight-section">
   <div class="inner insight-grid">
     <div>
