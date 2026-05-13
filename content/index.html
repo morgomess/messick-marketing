@@ -664,16 +664,7 @@
       .trim();
   }
 
-  function buildPromptWithRefNote(d, refNote) {
-    const base = buildPrompt(d);
-    if (!refNote) return base;
-    return base.replace(
-      '"image_prompt": Highly detailed Imagen 4 prompt',
-      '"image_prompt": Highly detailed Imagen 4 prompt. IMPORTANT: The user has uploaded a reference image. Visual description of that reference: ' + refNote + '. Use this as inspiration for composition, color palette, style, and mood.'
-    );
-  }
-
-  function buildPrompt(d) {
+  function buildPrompt(d, refNote) {
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
     const imgRules = `Imagen 4 image generation rules:
@@ -721,30 +712,14 @@ ${hashtagsOnly ? '' : '- "caption": full post caption with line breaks, emojis w
 ${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use (avoid oversaturated generic tags like #health or #wellness; choose specific, searchable tags a target patient or referral source would actually search)'}
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical healthcare social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Make it specific and production-ready.` : ''}
-${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${imgRules}` : ''}`;
+${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
   }
 
   async function callWorker(route, body) {
-    // If body contains an image, build messages-array format so the worker
-    // can forward a vision-capable request to the Anthropic API
-    let payload = body;
-    if (route === 'claude' && body.image) {
-      payload = {
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: body.image.media_type, data: body.image.data } },
-              { type: 'text', text: body.prompt }
-            ]
-          }
-        ]
-      };
-    }
     const res = await fetch(`${WORKER}/${route}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(body)
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
@@ -796,24 +771,15 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
     showLoading('Writing caption + hashtags...');
 
     try {
-      // If a reference image is uploaded and we're generating a graphic,
-      // send it to Claude for visual analysis first, then inject the description
-      let refImageNote = '';
+      // Pass the reference image (if any) directly with the generation prompt in one call.
+      // The worker handles vision when image is present; plain text when it isn't.
+      const claudeBody = { prompt: buildPrompt(d, refImageBase64 ? '(see attached reference image)' : '') };
       if (refImageBase64 && selectedType === 'graphic') {
-        try {
-          showLoading('Analyzing reference image...');
-          const analysisResult = await callWorker('claude', {
-            prompt: 'Describe this image concisely in 2-3 sentences focusing on: visual composition, color palette, style/mood, and any key subjects or elements. This description will be used to guide an AI image generator to create a social media graphic inspired by this reference. Be specific and visual only.',
-            image: { data: refImageBase64, media_type: refImageMime }
-          });
-          refImageNote = (analysisResult.text || '').trim();
-          showLoading('Writing caption + hashtags...');
-        } catch(e) {
-          // non-fatal — continue without reference note
-        }
+        claudeBody.image = { data: refImageBase64, media_type: refImageMime };
+        showLoading('Analyzing reference + generating content...');
       }
 
-      const result = await callWorker('claude', { prompt: buildPromptWithRefNote(d, refImageNote) });
+      const result = await callWorker('claude', claudeBody);
       let parsed;
       try {
         parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
