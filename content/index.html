@@ -231,6 +231,44 @@
     .layout { grid-template-columns: 1fr; }
     .panel-right { min-height: 60vh; }
   }
+
+  /* Reference image upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 8px;
+    background: var(--warm-white); padding: 20px 16px;
+    text-align: center; cursor: pointer;
+    transition: all 0.18s; position: relative;
+    min-height: 88px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--steel); background: #eef4f8;
+  }
+  .upload-zone .uz-icon { font-size: 22px; opacity: 0.4; }
+  .upload-zone .uz-label { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .upload-zone .uz-label strong { color: var(--steel); font-weight: 500; }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%; border: none; padding: 0;
+  }
+  .upload-zone.has-image { border-color: var(--steel); background: #eef4f8; }
+  .upload-zone .preview-wrap {
+    width: 100%; display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+  }
+  .upload-zone .preview-img {
+    max-height: 110px; max-width: 100%; border-radius: 6px;
+    object-fit: contain; display: block;
+  }
+  .upload-zone .remove-img {
+    background: var(--black); color: var(--warm-white);
+    border: none; border-radius: 4px; font-family: 'Jost', sans-serif;
+    font-size: 11px; font-weight: 500; padding: 4px 12px;
+    cursor: pointer; letter-spacing: 0.05em; text-transform: uppercase;
+    transition: background 0.18s; position: relative; z-index: 2;
+  }
+  .upload-zone .remove-img:hover { background: #e8533a; }
 </style>
 </head>
 <body>
@@ -338,6 +376,25 @@
             <label>Notes / Topic / Hashtag Hints</label>
             <textarea id="notes" placeholder="e.g. Focus on GAE for knee pain, include #MinimallyInvasive"></textarea>
           </div>
+        </div>
+      </div>
+
+      <!-- Reference image upload -->
+      <div>
+        <div class="section-label">Reference Image <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(optional - graphic type)</span></div>
+        <div class="upload-zone" id="upload-zone"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+          <div id="upload-empty" style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div class="uz-icon">🖼️</div>
+            <div class="uz-label">Drag &amp; drop a screenshot or image here<br><strong>or click to browse</strong></div>
+          </div>
+          <div class="preview-wrap" id="upload-preview" style="display:none;">
+            <img class="preview-img" id="preview-img" src="" alt="Reference" />
+            <button class="remove-img" onclick="removeRefImage(event)">✕ Remove</button>
+          </div>
+          <input type="file" id="ref-image-input" accept="image/*" onchange="handleFileSelect(event)" />
         </div>
       </div>
 
@@ -485,6 +542,48 @@
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
   let generatedImages = [];
+  let refImageBase64 = null;
+  let refImageMime = 'image/png';
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.add('drag-over');
+  }
+  function handleDragLeave(e) {
+    document.getElementById('upload-zone').classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadRefImage(file);
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) loadRefImage(file);
+  }
+  function loadRefImage(file) {
+    refImageMime = file.type || 'image/png';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      refImageBase64 = dataUrl.split(',')[1];
+      document.getElementById('preview-img').src = dataUrl;
+      document.getElementById('upload-empty').style.display = 'none';
+      document.getElementById('upload-preview').style.display = 'flex';
+      document.getElementById('upload-zone').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+  function removeRefImage(e) {
+    e.stopPropagation();
+    refImageBase64 = null;
+    document.getElementById('ref-image-input').value = '';
+    document.getElementById('preview-img').src = '';
+    document.getElementById('upload-empty').style.display = 'flex';
+    document.getElementById('upload-preview').style.display = 'none';
+    document.getElementById('upload-zone').classList.remove('has-image');
+  }
 
   function checkPassword() {
     if (document.getElementById('pw-input').value === PASSWORD) {
@@ -565,6 +664,15 @@
       .trim();
   }
 
+  function buildPromptWithRefNote(d, refNote) {
+    const base = buildPrompt(d);
+    if (!refNote) return base;
+    return base.replace(
+      '"image_prompt": Highly detailed Imagen 4 prompt',
+      '"image_prompt": Highly detailed Imagen 4 prompt. IMPORTANT: The user has uploaded a reference image. Visual description of that reference: ' + refNote + '. Use this as inspiration for composition, color palette, style, and mood.'
+    );
+  }
+
   function buildPrompt(d) {
     const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
 
@@ -617,10 +725,26 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
   }
 
   async function callWorker(route, body) {
+    // If body contains an image, build messages-array format so the worker
+    // can forward a vision-capable request to the Anthropic API
+    let payload = body;
+    if (route === 'claude' && body.image) {
+      payload = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: body.image.media_type, data: body.image.data } },
+              { type: 'text', text: body.prompt }
+            ]
+          }
+        ]
+      };
+    }
     const res = await fetch(`${WORKER}/${route}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
@@ -672,7 +796,24 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
     showLoading('Writing caption + hashtags...');
 
     try {
-      const result = await callWorker('claude', { prompt: buildPrompt(d) });
+      // If a reference image is uploaded and we're generating a graphic,
+      // send it to Claude for visual analysis first, then inject the description
+      let refImageNote = '';
+      if (refImageBase64 && selectedType === 'graphic') {
+        try {
+          showLoading('Analyzing reference image...');
+          const analysisResult = await callWorker('claude', {
+            prompt: 'Describe this image concisely in 2-3 sentences focusing on: visual composition, color palette, style/mood, and any key subjects or elements. This description will be used to guide an AI image generator to create a social media graphic inspired by this reference. Be specific and visual only.',
+            image: { data: refImageBase64, media_type: refImageMime }
+          });
+          refImageNote = (analysisResult.text || '').trim();
+          showLoading('Writing caption + hashtags...');
+        } catch(e) {
+          // non-fatal — continue without reference note
+        }
+      }
+
+      const result = await callWorker('claude', { prompt: buildPromptWithRefNote(d, refImageNote) });
       let parsed;
       try {
         parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
