@@ -709,7 +709,7 @@ Respond with a single valid JSON object and nothing else — no markdown, no bac
 
 Required JSON keys:
 ${hashtagsOnly ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags.'}
-${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand's specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
+${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
 ${selectedType === 'reel' ? `- "reel_script": complete 30-60 second reel script with HOOK (first 3 seconds), scene-by-scene breakdown with on-screen text and voiceover notes, and closing CTA
 - "reel_video_prompt": detailed text-to-video prompt optimized for a 9:16 vertical social media reel — describe visuals, camera movement, pacing, mood, and brand colors. Match the brand's industry and audience. Make it specific and production-ready.` : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
