@@ -227,6 +227,25 @@
   .graphic-edit-panel .apply-btn:hover { background: var(--steel-light); }
   .graphic-edit-panel .apply-btn:disabled { background: #aaa; cursor: not-allowed; }
 
+  /* Brand Kit Selector */
+  .brand-kit-row {
+    display: flex; gap: 8px; align-items: flex-end;
+  }
+  .brand-kit-row .form-group { flex: 1; }
+  .kit-badge {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--steel); color: white;
+    padding: 2px 7px; border-radius: 3px; margin-left: 6px;
+    vertical-align: middle;
+  }
+  .custom-fields-note {
+    font-size: 11px; color: var(--steel); background: #eef4f8;
+    border-radius: 5px; padding: 7px 12px; line-height: 1.5;
+    display: none;
+  }
+  .custom-fields-note.visible { display: block; }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .panel-right { min-height: 60vh; }
@@ -317,6 +336,30 @@
       <div>
         <div class="section-label">Brand Details</div>
         <div style="display:flex;flex-direction:column;gap:12px;">
+
+          <!-- Brand Kit Selector -->
+          <div class="form-group">
+            <label>Brand Kit <span class="kit-badge">Presets</span></label>
+            <select id="brand-kit-select" onchange="applyBrandKit(this.value)">
+              <option value="">— Select a brand kit —</option>
+              <optgroup label="Messick Clients">
+                <option value="ecco">ECCO Medical</option>
+                <option value="jvi">Joint &amp; Vascular Institute (JVI)</option>
+                <option value="tvi">Texas Vascular Institute (TVI)</option>
+                <option value="svv">Sound Vascular &amp; Vein (SVV)</option>
+                <option value="desert">Desert Cardiovascular</option>
+                <option value="drkelli">Dr. Kelli / Brain Talk Foundation</option>
+              </optgroup>
+              <optgroup label="My Brands">
+                <option value="messick">Messick Marketing</option>
+                <option value="virtueasy">Virtueasy</option>
+              </optgroup>
+              <option value="custom">✏️ Custom / New Brand</option>
+            </select>
+          </div>
+          <div class="custom-fields-note" id="custom-note">Fields are editable — fill in your custom brand details below.</div>
+
+          <!-- Brand fields (auto-filled by kit or manually editable) -->
           <div class="form-row">
             <div class="form-group">
               <label>Brand Name <span class="req">*</span></label>
@@ -544,6 +587,109 @@
   let generatedImages = [];
   let refImageBase64 = null;
   let refImageMime = 'image/png';
+
+  // ─── Brand Kit Presets ───────────────────────────────────────────────────
+  const BRAND_KITS = {
+    ecco: {
+      name: 'ECCO Medical',
+      voice: 'Professional, trustworthy, patient-focused',
+      style: 'Deep navy #1a2f4e, white, gold accent #c9a84c — clean clinical with warm undertones, Lato / Merriweather',
+      logo: '',
+      audience: 'Adults 45-70 with vascular or pain conditions',
+      industry: 'Interventional Radiology / Vascular Medicine',
+      tone: 'Empathetic'
+    },
+    jvi: {
+      name: 'Joint & Vascular Institute',
+      voice: 'Reassuring, expert, approachable',
+      style: 'Navy blue #003366, white, steel blue accent — modern clinical, clean sans-serif',
+      logo: '',
+      audience: 'Adults with joint pain, varicose veins, or vascular conditions',
+      industry: 'Interventional Radiology / Orthopedic & Vascular',
+      tone: 'Empathetic'
+    },
+    tvi: {
+      name: 'Texas Vascular Institute',
+      voice: 'Confident, knowledgeable, caring',
+      style: 'Deep teal #005b6e, white, warm gold — strong and modern, bold sans-serif',
+      logo: '',
+      audience: 'Texas adults 40-70 with vascular or wound care needs',
+      industry: 'Vascular & Wound Care',
+      tone: 'Professional'
+    },
+    svv: {
+      name: 'Sound Vascular & Vein',
+      voice: 'Friendly, expert, community-focused',
+      style: 'Forest green #2d6a4f, white, light sage — approachable and natural, clean modern fonts',
+      logo: '',
+      audience: 'Pacific Northwest adults with vein or vascular concerns',
+      industry: 'Vascular & Vein Medicine',
+      tone: 'Empathetic'
+    },
+    desert: {
+      name: 'Desert Cardiovascular',
+      voice: 'Expert, calm, reassuring',
+      style: 'Warm terracotta #c1440e, sand white, dark brown — Southwest-inspired warmth, clean serif',
+      logo: '',
+      audience: 'Arizona adults 50+ with cardiovascular or vascular concerns',
+      industry: 'Cardiovascular / Interventional Cardiology',
+      tone: 'Professional'
+    },
+    drkelli: {
+      name: 'Dr. Kelli / Brain Talk Foundation',
+      voice: 'Empowering, educational, warm',
+      style: 'Brand green #3a7d44, brain blue #5b8cbf, purple accent — vibrant and approachable, modern humanist fonts',
+      logo: '',
+      audience: 'Adults seeking brain health, mental wellness, and neuroscience education',
+      industry: 'Brain Health / Neuroscience Education',
+      tone: 'Educational'
+    },
+    messick: {
+      name: 'Messick Marketing',
+      voice: 'Direct, strategic, confident — no fluff',
+      style: 'Black #111111, warm white #faf8f5, steel blue #3a6b8a — refined and minimal, Dancing Script / Cormorant Garamond / Jost',
+      logo: '',
+      audience: 'Interventional radiology and vascular practice owners and administrators',
+      industry: 'Healthcare Content Marketing Agency',
+      tone: 'Professional'
+    },
+    virtueasy: {
+      name: 'Virtueasy',
+      voice: 'Encouraging, practical, conversational — built for VAs starting out',
+      style: 'Warm cream, dusty rose accent, charcoal — clean and friendly, modern sans-serif',
+      logo: '',
+      audience: 'Aspiring and early-career virtual assistants',
+      industry: 'Virtual Assistant Education & Digital Products',
+      tone: 'Motivational'
+    }
+  };
+
+  function applyBrandKit(kitKey) {
+    const note = document.getElementById('custom-note');
+    if (!kitKey || kitKey === 'custom') {
+      // Custom — clear fields and let user type freely
+      document.getElementById('brand-name').value = '';
+      document.getElementById('brand-voice').value = '';
+      document.getElementById('brand-style').value = '';
+      document.getElementById('logo-url').value = '';
+      document.getElementById('audience').value = '';
+      document.getElementById('industry').value = '';
+      document.getElementById('tone').value = '';
+      note.classList.toggle('visible', kitKey === 'custom');
+      return;
+    }
+    const kit = BRAND_KITS[kitKey];
+    if (!kit) return;
+    document.getElementById('brand-name').value  = kit.name;
+    document.getElementById('brand-voice').value = kit.voice;
+    document.getElementById('brand-style').value = kit.style;
+    document.getElementById('logo-url').value    = kit.logo || '';
+    document.getElementById('audience').value    = kit.audience || '';
+    document.getElementById('industry').value    = kit.industry || '';
+    if (kit.tone) document.getElementById('tone').value = kit.tone;
+    note.classList.remove('visible');
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   function handleDragOver(e) {
     e.preventDefault();
