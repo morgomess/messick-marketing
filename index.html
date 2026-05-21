@@ -376,12 +376,12 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 .stat-num{font-family:var(--font-heading);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:var(--black);line-height:1}
 .stat-label{font-size:.78rem;font-weight:400;color:rgba(17,17,17,.55);margin-top:.35rem;letter-spacing:.04em}
 .stat-ticker-col{display:flex;flex-direction:column;align-items:center;text-align:center}
-.stat-ticker-wrap{overflow:hidden;width:100%;max-width:300px;height:2rem;position:relative;margin:0 auto}
+.stat-ticker-wrap{overflow:hidden;width:100%;max-width:380px;height:2rem;position:relative;margin:0 auto}
 .stat-ticker-track{display:flex;flex-direction:column;animation:tickerScroll 14s linear infinite}
-.stat-ticker-track span{height:2rem;line-height:2rem;font-family:var(--font-heading);font-size:clamp(1rem,2vw,1.4rem);font-weight:600;color:var(--black);display:flex;align-items:center;justify-content:center;gap:.45rem;white-space:nowrap}
+.stat-ticker-track span{height:2rem;line-height:2rem;font-family:var(--font-heading);font-size:clamp(.85rem,1.6vw,1.2rem);font-weight:600;color:var(--black);display:flex;align-items:center;justify-content:center;gap:.45rem;white-space:nowrap;overflow:visible}
 .stat-ticker-track span svg{stroke:var(--steel);flex-shrink:0}
 @keyframes tickerScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
-@media(max-width:580px){.stat-ticker-wrap{max-width:220px}.stat-ticker-track span{font-size:.95rem}}
+@media(max-width:580px){.stat-ticker-wrap{max-width:100%}.stat-ticker-track span{font-size:.82rem}}
 @media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
 </style>
 <script type="application/ld+json">
