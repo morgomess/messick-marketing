@@ -397,34 +397,42 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 @keyframes tickerScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
 @media(max-width:580px){.stat-ticker-wrap{max-width:100%}.stat-ticker-track span{font-size:.82rem}}
 @media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
-/* ── 90-DAY STRATEGY SHOWCASE ── */
-.strategy-section{background:var(--white);padding:100px 5%;border-top:1px solid var(--gray-mid)}
+/* ── STRATEGY SECTION ── */
+.strategy-section{background:var(--black);padding:100px 5%}
 .strategy-wrap{max-width:1100px;margin:0 auto}
-.strategy-kicker{display:inline-flex;align-items:center;gap:.5rem;font-size:.68rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);background:rgba(58,107,138,.07);border:1px solid rgba(58,107,138,.18);border-radius:2px;padding:.35rem .85rem;margin-bottom:1.2rem}
-.strategy-headline{font-family:var(--font-heading);font-size:clamp(1.7rem,3vw,2.6rem);font-weight:300;line-height:1.18;color:var(--black);max-width:780px;margin-bottom:.9rem}
-.strategy-headline em{font-style:italic;color:var(--steel)}
-.strategy-sub{font-size:.96rem;color:var(--text-muted-light);line-height:1.8;max-width:680px;margin-bottom:.6rem}
-.strategy-note{font-size:.82rem;color:var(--text-muted-light);line-height:1.75;max-width:680px;margin-bottom:2.6rem;padding:.9rem 1.1rem;border-left:2px solid var(--steel-pale);background:var(--gray)}
-.strategy-channels{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.8rem}
-.s-chip{display:inline-flex;align-items:center;gap:.38rem;font-size:.72rem;font-weight:500;letter-spacing:.06em;color:var(--steel);background:rgba(58,107,138,.07);border:1px solid rgba(58,107,138,.2);border-radius:2px;padding:.3rem .75rem}
-.s-chip svg{stroke:var(--steel);width:12px;height:12px;flex-shrink:0}
-.strategy-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-bottom:2.4rem}
-.s-phase{border:1px solid var(--gray-mid);border-radius:6px;padding:1.8rem 1.5rem;position:relative;background:var(--white)}
-.s-phase-bar{height:3px;border-radius:2px;margin-bottom:1.4rem}
-.s-phase:nth-child(1) .s-phase-bar{background:var(--steel)}
-.s-phase:nth-child(2) .s-phase-bar{background:var(--steel-light)}
-.s-phase:nth-child(3) .s-phase-bar{background:#d4e8f2}
-.s-phase-weeks{font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--steel);margin-bottom:.55rem}
-.s-phase-title{font-family:var(--font-heading);font-size:1.05rem;font-weight:600;color:var(--black);margin-bottom:1rem;line-height:1.25}
-.s-phase ul{list-style:none;display:flex;flex-direction:column;gap:.55rem}
-.s-phase ul li{font-size:.83rem;color:var(--text-muted-light);padding-left:1rem;position:relative;line-height:1.65}
-.s-phase ul li::before{content:'';position:absolute;left:0;top:.62rem;width:5px;height:5px;border-radius:50%;background:var(--steel)}
-.s-beyond{background:var(--black);border-radius:6px;padding:1.8rem 2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;margin-bottom:2.4rem}
-.s-beyond-text h4{font-family:var(--font-heading);font-size:1rem;color:var(--white);margin-bottom:.4rem}
-.s-beyond-text p{font-size:.84rem;color:var(--text-muted-dark);line-height:1.7;max-width:680px}
+.strategy-top{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:end;margin-bottom:3.5rem}
+.strategy-headline{font-family:var(--font-heading);font-size:clamp(2rem,3.5vw,3rem);font-weight:300;line-height:1.15;color:var(--white)}
+.strategy-headline em{font-style:italic;color:var(--steel-light)}
+.strategy-right p{font-size:.9rem;color:var(--text-muted-dark);line-height:1.85}
+/* timeline */
+.s-timeline{display:flex;flex-direction:column;gap:0;position:relative;margin-bottom:3rem}
+.s-timeline::before{content:'';position:absolute;left:22px;top:0;bottom:0;width:1px;background:rgba(255,255,255,.08)}
+.s-step{display:grid;grid-template-columns:44px 1fr;gap:1.4rem;padding:2rem 0;position:relative}
+.s-step:first-child{padding-top:.5rem}
+.s-dot{width:44px;height:44px;border-radius:50%;border:1px solid rgba(90,154,184,.3);background:rgba(58,107,138,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .3s,border-color .3s}
+.s-step.active .s-dot{background:var(--steel);border-color:var(--steel)}
+.s-dot span{font-family:var(--font-heading);font-size:.72rem;font-weight:700;color:var(--steel-light)}
+.s-step.active .s-dot span{color:var(--white)}
+.s-content{padding-top:.55rem}
+.s-label{font-size:.63rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);opacity:.6;margin-bottom:.3rem}
+.s-title{font-family:var(--font-heading);font-size:1.1rem;color:var(--white);margin-bottom:.5rem;line-height:1.2}
+.s-desc{font-size:.84rem;color:var(--text-muted-dark);line-height:1.75}
+/* channel row */
+.s-channels{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
+.s-chip{font-size:.68rem;font-weight:500;letter-spacing:.05em;color:rgba(90,154,184,.8);background:rgba(90,154,184,.07);border:1px solid rgba(90,154,184,.15);border-radius:2px;padding:.22rem .6rem}
+/* progress bar */
+.s-progress-wrap{margin-bottom:3rem}
+.s-progress-label{display:flex;justify-content:space-between;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:.6rem}
+.s-progress-track{height:2px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.s-progress-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--steel),var(--steel-light));width:0;transition:width 1.4s cubic-bezier(.25,.46,.45,.94)}
+.s-progress-fill.animate{width:100%}
+/* beyond */
+.s-beyond{border-top:1px solid rgba(255,255,255,.07);padding-top:2.2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;margin-bottom:2.4rem}
+.s-beyond p{font-size:.88rem;color:var(--text-muted-dark);line-height:1.8;max-width:620px}
+.s-beyond p em{color:var(--steel-light);font-style:normal}
 .strategy-cta{display:flex;gap:1rem;flex-wrap:wrap}
-@media(max-width:860px){.strategy-phases{grid-template-columns:1fr 1fr}}
-@media(max-width:580px){.strategy-phases{grid-template-columns:1fr}.s-beyond{flex-direction:column;gap:1rem}}
+@media(max-width:860px){.strategy-top{grid-template-columns:1fr;gap:1.8rem}}
+@media(max-width:580px){.s-timeline::before{left:18px}.s-dot{width:36px;height:36px}.s-step{grid-template-columns:36px 1fr;gap:1rem}}
 </style>
 <script type="application/ld+json">
 {
@@ -587,82 +595,72 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
   </div>
 </section>
 
-<!-- 90-DAY STRATEGY SHOWCASE -->
+<!-- STRATEGY SECTION -->
 <section class="strategy-section">
   <div class="strategy-wrap">
 
-    <span class="strategy-kicker fu">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      What a full strategy looks like
-    </span>
-
-    <h2 class="strategy-headline fu">90 days. Every channel. <em>One cohesive story.</em></h2>
-    <p class="strategy-sub fu">Here&rsquo;s how we launch a new specialty practice from scratch - building brand voice, platform presence, and patient-facing content all at once, so nothing feels disconnected.</p>
-    <div class="strategy-note fu">This represents a composite of how we approach new client onboarding. Real engagements are scoped to your practice, your procedures, and your market.</div>
-
-    <div class="strategy-channels fu">
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Website</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Google Business Profile</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>Facebook</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>Instagram</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>YouTube</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Blog</span>
-      <span class="s-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</span>
+    <div class="strategy-top fu">
+      <div>
+        <p class="eyebrow light" style="margin-bottom:.9rem">How We Launch</p>
+        <h2 class="strategy-headline">90 days. Every channel. <em>One voice.</em></h2>
+      </div>
+      <div class="strategy-right">
+        <p>We build a single core message and push it everywhere your patients look - socials, blog, GBP, YouTube, email. Nothing disconnected. Nothing wasted.</p>
+      </div>
     </div>
 
-    <div class="strategy-phases fu">
+    <!-- Animated progress bar -->
+    <div class="s-progress-wrap fu">
+      <div class="s-progress-label"><span>Day 1</span><span>Day 90</span></div>
+      <div class="s-progress-track"><div class="s-progress-fill" id="stratProgress"></div></div>
+    </div>
 
-      <div class="s-phase">
-        <div class="s-phase-bar"></div>
-        <div class="s-phase-weeks">Days 1 – 30</div>
-        <div class="s-phase-title">Foundation &amp; Brand Voice</div>
-        <ul>
-          <li>Define 3 core content themes tied to your highest-value procedures</li>
-          <li>Audit and optimize Google Business Profile</li>
-          <li>Write foundational website copy and service-line pages</li>
-          <li>Build social profile templates and visual identity standards</li>
-          <li>Publish month one content calendar across all platforms</li>
-        </ul>
+    <!-- Timeline steps -->
+    <div class="s-timeline">
+
+      <div class="s-step active fu">
+        <div class="s-dot"><span>01</span></div>
+        <div class="s-content">
+          <div class="s-label">Days 1 – 30</div>
+          <div class="s-title">Foundation &amp; Voice</div>
+          <div class="s-desc">Core messaging, brand standards, and platform setup. Every channel starts telling the same story from day one.</div>
+          <div class="s-channels">
+            <span class="s-chip">Website</span><span class="s-chip">GBP</span><span class="s-chip">Socials</span><span class="s-chip">Blog</span>
+          </div>
+        </div>
       </div>
 
-      <div class="s-phase">
-        <div class="s-phase-bar"></div>
-        <div class="s-phase-weeks">Days 31 – 60</div>
-        <div class="s-phase-title">Content Velocity</div>
-        <ul>
-          <li>Launch video series - short-form Reels and long-form YouTube</li>
-          <li>Publish first blog posts optimized for local and procedure-specific search</li>
-          <li>Roll out patient education email sequence</li>
-          <li>Cross-post GBP updates aligned with social themes</li>
-          <li>Begin comment moderation and community engagement</li>
-        </ul>
+      <div class="s-step fu">
+        <div class="s-dot"><span>02</span></div>
+        <div class="s-content">
+          <div class="s-label">Days 31 – 60</div>
+          <div class="s-title">Content &amp; Video</div>
+          <div class="s-desc">Short-form Reels, long-form YouTube, blog posts, and email sequences all launch - built around the same 3 core themes.</div>
+          <div class="s-channels">
+            <span class="s-chip">YouTube</span><span class="s-chip">Instagram</span><span class="s-chip">Facebook</span><span class="s-chip">Email</span>
+          </div>
+        </div>
       </div>
 
-      <div class="s-phase">
-        <div class="s-phase-bar"></div>
-        <div class="s-phase-weeks">Days 61 – 90</div>
-        <div class="s-phase-title">Amplify &amp; Refine</div>
-        <ul>
-          <li>Analyze top-performing content and double down</li>
-          <li>Add AI-assisted patient FAQ content to website and GBP</li>
-          <li>Build out YouTube channel with procedure explainer videos</li>
-          <li>Month three reporting - reach, engagement, search impressions</li>
-          <li>Present Q2 strategy based on what&rsquo;s gaining traction</li>
-        </ul>
+      <div class="s-step fu">
+        <div class="s-dot"><span>03</span></div>
+        <div class="s-content">
+          <div class="s-label">Days 61 – 90</div>
+          <div class="s-title">Amplify &amp; Layer</div>
+          <div class="s-desc">AI search optimization, procedure explainers, and deeper video production compound what&rsquo;s already working. Then we build Q2.</div>
+          <div class="s-channels">
+            <span class="s-chip">AI Search</span><span class="s-chip">YouTube</span><span class="s-chip">GBP</span><span class="s-chip">Reporting</span>
+          </div>
+        </div>
       </div>
 
     </div>
 
     <div class="s-beyond fu">
-      <div class="s-beyond-text">
-        <h4>And this is just the start.</h4>
-        <p>Budget and goals permitting, we layer in paid amplification, podcast guesting, referring physician outreach content, AI search optimization, and deeper video production - all running the same core messaging so your brand compounds over time, not resets each month.</p>
+      <p>Budget and goals permitting, we layer in <em>paid amplification, podcast content, referring physician outreach, and deeper video</em> - all running the same core message so your brand compounds, not resets.</p>
+      <div class="strategy-cta">
+        <a href="#contact" class="btn btn-steel">Build your strategy</a>
       </div>
-    </div>
-
-    <div class="strategy-cta fu">
-      <a href="#contact" class="btn btn-steel">Build your strategy</a>
-      <a href="#process" class="btn btn-ink">See our process</a>
     </div>
 
   </div>
@@ -1067,6 +1065,17 @@ document.getElementById('testiNext').addEventListener('click', () => showTesti(c
 setInterval(() => showTesti(cur + 1), 6000);
 
 // â”€â”€ CONTACT FORM â”€â”€
+// Strategy progress bar animation
+var progressEl = document.getElementById('stratProgress');
+if (progressEl) {
+  var progObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { progressEl.classList.add('animate'); progObs.disconnect(); }
+    });
+  }, { threshold: 0.5 });
+  progObs.observe(progressEl);
+}
+
 // Counter animation for 2M+
 function animateCounter(el, target, duration) {
   var start = 0;
