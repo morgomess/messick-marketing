@@ -410,12 +410,13 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 /* timeline */
 .s-timeline{display:flex;flex-direction:column;gap:0;position:relative;margin-bottom:3rem}
 .s-timeline::before{content:'';position:absolute;left:22px;top:0;bottom:0;width:1px;background:rgba(0,0,0,.1)}
-.s-step{display:grid;grid-template-columns:44px 1fr;gap:1.4rem;padding:2rem 0;position:relative}
+.s-step{display:grid;grid-template-columns:44px 1fr;gap:1.4rem;padding:2rem 0;position:relative;opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.s-step.s-revealed{opacity:1;transform:none}
 .s-step:first-child{padding-top:.5rem}
-.s-dot{width:44px;height:44px;border-radius:50%;border:1px solid rgba(58,107,138,.35);background:rgba(58,107,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .3s,border-color .3s}
-.s-step.active .s-dot{background:var(--steel);border-color:var(--steel)}
+.s-dot{width:44px;height:44px;border-radius:50%;border:1px solid rgba(58,107,138,.35);background:rgba(58,107,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .4s,border-color .4s}
+.s-step.active .s-dot,.s-step.s-revealed .s-dot{background:var(--steel);border-color:var(--steel)}
 .s-dot span{font-family:var(--font-heading);font-size:.72rem;font-weight:700;color:var(--steel)}
-.s-step.active .s-dot span{color:var(--white)}
+.s-step.active .s-dot span,.s-step.s-revealed .s-dot span{color:var(--white)}
 .s-content{padding-top:.55rem}
 .s-label{font-size:.63rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);opacity:.65;margin-bottom:.3rem}
 .s-title{font-family:var(--font-heading);font-size:1.1rem;color:var(--black);margin-bottom:.5rem;line-height:1.2}
@@ -475,6 +476,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <li><a href="#services">Systems</a></li>
     <li><a href="#portfolio">Proof</a></li>
     <li><a href="#process">Process</a></li>
+    <li><a href="/blog">Blog</a></li>
     <li><a href="#contact" class="nav-cta">Growth Assessment</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menu">
@@ -619,7 +621,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <!-- Timeline steps -->
     <div class="s-timeline">
 
-      <div class="s-step active fu">
+      <div class="s-step">
         <div class="s-dot"><span>01</span></div>
         <div class="s-content">
           <div class="s-label">Days 1 – 30</div>
@@ -628,7 +630,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
         </div>
       </div>
 
-      <div class="s-step fu">
+      <div class="s-step">
         <div class="s-dot"><span>02</span></div>
         <div class="s-content">
           <div class="s-label">Days 31 – 60</div>
@@ -637,7 +639,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
         </div>
       </div>
 
-      <div class="s-step fu">
+      <div class="s-step">
         <div class="s-dot"><span>03</span></div>
         <div class="s-content">
           <div class="s-label">Days 61 – 90</div>
@@ -966,16 +968,25 @@ document.getElementById('testiNext').addEventListener('click', () => showTesti(c
 setInterval(() => showTesti(cur + 1), 6000);
 
 // â”€â”€ CONTACT FORM â”€â”€
-// Strategy progress bar animation
-var progressEl = document.getElementById('stratProgress');
-if (progressEl) {
-  var progObs = new IntersectionObserver(function(entries) {
+// 90-day step reveal — each step fades in as it scrolls into view,
+// progress bar increments by 1/3 per revealed step
+(function() {
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.s-step'));
+  var fill  = document.getElementById('stratProgress');
+  if (!steps.length) return;
+  var count = 0;
+  var io = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) {
-      if (e.isIntersecting) { progressEl.classList.add('animate'); progObs.disconnect(); }
+      if (!e.isIntersecting) return;
+      e.target.classList.add('s-revealed');
+      count++;
+      var pct = (count / steps.length) * 100;
+      setTimeout(function() { if (fill) fill.style.width = pct + '%'; }, 120);
+      io.unobserve(e.target);
     });
-  }, { threshold: 0.5 });
-  progObs.observe(progressEl);
-}
+  }, { threshold: 0.4, rootMargin: '0px 0px -8% 0px' });
+  steps.forEach(function(s) { io.observe(s); });
+})();
 
 // Counter animation for 2M+
 function animateCounter(el, target, duration) {
