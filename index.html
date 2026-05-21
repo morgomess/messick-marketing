@@ -375,6 +375,13 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 .stats-bar .inner{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:1rem}
 .stat-num{font-family:var(--font-heading);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:var(--black);line-height:1}
 .stat-label{font-size:.78rem;font-weight:400;color:rgba(17,17,17,.55);margin-top:.35rem;letter-spacing:.04em}
+.stat-ticker-col{display:flex;flex-direction:column;align-items:center;text-align:center}
+.stat-ticker-wrap{overflow:hidden;width:100%;max-width:300px;height:2rem;position:relative;margin:0 auto}
+.stat-ticker-track{display:flex;flex-direction:column;animation:tickerScroll 14s linear infinite}
+.stat-ticker-track span{height:2rem;line-height:2rem;font-family:var(--font-heading);font-size:clamp(1rem,2vw,1.4rem);font-weight:600;color:var(--black);display:flex;align-items:center;justify-content:center;gap:.45rem;white-space:nowrap}
+.stat-ticker-track span svg{stroke:var(--steel);flex-shrink:0}
+@keyframes tickerScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+@media(max-width:580px){.stat-ticker-wrap{max-width:220px}.stat-ticker-track span{font-size:.95rem}}
 @media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
 </style>
 <script type="application/ld+json">
@@ -442,12 +449,31 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 <section class="stats-bar fu">
   <div class="inner">
     <div>
-      <div class="stat-num">2M+</div>
+      <div class="stat-num" id="stat-views">0</div>
       <div class="stat-label">views on client content so far this year</div>
     </div>
-    <div>
-      <div class="stat-num">IR, Vascular &amp; Brain Health</div>
-      <div class="stat-label">specialty niches we know inside out</div>
+    <div class="stat-ticker-col">
+      <div class="stat-ticker-wrap">
+        <div class="stat-ticker-track" id="statTicker">
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg> Interventional Radiology</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Vascular Specialists</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Vein Clinics</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> Women's Health</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> OBL / MSO Groups</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Multi-Location Practices</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg> PT / OT / SLP</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Brain Health</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8l4 4-4 4"/></svg> Interventional Radiology</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Vascular Specialists</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Vein Clinics</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> Women's Health</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> OBL / MSO Groups</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Multi-Location Practices</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg> PT / OT / SLP</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Brain Health</span>
+        </div>
+      </div>
+      <div class="stat-label">specialty practices we serve</div>
     </div>
     <div>
       <div class="stat-num">All-in-one</div>
@@ -870,6 +896,30 @@ document.getElementById('testiNext').addEventListener('click', () => showTesti(c
 setInterval(() => showTesti(cur + 1), 6000);
 
 // â”€â”€ CONTACT FORM â”€â”€
+// Counter animation for 2M+
+function animateCounter(el, target, duration) {
+  var start = 0;
+  var step = target / (duration / 16);
+  var timer = setInterval(function() {
+    start += step;
+    if (start >= target) { start = target; clearInterval(timer); }
+    var display = (start >= 1000000) ? (start/1000000).toFixed(1) + 'M+' : Math.round(start).toLocaleString();
+    el.textContent = display;
+  }, 16);
+}
+var counterEl = document.getElementById('stat-views');
+if (counterEl) {
+  var counterObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        animateCounter(counterEl, 2000000, 1800);
+        counterObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.4 });
+  counterObserver.observe(counterEl);
+}
+
 document.getElementById('contactForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn = document.getElementById('cf-submit');
