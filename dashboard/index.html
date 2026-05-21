@@ -669,6 +669,55 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
   .picker-respin-btn { font-size: 0.68rem; padding: 12px 12px; }
 }
 
+/* ── SUBTASKS ── */
+.subtask-toggle {
+  background: none; border: none; color: var(--text-light);
+  font-size: 0.72rem; cursor: pointer; padding: 2px 5px;
+  letter-spacing: 0.04em; transition: color 0.15s; flex-shrink: 0;
+  font-family: 'Jost', sans-serif;
+}
+.subtask-toggle:hover { color: var(--blue); }
+.subtask-panel {
+  width: 100%; border-top: 1px solid var(--border);
+  padding: 10px 14px 8px 42px; background: var(--surface-2);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.subtask-item {
+  display: flex; align-items: center; gap: 8px; font-size: 0.83rem;
+}
+.subtask-check {
+  width: 14px; height: 14px; border: 1.5px solid var(--border);
+  border-radius: 50%; background: transparent; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.subtask-check:hover { border-color: var(--blue); }
+.subtask-check.checked { background: var(--blue); border-color: var(--blue); }
+.subtask-check.checked::after { content: '✓'; color: #fff; font-size: 8px; font-weight: bold; }
+.subtask-text { flex: 1; color: var(--black); line-height: 1.3; }
+.subtask-text.done { text-decoration: line-through; opacity: 0.45; }
+.subtask-del {
+  background: none; border: none; color: var(--text-light); font-size: 1rem;
+  cursor: pointer; padding: 0 3px; opacity: 0; transition: opacity 0.15s, color 0.15s; line-height: 1;
+}
+.subtask-item:hover .subtask-del { opacity: 1; }
+.subtask-del:hover { color: #b83030; }
+.subtask-add-row {
+  display: flex; gap: 6px; margin-top: 4px; align-items: center;
+}
+.subtask-add-row input {
+  flex: 1; padding: 5px 8px; border: 1px solid var(--border);
+  background: var(--surface); font-family: 'Jost', sans-serif;
+  font-size: 0.78rem; outline: none; color: var(--black);
+}
+.subtask-add-row input:focus { border-color: var(--blue); }
+.subtask-add-btn {
+  padding: 5px 10px; background: var(--blue); color: #fff; border: none;
+  font-family: 'Jost', sans-serif; font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.08em; cursor: pointer; transition: background 0.15s;
+}
+.subtask-add-btn:hover { background: var(--blue-light); }
+.subtask-count { font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; }
+
 /* ── BEACH DECORATIONS ── */
 .beach-deco {
   position: fixed; pointer-events: none; z-index: 1; bottom: 0; left: 0; right: 0;
@@ -726,8 +775,8 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
         </div>
 
         <div class="section-header">
-          <span class="section-title">Today's Tasks</span>
-          <button class="add-btn" onclick="toggleAddForm('daily')">+ Add Task</button>
+          <span class="section-title">To-Do List</span>
+          <button class="add-btn" onclick="toggleAddForm('todo')">+ Add Task</button>
         </div>
         <div class="day-label">
           <span id="today-label">Today</span>
@@ -770,19 +819,19 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
           <button class="clear-filters-btn" onclick="clearFilters()">Reset</button>
         </div>
 
-        <div class="add-task-form" id="add-form-daily">
+        <div class="add-task-form" id="add-form-todo">
           <div class="form-row">
-            <input type="text" id="task-input-daily" placeholder="What needs to get done today?">
+            <input type="text" id="task-input-todo" placeholder="What needs to get done?">
           </div>
           <div class="form-row">
             <span class="form-label">Brand</span>
-            <select id="brand-input-daily">
+            <select id="brand-input-todo">
               <option value="messick">Messick Marketing</option>
               <option value="virtueasy">Virtueasy</option>
               <option value="other">Other</option>
             </select>
             <span class="form-label">Priority</span>
-            <select id="priority-input-daily">
+            <select id="priority-input-todo">
               <option value="none">None</option>
               <option value="critical">🔴 Critical</option>
               <option value="high">🟠 High</option>
@@ -790,66 +839,22 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
               <option value="low">🟢 Low</option>
             </select>
             <span class="form-label">Due</span>
-            <input type="date" id="due-input-daily">
+            <input type="date" id="due-input-todo">
             <span class="form-label">Recur</span>
-            <select id="recur-input-daily">
+            <select id="recur-input-todo">
               <option value="none">No</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
             </select>
             <div class="form-btns">
-              <button class="save-btn" onclick="addTask('daily')">Save</button>
-              <button class="cancel-btn" onclick="toggleAddForm('daily')">Cancel</button>
+              <button class="save-btn" onclick="addTask('todo')">Save</button>
+              <button class="cancel-btn" onclick="toggleAddForm('todo')">Cancel</button>
             </div>
           </div>
         </div>
 
-        <div class="task-list" id="daily-tasks"></div>
-
-        <div class="divider"></div>
-
-        <div class="section-header">
-          <span class="section-title">Ongoing / Project Tasks</span>
-          <button class="add-btn" onclick="toggleAddForm('ongoing')">+ Add Task</button>
-        </div>
-
-        <div class="add-task-form" id="add-form-ongoing">
-          <div class="form-row">
-            <input type="text" id="task-input-ongoing" placeholder="Open project, build, or client item...">
-          </div>
-          <div class="form-row">
-            <span class="form-label">Brand</span>
-            <select id="brand-input-ongoing">
-              <option value="messick">Messick Marketing</option>
-              <option value="virtueasy">Virtueasy</option>
-              <option value="other">Other</option>
-            </select>
-            <span class="form-label">Priority</span>
-            <select id="priority-input-ongoing">
-              <option value="none">None</option>
-              <option value="critical">🔴 Critical</option>
-              <option value="high">🟠 High</option>
-              <option value="medium">🔵 Medium</option>
-              <option value="low">🟢 Low</option>
-            </select>
-            <span class="form-label">Due</span>
-            <input type="date" id="due-input-ongoing">
-            <span class="form-label">Recur</span>
-            <select id="recur-input-ongoing">
-              <option value="none">No</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-            <div class="form-btns">
-              <button class="save-btn" onclick="addTask('ongoing')">Save</button>
-              <button class="cancel-btn" onclick="toggleAddForm('ongoing')">Cancel</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="task-list" id="ongoing-tasks"></div>
+        <div class="task-list" id="todo-tasks"></div>
 
       </div> <div id="clients-view" style="display: none;">
         <div class="section-header">
@@ -1087,12 +1092,27 @@ function migrateTasks() {
     if (e.key === 'Enter') addMonthlyItem();
   });
 
-  ['daily','ongoing'].forEach(type => {
-    const tasks = loadTasks(type);
-    let changed = false;
-    tasks.forEach(t => { if (!t.id) { t.id = uid(); changed = true; } });
-    if (changed) { const ids = tasks.filter(t=>t.done===false).map(t=>t.id); saveTasks(type, tasks); }
+  // Migrate daily+ongoing into unified todo list
+  if (!localStorage.getItem('mm_todo_migrated')) {
+    const existing = loadTasks('todo');
+    const existingIds = new Set(existing.map(t => t.id));
+    ['daily','ongoing'].forEach(type => {
+      loadTasks(type).forEach(t => {
+        if (!t.id) t.id = uid();
+        if (!existingIds.has(t.id)) { t.subtasks = t.subtasks||[]; existing.push(t); existingIds.add(t.id); }
+      });
+    });
+    saveTasks('todo', existing);
+    localStorage.setItem('mm_todo_migrated', '1');
+  }
+  // Ensure all todo tasks have ids + subtasks array
+  const todoTasks = loadTasks('todo');
+  let changed = false;
+  todoTasks.forEach(t => {
+    if (!t.id) { t.id = uid(); changed = true; }
+    if (!t.subtasks) { t.subtasks = []; changed = true; }
   });
+  if (changed) saveTasks('todo', todoTasks);
   // Migrate old mm_monthly_tasks into unified this-month list
   const oldTasks = JSON.parse(localStorage.getItem('mm_monthly_tasks') || '[]');
   if (oldTasks.length > 0) {
@@ -1146,7 +1166,7 @@ function handleRecurring() {
     if (e.key === 'Enter') addMonthlyItem();
   });
 
-  ['daily','ongoing'].forEach(type => {
+  ['todo'].forEach(type => {
     const tasks = loadTasks(type);
     let changed = false;
     tasks.forEach(t => {
@@ -1200,6 +1220,9 @@ function saveTasks(type, tasks) {
   localStorage.setItem(`mm_tasks_${type}`, JSON.stringify(tasks));
   scheduleSave();
 }
+// Unified todo list helpers
+function loadTodoTasks() { return loadTasks('todo'); }
+function saveTodoTasks(tasks) { saveTasks('todo', tasks); }
 
 /* ══════════════════════════════════════
    DUE DATE HELPERS
@@ -1278,11 +1301,14 @@ function applyFiltersAndSort(tasks, f) {
    RENDER TASKS
 ══════════════════════════════════════ */
 function renderTasks(type) {
-  const list = document.getElementById(`${type}-tasks`);
+  // unified: always render 'todo'
+  const renderType = (type === 'daily' || type === 'ongoing') ? 'todo' : type;
+  const list = document.getElementById(`${renderType}-tasks`);
+  if (!list) return;
   list.innerHTML = '';
   const f = getFilters();
 
-  if (type === 'daily') {
+  if (renderType === 'todo') {
     const state = getAutoDailyState();
     let autoItems = AUTO_DAILY_TASKS.map((t,i) => ({...t, i}));
     if (f.brand && f.brand !== 'daily') autoItems = [];
@@ -1290,7 +1316,6 @@ function renderTasks(type) {
     if (f.status === 'done')    autoItems = autoItems.filter(t => state[t.i]);
     if (f.status === 'pending') autoItems = autoItems.filter(t => !state[t.i]);
     if (['overdue','due-today','due-week'].includes(f.status)) autoItems = [];
-
     autoItems.forEach(t => {
       const done = !!state[t.i];
       const div = document.createElement('div');
@@ -1306,35 +1331,35 @@ function renderTasks(type) {
     });
   }
 
-  const allTasks = loadTasks(type);
+  const allTasks = loadTasks(renderType);
   let tasks = applyFiltersAndSort(allTasks, f);
 
   if (tasks.length === 0) {
-    if (type !== 'daily' || f.brand || f.priority || f.status) {
-      list.innerHTML += `<div class="empty-state">No tasks match your filters.</div>`;
+    if (renderType !== 'todo' || f.brand || f.priority || f.status) {
+      list.innerHTML += `<div class="empty-state">No tasks yet — add one above.</div>`;
     }
     return;
   }
 
   if (f.sort === 'brand') {
     const groups = {};
-    const order = ['messick','virtueasy','other'];
     tasks.forEach(t => { (groups[t.brand] = groups[t.brand]||[]).push(t); });
-    const brandLabels = { messick:'Messick Marketing', virtueasy:'Virtueasy', other:'Other' };
-    order.filter(b => groups[b]).forEach(brand => {
-      const h = document.createElement('div');
-      h.className = 'brand-group-header';
-      h.textContent = brandLabels[brand] || brand;
-      list.appendChild(h);
-      groups[brand].forEach(t => {
-        const idx = allTasks.findIndex(x => x.id === t.id);
-        list.appendChild(buildTaskEl(type, t, idx));
-      });
+    const seen = new Set();
+    tasks.forEach(t => {
+      if (!seen.has(t.brand)) {
+        seen.add(t.brand);
+        const h = document.createElement('div');
+        h.className = 'brand-group-header';
+        h.textContent = getBrandLabel(t.brand);
+        list.appendChild(h);
+      }
+      const idx = allTasks.findIndex(x => x.id === t.id);
+      list.appendChild(buildTaskEl(renderType, t, idx));
     });
   } else {
     tasks.forEach(t => {
       const idx = allTasks.findIndex(x => x.id === t.id);
-      list.appendChild(buildTaskEl(type, t, idx));
+      list.appendChild(buildTaskEl(renderType, t, idx));
     });
   }
 }
@@ -1345,8 +1370,11 @@ function buildTaskEl(type, t, i) {
   const ds  = dueStatus(t.due);
   const focus = getFocusPins();
   const pinned = focus.some(f => f && f.type===type && f.idx===i);
+  const subs = t.subtasks || [];
+  const subDone = subs.filter(s=>s.done).length;
 
   div.className = `task-item${t.done?' done':''}${pri!=='none'?' pri-'+pri:''}`;
+  div.style.flexWrap = 'wrap';
   div.title = 'Double-click to edit';
 
   let tagsHtml = `<div class="task-tags">`;
@@ -1358,22 +1386,72 @@ function buildTaskEl(type, t, i) {
   }
   tagsHtml += `<span class="brand-pill ${getBrandClass(t.brand)}">${getBrandLabel(t.brand)}</span>`;
   if (t.recur && t.recur !== 'none') tagsHtml += `<span class="recur-icon" title="Recurring ${t.recur}">↻</span>`;
+  if (subs.length > 0) tagsHtml += `<span class="subtask-count">${subDone}/${subs.length} subtasks</span>`;
   tagsHtml += `</div>`;
+
+  const subsPanelId = `subs-${t.id}`;
+  const subsOpen = !!sessionStorage.getItem(subsPanelId);
 
   div.innerHTML = `
     <div class="task-check${t.done?' checked':''}" onclick="toggleTask('${type}',${i})"></div>
     <span class="task-text">${t.text}</span>
     ${tagsHtml}
     <div class="task-actions">
+      <button class="subtask-toggle" title="Subtasks" onclick="toggleSubPanel('${type}',${i},'${t.id}')">${subsOpen?'▲':'▼'} tasks</button>
       <button class="pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin from Top 3':'Pin to Top 3'}" onclick="togglePin('${type}',${i})">◈</button>
       <button class="task-del" onclick="deleteTask('${type}',${i})">×</button>
+    </div>
+    <div class="subtask-panel" id="${subsPanelId}" style="display:${subsOpen?'flex':'none'}; flex-direction:column;">
+      ${subs.map((s,si) => `
+        <div class="subtask-item">
+          <div class="subtask-check${s.done?' checked':''}" onclick="toggleSubtask('${type}',${i},${si})"></div>
+          <span class="subtask-text${s.done?' done':''}">${s.text}</span>
+          <button class="subtask-del" onclick="deleteSubtask('${type}',${i},${si})">×</button>
+        </div>`).join('')}
+      <div class="subtask-add-row">
+        <input type="text" id="sub-input-${t.id}" placeholder="Add subtask..." onkeydown="if(event.key==='Enter') addSubtask('${type}',${i},'${t.id}')">
+        <button class="subtask-add-btn" onclick="addSubtask('${type}',${i},'${t.id}')">+ Add</button>
+      </div>
     </div>`;
 
   div.addEventListener('dblclick', (e) => {
-    if (e.target.classList.contains('task-check') || e.target.classList.contains('task-del') || e.target.classList.contains('pin-btn')) return;
+    const ignore = ['task-check','task-del','pin-btn','subtask-toggle','subtask-check','subtask-del','subtask-add-btn'];
+    if (ignore.some(c => e.target.classList.contains(c))) return;
+    if (e.target.closest('.subtask-panel')) return;
     openTaskEdit(div, type, i, t);
   });
   return div;
+}
+
+function toggleSubPanel(type, i, id) {
+  const key = `subs-${id}`;
+  if (sessionStorage.getItem(key)) sessionStorage.removeItem(key);
+  else sessionStorage.setItem(key, '1');
+  renderAll();
+}
+function addSubtask(type, i, id) {
+  const inp = document.getElementById(`sub-input-${id}`);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  const tasks = loadTasks(type);
+  if (!tasks[i].subtasks) tasks[i].subtasks = [];
+  tasks[i].subtasks.push({ id: uid(), text, done: false });
+  sessionStorage.setItem(`subs-${id}`, '1');
+  saveTasks(type, tasks);
+  renderAll();
+}
+function toggleSubtask(type, i, si) {
+  const tasks = loadTasks(type);
+  tasks[i].subtasks[si].done = !tasks[i].subtasks[si].done;
+  saveTasks(type, tasks);
+  renderAll();
+}
+function deleteSubtask(type, i, si) {
+  const tasks = loadTasks(type);
+  tasks[i].subtasks.splice(si, 1);
+  saveTasks(type, tasks);
+  renderAll();
 }
 
 function openTaskEdit(div, type, i, t) {
@@ -1468,26 +1546,28 @@ function deleteTask(type, i) {
 }
 
 function addTask(type) {
-  const input = document.getElementById(`task-input-${type}`);
+  const t = (type === 'daily' || type === 'ongoing') ? 'todo' : type;
+  const input = document.getElementById(`task-input-${t}`);
   const text  = input.value.trim();
   if (!text) return;
-  const tasks = loadTasks(type);
+  const tasks = loadTasks(t);
   tasks.push({
     id:           uid(),
     text,
-    brand:        document.getElementById(`brand-input-${type}`).value,
-    priority:     document.getElementById(`priority-input-${type}`).value,
-    due:          document.getElementById(`due-input-${type}`).value || null,
-    recur:        document.getElementById(`recur-input-${type}`).value,
+    brand:        document.getElementById(`brand-input-${t}`).value,
+    priority:     document.getElementById(`priority-input-${t}`).value,
+    due:          document.getElementById(`due-input-${t}`).value || null,
+    recur:        document.getElementById(`recur-input-${t}`).value,
     done:         false,
     addedAt:      Date.now(),
+    subtasks:     [],
     recurLastGen: todayStr(),
   });
-  saveTasks(type, tasks);
+  saveTasks(t, tasks);
   input.value = '';
-  document.getElementById(`due-input-${type}`).value = '';
-  document.getElementById(`priority-input-${type}`).value = 'none';
-  document.getElementById(`recur-input-${type}`).value = 'none';
+  document.getElementById(`due-input-${t}`).value = '';
+  document.getElementById(`priority-input-${t}`).value = 'none';
+  document.getElementById(`recur-input-${t}`).value = 'none';
   renderAll();
 }
 
@@ -1500,7 +1580,7 @@ function toggleAddForm(type) {
 }
 
 function clearDoneTasks() {
-  saveTasks('daily', loadTasks('daily').filter(t => !t.done));
+  saveTasks('todo', loadTasks('todo').filter(t => !t.done));
   renderAll();
 }
 
@@ -1752,12 +1832,11 @@ function pickerAccept() {
 function updateCompletionStat() {
   const s = getAutoDailyState();
   const autoDone = Object.values(s).filter(Boolean).length;
-  const daily   = loadTasks('daily');
-  const ongoing = loadTasks('ongoing');
-  const total   = AUTO_DAILY_TASKS.length + daily.length + ongoing.length;
-  const done    = autoDone + daily.filter(t=>t.done).length + ongoing.filter(t=>t.done).length;
-  const el      = document.getElementById('completion-stat');
-  el.textContent = `${done} of ${total} done today`;
+  const todo  = loadTasks('todo');
+  const total = AUTO_DAILY_TASKS.length + todo.length;
+  const done  = autoDone + todo.filter(t=>t.done).length;
+  const el    = document.getElementById('completion-stat');
+  el.textContent = `${done} of ${total} done`;
   el.classList.toggle('all-done', total > 0 && done === total);
 }
 
@@ -2018,7 +2097,7 @@ function populateBrandDropdowns() {
   const clientOptHtml = clients.length
     ? '<optgroup label="Clients">' + clients.map(c => `<option value="client:${c.id}">${c.name}</option>`).join('') + '</optgroup>'
     : '';
-  ['daily','ongoing'].forEach(type => {
+  ['todo'].forEach(type => {
     const sel = document.getElementById('brand-input-' + type);
     if (!sel) return;
     const cur = sel.value;
@@ -2044,8 +2123,7 @@ function populateBrandDropdowns() {
 function renderAll() {
   populateBrandDropdowns();
   renderFocus();
-  renderTasks('daily');
-  renderTasks('ongoing');
+  renderTasks('todo');
   updateCompletionStat();
 }
 
@@ -2303,10 +2381,8 @@ async function init() {
     if (e.key === 'Enter') addMonthlyItem();
   });
 
-  ['daily','ongoing'].forEach(type => {
-    document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTask(type);
-    });
+  document.getElementById('task-input-todo').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTask('todo');
   });
   document.getElementById('picker-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closePicker();
