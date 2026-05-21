@@ -31,7 +31,17 @@
   --p-low:     #1a7a40;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--black); min-height: 100vh; font-size: 16px; }
+body {
+  font-family: 'Jost', sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 80%, rgba(194,168,120,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(160,200,220,0.14) 0%, transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  color: var(--black);
+  min-height: 100vh;
+  font-size: 16px;
+}
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #d8d4cc; }
 ::-webkit-scrollbar-thumb { background: #aab8c2; border-radius: 4px; }
@@ -96,15 +106,26 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 .logout-btn:hover { border-color: var(--blue); color: var(--blue); }
 
 /* LAYOUT */
-.layout { display: grid; grid-template-columns: 1fr 360px; min-height: calc(100vh - 60px); }
+.layout { display: grid; grid-template-columns: 1fr 360px; min-height: calc(100vh - 60px); padding-bottom: 185px; }
 .main-col { padding: 30px 36px; border-right: 1px solid var(--border); background: var(--bg); }
 .side-col { padding: 30px 28px; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); }
 
 /* TODAY FOCUS */
 .focus-section {
-  background: linear-gradient(135deg, #dde8f0 0%, #e8f0f6 50%, #f0f5f9 100%);
-  padding: 20px 22px; margin-bottom: 26px;
-  box-shadow: 0 2px 16px rgba(58,107,138,0.10), 0 0 0 1px rgba(58,107,138,0.12);
+  background: linear-gradient(175deg, #b8d8e8 0%, #c8e0ee 35%, #d4cfa8 75%, #c8b882 100%);
+  padding: 20px 22px 22px; margin-bottom: 26px;
+  box-shadow: 0 2px 16px rgba(58,107,138,0.12), 0 0 0 1px rgba(58,107,138,0.14);
+  position: relative; overflow: hidden;
+}
+.focus-section::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 38px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 38' preserveAspectRatio='none'%3E%3Cpath d='M0,20 C80,5 160,35 240,18 C320,2 400,32 480,16 C560,1 640,30 720,14 C760,6 780,10 800,8 L800,0 L0,0 Z' fill='%2378b8d8' opacity='0.55'/%3E%3Cpath d='M0,28 C60,14 140,38 220,22 C300,7 380,36 460,20 C540,5 620,33 700,18 C750,10 775,15 800,12 L800,0 L0,0 Z' fill='%2390c8e0' opacity='0.4'/%3E%3C/svg%3E") no-repeat top center / 100% 100%;
+}
+.focus-section::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 22px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 22' preserveAspectRatio='none'%3E%3Cpath d='M0,8 C100,18 200,2 300,12 C400,22 500,4 600,14 C700,22 750,10 800,14 L800,22 L0,22 Z' fill='%2378b8d8' opacity='0.3'/%3E%3C/svg%3E") no-repeat bottom center / 100% 100%;
 }
 .focus-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
 .focus-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; color: var(--black); }
@@ -646,6 +667,13 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
   .picker-accept-btn { font-size: 0.68rem; padding: 12px; }
   .picker-respin-btn { font-size: 0.68rem; padding: 12px 12px; }
 }
+
+/* ── BEACH DECORATIONS ── */
+.beach-deco {
+  position: fixed; pointer-events: none; z-index: 1; bottom: 0; left: 0; right: 0;
+  height: 180px; overflow: hidden;
+}
+.beach-deco svg { width: 100%; height: 100%; }
 </style>
 </head>
 <body>
@@ -687,7 +715,7 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
         <div class="focus-section">
           <div class="focus-header">
             <div>
-              <div class="focus-title">🎯 Today's Top 3</div>
+              <div class="focus-title">🌊 Today's Top 3</div>
               <div class="focus-subtitle">Must-finish tasks for the day</div>
             </div>
             <button class="picker-btn" onclick="openPicker()">✦ Pick for me</button>
@@ -882,6 +910,93 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
       <p class="reset-note" id="reset-note"></p>
     </div>
   </div>
+</div>
+
+<!-- Beach decorations -->
+<div class="beach-deco" aria-hidden="true">
+  <svg viewBox="0 0 1440 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,120 C200,100 400,130 600,115 C800,100 1000,125 1200,110 C1320,103 1380,112 1440,108 L1440,180 L0,180 Z" fill="#c8b882" opacity="0.55"/>
+    <path d="M0,135 C150,122 350,145 550,130 C750,115 950,140 1150,128 C1300,120 1380,132 1440,128 L1440,180 L0,180 Z" fill="#b8a46e" opacity="0.4"/>
+    <g transform="translate(180, 128) rotate(-15)">
+      <ellipse cx="0" cy="0" rx="9" ry="7" fill="#5a8a60" opacity="0.85"/>
+      <ellipse cx="0" cy="-2" rx="5" ry="4" fill="#4a7a50" opacity="0.9"/>
+      <circle cx="0" cy="-8" r="3" fill="#4a7a50" opacity="0.9"/>
+      <ellipse cx="-7" cy="1" rx="4" ry="2" fill="#5a8a60" opacity="0.7" transform="rotate(-20)"/>
+      <ellipse cx="7" cy="1" rx="4" ry="2" fill="#5a8a60" opacity="0.7" transform="rotate(20)"/>
+      <ellipse cx="-3" cy="6" rx="3" ry="1.5" fill="#5a8a60" opacity="0.7" transform="rotate(10)"/>
+      <ellipse cx="3" cy="6" rx="3" ry="1.5" fill="#5a8a60" opacity="0.7" transform="rotate(-10)"/>
+      <ellipse cx="0" cy="0" rx="4" ry="3" fill="none" stroke="#3a6a42" stroke-width="0.5" opacity="0.6"/>
+      <line x1="-3" y1="-2" x2="3" y2="2" stroke="#3a6a42" stroke-width="0.4" opacity="0.5"/>
+      <line x1="3" y1="-2" x2="-3" y2="2" stroke="#3a6a42" stroke-width="0.4" opacity="0.5"/>
+    </g>
+    <g transform="translate(320, 138) rotate(-8)">
+      <ellipse cx="0" cy="0" rx="8" ry="6" fill="#4e7a55" opacity="0.85"/>
+      <ellipse cx="0" cy="-2" rx="4.5" ry="3.5" fill="#3e6a45" opacity="0.9"/>
+      <circle cx="0" cy="-7" r="2.5" fill="#3e6a45" opacity="0.9"/>
+      <ellipse cx="-6" cy="1" rx="3.5" ry="1.8" fill="#4e7a55" opacity="0.7" transform="rotate(-20)"/>
+      <ellipse cx="6" cy="1" rx="3.5" ry="1.8" fill="#4e7a55" opacity="0.7" transform="rotate(20)"/>
+      <ellipse cx="-2.5" cy="5.5" rx="2.5" ry="1.3" fill="#4e7a55" opacity="0.7"/>
+      <ellipse cx="2.5" cy="5.5" rx="2.5" ry="1.3" fill="#4e7a55" opacity="0.7"/>
+      <ellipse cx="0" cy="0" rx="3.5" ry="2.5" fill="none" stroke="#2e5a32" stroke-width="0.5" opacity="0.6"/>
+    </g>
+    <g transform="translate(90, 142) rotate(-22)">
+      <ellipse cx="0" cy="0" rx="6" ry="4.5" fill="#5a8a60" opacity="0.75"/>
+      <ellipse cx="0" cy="-1.5" rx="3.5" ry="2.8" fill="#4a7a50" opacity="0.85"/>
+      <circle cx="0" cy="-5.5" r="2" fill="#4a7a50" opacity="0.85"/>
+      <ellipse cx="-5" cy="0.5" rx="3" ry="1.5" fill="#5a8a60" opacity="0.65" transform="rotate(-18)"/>
+      <ellipse cx="5" cy="0.5" rx="3" ry="1.5" fill="#5a8a60" opacity="0.65" transform="rotate(18)"/>
+    </g>
+    <g transform="translate(520, 148)" opacity="0.55">
+      <circle cx="0" cy="0" r="11" fill="#d4c48a" stroke="#b8a86a" stroke-width="1.2"/>
+      <circle cx="0" cy="0" r="8" fill="none" stroke="#b8a86a" stroke-width="0.6"/>
+      <line x1="0" y1="-8" x2="0" y2="8" stroke="#b8a86a" stroke-width="0.7"/>
+      <line x1="-8" y1="0" x2="8" y2="0" stroke="#b8a86a" stroke-width="0.7"/>
+      <line x1="-5.6" y1="-5.6" x2="5.6" y2="5.6" stroke="#b8a86a" stroke-width="0.5"/>
+      <line x1="5.6" y1="-5.6" x2="-5.6" y2="5.6" stroke="#b8a86a" stroke-width="0.5"/>
+      <circle cx="0" cy="-5" r="1.2" fill="#b8a86a"/>
+      <circle cx="4.8" cy="1.5" r="1.2" fill="#b8a86a"/>
+      <circle cx="3" cy="-4" r="1.2" fill="#b8a86a"/>
+      <circle cx="-4.8" cy="1.5" r="1.2" fill="#b8a86a"/>
+      <circle cx="-3" cy="-4" r="1.2" fill="#b8a86a"/>
+    </g>
+    <g transform="translate(740, 152)" opacity="0.45">
+      <circle cx="0" cy="0" r="8" fill="#d4c48a" stroke="#b8a86a" stroke-width="1"/>
+      <circle cx="0" cy="0" r="5.5" fill="none" stroke="#b8a86a" stroke-width="0.5"/>
+      <line x1="0" y1="-5.5" x2="0" y2="5.5" stroke="#b8a86a" stroke-width="0.6"/>
+      <line x1="-5.5" y1="0" x2="5.5" y2="0" stroke="#b8a86a" stroke-width="0.6"/>
+      <line x1="-3.9" y1="-3.9" x2="3.9" y2="3.9" stroke="#b8a86a" stroke-width="0.4"/>
+      <line x1="3.9" y1="-3.9" x2="-3.9" y2="3.9" stroke="#b8a86a" stroke-width="0.4"/>
+      <circle cx="0" cy="-3.5" r="0.9" fill="#b8a86a"/>
+      <circle cx="3.3" cy="1" r="0.9" fill="#b8a86a"/>
+      <circle cx="-3.3" cy="1" r="0.9" fill="#b8a86a"/>
+    </g>
+    <g transform="translate(900, 145)" opacity="0.5">
+      <polygon points="0,-14 3,-5 12,-5 5,1 8,10 0,5 -8,10 -5,1 -12,-5 -3,-5" fill="#c8785a" stroke="#b06040" stroke-width="0.8"/>
+      <circle cx="0" cy="-1" r="2.5" fill="#b06040" opacity="0.7"/>
+    </g>
+    <g transform="translate(1100, 150) rotate(35)" opacity="0.4">
+      <polygon points="0,-12 2.5,-4.5 10,-4.5 4.5,1 7,9 0,4.5 -7,9 -4.5,1 -10,-4.5 -2.5,-4.5" fill="#c8785a" stroke="#b06040" stroke-width="0.7"/>
+      <circle cx="0" cy="-0.5" r="2" fill="#b06040" opacity="0.7"/>
+    </g>
+    <g transform="translate(420, 155) rotate(-20)" opacity="0.38">
+      <polygon points="0,-9 2,-3.5 8,-3.5 3.5,0.5 5.5,7 0,3.5 -5.5,7 -3.5,0.5 -8,-3.5 -2,-3.5" fill="#d4886a" stroke="#b86848" stroke-width="0.6"/>
+      <circle cx="0" cy="0" r="1.5" fill="#b06040" opacity="0.6"/>
+    </g>
+    <g transform="translate(650, 158)" opacity="0.48">
+      <path d="M0,-10 C8,-8 12,0 8,8 C4,14 -4,14 -8,8 C-12,0 -8,-8 0,-10 Z" fill="#e8c898" stroke="#c8a870" stroke-width="0.8"/>
+      <path d="M0,-10 C0,0 0,10 0,10" stroke="#c8a870" stroke-width="0.5" fill="none"/>
+      <path d="M-6,-5 C-2,0 2,5 0,10" stroke="#c8a870" stroke-width="0.4" fill="none"/>
+      <path d="M6,-5 C2,0 -2,5 0,10" stroke="#c8a870" stroke-width="0.4" fill="none"/>
+    </g>
+    <circle cx="240" cy="162" r="2.5" fill="#a89870" opacity="0.35"/>
+    <circle cx="255" cy="168" r="1.8" fill="#b8a880" opacity="0.3"/>
+    <circle cx="700" cy="165" r="2" fill="#a89870" opacity="0.3"/>
+    <circle cx="1050" cy="160" r="3" fill="#a89870" opacity="0.28"/>
+    <circle cx="1200" cy="168" r="1.8" fill="#b8a880" opacity="0.3"/>
+    <circle cx="1300" cy="162" r="2.2" fill="#a89870" opacity="0.32"/>
+    <path d="M0,118 C80,112 180,122 280,116 C380,110 480,120 580,114 C680,108 780,118 880,112 C980,106 1080,116 1180,110 C1280,104 1360,114 1440,110" stroke="rgba(255,255,255,0.5)" stroke-width="2" fill="none"/>
+    <path d="M0,125 C100,120 200,128 300,122 C400,116 500,126 600,120 C700,114 800,124 900,118 C1000,112 1100,122 1200,116 C1300,110 1380,120 1440,116" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" fill="none"/>
+  </svg>
 </div>
 
 <div id="picker-overlay">
