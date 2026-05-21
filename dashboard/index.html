@@ -821,6 +821,22 @@ header h1 { font-family: 'Dancing Script', cursive; color: var(--blue); font-siz
         </div>
 
         <div class="task-list" id="ongoing-tasks"></div>
+
+        <div class="divider"></div>
+        <div class="section-header">
+          <span class="section-title">Monthly Tasks</span>
+          <button class="add-btn" onclick="toggleMonthlyForm()">+ Add Task</button>
+        </div>
+        <div class="add-task-form" id="add-form-monthly" style="display:none; flex-direction:column; gap:9px; margin-bottom:14px;">
+          <div class="form-row">
+            <input type="text" id="monthly-task-input" placeholder="Recurring monthly task..." style="flex:1;">
+          </div>
+          <div class="form-btns">
+            <button class="save-btn" onclick="addMonthlyTask()">Save</button>
+            <button class="cancel-btn" onclick="toggleMonthlyForm()">Cancel</button>
+          </div>
+        </div>
+        <div class="task-list" id="monthly-tasks-list"></div>
       </div> <div id="clients-view" style="display: none;">
         <div class="section-header">
           <span class="section-title">Client Directory</span>
@@ -951,6 +967,9 @@ function uid() {
 
 /* Migrate: assign ids to any tasks that predate this version */
 function migrateTasks() {
+  document.getElementById('monthly-task-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addMonthlyTask();
+  });
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
     let changed = false;
@@ -1000,6 +1019,9 @@ function handleRecurring() {
   const rollKey = 'mm_recur_rolled_' + today;
   if (localStorage.getItem(rollKey)) return;
 
+  document.getElementById('monthly-task-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addMonthlyTask();
+  });
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
     let changed = false;
@@ -1484,6 +1506,9 @@ function pickerSpin() {
   document.getElementById('picker-phrase').textContent = phrase;
 
   const candidates = [];
+  document.getElementById('monthly-task-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addMonthlyTask();
+  });
   ['daily','ongoing'].forEach(type => {
     loadTasks(type).forEach((t,i) => { if (!t.done) candidates.push({ type, idx:i, task:t }); });
   });
@@ -1988,6 +2013,54 @@ function scheduleSave() {
   syncTimer = setTimeout(saveToCloud, 1500);
 }
 
+/* ══════════════════════════════════════
+   MONTHLY TASKS
+══════════════════════════════════════ */
+function loadMonthlyTasks() {
+  return JSON.parse(localStorage.getItem('mm_monthly_tasks') || '[]');
+}
+function saveMonthlyTasks(tasks) {
+  localStorage.setItem('mm_monthly_tasks', JSON.stringify(tasks));
+  scheduleSave();
+}
+function toggleMonthlyForm() {
+  const form = document.getElementById('add-form-monthly');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) setTimeout(() => document.getElementById('monthly-task-input').focus(), 50);
+}
+function addMonthlyTask() {
+  const input = document.getElementById('monthly-task-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const tasks = loadMonthlyTasks();
+  tasks.push({ id: uid(), text });
+  saveMonthlyTasks(tasks);
+  input.value = '';
+  toggleMonthlyForm();
+  renderMonthlyTasks();
+}
+function deleteMonthlyTask(id) {
+  saveMonthlyTasks(loadMonthlyTasks().filter(t => t.id !== id));
+  renderMonthlyTasks();
+}
+function renderMonthlyTasks() {
+  const list = document.getElementById('monthly-tasks-list');
+  const tasks = loadMonthlyTasks();
+  if (tasks.length === 0) {
+    list.innerHTML = '<div class="empty-state">No monthly tasks yet - add recurring items here.</div>';
+    return;
+  }
+  list.innerHTML = tasks.map(t => `
+    <div class="task-item" style="border-left-color: var(--blue-light);">
+      <div class="task-text" style="font-size:0.95rem;">${t.text}</div>
+      <div class="task-actions" style="opacity:1;">
+        <button class="task-del" onclick="deleteMonthlyTask('${t.id}')" title="Remove">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
 async function init() {
   await loadFromCloud();
   setDate();
@@ -1996,10 +2069,31 @@ async function init() {
   handleRecurring();
   renderAll();
   renderDeliverables();
+  renderMonthlyTasks();
   
   // Clients Init
   initServicesChecklist();
+  // Seed Aspire if not already present
+  (function seedAspire() {
+    const existing = loadClients();
+    if (!existing.find(c => c.name === 'Aspire Therapy & Wellness')) {
+      existing.push({
+        id: uid(),
+        name: 'Aspire Therapy & Wellness',
+        industry: 'Therapy / Mental Health',
+        phone: '',
+        email: '',
+        address: '',
+        website: '',
+        services: ['Social Media Management', 'Video Package']
+      });
+      saveClients(existing);
+    }
+  })();
 
+  document.getElementById('monthly-task-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addMonthlyTask();
+  });
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask(type);
