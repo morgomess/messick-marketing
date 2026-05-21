@@ -480,6 +480,33 @@
   .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
   .empty-state h3 { font-family: 'Cormorant Garamond'; font-size: 22px; color: #aaa; margin-bottom: 8px; }
   .empty-state p { font-size: 13px; }
+
+  /* ── DISCOVERY CALL TAB ── */
+  .disco-section { margin-bottom: 28px; }
+  .disco-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--steel); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .disco-source-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .disco-source-btn { padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border); background: white; font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+  .disco-source-btn.active { background: var(--steel); color: white; border-color: var(--steel); }
+  .disco-source-btn:hover:not(.active) { border-color: var(--steel); color: var(--steel); }
+  .disco-context-box { background: var(--warm); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; font-size: 13px; color: #555; line-height: 1.65; margin-bottom: 16px; }
+  .disco-context-box strong { color: var(--black); }
+  .disco-manual-fields { display: none; }
+  .disco-manual-fields.visible { display: block; }
+  .disco-q-wrap { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+  .disco-q-card { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .disco-q-header { padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .disco-q-num { width: 24px; height: 24px; border-radius: 50%; background: var(--steel); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .disco-q-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--steel); margin-bottom: 4px; }
+  .disco-q-text { font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--black); }
+  .disco-q-body { display: none; padding: 0 16px 14px 52px; }
+  .disco-q-card.open .disco-q-body { display: block; }
+  .disco-q-why { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 8px; }
+  .disco-q-tip { background: #f0f7fb; border-left: 3px solid var(--steel); border-radius: 0 6px 6px 0; padding: 9px 13px; font-size: 12px; color: var(--steel); line-height: 1.5; font-style: italic; }
+  .disco-copy-all { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin-bottom: 20px; }
+  .disco-copy-all textarea { width: 100%; min-height: 220px; border: none; background: transparent; font-family: 'Jost', sans-serif; font-size: 13px; color: #444; line-height: 1.7; resize: vertical; outline: none; }
+  .disco-add-custom-wrap { display: flex; gap: 10px; align-items: flex-end; margin-top: 16px; }
+  .disco-add-custom-wrap input { flex: 1; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Jost', sans-serif; font-size: 14px; outline: none; background: var(--warm); transition: border-color 0.2s; }
+  .disco-add-custom-wrap input:focus { border-color: var(--steel); background: white; }
 </style>
 </head>
 <body>
@@ -504,6 +531,7 @@
   <div class="header-right">
     <div class="header-nav">
       <button class="header-nav-btn active" id="nav-tool" onclick="switchView('tool')">Pitch Tool</button>
+      <button class="header-nav-btn" id="nav-disco" onclick="switchView('disco')">Discovery Call</button>
       <button class="header-nav-btn" id="nav-leads" onclick="switchView('leads')">Leads <span id="leads-count-badge" style="display:none;background:var(--steel);color:white;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;"></span></button>
     </div>
     <div class="header-badge">Pitch Intelligence</div>
@@ -729,6 +757,82 @@
       </div>
     </div><!-- end view-leads -->
 
+    <!-- ══ DISCOVERY CALL VIEW ══ -->
+    <div id="view-disco" class="view">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:'Cormorant Garamond'; font-size:32px; font-weight:600;">Discovery Call Prep</h2>
+          <div style="font-size:13px; color:var(--muted); margin-top:2px;">AI-generated questions tailored to a prospect's gaps and website.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size:22px; margin-bottom:6px;">Prospect Context</div>
+        <div class="card-sub" style="margin-bottom:18px;">Use audit data from the Pitch Tool or enter details manually.</div>
+
+        <div class="disco-source-bar">
+          <button class="disco-source-btn active" id="disco-src-audit" onclick="setDiscoSource('audit')">Use Current Audit</button>
+          <button class="disco-source-btn" id="disco-src-manual" onclick="setDiscoSource('manual')">Enter Manually</button>
+        </div>
+
+        <!-- Audit summary (shown when audit data exists) -->
+        <div id="disco-audit-summary" class="disco-context-box" style="display:none;"></div>
+        <div id="disco-no-audit" style="display:none; font-size:13px; color:var(--muted); background:var(--warn-bg); border:1px solid #f5d89a; border-radius:8px; padding:14px 16px; margin-bottom:16px;">
+          No audit has been run yet. Switch to Manual to enter prospect details, or run an audit in the Pitch Tool first.
+        </div>
+
+        <!-- Manual input fields -->
+        <div class="disco-manual-fields" id="disco-manual-fields">
+          <div class="field"><label>Practice / Business Name</label><input type="text" id="disco-biz" placeholder="e.g. NY Vascular Care"></div>
+          <div class="field"><label>Website URL <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><input type="url" id="disco-web" placeholder="https://..."></div>
+          <div class="field"><label>What You Know About Them <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px;">(optional)</span></label><textarea id="disco-notes" placeholder="e.g. No blog, weak Instagram, no Google reviews, vascular practice in Phoenix..." rows="3" style="width:100%;padding:13px 15px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:14px;color:var(--black);background:var(--warm);outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.6;" onfocus="this.style.borderColor='var(--steel)';this.style.boxShadow='0 0 0 3px rgba(58,107,138,0.1)';this.style.background='white'" onblur="this.style.borderColor='';this.style.boxShadow='';this.style.background='var(--warm)'"></textarea></div>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn-primary" id="disco-gen-btn" onclick="generateDiscoQuestions()">Generate Questions →</button>
+          <div id="disco-gen-status" style="font-size:13px; color:var(--steel); font-style:italic;"></div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="disco-results" style="display:none;">
+
+        <div class="card" style="padding-bottom:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <div>
+              <div class="card-title" style="font-size:22px; margin-bottom:4px;" id="disco-result-name">Discovery Questions</div>
+              <div style="font-size:13px; color:var(--muted);">Click any question to see why to ask it and how to follow up.</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn-ghost" onclick="copyDiscoQuestions()">📋 Copy All</button>
+              <button class="btn-ghost" onclick="regenerateDisco()">↺ Regenerate</button>
+            </div>
+          </div>
+          <div class="disco-q-wrap" id="disco-q-wrap"></div>
+        </div>
+
+        <!-- COPY-ALL TEXTAREA -->
+        <div class="card" id="disco-copy-card" style="display:none;">
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--steel); margin-bottom:10px;">Plain Text (for notes or email)</div>
+          <div class="disco-copy-all"><textarea id="disco-copy-textarea" readonly></textarea></div>
+          <button class="btn-ghost" style="margin-top:10px;" onclick="document.getElementById('disco-copy-card').style.display='none'">Close</button>
+        </div>
+
+        <!-- ADD YOUR OWN -->
+        <div class="card">
+          <div class="card-title" style="font-size:20px; margin-bottom:4px;">Add Your Own</div>
+          <div class="card-sub" style="margin-bottom:0;">Type a topic or question you want to add to the list.</div>
+          <div class="disco-add-custom-wrap">
+            <input type="text" id="disco-custom-input" placeholder="e.g. Ask about their current ad spend" onkeydown="if(event.key==='Enter')addDiscoCustom()">
+            <button class="btn-primary" onclick="addDiscoCustom()">Add</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end view-disco -->
+
+
+
   </div>
 </div>
 
@@ -875,10 +979,13 @@
   function switchView(v) {
     document.getElementById('view-tool').classList.toggle('active', v === 'tool');
     document.getElementById('view-leads').classList.toggle('active', v === 'leads');
+    document.getElementById('view-disco').classList.toggle('active', v === 'disco');
     document.getElementById('progress-wrap').style.display = v === 'tool' ? 'flex' : 'none';
     document.getElementById('nav-tool').classList.toggle('active', v === 'tool');
     document.getElementById('nav-leads').classList.toggle('active', v === 'leads');
+    document.getElementById('nav-disco').classList.toggle('active', v === 'disco');
     if (v === 'leads') renderLeadsTable();
+    if (v === 'disco') initDiscoView();
   }
 
   // ── DUPLICATE GUARD ──
@@ -1789,6 +1896,165 @@ TONE: No exclamation points. No em dashes. No "just checking in" or "circling ba
 
     document.getElementById('pdf-export-container').innerHTML = html;
     window.print();
+  }
+
+
+  // ── DISCOVERY CALL ──
+  let discoSource = 'audit';
+  let discoQuestionsData = [];
+
+  function setDiscoSource(src) {
+    discoSource = src;
+    document.getElementById('disco-src-audit').classList.toggle('active', src === 'audit');
+    document.getElementById('disco-src-manual').classList.toggle('active', src === 'manual');
+    document.getElementById('disco-manual-fields').classList.toggle('visible', src === 'manual');
+    if (src === 'audit') refreshDiscoAuditSummary();
+    else {
+      document.getElementById('disco-audit-summary').style.display = 'none';
+      document.getElementById('disco-no-audit').style.display = 'none';
+    }
+  }
+
+  function refreshDiscoAuditSummary() {
+    const summary = document.getElementById('disco-audit-summary');
+    const noAudit = document.getElementById('disco-no-audit');
+    if (state.intelRaw && state.biz) {
+      const d = state.intelRaw;
+      const findings = (d.findings || []).map(f => f.title).join(', ');
+      summary.innerHTML = `<strong>${esc(state.biz)}</strong>${state.loc ? ' - ' + esc(state.loc) : ''}${state.web ? ' - <a href="' + esc(state.web) + '" target="_blank" style="color:var(--steel);">' + esc(state.web) + '</a>' : ''}<br>
+      <span style="color:var(--muted);">Score: <strong style="color:var(--black);">${d.score}/100</strong> - Key gaps: ${esc(findings) || 'See audit'}</span>`;
+      summary.style.display = 'block';
+      noAudit.style.display = 'none';
+    } else {
+      summary.style.display = 'none';
+      noAudit.style.display = 'block';
+    }
+  }
+
+  function initDiscoView() {
+    if (discoSource === 'audit') refreshDiscoAuditSummary();
+  }
+
+  async function generateDiscoQuestions() {
+    const btn = document.getElementById('disco-gen-btn');
+    const status = document.getElementById('disco-gen-status');
+    btn.disabled = true;
+    status.textContent = 'Generating tailored questions...';
+    document.getElementById('disco-results').style.display = 'none';
+
+    let contextBlock = '';
+    let nameForHeader = '';
+
+    if (discoSource === 'audit' && state.intelRaw && state.biz) {
+      const d = state.intelRaw;
+      const findings = (d.findings || []).map(f => `- [${f.severity.toUpperCase()}] ${f.category}: ${f.title} - ${f.summary}`).join('\n');
+      const qw = (d.quickWins || []).join(', ');
+      const scrapeSummary = state.scrapeData ? JSON.stringify(state.scrapeData).substring(0, 2000) : '';
+      nameForHeader = state.biz;
+      contextBlock = `Business: ${state.biz}\nLocation: ${state.loc || 'unknown'}\nWebsite: ${state.web || 'not provided'}\nMarketing Health Score: ${d.score}/100\nKey Findings:\n${findings}\nQuick Wins: ${qw}\nUser Notes: ${state.notes || 'none'}\n${scrapeSummary ? 'Website data excerpt: ' + scrapeSummary : ''}`;
+    } else {
+      const biz = document.getElementById('disco-biz').value.trim();
+      const web = document.getElementById('disco-web').value.trim();
+      const notes = document.getElementById('disco-notes').value.trim();
+      if (!biz && !notes) {
+        status.textContent = 'Please enter a business name or some context.';
+        btn.disabled = false;
+        return;
+      }
+      nameForHeader = biz || 'Prospect';
+      contextBlock = `Business: ${biz || 'Unknown'}\nWebsite: ${web || 'not provided'}\nUser Observations: ${notes || 'none'}`;
+    }
+
+    const system = `You are a senior healthcare marketing strategist at Messick Marketing preparing for a discovery call with a potential client. Generate 8-10 highly tailored discovery call questions based on the prospect context provided. Your questions should uncover: budget mindset, current marketing frustrations, decision-making process, internal resources, goals, past agency experience, and patient acquisition priorities. Questions should feel conversational and consultative, not interrogative. Tie them to the specific gaps, observations, or website findings where relevant.
+
+Return ONLY a valid JSON array, no markdown, no preamble:
+[
+  {
+    "category": "Category name (e.g. Goals, Budget, Competition, Current Efforts, Team, Patient Acquisition, Past Agencies, Decision Process)",
+    "question": "The full question text",
+    "why": "1-2 sentences on why this question matters and what you're really trying to learn",
+    "tip": "A brief coaching tip on how to listen or follow up after their answer"
+  }
+]
+
+Do not use em dashes. Keep questions concise but open-ended. Mix strategic and operational questions. Prioritize uncovering pain points tied to the actual gaps found.`;
+
+    try {
+      const raw = await callAI(system, contextBlock);
+      const clean = raw.replace(/\`\`\`json|\`\`\`/g, '').trim();
+      discoQuestionsData = JSON.parse(clean);
+      if (!Array.isArray(discoQuestionsData)) throw new Error('Not array');
+      renderDiscoQuestions(nameForHeader);
+      document.getElementById('disco-results').style.display = 'block';
+      status.textContent = '';
+    } catch(e) {
+      status.textContent = 'Error generating questions. Try again.';
+      console.error(e);
+    }
+    btn.disabled = false;
+  }
+
+  function renderDiscoQuestions(name) {
+    document.getElementById('disco-result-name').textContent = name ? name + ' - Discovery Questions' : 'Discovery Questions';
+    const wrap = document.getElementById('disco-q-wrap');
+    wrap.innerHTML = '';
+    discoQuestionsData.forEach((q, i) => {
+      const card = document.createElement('div');
+      card.className = 'disco-q-card';
+      card.innerHTML = `
+        <div class="disco-q-header" onclick="toggleDiscoQ(this.parentElement)">
+          <div class="disco-q-num">${i + 1}</div>
+          <div style="flex:1;">
+            <div class="disco-q-category">${esc(q.category || 'General')}</div>
+            <div class="disco-q-text">${esc(q.question)}</div>
+          </div>
+          <div style="font-size:12px; color:var(--muted); flex-shrink:0; padding-top:2px;">▼</div>
+        </div>
+        <div class="disco-q-body">
+          ${q.why ? `<div class="disco-q-why"><strong>Why ask this:</strong> ${esc(q.why)}</div>` : ''}
+          ${q.tip ? `<div class="disco-q-tip">💡 ${esc(q.tip)}</div>` : ''}
+        </div>`;
+      wrap.appendChild(card);
+    });
+  }
+
+  function toggleDiscoQ(card) {
+    card.classList.toggle('open');
+    const arrow = card.querySelector('.disco-q-header > div:last-child');
+    if (arrow) arrow.textContent = card.classList.contains('open') ? '▲' : '▼';
+  }
+
+  function copyDiscoQuestions() {
+    const lines = discoQuestionsData.map((q, i) => `${i + 1}. [${q.category}] ${q.question}`).join('\n');
+    const textarea = document.getElementById('disco-copy-textarea');
+    textarea.value = lines;
+    document.getElementById('disco-copy-card').style.display = 'block';
+    try {
+      navigator.clipboard.writeText(lines);
+      toast('Questions copied to clipboard', 'success');
+    } catch(e) {
+      textarea.select();
+      document.execCommand('copy');
+      toast('Questions copied', 'success');
+    }
+  }
+
+  function regenerateDisco() {
+    document.getElementById('disco-results').style.display = 'none';
+    discoQuestionsData = [];
+    generateDiscoQuestions();
+  }
+
+  function addDiscoCustom() {
+    const input = document.getElementById('disco-custom-input');
+    const val = input.value.trim();
+    if (!val) return;
+    discoQuestionsData.push({ category: 'Custom', question: val, why: '', tip: '' });
+    const name = document.getElementById('disco-result-name').textContent;
+    renderDiscoQuestions(name.replace(' - Discovery Questions', ''));
+    document.getElementById('disco-results').style.display = 'block';
+    input.value = '';
+    toast('Question added', 'success');
   }
 
   // ── BOOT ──
