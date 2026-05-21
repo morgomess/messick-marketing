@@ -888,25 +888,26 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
       <div class="schedule-block"><span class="schedule-time">12:30 PM</span><span class="schedule-label">Afternoon work block</span></div>
       <div class="schedule-block"><span class="schedule-time">3:30 – 5:00</span><span class="schedule-label break">Wrap up</span></div>
       <div class="divider"></div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-        <div class="side-section-title" style="margin-bottom:0;">Monthly Tasks</div>
+      <div class="side-section-title" style="margin-bottom:4px;">Quick Notes</div>
+      <textarea id="quick-notes" placeholder="Scratch pad — jot anything here..." style="width:100%; min-height:90px; resize:vertical; padding:10px 12px; border:1.5px solid var(--border); background:var(--surface-2); font-family:'Jost',sans-serif; font-size:0.83rem; color:var(--black); outline:none; line-height:1.5; margin-bottom:4px;"></textarea>
+      <div style="font-size:0.6rem; color:var(--text-light); font-style:italic; margin-bottom:16px;">Auto-saved</div>
+      <div class="divider"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div class="side-section-title" style="margin-bottom:0;">This Month</div>
         <button class="add-btn" onclick="toggleMonthlyForm()" style="font-size:0.62rem; padding:5px 10px;">+ Add</button>
       </div>
+      <div class="progress-wrap" style="margin-top:0;">
+        <div class="progress-label"><span id="progress-count">0 / 0 done</span><span id="reset-note-inline"></span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
       <div id="add-form-monthly" style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
-        <input type="text" id="monthly-task-input" placeholder="Recurring monthly task..." style="width:100%; padding:8px 10px; border:1.5px solid var(--border); background:var(--surface-2); font-family:'Jost',sans-serif; font-size:0.82rem; outline:none; color:var(--black);">
+        <input type="text" id="monthly-task-input" placeholder="Add item..." style="width:100%; padding:8px 10px; border:1.5px solid var(--border); background:var(--surface-2); font-family:'Jost',sans-serif; font-size:0.82rem; outline:none; color:var(--black);">
         <div style="display:flex; gap:6px;">
-          <button class="save-btn" onclick="addMonthlyTask()" style="padding:7px 14px; font-size:0.68rem;">Save</button>
+          <button class="save-btn" onclick="addMonthlyItem()" style="padding:7px 14px; font-size:0.68rem;">Save</button>
           <button class="cancel-btn" onclick="toggleMonthlyForm()" style="padding:7px 10px; font-size:0.68rem;">Cancel</button>
         </div>
       </div>
-      <div id="monthly-tasks-list" style="margin-bottom:18px;"></div>
-      <div class="divider"></div>
-      <div class="side-section-title">Monthly Deliverables</div>
-      <div class="progress-wrap">
-        <div class="progress-label"><span>This month's progress</span><span id="progress-count">0 / 0</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      </div>
-      <div id="deliverables-list"></div>
+      <div id="this-month-list"></div>
       <p class="reset-note" id="reset-note"></p>
     </div>
   </div>
@@ -1081,7 +1082,7 @@ function uid() {
 /* Migrate: assign ids to any tasks that predate this version */
 function migrateTasks() {
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addMonthlyTask();
+    if (e.key === 'Enter') addMonthlyItem();
   });
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
@@ -1089,11 +1090,17 @@ function migrateTasks() {
     tasks.forEach(t => { if (!t.id) { t.id = uid(); changed = true; } });
     if (changed) { const ids = tasks.filter(t=>t.done===false).map(t=>t.id); saveTasks(type, tasks); }
   });
-  // Apply any saved deliverable label overrides
-  const overrides = JSON.parse(localStorage.getItem('mm_deliverable_labels') || '{}');
-  [...MONTHLY_DELIVERABLES, ...QUARTERLY_DELIVERABLES].forEach(d => {
-    if (overrides[d.id]) d.label = overrides[d.id];
-  });
+  // Migrate old mm_monthly_tasks into unified this-month list
+  const oldTasks = JSON.parse(localStorage.getItem('mm_monthly_tasks') || '[]');
+  if (oldTasks.length > 0) {
+    const existing = loadMonthItems();
+    const existingIds = new Set(existing.map(i => i.id));
+    oldTasks.forEach(t => {
+      if (!existingIds.has(t.id)) existing.push({ id: t.id, label: t.text, seeded: false });
+    });
+    saveMonthItems(existing);
+    localStorage.removeItem('mm_monthly_tasks');
+  }
 }
 
 /* ══════════════════════════════════════
@@ -1133,7 +1140,7 @@ function handleRecurring() {
   if (localStorage.getItem(rollKey)) return;
 
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addMonthlyTask();
+    if (e.key === 'Enter') addMonthlyItem();
   });
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
@@ -1620,7 +1627,7 @@ function pickerSpin() {
 
   const candidates = [];
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addMonthlyTask();
+    if (e.key === 'Enter') addMonthlyItem();
   });
   ['daily','ongoing'].forEach(type => {
     loadTasks(type).forEach((t,i) => { if (!t.done) candidates.push({ type, idx:i, task:t }); });
@@ -1855,68 +1862,114 @@ function saveChecked(key, obj) {
   scheduleSave();
 }
 
-function renderDeliverables() {
-  const mKey = `mm_monthly_${getMonthKey()}`;
-  const qKey = `mm_quarterly_${getQuarterKey()}`;
-  const mChecked = loadChecked(mKey);
-  const qChecked = loadChecked(qKey);
-  const container = document.getElementById('deliverables-list');
-  container.innerHTML = '';
-  ['monthly','quarterly'].forEach(type => {
-    const items   = type === 'monthly' ? MONTHLY_DELIVERABLES : QUARTERLY_DELIVERABLES;
-    const checked = type === 'monthly' ? mChecked : qChecked;
-    const group   = document.createElement('div');
-    group.className = 'deliverable-group';
-    group.innerHTML = `<div class="deliverable-group-label">${type==='monthly'?'Monthly':'Quarterly'}</div>`;
-    items.forEach(d => {
-      const done = !!checked[d.id];
-      const item = document.createElement('div');
-      item.className = `deliverable-item${done?' done':''}`;
-      const dm = getDelMeta(d.id);
-      const dds = dueStatus(dm.due);
-      item.title = 'Double-click to edit';
-      item.innerHTML = `
-        <div class="deliverable-check${done?' checked':''}" onclick="toggleDeliverable('${type}','${d.id}')"></div>
-        <span class="deliverable-text">${d.label}</span>
-        <div style="display:flex;gap:4px;align-items:center;margin-left:auto;flex-shrink:0;">
-          ${dm.priority && dm.priority!=='none' ? `<span class="priority-pill pill-${dm.priority}">${dm.priority}</span>` : ''}
-          ${dds ? `<span class="due-pill ${duePillClass(dds)}">${duePillLabel(dds,dm.due)}</span>` : ''}
-          <span class="brand-pill brand-messick" style="font-size:0.54rem;padding:2px 5px;">MM</span>
-        </div>`;
-      item.addEventListener('dblclick', (e) => {
-        if (e.target.classList.contains('deliverable-check')) return;
-        openDeliverableEdit(item, type, d);
-      });
-      group.appendChild(item);
-    });
-    container.appendChild(group);
-  });
-  updateProgress(mChecked, qChecked);
-  updateResetNote();
+/* ══════════════════════════════════════
+   THIS MONTH (unified editable checklist)
+   Stored as mm_thismonth_items = [{id, label, seeded?}]
+   Checked state stored per-month: mm_thismonth_checked_YYYY-MM
+══════════════════════════════════════ */
+const DEFAULT_MONTH_ITEMS = [
+  { id: 'blog-ecco',    label: 'ECCO Medical blog post',          seeded: true },
+  { id: 'blog-svv',     label: 'Sound Vascular & Vein blog post',  seeded: true },
+  { id: 'blog-txv',     label: 'Texas Vascular blog post',         seeded: true },
+  { id: 'blog-bttcf-1', label: 'BTTCF blog post #1',              seeded: true },
+  { id: 'blog-bttcf-2', label: 'BTTCF blog post #2',              seeded: true },
+  { id: 'blog-bttcf-3', label: 'BTTCF blog post #3',              seeded: true },
+  { id: 'blog-bttcf-4', label: 'BTTCF blog post #4',              seeded: true },
+  { id: 'reel-svv-1',   label: 'SVV extra reel #1',               seeded: true },
+  { id: 'reel-svv-2',   label: 'SVV extra reel #2',               seeded: true },
+  { id: 'reel-svv-3',   label: 'SVV extra reel #3',               seeded: true },
+  { id: 'reel-svv-4',   label: 'SVV extra reel #4',               seeded: true },
+];
+
+function getThisMonthKey() {
+  const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+function loadMonthItems() {
+  const saved = localStorage.getItem('mm_thismonth_items');
+  if (saved) return JSON.parse(saved);
+  // First run: seed defaults
+  localStorage.setItem('mm_thismonth_items', JSON.stringify(DEFAULT_MONTH_ITEMS));
+  return DEFAULT_MONTH_ITEMS.map(i => ({...i}));
+}
+function saveMonthItems(items) {
+  localStorage.setItem('mm_thismonth_items', JSON.stringify(items));
+  scheduleSave();
+}
+function loadMonthChecked() {
+  return JSON.parse(localStorage.getItem(`mm_thismonth_checked_${getThisMonthKey()}`) || '{}');
+}
+function saveMonthChecked(checked) {
+  localStorage.setItem(`mm_thismonth_checked_${getThisMonthKey()}`, JSON.stringify(checked));
+  scheduleSave();
 }
 
-function toggleDeliverable(type, id) {
-  const key = type === 'monthly' ? `mm_monthly_${getMonthKey()}` : `mm_quarterly_${getQuarterKey()}`;
-  const checked = loadChecked(key);
+function toggleMonthlyForm() {
+  const form = document.getElementById('add-form-monthly');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) setTimeout(() => document.getElementById('monthly-task-input').focus(), 50);
+}
+function addMonthlyItem() {
+  const input = document.getElementById('monthly-task-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const items = loadMonthItems();
+  items.push({ id: uid(), label: text, seeded: false });
+  saveMonthItems(items);
+  input.value = '';
+  toggleMonthlyForm();
+  renderThisMonth();
+}
+function deleteMonthItem(id) {
+  saveMonthItems(loadMonthItems().filter(i => i.id !== id));
+  const checked = loadMonthChecked();
+  delete checked[id];
+  saveMonthChecked(checked);
+  renderThisMonth();
+}
+function toggleMonthItem(id) {
+  const checked = loadMonthChecked();
   checked[id] = !checked[id];
-  saveChecked(key, checked);
-  renderDeliverables();
+  saveMonthChecked(checked);
+  renderThisMonth();
 }
 
-function updateProgress(mChecked, qChecked) {
-    const monthlyItems = MONTHLY_DELIVERABLES;
-    const done = monthlyItems.filter(d => mChecked[d.id]).length;
-    const total = monthlyItems.length;
-    document.getElementById('progress-count').textContent = `${done} / ${total}`;
-    document.getElementById('progress-fill').style.width = total > 0 ? `${Math.round(done/total*100)}%` : '0%';
+function renderThisMonth() {
+  const items   = loadMonthItems();
+  const checked = loadMonthChecked();
+  const list    = document.getElementById('this-month-list');
+  if (!list) return;
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty-state">No items yet - add your monthly checklist items.</div>';
+  } else {
+    list.innerHTML = items.map(item => {
+      const done = !!checked[item.id];
+      return `<div class="deliverable-item${done ? ' done' : ''}">
+        <div class="deliverable-check${done ? ' checked' : ''}" onclick="toggleMonthItem('${item.id}')"></div>
+        <span class="deliverable-text" style="font-size:0.88rem;">${item.label}</span>
+        <button class="task-del" onclick="deleteMonthItem('${item.id}')" title="Remove" style="opacity:0.4; margin-left:6px; font-size:1rem; background:none; border:none; cursor:pointer; color:var(--text-muted); transition:opacity 0.15s;" onmouseover="this.style.opacity=1;this.style.color='#b83030'" onmouseout="this.style.opacity=0.4;this.style.color='var(--text-muted)'">×</button>
+      </div>`;
+    }).join('');
   }
 
-function updateResetNote() {
+  // Progress bar
+  const done  = items.filter(i => checked[i.id]).length;
+  const total = items.length;
+  document.getElementById('progress-count').textContent = `${done} / ${total} done`;
+  document.getElementById('progress-fill').style.width = total > 0 ? `${Math.round(done/total*100)}%` : '0%';
+
+  // Days left note
   const now = new Date();
   const daysLeft = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate() - now.getDate();
-  const month = now.toLocaleString('default', { month:'long' });
-  document.getElementById('reset-note').textContent = `Monthly items reset each month. ${daysLeft} day${daysLeft!==1?'s':''} left in ${month}.`;
+  const month = now.toLocaleString('default', { month: 'long' });
+  const inlineNote = document.getElementById('reset-note-inline');
+  if (inlineNote) inlineNote.textContent = `${daysLeft}d left in ${month}`;
+  const resetNote = document.getElementById('reset-note');
+  if (resetNote) resetNote.textContent = `Checked items reset each month. Items you add stay permanently.`;
 }
+
+function renderDeliverables() { renderThisMonth(); }
 
 /* ══════════════════════════════════════
    DATE DISPLAY
@@ -2126,52 +2179,23 @@ function scheduleSave() {
   syncTimer = setTimeout(saveToCloud, 1500);
 }
 
+
+
 /* ══════════════════════════════════════
-   MONTHLY TASKS
+   QUICK NOTES
 ══════════════════════════════════════ */
-function loadMonthlyTasks() {
-  return JSON.parse(localStorage.getItem('mm_monthly_tasks') || '[]');
-}
-function saveMonthlyTasks(tasks) {
-  localStorage.setItem('mm_monthly_tasks', JSON.stringify(tasks));
-  scheduleSave();
-}
-function toggleMonthlyForm() {
-  const form = document.getElementById('add-form-monthly');
-  const isOpen = form.style.display !== 'none';
-  form.style.display = isOpen ? 'none' : 'flex';
-  if (!isOpen) setTimeout(() => document.getElementById('monthly-task-input').focus(), 50);
-}
-function addMonthlyTask() {
-  const input = document.getElementById('monthly-task-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const tasks = loadMonthlyTasks();
-  tasks.push({ id: uid(), text });
-  saveMonthlyTasks(tasks);
-  input.value = '';
-  toggleMonthlyForm();
-  renderMonthlyTasks();
-}
-function deleteMonthlyTask(id) {
-  saveMonthlyTasks(loadMonthlyTasks().filter(t => t.id !== id));
-  renderMonthlyTasks();
-}
-function renderMonthlyTasks() {
-  const list = document.getElementById('monthly-tasks-list');
-  const tasks = loadMonthlyTasks();
-  if (tasks.length === 0) {
-    list.innerHTML = '<div class="empty-state">No monthly tasks yet - add recurring items here.</div>';
-    return;
-  }
-  list.innerHTML = tasks.map(t => `
-    <div class="task-item" style="border-left-color: var(--blue-light);">
-      <div class="task-text" style="font-size:0.95rem;">${t.text}</div>
-      <div class="task-actions" style="opacity:1;">
-        <button class="task-del" onclick="deleteMonthlyTask('${t.id}')" title="Remove">×</button>
-      </div>
-    </div>
-  `).join('');
+function initQuickNotes() {
+  const ta = document.getElementById('quick-notes');
+  if (!ta) return;
+  ta.value = localStorage.getItem('mm_quick_notes') || '';
+  let notesTimer = null;
+  ta.addEventListener('input', () => {
+    clearTimeout(notesTimer);
+    notesTimer = setTimeout(() => {
+      localStorage.setItem('mm_quick_notes', ta.value);
+      scheduleSave();
+    }, 600);
+  });
 }
 
 async function init() {
@@ -2181,9 +2205,11 @@ async function init() {
   migrateTasks();
   handleRecurring();
   renderAll();
-  renderDeliverables();
-  renderMonthlyTasks();
+  renderThisMonth();
   
+  // Quick Notes
+  initQuickNotes();
+
   // Clients Init
   initServicesChecklist();
   // Seed Aspire if not already present
@@ -2216,7 +2242,7 @@ async function init() {
   })();
 
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addMonthlyTask();
+    if (e.key === 'Enter') addMonthlyItem();
   });
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
