@@ -2076,18 +2076,29 @@ async function init() {
   // Seed Aspire if not already present
   (function seedAspire() {
     const existing = loadClients();
-    if (!existing.find(c => c.name === 'Aspire Therapy & Wellness')) {
+    const aspireExists = existing.find(c => c.name === 'Aspire Therapy & Wellness');
+    if (!aspireExists) {
       existing.push({
         id: uid(),
         name: 'Aspire Therapy & Wellness',
-        industry: 'Therapy / Mental Health',
-        phone: '',
+        industry: 'Physical / Occupational / Speech Therapy',
+        phone: '303.963.5582',
         email: '',
-        address: '',
-        website: '',
-        services: ['Social Media Management', 'Video Package']
+        address: '1371 Hecla Dr, Ste E, Louisville, CO 80027',
+        website: 'https://weaspire.net',
+        services: ['Social Media Management', 'Video Package', 'GBP Management', 'Blogging']
       });
       saveClients(existing);
+    } else {
+      // Patch existing Aspire card with full info if still incomplete
+      let changed = false;
+      if (!aspireExists.phone) { aspireExists.phone = '303.963.5582'; changed = true; }
+      if (!aspireExists.address) { aspireExists.address = '1371 Hecla Dr, Ste E, Louisville, CO 80027'; changed = true; }
+      if (!aspireExists.website) { aspireExists.website = 'https://weaspire.net'; changed = true; }
+      if (!aspireExists.industry || aspireExists.industry === 'Therapy / Mental Health') { aspireExists.industry = 'Physical / Occupational / Speech Therapy'; changed = true; }
+      if (!aspireExists.services.includes('GBP Management')) { aspireExists.services.push('GBP Management'); changed = true; }
+      if (!aspireExists.services.includes('Blogging')) { aspireExists.services.push('Blogging'); changed = true; }
+      if (changed) saveClients(existing);
     }
   })();
 
