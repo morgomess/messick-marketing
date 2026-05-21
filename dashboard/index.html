@@ -909,24 +909,7 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
       </div>
       <div id="this-month-list"></div>
       <p class="reset-note" id="reset-note"></p>
-      <div class="divider"></div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-        <div class="side-section-title" style="margin-bottom:0;">This Quarter</div>
-        <button class="add-btn" onclick="toggleQuarterlyForm()" style="font-size:0.62rem; padding:5px 10px;">+ Add</button>
-      </div>
-      <div class="progress-wrap" style="margin-top:0;">
-        <div class="progress-label"><span id="q-progress-count">0 / 0 done</span><span id="q-reset-note-inline"></span></div>
-        <div class="progress-bar"><div class="progress-fill" id="q-progress-fill" style="width:0%"></div></div>
-      </div>
-      <div id="add-form-quarterly" style="display:none; flex-direction:column; gap:8px; margin-bottom:12px;">
-        <input type="text" id="quarterly-task-input" placeholder="Add quarterly item..." style="width:100%; padding:8px 10px; border:1.5px solid var(--border); background:var(--surface-2); font-family:'Jost',sans-serif; font-size:0.82rem; outline:none; color:var(--black);">
-        <div style="display:flex; gap:6px;">
-          <button class="save-btn" onclick="addQuarterlyItem()" style="padding:7px 14px; font-size:0.68rem;">Save</button>
-          <button class="cancel-btn" onclick="toggleQuarterlyForm()" style="padding:7px 10px; font-size:0.68rem;">Cancel</button>
-        </div>
-      </div>
-      <div id="this-quarter-list"></div>
-      <p class="reset-note" style="margin-top:8px;">Checked items reset each quarter. Items stay permanently.</p>
+
     </div>
   </div>
 </div>
@@ -1102,9 +1085,7 @@ function migrateTasks() {
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') addMonthlyItem();
   });
-  document.getElementById('quarterly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addQuarterlyItem();
-  });
+
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
     let changed = false;
@@ -1163,9 +1144,7 @@ function handleRecurring() {
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') addMonthlyItem();
   });
-  document.getElementById('quarterly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addQuarterlyItem();
-  });
+
   ['daily','ongoing'].forEach(type => {
     const tasks = loadTasks(type);
     let changed = false;
@@ -1653,9 +1632,7 @@ function pickerSpin() {
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') addMonthlyItem();
   });
-  document.getElementById('quarterly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addQuarterlyItem();
-  });
+
   ['daily','ongoing'].forEach(type => {
     loadTasks(type).forEach((t,i) => { if (!t.done) candidates.push({ type, idx:i, task:t }); });
   });
@@ -1946,7 +1923,6 @@ function addMonthlyItem() {
   input.value = '';
   toggleMonthlyForm();
   renderThisMonth();
-  renderThisQuarter();
 }
 function deleteMonthItem(id) {
   saveMonthItems(loadMonthItems().filter(i => i.id !== id));
@@ -1997,100 +1973,7 @@ function renderThisMonth() {
   if (resetNote) resetNote.textContent = `Checked items reset each month. Items you add stay permanently.`;
 }
 
-/* ══════════════════════════════════════
-   THIS QUARTER (editable checklist)
-══════════════════════════════════════ */
-const DEFAULT_QUARTER_ITEMS = [
-  { id: 'q-ecco',  label: 'ECCO Medical analytics report',       seeded: true },
-  { id: 'q-jvi',   label: 'JVI analytics report',                seeded: true },
-  { id: 'q-svv',   label: 'SVV analytics report',                seeded: true },
-  { id: 'q-txv',   label: 'Texas Vascular analytics report',     seeded: true },
-  { id: 'q-drcv',  label: 'Desert Cardiovascular analytics report', seeded: true },
-  { id: 'q-kelli', label: 'Dr. Kelli analytics report',          seeded: true },
-];
-
-function getThisQuarterKey() {
-  const n = new Date();
-  const q = Math.floor(n.getMonth() / 3) + 1;
-  return `${n.getFullYear()}-Q${q}`;
-}
-function loadQuarterItems() {
-  const saved = localStorage.getItem('mm_thisquarter_items');
-  if (saved) return JSON.parse(saved);
-  localStorage.setItem('mm_thisquarter_items', JSON.stringify(DEFAULT_QUARTER_ITEMS));
-  return DEFAULT_QUARTER_ITEMS.map(i => ({...i}));
-}
-function saveQuarterItems(items) {
-  localStorage.setItem('mm_thisquarter_items', JSON.stringify(items));
-  scheduleSave();
-}
-function loadQuarterChecked() {
-  return JSON.parse(localStorage.getItem(`mm_thisquarter_checked_${getThisQuarterKey()}`) || '{}');
-}
-function saveQuarterChecked(checked) {
-  localStorage.setItem(`mm_thisquarter_checked_${getThisQuarterKey()}`, JSON.stringify(checked));
-  scheduleSave();
-}
-function toggleQuarterlyForm() {
-  const form = document.getElementById('add-form-quarterly');
-  const isOpen = form.style.display !== 'none';
-  form.style.display = isOpen ? 'none' : 'flex';
-  if (!isOpen) setTimeout(() => document.getElementById('quarterly-task-input').focus(), 50);
-}
-function addQuarterlyItem() {
-  const input = document.getElementById('quarterly-task-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const items = loadQuarterItems();
-  items.push({ id: uid(), label: text, seeded: false });
-  saveQuarterItems(items);
-  input.value = '';
-  toggleQuarterlyForm();
-  renderThisQuarter();
-}
-function deleteQuarterItem(id) {
-  saveQuarterItems(loadQuarterItems().filter(i => i.id !== id));
-  const checked = loadQuarterChecked();
-  delete checked[id];
-  saveQuarterChecked(checked);
-  renderThisQuarter();
-}
-function toggleQuarterItem(id) {
-  const checked = loadQuarterChecked();
-  checked[id] = !checked[id];
-  saveQuarterChecked(checked);
-  renderThisQuarter();
-}
-function renderThisQuarter() {
-  const items   = loadQuarterItems();
-  const checked = loadQuarterChecked();
-  const list    = document.getElementById('this-quarter-list');
-  if (!list) return;
-  if (items.length === 0) {
-    list.innerHTML = '<div class="empty-state">No items yet.</div>';
-  } else {
-    list.innerHTML = items.map(item => {
-      const done = !!checked[item.id];
-      return `<div class="deliverable-item${done ? ' done' : ''}">
-        <div class="deliverable-check${done ? ' checked' : ''}" onclick="toggleQuarterItem('${item.id}')"></div>
-        <span class="deliverable-text" style="font-size:0.88rem;">${item.label}</span>
-        <button class="task-del" onclick="deleteQuarterItem('${item.id}')" title="Remove" style="opacity:0.4; margin-left:6px; font-size:1rem; background:none; border:none; cursor:pointer; color:var(--text-muted); transition:opacity 0.15s;" onmouseover="this.style.opacity=1;this.style.color='#b83030'" onmouseout="this.style.opacity=0.4;this.style.color='var(--text-muted)'">×</button>
-      </div>`;
-    }).join('');
-  }
-  const done  = items.filter(i => checked[i.id]).length;
-  const total = items.length;
-  document.getElementById('q-progress-count').textContent = `${done} / ${total} done`;
-  document.getElementById('q-progress-fill').style.width = total > 0 ? `${Math.round(done/total*100)}%` : '0%';
-  const n = new Date();
-  const q = Math.floor(n.getMonth() / 3) + 1;
-  const qEnd = new Date(n.getFullYear(), q * 3, 0);
-  const daysLeft = Math.ceil((qEnd - n) / (1000*60*60*24));
-  const inlineNote = document.getElementById('q-reset-note-inline');
-  if (inlineNote) inlineNote.textContent = `${daysLeft}d left in Q${q}`;
-}
-
-function renderDeliverables() { renderThisMonth(); renderThisQuarter(); }
+function renderDeliverables() { renderThisMonth(); }
 
 /* ══════════════════════════════════════
    DATE DISPLAY
@@ -2365,9 +2248,7 @@ async function init() {
   document.getElementById('monthly-task-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') addMonthlyItem();
   });
-  document.getElementById('quarterly-task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addQuarterlyItem();
-  });
+
   ['daily','ongoing'].forEach(type => {
     document.getElementById(`task-input-${type}`).addEventListener('keydown', e => {
       if (e.key === 'Enter') addTask(type);
