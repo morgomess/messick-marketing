@@ -545,11 +545,17 @@
           <div class="output-card-header">
             <h3>Visual Prompt</h3>
             <div class="header-actions">
+              <button class="action-btn" id="edit-reel-prompt-btn" onclick="toggleReelPromptEdit()">Edit Prompt</button>
               <button class="action-btn" onclick="copyEl('reel-prompt-output', this)">Copy Prompt</button>
             </div>
           </div>
           <div class="reel-note">Copy this prompt into one of the recommended tools below.</div>
           <div class="output-body" id="reel-prompt-output"></div>
+          <div class="graphic-edit-panel" id="reel-prompt-edit-panel">
+            <label>Direction notes for the visual prompt</label>
+            <textarea id="reel-prompt-edit-input" placeholder="e.g. Make it more emotional and slower paced; focus on a single patient story rather than multiple scenes; warmer lighting and golden hour tones..."></textarea>
+            <button class="apply-btn" id="reel-prompt-apply-btn" onclick="regenerateReelPrompt()">↻ Apply &amp; Regenerate</button>
+          </div>
         </div>
 
         <!-- Reel app recommendations -->
@@ -1148,6 +1154,55 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
     const isOpen = panel.classList.contains('open');
     panel.classList.toggle('open', !isOpen);
     btn.textContent = isOpen ? 'Edit Graphic' : 'Close';
+  }
+
+  function toggleReelPromptEdit() {
+    const panel = document.getElementById('reel-prompt-edit-panel');
+    const btn = document.getElementById('edit-reel-prompt-btn');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? 'Edit Prompt' : 'Close';
+  }
+
+  async function regenerateReelPrompt() {
+    const editNote = document.getElementById('reel-prompt-edit-input').value.trim();
+    const basePrompt = document.getElementById('reel-prompt-output').textContent.trim();
+
+    if (!basePrompt) return alert('Generate a reel first, then use Edit to refine the prompt.');
+
+    const applyBtn = document.getElementById('reel-prompt-apply-btn');
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Rewriting...';
+
+    try {
+      const result = await callWorker('claude', {
+        prompt: `You are an expert AI video generation prompt writer (Sora, Runway, Kling). Rewrite the following visual prompt based on the user's direction notes. Output ONLY the new prompt — no explanation, no preamble, no JSON, no quotes. Write it as one continuous cinematic narrative paragraph.
+
+Original prompt:
+${basePrompt}
+
+Direction notes from user:
+${editNote || 'Make it feel more distinct and varied from the original — shift the visual approach, scene selection, or emotional tone while keeping it appropriate for the same industry and audience.'}
+
+Rules:
+- One continuous flowing narrative, not a list
+- Include camera movement, pacing, lighting, and mood
+- Pure B-roll visuals only — no text overlays, no on-screen titles, no graphics
+- Keep it generic — no brand names, practice names, or locations
+- Make it specific, emotionally resonant, and production-ready
+- Output the prompt only, nothing else`
+      });
+
+      const rewritten = (result.text || '').replace(/^["']|["']$/g, '').trim();
+      if (rewritten) {
+        document.getElementById('reel-prompt-output').textContent = rewritten;
+      }
+    } catch (err) {
+      alert('Rewrite failed: ' + (err.message || 'Try again.'));
+    }
+
+    applyBtn.disabled = false;
+    applyBtn.textContent = '↻ Apply & Regenerate';
   }
 
   async function regenerateGraphic() {
