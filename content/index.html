@@ -451,18 +451,14 @@
 
       <div id="cover-format-row" style="display:none;">
         <div class="section-label">Cover Format</div>
-        <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(3, 1fr);">
-          <button class="type-btn active" data-format="youtube" onclick="selectCoverFormat(this)">
-            <div class="icon">▶️</div>
-            <span class="lbl" style="font-size:11px;">YouTube</span>
+        <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <button class="type-btn active" data-format="reel" onclick="selectCoverFormat(this)">
+            <div class="icon">📱</div>
+            <span class="lbl" style="font-size:11px;">Reel / Story (9:16)</span>
           </button>
-          <button class="type-btn" data-format="facebook" onclick="selectCoverFormat(this)">
-            <div class="icon">📘</div>
-            <span class="lbl" style="font-size:11px;">Facebook</span>
-          </button>
-          <button class="type-btn" data-format="linkedin" onclick="selectCoverFormat(this)">
-            <div class="icon">💼</div>
-            <span class="lbl" style="font-size:11px;">LinkedIn</span>
+          <button class="type-btn" data-format="landscape" onclick="selectCoverFormat(this)">
+            <div class="icon">🖼️</div>
+            <span class="lbl" style="font-size:11px;">Landscape (16:9)</span>
           </button>
         </div>
       </div>
@@ -609,7 +605,7 @@
   const PASSWORD = 'Messick2026';
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
-  let selectedCoverFormat = 'youtube';
+  let selectedCoverFormat = 'reel';
   let generatedImages = [];
   let refImageBase64 = null;
   let refImageMime = 'image/png';
@@ -871,9 +867,9 @@
   }
 
   function buildPrompt(d, refNote) {
-    const coverLabels = { youtube: 'YouTube Thumbnail', facebook: 'Facebook Cover', linkedin: 'LinkedIn Banner' };
-    const coverLabel = coverLabels[selectedCoverFormat] || 'YouTube Thumbnail';
-    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? '16:9 landscape' : '3:4';
+    const coverLabels = { reel: 'Reel / Story Cover', landscape: 'Landscape Cover' };
+    const coverLabel = coverLabels[selectedCoverFormat] || 'Reel / Story Cover';
+    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '3:4';
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
@@ -921,7 +917,7 @@ ${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separ
 ${selectedType === 'reel' ? `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.` : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}
-${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (16:9 landscape). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'youtube' ? 'YouTube Thumbnail rules: bold high-contrast visuals, single strong hero subject, maximum 3 words of text if any, click-optimized composition, nothing critical near edges.' : selectedCoverFormat === 'facebook' ? 'Facebook Cover rules: brand-forward wide banner composition, key elements centered, visually engaging at full width, nothing critical within 100px of any edge.' : 'LinkedIn Banner rules: professional tone, clean minimal composition, brand-forward, nothing critical near edges, sophisticated mood.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
+${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'}). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'landscape' ? 'Landscape cover rules: bold high-contrast visuals, key elements centered and clear at full width, nothing critical near edges, visually engaging at a glance.' : 'Reel/Story cover rules: bold high-contrast vertical composition, single strong hero subject optimized for 9:16, eye-catching thumbnail feel, important elements centered away from top/bottom edges.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
   }
 
   async function callWorker(route, body) {
@@ -1005,8 +1001,8 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
       const isCaption = selectedType === 'caption';
       const isHashtags = selectedType === 'hashtags';
       const isCopyOnly = isCaption || isHashtags;
-      const coverLabels = { youtube: 'YouTube Thumbnail', facebook: 'Facebook Cover', linkedin: 'LinkedIn Banner' };
-      const coverLabel = coverLabels[selectedCoverFormat] || 'YouTube Thumbnail';
+      const coverLabels = { reel: 'Reel / Story Cover', landscape: 'Landscape Cover' };
+      const coverLabel = coverLabels[selectedCoverFormat] || 'Reel / Story Cover';
 
       // Show/hide output cards based on type
       show('card-image', isGraphic || isCover);
@@ -1032,7 +1028,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
         const grid = document.getElementById('image-grid');
         grid.className = 'image-grid graphic';
-        grid.innerHTML = `<div class="image-slot ${isCover ? 'ratio-169' : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`;
+        grid.innerHTML = `<div class="image-slot ${isCover ? (selectedCoverFormat === 'landscape' ? 'ratio-169' : 'ratio-916') : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`;
       }
 
       showOutput();
@@ -1042,7 +1038,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
         const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
         const suffix = isCover
-          ? ` 16:9 landscape aspect ratio. High quality production-ready ${coverLabel}.` + styleNote
+          ? ` ${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'} aspect ratio. High quality production-ready ${coverLabel}.` + styleNote
           : ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
         if (false) {  // carousel removed
