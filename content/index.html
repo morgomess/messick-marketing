@@ -145,6 +145,7 @@
   }
   .image-slot.ratio-45 { aspect-ratio: 4/5; }
   .image-slot.ratio-916 { aspect-ratio: 9/16; }
+  .image-slot.ratio-169 { aspect-ratio: 16/9; max-width: 100%; }
   .image-slot img.generated { width: 100%; height: 100%; object-fit: cover; display: block; }
   .img-placeholder { font-size: 12px; color: var(--muted); text-align: center; padding: 16px; line-height: 1.6; }
   .img-placeholder.error { color: #e8533a; }
@@ -313,7 +314,7 @@
 
       <div>
         <div class="section-label">Content Type</div>
-        <div class="type-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="type-grid" id="content-type-grid" style="grid-template-columns: repeat(5, 1fr);">
           <button class="type-btn active" data-type="graphic" onclick="selectType(this)">
             <div class="icon">🖼️</div>
             <span class="lbl">Graphic</span>
@@ -329,6 +330,10 @@
           <button class="type-btn" data-type="hashtags" onclick="selectType(this)">
             <div class="icon">#</div>
             <span class="lbl">Hashtags</span>
+          </button>
+          <button class="type-btn" data-type="cover" onclick="selectType(this)">
+            <div class="icon">🏷️</div>
+            <span class="lbl">Cover</span>
           </button>
         </div>
       </div>
@@ -444,6 +449,23 @@
         </div>
       </div>
 
+      <div id="cover-format-row" style="display:none;">
+        <div class="section-label">Cover Format</div>
+        <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <button class="type-btn active" data-format="youtube" onclick="selectCoverFormat(this)">
+            <div class="icon">▶️</div>
+            <span class="lbl" style="font-size:11px;">YouTube</span>
+          </button>
+          <button class="type-btn" data-format="facebook" onclick="selectCoverFormat(this)">
+            <div class="icon">📘</div>
+            <span class="lbl" style="font-size:11px;">Facebook</span>
+          </button>
+          <button class="type-btn" data-format="linkedin" onclick="selectCoverFormat(this)">
+            <div class="icon">💼</div>
+            <span class="lbl" style="font-size:11px;">LinkedIn</span>
+          </button>
+        </div>
+      </div>
       <button id="generate-btn" onclick="generate()">Generate Content</button>
     </div>
 
@@ -587,6 +609,7 @@
   const PASSWORD = 'Messick2026';
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
+  let selectedCoverFormat = 'youtube';
   let generatedImages = [];
   let refImageBase64 = null;
   let refImageMime = 'image/png';
@@ -775,9 +798,16 @@
   document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
 
   function selectType(btn) {
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#content-type-grid .type-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedType = btn.dataset.type;
+    document.getElementById('cover-format-row').style.display = selectedType === 'cover' ? 'block' : 'none';
+  }
+
+  function selectCoverFormat(btn) {
+    document.querySelectorAll('#cover-format-grid .type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCoverFormat = btn.dataset.format;
   }
 
   function copyEl(id, btn) {
@@ -841,7 +871,9 @@
   }
 
   function buildPrompt(d, refNote) {
-    const ratio = selectedType === 'reel' ? '9:16 vertical' : '3:4';
+    const coverLabels = { youtube: 'YouTube Thumbnail', facebook: 'Facebook Cover', linkedin: 'LinkedIn Banner' };
+    const coverLabel = coverLabels[selectedCoverFormat] || 'YouTube Thumbnail';
+    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? '16:9 landscape' : '3:4';
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
@@ -872,7 +904,7 @@ QUALITY FOOTER (always end the prompt with this):
     return `You are an expert social media content strategist. You adapt fully to the brand and industry provided — you have no default industry. All content is cross-posted so avoid platform-specific references.
 
 Brand: ${d.brandName}
-${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType} — ${ratio} aspect ratio`}
+${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType === 'cover' ? coverLabel : selectedType} — ${ratio} aspect ratio`}
 ${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
 ${d.brandStyle && !captionOnly && !hashtagsOnly ? 'Visual Style / Colors: ' + d.brandStyle : ''}
 ${d.objective ? 'Objective: ' + d.objective : ''}
@@ -888,7 +920,8 @@ ${hashtagsOnly ? '' : '- "caption": full post caption with line breaks, emojis w
 ${captionOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
 ${selectedType === 'reel' ? `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.` : ''}
-${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
+${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}
+${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (16:9 landscape). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'youtube' ? 'YouTube Thumbnail rules: bold high-contrast visuals, single strong hero subject, maximum 3 words of text if any, click-optimized composition, nothing critical near edges.' : selectedCoverFormat === 'facebook' ? 'Facebook Cover rules: brand-forward wide banner composition, key elements centered, visually engaging at full width, nothing critical within 100px of any edge.' : 'LinkedIn Banner rules: professional tone, clean minimal composition, brand-forward, nothing critical near edges, sophisticated mood.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image. Use this visual description as inspiration for composition, color palette, style, and mood: ' + refNote + '. ' : ''}${imgRules}` : ''}`;
   }
 
   async function callWorker(route, body) {
@@ -950,7 +983,7 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
       // Pass the reference image (if any) directly with the generation prompt in one call.
       // The worker handles vision when image is present; plain text when it isn't.
       const claudeBody = { prompt: buildPrompt(d, refImageBase64 ? '(see attached reference image)' : '') };
-      if (refImageBase64 && selectedType === 'graphic') {
+      if (refImageBase64 && (selectedType === 'graphic' || selectedType === 'cover')) {
         claudeBody.image = { data: refImageBase64, media_type: refImageMime };
         showLoading('Analyzing reference + generating content...');
       }
@@ -968,19 +1001,22 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
 
       const isReel = selectedType === 'reel';
       const isGraphic = selectedType === 'graphic';
+      const isCover = selectedType === 'cover';
       const isCaption = selectedType === 'caption';
       const isHashtags = selectedType === 'hashtags';
       const isCopyOnly = isCaption || isHashtags;
+      const coverLabels = { youtube: 'YouTube Thumbnail', facebook: 'Facebook Cover', linkedin: 'LinkedIn Banner' };
+      const coverLabel = coverLabels[selectedCoverFormat] || 'YouTube Thumbnail';
 
       // Show/hide output cards based on type
-      show('card-image', isGraphic);
+      show('card-image', isGraphic || isCover);
       show('card-carousel-slides', false);
       show('card-reel', isReel);
       show('card-reel-prompt', isReel);
       show('card-reel-apps', isReel);
       show('download-all-btn', false);
       const regenGraphicBtn = document.getElementById('regen-graphic-btn');
-      if (regenGraphicBtn) regenGraphicBtn.style.display = isGraphic ? '' : 'none';
+      if (regenGraphicBtn) regenGraphicBtn.style.display = (isGraphic || isCover) ? '' : 'none';
 
       // Caption card: hide for hashtags-only
       document.getElementById('caption-output').closest('.output-card').style.display = isHashtags ? 'none' : 'block';
@@ -990,22 +1026,24 @@ ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 promp
       if (isReel) {
         document.getElementById('reel-script-output').textContent = parsed.reel_script || '';
         document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
-      } else if (isGraphic) {
-        document.getElementById('image-card-title').textContent = 'Generated Graphic';
+      } else if (isGraphic || isCover) {
+        document.getElementById('image-card-title').textContent = isCover ? coverLabel : 'Generated Graphic';
         document.getElementById('edit-graphic-btn').style.display = '';
         document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
         const grid = document.getElementById('image-grid');
         grid.className = 'image-grid graphic';
-        grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Generating...</div></div>`;
+        grid.innerHTML = `<div class="image-slot ${isCover ? 'ratio-169' : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`;
       }
 
       showOutput();
 
-      // Image generation — graphic only
-      if (isGraphic && parsed.image_prompt) {
+      // Image generation — graphic and cover
+      if ((isGraphic || isCover) && parsed.image_prompt) {
         const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
         const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
-        const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+        const suffix = isCover
+          ? ` 16:9 landscape aspect ratio. High quality production-ready ${coverLabel}.` + styleNote
+          : ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
         if (false) {  // carousel removed
           const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
