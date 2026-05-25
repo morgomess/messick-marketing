@@ -7,44 +7,42 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Morgan's Dashboard | Messick Marketing</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Dancing+Script:wght@600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #e8e4dc;
-  --surface:   #f0ece4;
-  --surface-2: #e2ddd5;
-  --black:     #2c2820;
+  --bg:        #f5f4f2;
+  --surface:   #ffffff;
+  --surface-2: #f0eee9;
+  --black:     #1a1a1a;
   --blue:      #3a6b8a;
   --blue-light:#5a9ab8;
   --blue-pale: rgba(58,107,138,0.10);
   --blue-mist: rgba(58,107,138,0.04);
-  --white:     #f0ece4;
-  --off-white: #e2ddd5;
+  --white:     #ffffff;
+  --off-white: #f5f4f2;
   --messick:   #3a6b8a;
   --virtueasy: #d4317a;
-  --border:    rgba(58,107,138,0.16);
+  --border:    rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.15);
   --text-muted:#6b7e8a;
   --text-light:#98aab6;
-  --p-critical:#b83030;
-  --p-high:    #b85a18;
-  --p-medium:  #3a6b8a;
-  --p-low:     #1a7a40;
+  --p-critical:#c0392b;
+  --p-high:    #d35400;
+  --p-medium:  #2980b9;
+  --p-low:     #27ae60;
+  --teal:      #20a99a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Jost', sans-serif;
   background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse at 20% 80%, rgba(194,168,120,0.18) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(160,200,220,0.14) 0%, transparent 45%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
   color: var(--black);
   min-height: 100vh;
   font-size: 16px;
 }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #d8d4cc; }
-::-webkit-scrollbar-thumb { background: #aab8c2; border-radius: 4px; }
+::-webkit-scrollbar-track { background: #e8e8e8; }
+::-webkit-scrollbar-thumb { background: #c0c8d0; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--blue); }
 
 /* LOGIN */
@@ -82,77 +80,95 @@ body {
 
 /* HEADER */
 header {
-  background: rgba(232,228,220,0.96); border-bottom: 1px solid var(--border);
-  padding: 0 36px; height: 60px;
+  background: #ffffff; border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 58px;
   display: flex; align-items: center; justify-content: space-between;
-  backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 50;
-  box-shadow: 0 1px 0 var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.header-left { display: flex; align-items: baseline; gap: 14px; }
-header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-size: 2.1rem; line-height: 1; }
-#today-date { font-family: 'Playfair Display', serif; color: var(--text-muted); font-size: 0.9rem; font-style: italic; }
-.header-right { display: flex; align-items: center; gap: 12px; }
+.header-left { display: flex; align-items: center; gap: 0; }
+.header-logo { display: flex; align-items: center; gap: 10px; padding-right: 20px; border-right: 1px solid var(--border); }
+.header-logo-icon { font-size: 1.3rem; }
+header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-size: 1.55rem; font-weight: 600; line-height: 1; letter-spacing: 0.01em; }
+.header-date-wrap { display: flex; align-items: center; gap: 6px; padding: 0 18px; color: var(--text-muted); font-size: 0.8rem; }
+.header-date-icon { font-size: 0.85rem; }
+#today-date { font-family: 'Jost', sans-serif; color: var(--text-muted); font-size: 0.8rem; }
+.header-right { display: flex; align-items: center; gap: 10px; }
 #completion-stat {
-  font-size: 0.7rem; font-weight: 600; color: var(--blue);
-  background: var(--surface-2); padding: 5px 13px; border-radius: 20px;
-  letter-spacing: 0.04em; transition: all 0.3s; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; font-weight: 600; color: var(--blue);
+  background: rgba(58,107,138,0.07); padding: 5px 12px; border-radius: 20px;
+  letter-spacing: 0.03em; transition: all 0.3s; border: 1px solid rgba(58,107,138,0.15);
 }
-#completion-stat.all-done { background: rgba(52,211,153,0.12); color: var(--p-low); border-color: rgba(52,211,153,0.25); }
+#completion-stat .stat-spinner { font-size: 0.85rem; animation: spin-slow 3s linear infinite; }
+#completion-stat.all-done { background: rgba(39,174,96,0.10); color: var(--p-low); border-color: rgba(39,174,96,0.25); }
+@keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .logout-btn {
+  display: flex; align-items: center; gap: 5px;
   background: none; border: 1px solid var(--border); color: var(--text-muted);
-  font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em;
-  text-transform: uppercase; padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+  font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 5px 11px; cursor: pointer; transition: all 0.2s;
+  border-radius: 4px;
 }
 .logout-btn:hover { border-color: var(--blue); color: var(--blue); }
 
 /* LAYOUT */
-.layout { display: grid; grid-template-columns: 1fr 360px; min-height: calc(100vh - 60px); padding-bottom: 185px; }
-.main-col { padding: 30px 36px; border-right: 1px solid var(--border); background: var(--bg); }
-.side-col { padding: 30px 28px; background: var(--surface); overflow-y: auto; border-left: 1px solid var(--border); }
+.layout { display: grid; grid-template-columns: 1fr 300px; min-height: calc(100vh - 58px); }
+.main-col { padding: 24px 28px; border-right: 1px solid var(--border); background: var(--bg); }
+.side-col { padding: 24px 22px; background: #ffffff; overflow-y: auto; border-left: 1px solid var(--border); }
 
 /* TODAY FOCUS */
 .focus-section {
-  background: linear-gradient(175deg, #b8d8e8 0%, #c8e0ee 35%, #d4cfa8 75%, #c8b882 100%);
-  padding: 20px 22px 22px; margin-bottom: 26px;
-  box-shadow: 0 2px 16px rgba(58,107,138,0.12), 0 0 0 1px rgba(58,107,138,0.14);
+  background: linear-gradient(160deg, rgba(184,216,232,0.55) 0%, rgba(200,228,238,0.45) 40%, rgba(212,207,168,0.35) 80%, rgba(200,184,130,0.4) 100%);
+  padding: 18px 20px 20px; margin-bottom: 20px;
+  box-shadow: 0 1px 8px rgba(58,107,138,0.10);
   position: relative; overflow: hidden;
+  border: 1px solid rgba(58,107,138,0.12);
+  border-radius: 2px;
 }
-.focus-section::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 38px; pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 38' preserveAspectRatio='none'%3E%3Cpath d='M0,20 C80,5 160,35 240,18 C320,2 400,32 480,16 C560,1 640,30 720,14 C760,6 780,10 800,8 L800,0 L0,0 Z' fill='%2378b8d8' opacity='0.55'/%3E%3Cpath d='M0,28 C60,14 140,38 220,22 C300,7 380,36 460,20 C540,5 620,33 700,18 C750,10 775,15 800,12 L800,0 L0,0 Z' fill='%2390c8e0' opacity='0.4'/%3E%3C/svg%3E") no-repeat top center / 100% 100%;
-}
-.focus-section::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0; height: 22px; pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 22' preserveAspectRatio='none'%3E%3Cpath d='M0,8 C100,18 200,2 300,12 C400,22 500,4 600,14 C700,22 750,10 800,14 L800,22 L0,22 Z' fill='%2378b8d8' opacity='0.3'/%3E%3C/svg%3E") no-repeat bottom center / 100% 100%;
-}
-.focus-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-.focus-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; color: var(--black); }
-.focus-subtitle { font-size: 0.63rem; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; }
+.focus-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.focus-header-left { display: flex; align-items: center; gap: 10px; }
+.focus-star { font-size: 1.3rem; }
+.focus-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; color: #1a1a1a; }
+.focus-subtitle { font-size: 0.7rem; color: #7a7a7a; margin-top: 1px; }
 .picker-btn {
-  background: var(--blue-pale); border: 1px solid var(--border);
-  color: var(--blue); font-family: 'Jost', sans-serif;
-  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 7px 13px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--teal); border: none;
+  color: #fff; font-family: 'Jost', sans-serif;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 8px 16px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  border-radius: 4px; box-shadow: 0 2px 8px rgba(32,169,154,0.3);
 }
-.picker-btn:hover { background: rgba(58,107,138,0.18); }
-.focus-slots { display: flex; flex-direction: column; gap: 7px; }
+.picker-btn:hover { background: #1a9089; }
+.focus-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .focus-slot {
-  display: flex; align-items: center; gap: 11px;
-  padding: 10px 14px; background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(58,107,138,0.15); min-height: 42px;
+  display: flex; flex-direction: column;
+  padding: 14px 16px; background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 6px; min-height: 80px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: relative; transition: all 0.15s;
 }
-.focus-slot.filled { background: #ffffff; border-color: rgba(58,107,138,0.28); }
-.focus-slot.slot-done { opacity: 0.42; }
+.focus-slot.filled { background: #ffffff; border-color: rgba(58,107,138,0.2); }
+.focus-slot:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.focus-slot.slot-done { opacity: 0.45; }
 .focus-slot.slot-done .focus-slot-text { text-decoration: line-through; }
-.focus-num {
-  font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600;
-  color: rgba(58,107,138,0.3); min-width: 18px; text-align: center; flex-shrink: 0;
+.focus-slot-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.focus-num-circle {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(58,107,138,0.12); color: var(--blue);
+  font-family: 'Jost', sans-serif; font-size: 0.8rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.focus-slot.filled .focus-num { color: var(--blue-light); }
-.focus-slot-text { font-size: 0.83rem; color: var(--text-light); flex: 1; font-style: italic; }
+.focus-slot.filled .focus-num-circle { background: var(--blue); color: #fff; }
+.focus-slot-actions { display: flex; gap: 3px; }
+.focus-slot-text { font-size: 0.82rem; color: var(--text-light); flex: 1; font-style: italic; line-height: 1.4; }
 .focus-slot.filled .focus-slot-text { color: var(--black); font-style: normal; }
+.focus-slot-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
+.focus-client-pill {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 10px; background: rgba(58,107,138,0.10); color: var(--blue);
+}
 .focus-pri {
   font-size: 0.55rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   padding: 2px 7px; border-radius: 2px; flex-shrink: 0;
@@ -161,16 +177,16 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
   width: 17px; height: 17px; border: 1.5px solid rgba(58,107,138,0.3);
   background: transparent; cursor: pointer; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 2px; transition: all 0.15s;
+  border-radius: 50%; transition: all 0.15s;
 }
 .focus-check:hover { border-color: var(--blue); }
 .focus-check.checked { background: var(--blue-light); border-color: var(--blue-light); }
-.focus-check.checked::after { content: '✓'; color: #fff; font-size: 10px; font-weight: bold; }
+.focus-check.checked::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
 .focus-remove {
-  background: none; border: none; color: rgba(58,107,138,0.3); font-size: 1.1rem;
-  cursor: pointer; padding: 2px 3px; line-height: 1; transition: color 0.15s;
+  background: none; border: none; color: rgba(58,107,138,0.3); font-size: 1rem;
+  cursor: pointer; padding: 1px 3px; line-height: 1; transition: color 0.15s;
 }
-.focus-remove:hover { color: var(--blue); }
+.focus-remove:hover { color: #c0392b; }
 .focus-hint { font-size: 0.64rem; color: var(--text-light); margin-top: 10px; text-align: center; font-style: italic; }
 
 /* PICKER MODAL */
@@ -287,31 +303,54 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 
 /* FILTER BAR */
 .filter-bar {
-  display: flex; align-items: center; gap: 7px; margin-bottom: 14px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 0; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
 }
-.filter-label { font-size: 0.63rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.filter-group { display: flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; background: #fff; }
+.filter-label {
+  font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600;
+  padding: 6px 10px; border-right: 1px solid var(--border); background: #fafafa; white-space: nowrap;
+}
 .filter-bar select {
-  padding: 6px 9px; border: 1.5px solid var(--border); background: var(--surface);
-  font-family: 'Jost', sans-serif; font-size: 0.84rem; color: var(--black);
-  outline: none; cursor: pointer; transition: border-color 0.15s;
+  padding: 6px 8px; border: none; background: #fff;
+  font-family: 'Jost', sans-serif; font-size: 0.8rem; color: var(--black);
+  outline: none; cursor: pointer; transition: background 0.15s; min-width: 90px;
 }
-.filter-bar select:hover, .filter-bar select:focus { border-color: var(--blue-light); }
+.filter-bar select:hover, .filter-bar select:focus { background: rgba(58,107,138,0.04); }
 .filter-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+.filter-search {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); border-radius: 5px; background: #fff; padding: 5px 10px; flex: 1; min-width: 120px;
+}
+.filter-search input {
+  border: none; outline: none; font-family: 'Jost', sans-serif; font-size: 0.8rem;
+  color: var(--black); background: transparent; width: 100%;
+}
+.filter-search input::placeholder { color: var(--text-light); }
+.filter-search-icon { color: var(--text-light); font-size: 0.85rem; }
 .clear-filters-btn {
   background: none; border: none; color: var(--text-light);
   font-family: 'Jost', sans-serif; font-size: 0.65rem; letter-spacing: 0.06em;
   text-decoration: underline; cursor: pointer; padding: 4px 4px; transition: color 0.15s;
 }
 .clear-filters-btn:hover { color: var(--blue); }
+.add-task-toolbar-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--blue); color: #fff; border: none;
+  font-family: 'Jost', sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 14px;
+  cursor: pointer; transition: background 0.2s; border-radius: 5px; flex-shrink: 0;
+}
+.add-task-toolbar-btn:hover { background: var(--blue-light); }
 
 /* SECTION HEADERS */
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.section-title { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 600; color: var(--blue); }
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.45rem; font-weight: 600; color: var(--black); }
 .add-btn {
   background: var(--blue); color: #fff; border: none;
   font-family: 'Jost', sans-serif; font-size: 0.68rem; font-weight: 600;
   letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 14px;
-  cursor: pointer; transition: background 0.2s;
+  cursor: pointer; transition: background 0.2s; border-radius: 4px;
 }
 .add-btn:hover { background: var(--blue-light); }
 .day-label {
@@ -366,6 +405,58 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 }
 .cancel-btn:hover { border-color: var(--blue-light); color: var(--blue); }
 
+/* TASKS — TABLE STYLE */
+.task-table-wrap { overflow-x: auto; margin-bottom: 20px; margin-top: 0; }
+.task-table {
+  width: 100%; border-collapse: collapse; background: #fff;
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+}
+.task-table thead th {
+  padding: 9px 14px; text-align: left;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); background: #fafafa;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.task-table thead th:first-child { width: 36px; padding-left: 14px; }
+.task-table tbody tr {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.12s; animation: fadeIn 0.2s ease;
+}
+.task-table tbody tr:last-child { border-bottom: none; }
+.task-table tbody tr:hover { background: rgba(58,107,138,0.03); }
+.task-table tbody tr.done-row { opacity: 0.38; }
+.task-table tbody tr.done-row .task-main-text { text-decoration: line-through; }
+.task-table tbody tr.auto-row { border-left: 3px solid #7cc49a; }
+.task-table td { padding: 11px 14px; vertical-align: middle; }
+.task-table td:first-child { padding-left: 14px; }
+.task-name-cell { min-width: 200px; }
+.task-main-text { font-size: 0.88rem; color: var(--black); line-height: 1.4; font-weight: 500; }
+.task-sub-tag {
+  display: inline-block; font-size: 0.6rem; color: var(--text-muted);
+  background: rgba(0,0,0,0.05); padding: 1px 6px; border-radius: 3px;
+  margin-left: 6px; vertical-align: middle; font-weight: 500;
+}
+.task-recur-icon { font-size: 0.7rem; color: var(--text-light); margin-left: 5px; }
+.task-due-cell { white-space: nowrap; min-width: 110px; }
+.task-brand-cell { white-space: nowrap; }
+.task-priority-cell { white-space: nowrap; font-size: 0.78rem; font-weight: 700; }
+.pri-text-critical { color: var(--p-critical); }
+.pri-text-high     { color: var(--p-high); }
+.pri-text-medium   { color: var(--p-medium); }
+.pri-text-low      { color: var(--p-low); }
+.pri-text-none     { color: var(--text-light); }
+.task-status-cell { text-align: center; }
+.status-circle {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid #ccc; display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; background: #fff;
+}
+.status-circle.done { background: var(--p-low); border-color: var(--p-low); }
+.status-circle.done::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
+.status-circle:hover { border-color: var(--blue); }
+.task-row-actions { display: flex; gap: 3px; opacity: 0; transition: opacity 0.15s; }
+.task-table tbody tr:hover .task-row-actions { opacity: 1; }
+
 /* TASKS */
 .task-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
@@ -390,15 +481,15 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 .task-item.pri-low      { border-left-color: var(--p-low) !important; }
 
 .task-check {
-  width: 18px; height: 18px; border: 1.5px solid var(--border);
-  background: var(--surface-2); cursor: pointer; flex-shrink: 0;
+  width: 17px; height: 17px; border: 1.5px solid #ccc;
+  background: #fff; cursor: pointer; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; border-radius: 2px;
+  transition: all 0.15s; border-radius: 50%;
 }
 .task-check:hover { border-color: var(--blue); }
 .task-check.checked { background: var(--blue); border-color: var(--blue); }
-.task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: bold; }
-.task-text { flex: 1; font-size: 1.05rem; line-height: 1.45; color: var(--black); }
+.task-check.checked::after { content: '✓'; color: #fff; font-size: 9px; font-weight: bold; }
+.task-text { flex: 1; font-size: 1.0rem; line-height: 1.45; color: var(--black); }
 
 .task-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
 
@@ -459,16 +550,21 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 }
 
 /* SIDEBAR */
-.side-section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
-.schedule-block { display: flex; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
-.schedule-time { font-size: 0.7rem; color: var(--text-light); white-space: nowrap; padding-top: 2px; min-width: 76px; font-weight: 500; letter-spacing: 0.04em; }
-.schedule-label { font-size: 0.83rem; color: var(--black); line-height: 1.4; }
+.side-section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--black); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.side-section-title .side-icon { font-size: 0.9rem; }
+.schedule-block { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.05); align-items: flex-start; }
+.schedule-dot-col { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+.schedule-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.schedule-dot.break-dot { background: var(--text-light); }
+.schedule-block-text {}
+.schedule-time { font-size: 0.68rem; color: var(--text-light); white-space: nowrap; font-weight: 600; letter-spacing: 0.03em; display: block; margin-bottom: 1px; }
+.schedule-label { font-size: 0.82rem; color: var(--black); line-height: 1.4; }
 .schedule-label.break { color: var(--text-muted); font-style: italic; }
 
-.progress-wrap { margin: 18px 0 20px; }
-.progress-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 7px; letter-spacing: 0.05em; }
-.progress-bar { height: 5px; background: var(--surface-2); border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-light)); border-radius: 10px; transition: width 0.5s ease; box-shadow: 0 0 10px rgba(90,154,184,0.5); }
+.progress-wrap { margin: 10px 0 14px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+.progress-bar { height: 6px; background: #eee; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), #4dd0c4); border-radius: 10px; transition: width 0.5s ease; }
 
 .deliverable-group { margin-bottom: 18px; }
 .deliverable-group-label {
@@ -527,14 +623,17 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 .del-edit-form input[type="text"]:focus { border-color: var(--blue); background: var(--surface-2); }
 
 /* ── TABS & CLIENTS ── */
-.header-tabs { display: flex; gap: 14px; margin-left: 30px; }
+.header-tabs { display: flex; gap: 4px; margin-left: 18px; }
 .tab-btn {
-  background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.85rem;
-  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-light);
-  cursor: pointer; padding: 6px 4px; border-bottom: 2px solid transparent; transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.78rem;
+  font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-light);
+  cursor: pointer; padding: 6px 12px; border-bottom: 2px solid transparent; transition: all 0.2s;
+  border-radius: 4px 4px 0 0;
 }
-.tab-btn:hover { color: var(--blue-light); }
-.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-btn:hover { color: var(--blue-light); background: rgba(58,107,138,0.04); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); background: rgba(58,107,138,0.06); }
+.tab-btn .tab-icon { font-size: 0.85rem; }
 
 .client-card {
   background: var(--surface); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px;
@@ -719,11 +818,7 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 .subtask-count { font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; }
 
 /* ── BEACH DECORATIONS ── */
-.beach-deco {
-  position: fixed; pointer-events: none; z-index: 1; bottom: 0; left: 0; right: 0;
-  height: 180px; overflow: hidden;
-}
-.beach-deco svg { width: 100%; height: 100%; }
+.beach-deco { display: none; }
 </style>
 </head>
 <body>
@@ -745,16 +840,22 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 <div id="app">
   <header>
     <div class="header-left">
-      <h1>Morgan's Dashboard</h1>
-      <span id="today-date"></span>
+      <div class="header-logo">
+        <span class="header-logo-icon">🐚</span>
+        <h1>Morgan's Dashboard</h1>
+      </div>
+      <div class="header-date-wrap">
+        <span class="header-date-icon">📅</span>
+        <span id="today-date"></span>
+      </div>
       <div class="header-tabs">
-        <button class="tab-btn active" id="tab-tasks" onclick="switchTab('tasks')">Tasks</button>
-        <button class="tab-btn" id="tab-clients" onclick="switchTab('clients')">Clients</button>
+        <button class="tab-btn active" id="tab-tasks" onclick="switchTab('tasks')"><span class="tab-icon">☰</span> Tasks</button>
+        <button class="tab-btn" id="tab-clients" onclick="switchTab('clients')"><span class="tab-icon">👥</span> Clients</button>
       </div>
     </div>
     <div class="header-right">
-      <span id="completion-stat">0 of 0 done today</span>
-      <button class="logout-btn" onclick="logout()">Log Out</button>
+      <span id="completion-stat"><span class="stat-spinner">↻</span><span id="stat-text">0 of 0 done</span></span>
+      <button class="logout-btn" onclick="logout()">⎋ Log out</button>
     </div>
   </header>
 
@@ -764,59 +865,74 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
       <div id="tasks-view">
         <div class="focus-section">
           <div class="focus-header">
-            <div>
-              <div class="focus-title">🌊 Today's Top 3</div>
-              <div class="focus-subtitle">Must-finish tasks for the day</div>
+            <div class="focus-header-left">
+              <span class="focus-star">⭐</span>
+              <div>
+                <div class="focus-title">Today's Top 3</div>
+                <div class="focus-subtitle">Focus on these first.</div>
+              </div>
             </div>
-            <button class="picker-btn" onclick="openPicker()">✦ Pick for me</button>
+            <button class="picker-btn" onclick="openPicker()">✦ Pick for Me</button>
           </div>
           <div class="focus-slots" id="focus-slots"></div>
           <div class="focus-hint">Pin any task to this section using the ◈ icon</div>
         </div>
 
-        <div class="section-header">
+        <div class="section-header" style="margin-bottom:12px;">
           <span class="section-title">To-Do List</span>
-          <button class="add-btn" onclick="toggleAddForm('todo')">+ Add Task</button>
-        </div>
-        <div class="day-label">
-          <span id="today-label">Today</span>
-          <button class="clear-done-btn" onclick="clearDoneTasks()">Clear completed</button>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:0.7rem;color:var(--text-muted);" id="today-label">Today</span>
+            <button class="clear-done-btn" onclick="clearDoneTasks()">Clear completed</button>
+          </div>
         </div>
 
         <div class="filter-bar">
-          <span class="filter-label">Filter</span>
-          <select id="filter-brand" onchange="renderAll()">
-            <option value="">All brands</option>
-            <option value="messick">Messick</option>
-            <option value="virtueasy">Virtueasy</option>
-            <option value="other">Other</option>
-            <option value="daily">Daily</option>
-          </select>
-          <select id="filter-priority" onchange="renderAll()">
-            <option value="">All priorities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-            <option value="none">None</option>
-          </select>
-          <select id="filter-status" onchange="renderAll()">
-            <option value="">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="done">Done</option>
-            <option value="overdue">Overdue</option>
-            <option value="due-today">Due Today</option>
-            <option value="due-week">Due This Week</option>
-          </select>
-          <div class="filter-divider"></div>
-          <span class="filter-label">Sort</span>
-          <select id="sort-by" onchange="renderAll()">
-            <option value="priority">Priority first</option>
-            <option value="due">Due soonest</option>
-            <option value="added">Recently added</option>
-            <option value="brand">Brand grouped</option>
-          </select>
-          <button class="clear-filters-btn" onclick="clearFilters()">Reset</button>
+          <div class="filter-group">
+            <span class="filter-label">Brand</span>
+            <select id="filter-brand" onchange="renderAll()">
+              <option value="">All brands</option>
+              <option value="messick">Messick</option>
+              <option value="virtueasy">Virtueasy</option>
+              <option value="other">Other</option>
+              <option value="daily">Daily</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Priority</span>
+            <select id="filter-priority" onchange="renderAll()">
+              <option value="">All priorities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Status</span>
+            <select id="filter-status" onchange="renderAll()">
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="done">Done</option>
+              <option value="overdue">Overdue</option>
+              <option value="due-today">Due Today</option>
+              <option value="due-week">Due This Week</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Sort</span>
+            <select id="sort-by" onchange="renderAll()">
+              <option value="priority">Priority first</option>
+              <option value="due">Due soonest</option>
+              <option value="added">Recently added</option>
+              <option value="brand">Brand grouped</option>
+            </select>
+          </div>
+          <div class="filter-search">
+            <span class="filter-search-icon">🔍</span>
+            <input type="text" id="task-search" placeholder="Search tasks..." oninput="renderAll()">
+          </div>
+          <button class="add-task-toolbar-btn" onclick="toggleAddForm('todo')">+ Add Task</button>
         </div>
 
         <div class="add-task-form" id="add-form-todo">
@@ -854,7 +970,22 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
           </div>
         </div>
 
-        <div class="task-list" id="todo-tasks"></div>
+        <div class="task-table-wrap">
+          <table class="task-table" id="todo-tasks-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>TASK</th>
+                <th>DUE DATE</th>
+                <th>BRAND / PROJECT</th>
+                <th>PRIORITY</th>
+                <th>STATUS</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="todo-tasks"></tbody>
+          </table>
+        </div>
 
       </div> <div id="clients-view" style="display: none;">
         <div class="section-header">
@@ -888,18 +1019,33 @@ header h1 { font-family: 'Playfair Display', serif; color: var(--blue); font-siz
 
         <div id="clients-list"></div>
       </div> </div> <div class="side-col">
-      <div class="side-section-title">Today's Schedule</div>
-      <div class="schedule-block"><span class="schedule-time">8:30 AM</span><span class="schedule-label">Morning work block</span></div>
-      <div class="schedule-block"><span class="schedule-time">11:30 AM</span><span class="schedule-label break">Break: dogs + lunch</span></div>
-      <div class="schedule-block"><span class="schedule-time">12:30 PM</span><span class="schedule-label">Afternoon work block</span></div>
-      <div class="schedule-block"><span class="schedule-time">3:30 – 5:00</span><span class="schedule-label break">Wrap up</span></div>
+      <div class="side-section-title"><span class="side-icon">📅</span> Today's Schedule</div>
+      <div class="schedule-block">
+        <div class="schedule-dot-col"><div class="schedule-dot"></div></div>
+        <div class="schedule-block-text"><span class="schedule-time">8:30 AM</span><span class="schedule-label">Morning work block</span></div>
+      </div>
+      <div class="schedule-block">
+        <div class="schedule-dot-col"><div class="schedule-dot break-dot"></div></div>
+        <div class="schedule-block-text"><span class="schedule-time">11:30 AM</span><span class="schedule-label break">Break: dogs + lunch</span></div>
+      </div>
+      <div class="schedule-block">
+        <div class="schedule-dot-col"><div class="schedule-dot"></div></div>
+        <div class="schedule-block-text"><span class="schedule-time">12:30 PM</span><span class="schedule-label">Afternoon work block</span></div>
+      </div>
+      <div class="schedule-block">
+        <div class="schedule-dot-col"><div class="schedule-dot break-dot"></div></div>
+        <div class="schedule-block-text"><span class="schedule-time">3:30 - 5:00 PM</span><span class="schedule-label break">Wrap up</span></div>
+      </div>
       <div class="divider"></div>
-      <div class="side-section-title" style="margin-bottom:4px;">Quick Notes</div>
-      <textarea id="quick-notes" placeholder="Scratch pad — jot anything here..." style="width:100%; min-height:90px; resize:vertical; padding:10px 12px; border:1.5px solid var(--border); background:var(--surface-2); font-family:'Jost',sans-serif; font-size:0.83rem; color:var(--black); outline:none; line-height:1.5; margin-bottom:4px;"></textarea>
+      <div class="side-section-title" style="margin-bottom:4px;"><span class="side-icon">✏️</span> Quick Notes</div>
+      <div style="position:relative;">
+        <textarea id="quick-notes" placeholder="Scratch pad — jot anything here..." style="width:100%; min-height:90px; resize:vertical; padding:10px 12px; border:1px solid var(--border); background:#fafafa; font-family:'Jost',sans-serif; font-size:0.82rem; color:var(--black); outline:none; line-height:1.5; margin-bottom:4px; border-radius:4px;"></textarea>
+        <div style="position:absolute;bottom:14px;right:12px;font-size:1.4rem;opacity:0.08;pointer-events:none;line-height:1;">🐚</div>
+      </div>
       <div style="font-size:0.6rem; color:var(--text-light); font-style:italic; margin-bottom:16px;">Auto-saved</div>
       <div class="divider"></div>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-        <div class="side-section-title" style="margin-bottom:0;">This Month</div>
+        <div class="side-section-title" style="margin-bottom:0;"><span class="side-icon">📅</span> This Month</div>
         <button class="add-btn" onclick="toggleMonthlyForm()" style="font-size:0.62rem; padding:5px 10px;">+ Add</button>
       </div>
       <div class="progress-wrap" style="margin-top:0;">
@@ -1308,6 +1454,8 @@ function renderTasks(type) {
   list.innerHTML = '';
   const f = getFilters();
 
+  const searchQ = (document.getElementById('task-search') || {}).value || '';
+
   if (renderType === 'todo') {
     const state = getAutoDailyState();
     let autoItems = AUTO_DAILY_TASKS.map((t,i) => ({...t, i}));
@@ -1316,56 +1464,42 @@ function renderTasks(type) {
     if (f.status === 'done')    autoItems = autoItems.filter(t => state[t.i]);
     if (f.status === 'pending') autoItems = autoItems.filter(t => !state[t.i]);
     if (['overdue','due-today','due-week'].includes(f.status)) autoItems = [];
+    if (searchQ) autoItems = autoItems.filter(t => t.text.toLowerCase().includes(searchQ.toLowerCase()));
     autoItems.forEach(t => {
       const done = !!state[t.i];
-      const div = document.createElement('div');
-      div.className = `task-item auto-task${done?' done':''}`;
-      div.innerHTML = `
-        <div class="task-check${done?' checked':''}" onclick="toggleAutoTask(${t.i})"></div>
-        <span class="task-text">${t.text}</span>
-        <div class="task-tags">
-          <span class="brand-pill brand-daily">Daily</span>
-          <span class="recur-icon" title="Recurring daily">↻</span>
-        </div>`;
-      list.appendChild(div);
+      const tr = document.createElement('tr');
+      tr.className = `auto-row${done?' done-row':''}`;
+      tr.innerHTML = `
+        <td><div class="task-check${done?' checked':''}" onclick="toggleAutoTask(${t.i})"></div></td>
+        <td class="task-name-cell"><span class="task-main-text">${t.text}</span><span class="task-sub-tag">Ad review</span><span class="task-recur-icon" title="Recurring daily">↻</span></td>
+        <td class="task-due-cell"><span class="due-pill due-today">Today</span></td>
+        <td class="task-brand-cell"><span class="brand-pill brand-daily">Daily</span></td>
+        <td class="task-priority-cell"><span class="pri-text-high">High</span></td>
+        <td class="task-status-cell"><div class="status-circle${done?' done':''}" onclick="toggleAutoTask(${t.i})"></div></td>
+        <td></td>`;
+      list.appendChild(tr);
     });
   }
 
   const allTasks = loadTasks(renderType);
   let tasks = applyFiltersAndSort(allTasks, f);
+  if (searchQ) tasks = tasks.filter(t => t.text.toLowerCase().includes(searchQ.toLowerCase()));
 
   if (tasks.length === 0) {
-    if (renderType !== 'todo' || f.brand || f.priority || f.status) {
-      list.innerHTML += `<div class="empty-state">No tasks yet — add one above.</div>`;
+    if (renderType !== 'todo' || f.brand || f.priority || f.status || searchQ) {
+      list.innerHTML += `<tr><td colspan="7"><div class="empty-state">No tasks found.</div></td></tr>`;
     }
     return;
   }
 
-  if (f.sort === 'brand') {
-    const groups = {};
-    tasks.forEach(t => { (groups[t.brand] = groups[t.brand]||[]).push(t); });
-    const seen = new Set();
-    tasks.forEach(t => {
-      if (!seen.has(t.brand)) {
-        seen.add(t.brand);
-        const h = document.createElement('div');
-        h.className = 'brand-group-header';
-        h.textContent = getBrandLabel(t.brand);
-        list.appendChild(h);
-      }
-      const idx = allTasks.findIndex(x => x.id === t.id);
-      list.appendChild(buildTaskEl(renderType, t, idx));
-    });
-  } else {
-    tasks.forEach(t => {
-      const idx = allTasks.findIndex(x => x.id === t.id);
-      list.appendChild(buildTaskEl(renderType, t, idx));
-    });
-  }
+  tasks.forEach(t => {
+    const idx = allTasks.findIndex(x => x.id === t.id);
+    list.appendChild(buildTaskEl(renderType, t, idx));
+  });
 }
 
 function buildTaskEl(type, t, i) {
-  const div = document.createElement('div');
+  const tr = document.createElement('tr');
   const pri = t.priority || 'none';
   const ds  = dueStatus(t.due);
   const focus = getFocusPins();
@@ -1373,54 +1507,70 @@ function buildTaskEl(type, t, i) {
   const subs = t.subtasks || [];
   const subDone = subs.filter(s=>s.done).length;
 
-  div.className = `task-item${t.done?' done':''}${pri!=='none'?' pri-'+pri:''}`;
-  div.style.flexWrap = 'wrap';
-  div.title = 'Double-click to edit';
+  if (t.done) tr.classList.add('done-row');
+  tr.title = 'Double-click to edit';
 
-  let tagsHtml = `<div class="task-tags">`;
-  if (pri !== 'none') tagsHtml += `<span class="priority-pill pill-${pri}">${pri}</span>`;
-  if (ds && (ds === 'overdue' || ds === 'due-today')) {
-    tagsHtml += `<span class="due-pill ${duePillClass(ds)}">${duePillLabel(ds, t.due)}</span>`;
-  } else if (ds && t.due) {
-    tagsHtml += `<span class="day-pill ${dayPillClass(t.due)}">${dayPillLabel(t.due)}</span>`;
-  }
-  tagsHtml += `<span class="brand-pill ${getBrandClass(t.brand)}">${getBrandLabel(t.brand)}</span>`;
-  if (t.recur && t.recur !== 'none') tagsHtml += `<span class="recur-icon" title="Recurring ${t.recur}">↻</span>`;
-  if (subs.length > 0) tagsHtml += `<span class="subtask-count">${subDone}/${subs.length} subtasks</span>`;
-  tagsHtml += `</div>`;
+  // Due date cell
+  let dueHtml = '';
+  if (ds === 'overdue') dueHtml = `<span class="due-pill due-overdue">Overdue &bull; ${fmtDate(t.due)}</span>`;
+  else if (ds === 'due-today') dueHtml = `<span class="due-pill due-today">Today</span>`;
+  else if (t.due) dueHtml = `<span class="due-pill due-future" style="background:rgba(148,163,184,0.08);color:#7a8fa0;">${fmtDate(t.due)}</span>`;
 
-  const subsPanelId = `subs-${t.id}`;
-  const subsOpen = !!sessionStorage.getItem(subsPanelId);
+  // Priority text
+  const priLabel = pri === 'none' ? '' : pri.charAt(0).toUpperCase() + pri.slice(1);
+  const priClass = `pri-text-${pri}`;
 
-  div.innerHTML = `
-    <div class="task-check${t.done?' checked':''}" onclick="toggleTask('${type}',${i})"></div>
-    <span class="task-text">${t.text}</span>
-    ${tagsHtml}
-    <div class="task-actions">
-      <button class="subtask-toggle" title="Subtasks" onclick="toggleSubPanel('${type}',${i},'${t.id}')">${subsOpen?'▲':'▼'} tasks</button>
-      <button class="pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin from Top 3':'Pin to Top 3'}" onclick="togglePin('${type}',${i})">◈</button>
-      <button class="task-del" onclick="deleteTask('${type}',${i})">×</button>
-    </div>
-    <div class="subtask-panel" id="${subsPanelId}" style="display:${subsOpen?'flex':'none'}; flex-direction:column;">
-      ${subs.map((s,si) => `
-        <div class="subtask-item">
-          <div class="subtask-check${s.done?' checked':''}" onclick="toggleSubtask('${type}',${i},${si})"></div>
-          <span class="subtask-text${s.done?' done':''}">${s.text}</span>
-          <button class="subtask-del" onclick="deleteSubtask('${type}',${i},${si})">×</button>
-        </div>`).join('')}
-      <div class="subtask-add-row">
-        <input type="text" id="sub-input-${t.id}" placeholder="Add subtask..." onkeydown="if(event.key==='Enter') addSubtask('${type}',${i},'${t.id}')">
-        <button class="subtask-add-btn" onclick="addSubtask('${type}',${i},'${t.id}')">+ Add</button>
+  // Sub tag
+  let subTag = '';
+  const tl = t.text.toLowerCase();
+  if (tl.includes('ad comment') || tl.includes('review ad')) subTag = 'Ad review';
+  else if (tl.includes('blog')) subTag = 'Content';
+  else if (tl.includes('reel') || tl.includes('social') || tl.includes('caption') || tl.includes('post')) subTag = 'Social media';
+  else if (tl.includes('invoice') || tl.includes('payment') || tl.includes('finance')) subTag = 'Finance';
+  else if (tl.includes('email') || tl.includes('sow') || tl.includes('contract')) subTag = 'Admin';
+  else if (tl.includes('setup') || tl.includes('set up') || tl.includes('design') || tl.includes('rebuild')) subTag = 'Setup';
+  else if (tl.includes('youtube') || tl.includes('video')) subTag = 'Video';
+
+  const recurHtml = (t.recur && t.recur !== 'none') ? `<span class="task-recur-icon" title="Recurring ${t.recur}">↻</span>` : '';
+  const subCountHtml = subs.length > 0 ? `<span class="task-sub-tag">${subDone}/${subs.length}</span>` : '';
+
+  tr.innerHTML = `
+    <td><div class="task-check${t.done?' checked':''}" onclick="toggleTask('${type}',${i})"></div></td>
+    <td class="task-name-cell">
+      <span class="task-main-text">${t.text}</span>
+      ${subTag ? `<span class="task-sub-tag">${subTag}</span>` : ''}
+      ${recurHtml}${subCountHtml}
+    </td>
+    <td class="task-due-cell">${dueHtml}</td>
+    <td class="task-brand-cell"><span class="brand-pill ${getBrandClass(t.brand)}">${getBrandLabel(t.brand)}</span></td>
+    <td class="task-priority-cell"><span class="${priClass}">${priLabel}</span></td>
+    <td class="task-status-cell"><div class="status-circle${t.done?' done':''}" onclick="toggleTask('${type}',${i})"></div></td>
+    <td>
+      <div class="task-row-actions">
+        <button class="pin-btn${pinned?' pinned':''}" title="${pinned?'Unpin from Top 3':'Pin to Top 3'}" onclick="togglePin('${type}',${i})">◈</button>
+        <button class="task-del" onclick="deleteTask('${type}',${i})">×</button>
       </div>
-    </div>`;
+    </td>`;
 
-  div.addEventListener('dblclick', (e) => {
-    const ignore = ['task-check','task-del','pin-btn','subtask-toggle','subtask-check','subtask-del','subtask-add-btn'];
+  tr.addEventListener('dblclick', (e) => {
+    const ignore = ['task-check','task-del','pin-btn','status-circle'];
     if (ignore.some(c => e.target.classList.contains(c))) return;
-    if (e.target.closest('.subtask-panel')) return;
-    openTaskEdit(div, type, i, t);
+    openTaskEditRow(tr, type, i, t);
   });
-  return div;
+  return tr;
+}
+
+function openTaskEditRow(tr, type, i, t) {
+  const div = document.createElement('div');
+  div.className = `task-item pri-${t.priority||'none'}`;
+  div.style.flexWrap = 'wrap';
+  openTaskEdit(div, type, i, t);
+  const td = document.createElement('td');
+  td.colSpan = 7;
+  td.style.padding = '0';
+  td.appendChild(div);
+  tr.innerHTML = '';
+  tr.appendChild(td);
 }
 
 function toggleSubPanel(type, i, id) {
@@ -1647,14 +1797,24 @@ function renderFocus() {
     if (p) {
       const [bg,fg] = priColors[p.priority] || [];
       const priHtml = bg ? `<span class="focus-pri" style="background:${bg};color:${fg}">${p.priority}</span>` : '';
+      const brandLabel = getBrandLabel(p.brand||'messick');
       div.innerHTML = `
-        <div class="focus-num">${i+1}</div>
+        <div class="focus-slot-top">
+          <div class="focus-num-circle">${i+1}</div>
+          <div class="focus-slot-actions">
+            <div class="focus-check${p.done?' checked':''}" onclick="toggleFocusDone(${i})"></div>
+            <button class="focus-remove" onclick="removeFocusSlot(${i})">×</button>
+          </div>
+        </div>
         <span class="focus-slot-text">${p.text}</span>
-        ${priHtml}
-        <div class="focus-check${p.done?' checked':''}" onclick="toggleFocusDone(${i})"></div>
-        <button class="focus-remove" onclick="removeFocusSlot(${i})">×</button>`;
+        <div class="focus-slot-bottom">
+          <span class="focus-client-pill">${brandLabel}</span>
+          ${priHtml}
+        </div>`;
     } else {
-      div.innerHTML = `<div class="focus-num">${i+1}</div><span class="focus-slot-text">Empty — pin a task below</span>`;
+      div.innerHTML = `
+        <div class="focus-slot-top"><div class="focus-num-circle">${i+1}</div></div>
+        <span class="focus-slot-text">Empty — pin a task below</span>`;
     }
 
     if (p) {
@@ -1836,7 +1996,8 @@ function updateCompletionStat() {
   const total = AUTO_DAILY_TASKS.length + todo.length;
   const done  = autoDone + todo.filter(t=>t.done).length;
   const el    = document.getElementById('completion-stat');
-  el.textContent = `${done} of ${total} done`;
+  const txt = document.getElementById('stat-text');
+  if (txt) txt.textContent = `${done} of ${total} done`;
   el.classList.toggle('all-done', total > 0 && done === total);
 }
 
