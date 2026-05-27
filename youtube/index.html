@@ -608,6 +608,62 @@
     }
     .tag-remove-btn:hover { color: var(--red); }
 
+    /* THUMBNAIL AUDIT */
+    .thumb-audit-layout {
+      display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .thumb-audit-img {
+      width: 240px; height: 135px; object-fit: cover;
+      border-radius: 8px; background: var(--surface3);
+      border: 1px solid var(--border); display: block;
+    }
+    .thumb-new-preview { position: relative; }
+    .thumb-audit-score-bar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px;
+    }
+    .thumb-score-num {
+      font-size: 28px; font-weight: 700; font-family: var(--font-head);
+      line-height: 1; min-width: 44px;
+    }
+    .thumb-score-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .thumb-score-right { flex: 1; }
+    .thumb-score-summary { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+    .thumb-criteria { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+    .thumb-criterion {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px; background: var(--surface);
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .thumb-crit-score {
+      font-size: 13px; font-weight: 700; min-width: 28px; flex-shrink: 0; margin-top: 1px;
+    }
+    .thumb-crit-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .thumb-crit-note { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .thumb-action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .btn-gen-thumb {
+      background: var(--blue); color: #fff; border: none; border-radius: 9px;
+      padding: 10px 22px; font-family: var(--font-body); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-gen-thumb:hover { background: var(--blue-light); }
+    .btn-gen-thumb:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-dl-thumb {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border2);
+      border-radius: 9px; padding: 10px 22px; font-family: var(--font-body);
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.18s;
+      text-decoration: none; display: inline-flex; align-items: center;
+    }
+    .btn-dl-thumb:hover { border-color: var(--blue); color: var(--blue-light); }
+    .btn-push-thumb {
+      background: var(--green); color: #fff; border: none; border-radius: 9px;
+      padding: 10px 22px; font-family: var(--font-body); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-push-thumb:hover { background: #2ecc71; }
+    .btn-push-thumb:disabled { opacity: 0.45; cursor: not-allowed; }
+
     /* RESPONSIVE */
     @media (max-width: 700px) {
       #view-optimize, .research-panel-inner { padding: 24px 18px 50px; }
@@ -1738,6 +1794,25 @@ function renderEditPanel(video, token) {
     <div class="push-bar">
       <button class="btn-push" onclick="pushToYouTube('${video.id}', '${token}')">Push to YouTube</button>
       <span class="push-status" id="push-status"></span>
+    </div>
+
+    <div class="edit-section" style="margin-top:32px;padding-top:28px;border-top:1px solid var(--border)">
+      <div class="edit-section-label">
+        Thumbnail
+        <button class="edit-ai-btn" id="ai-thumb-audit-btn" onclick="auditThumbnail()">✦ Audit</button>
+      </div>
+      <div class="thumb-audit-layout">
+        <div>
+          <img id="current-thumb-img" src="${sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || thumb}" class="thumb-audit-img" alt="Current thumbnail">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:5px;text-align:center">Current thumbnail</div>
+        </div>
+        <div id="new-thumb-preview" class="thumb-new-preview" style="display:none">
+          <img id="new-thumb-img" src="" class="thumb-audit-img" alt="Generated thumbnail">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:5px;text-align:center">AI generated</div>
+        </div>
+      </div>
+      <div id="thumb-audit-out"></div>
+      <div id="thumb-gen-out"></div>
     </div>`;
 
   renderTagPills();
@@ -1963,6 +2038,229 @@ async function pushToYouTube(videoId, token) {
     statusEl.className = 'push-status error';
   }
   pushBtn.disabled = false;
+}
+// ============================================================
+// THUMBNAIL AUDIT + GENERATION
+// ============================================================
+let generatedThumbB64 = null;
+
+async function auditThumbnail() {
+  const btn = document.getElementById('ai-thumb-audit-btn');
+  const out = document.getElementById('thumb-audit-out');
+  if (!out) return;
+  btn.disabled = true; btn.textContent = '...';
+  out.innerHTML = spinner('Analyzing thumbnail...');
+
+  const video = currentVideoData;
+  const sn = video?.snippet || {};
+  const thumbUrl = sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || sn.thumbnails?.medium?.url || '';
+
+  const system = buildSystem(`You are a YouTube thumbnail analyst and CTR optimization expert. Analyze the thumbnail image provided and return ONLY a valid JSON object with no markdown:
+{
+  "overallScore": 0-10,
+  "summary": "2 sentences on overall CTR potential and biggest opportunity.",
+  "criteria": [
+    { "name": "Visual Clarity", "score": 0-10, "note": "One sentence feedback." },
+    { "name": "Text Readability", "score": 0-10, "note": "One sentence feedback." },
+    { "name": "CTR Potential", "score": 0-10, "note": "One sentence feedback." },
+    { "name": "Brand Consistency", "score": 0-10, "note": "One sentence feedback." },
+    { "name": "Emotional Hook", "score": 0-10, "note": "One sentence feedback." }
+  ],
+  "topFix": "Single most impactful change to improve CTR."
+}`);
+
+  try {
+    // Fetch the thumbnail as base64 to send to Claude vision
+    let imageContent = null;
+    if (thumbUrl) {
+      try {
+        const res = await fetch(thumbUrl);
+        const blob = await res.blob();
+        const b64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        imageContent = { type: 'image', source: { type: 'base64', media_type: blob.type || 'image/jpeg', data: b64 } };
+      } catch (e) {
+        console.warn('Could not fetch thumbnail for vision analysis, using URL hint only.');
+      }
+    }
+
+    const userContent = imageContent
+      ? [imageContent, { type: 'text', text: `Analyze this YouTube thumbnail for the video titled: "${sn.title}"` }]
+      : `Analyze the YouTube thumbnail for a video titled: "${sn.title}". Description: ${(sn.description || '').slice(0, 200)}. I cannot provide the image directly - please score based on what you can infer and flag that you couldn't see the actual image.`;
+
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages: [{ role: 'user', content: userContent }] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const json = parseJSON(data.text || '');
+    renderThumbAudit(json);
+  } catch (e) {
+    out.innerHTML = errHtml(e.message || 'Audit failed. Try again.');
+  }
+  btn.disabled = false; btn.textContent = '✦ Audit';
+}
+
+function renderThumbAudit(json) {
+  const out = document.getElementById('thumb-audit-out');
+  if (!out) return;
+  const score = json.overallScore || 0;
+  const scoreColor = score >= 8 ? 'var(--green)' : score >= 6 ? '#e67e22' : 'var(--red)';
+
+  const criteriaHtml = (json.criteria || []).map(c => {
+    const cColor = c.score >= 8 ? 'var(--green)' : c.score >= 6 ? '#e67e22' : 'var(--red)';
+    return `<div class="thumb-criterion">
+      <div class="thumb-crit-score" style="color:${cColor}">${c.score}/10</div>
+      <div><div class="thumb-crit-name">${esc(c.name)}</div><div class="thumb-crit-note">${esc(c.note)}</div></div>
+    </div>`;
+  }).join('');
+
+  const topFixHtml = json.topFix
+    ? `<div style="padding:12px 14px;background:rgba(58,107,138,0.1);border:1px solid rgba(90,154,184,0.2);border-radius:9px;font-size:13px;color:var(--blue-light);margin-bottom:14px">
+        <span style="font-weight:600;margin-right:6px">Top fix:</span>${esc(json.topFix)}
+      </div>` : '';
+
+  out.innerHTML = `
+    <div class="thumb-audit-score-bar">
+      <div>
+        <div class="thumb-score-num" style="color:${scoreColor}">${score}</div>
+        <div class="thumb-score-label">out of 10</div>
+      </div>
+      <div class="thumb-score-right">
+        <div class="thumb-score-summary">${esc(json.summary || '')}</div>
+      </div>
+    </div>
+    <div class="thumb-criteria">${criteriaHtml}</div>
+    ${topFixHtml}
+    <div class="thumb-action-bar">
+      <button class="btn-gen-thumb" id="gen-thumb-btn" onclick="generateThumbnail()">✦ Generate New Thumbnail</button>
+    </div>`;
+}
+
+async function generateThumbnail() {
+  const btn = document.getElementById('gen-thumb-btn');
+  const genOut = document.getElementById('thumb-gen-out');
+  const newPreview = document.getElementById('new-thumb-preview');
+  const newImg = document.getElementById('new-thumb-img');
+  if (!genOut) return;
+  btn.disabled = true; btn.textContent = 'Generating...';
+  genOut.innerHTML = spinner('Writing prompt and generating thumbnail...');
+
+  const video = currentVideoData;
+  const sn = video?.snippet || {};
+  const brand = getActive();
+
+  // Step 1: AI writes the Imagen prompt
+  const promptSystem = buildSystem(`You are an expert YouTube thumbnail designer and Imagen 4 prompt engineer.
+Write a single highly detailed Imagen 4 image generation prompt for a YouTube thumbnail (16:9, 1280x720).
+Rules:
+- Bold, high-contrast visual composition designed for maximum CTR
+- Key elements centered, nothing critical near edges
+- Photorealistic or clean graphic style depending on the topic
+- If text overlay is needed, keep it to 3-5 words max and describe placement exactly
+- Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [COLOR PALETTE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]
+- Quality footer must include: professional YouTube thumbnail, 16:9 aspect ratio, high resolution, sharp focus, vibrant colors
+- Medical/healthcare: clean clinical or empathetic imagery, no gore, no needles in frame unless abstract
+- DO NOT include any explanation - output the prompt text only, no JSON, no quotes, no preamble`);
+
+  try {
+    const promptRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: promptSystem,
+        messages: [{ role: 'user', content: `Write a YouTube thumbnail image prompt for:\nTitle: "${sn.title}"\nDescription excerpt: ${(sn.description || '').slice(0, 300)}${brand?.nicheProfile ? `\nChannel niche: ${brand.nicheProfile.primaryNiche}` : ''}` }]
+      })
+    });
+    const promptData = await promptRes.json();
+    if (promptData.error) throw new Error(promptData.error);
+    const imagePrompt = (promptData.text || '').trim();
+
+    // Step 2: Generate with Imagen
+    genOut.innerHTML = spinner('Rendering thumbnail...');
+    const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: '16:9' })
+    });
+    const imgData = await imgRes.json();
+    const pred = (imgData.predictions || [])[0];
+    if (!pred?.bytesBase64Encoded) throw new Error('Image generation returned no result.');
+
+    generatedThumbB64 = pred.bytesBase64Encoded;
+
+    // Show preview
+    if (newImg && newPreview) {
+      newImg.src = `data:image/png;base64,${generatedThumbB64}`;
+      newPreview.style.display = 'block';
+    }
+
+    // Show action buttons
+    genOut.innerHTML = `
+      <div class="thumb-action-bar" style="margin-top:14px">
+        <button class="btn-push-thumb" id="push-thumb-btn" onclick="pushThumbnail('${video.id}')">Push to YouTube</button>
+        <a class="btn-dl-thumb" id="dl-thumb-btn" href="data:image/png;base64,${generatedThumbB64}" download="thumbnail-${video.id}.png">Download</a>
+        <button class="btn-gen-thumb" onclick="generateThumbnail()">Regenerate</button>
+      </div>
+      <div class="push-status" id="thumb-push-status" style="margin-top:8px;display:block"></div>`;
+
+  } catch (e) {
+    genOut.innerHTML = errHtml(e.message || 'Generation failed. Try again.');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✦ Generate New Thumbnail'; }
+}
+
+async function pushThumbnail(videoId) {
+  const statusEl = document.getElementById('thumb-push-status');
+  const pushBtn = document.getElementById('push-thumb-btn');
+  const brand = getActive();
+  const token = brand ? sessionTokens[brand.channelId] : null;
+  if (!token || !generatedThumbB64) return;
+
+  pushBtn.disabled = true;
+  if (statusEl) { statusEl.textContent = 'Uploading...'; statusEl.className = 'push-status'; }
+
+  try {
+    // Convert base64 to blob
+    const byteChars = atob(generatedThumbB64);
+    const byteArr = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([byteArr], { type: 'image/png' });
+
+    const formData = new FormData();
+    formData.append('image', blob, 'thumbnail.png');
+
+    const res = await fetch(`${YT_API}/thumbnails/set?videoId=${videoId}&access_token=${token}`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      if (data.error.code === 403) {
+        if (statusEl) {
+          statusEl.innerHTML = 'YouTube requires a verified channel to push thumbnails via API. <strong>Download</strong> the image above and upload it manually in YouTube Studio.';
+          statusEl.className = 'push-status error';
+        }
+      } else {
+        throw new Error(data.error.message || 'YouTube returned an error.');
+      }
+    } else {
+      if (statusEl) { statusEl.textContent = '✓ Thumbnail updated on YouTube'; statusEl.className = 'push-status success'; }
+      // Update the preview in the video card
+      const cardThumb = document.querySelector(`.video-card[data-vid="${videoId}"] .video-thumb`);
+      if (cardThumb) cardThumb.src = `data:image/png;base64,${generatedThumbB64}`;
+    }
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = e.message || 'Push failed.'; statusEl.className = 'push-status error'; }
+  }
+  if (pushBtn) pushBtn.disabled = false;
 }
 </script>
 </body>
