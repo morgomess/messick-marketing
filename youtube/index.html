@@ -462,6 +462,152 @@
     .empty-state-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; }
     .empty-state-sub { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; margin-bottom: 10px; }
 
+    /* MY VIDEOS VIEW */
+    #view-videos { height: 100%; display: none; }
+    #view-videos.active { display: block; }
+    .videos-layout {
+      display: flex; height: 100%; overflow: hidden;
+    }
+    .videos-list-col {
+      width: 340px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .videos-list-header {
+      padding: 16px 20px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .videos-list-title {
+      font-family: var(--font-head); font-size: 18px; font-weight: 600;
+    }
+    #videos-grid {
+      flex: 1; overflow-y: auto; padding: 10px;
+    }
+    .video-card {
+      display: flex; gap: 12px; padding: 10px;
+      border-radius: 9px; cursor: pointer;
+      transition: background 0.15s; border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+    .video-card:hover { background: var(--surface); }
+    .video-card.active { background: var(--blue-pale); border-color: var(--blue); }
+    .video-thumb {
+      width: 88px; height: 50px; border-radius: 5px;
+      object-fit: cover; flex-shrink: 0; background: var(--surface3);
+    }
+    .video-card-info { flex: 1; min-width: 0; }
+    .video-card-title {
+      font-size: 13px; font-weight: 500; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; margin-bottom: 5px;
+    }
+    .video-card-meta {
+      font-size: 11px; color: var(--text-dim); display: flex; gap: 10px;
+    }
+    .video-card-views { color: var(--text-muted); }
+    .videos-edit-col {
+      flex: 1; overflow-y: auto; padding: 28px 32px 60px;
+      max-width: 700px;
+    }
+    .edit-empty {
+      padding: 60px 0 20px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .edit-empty-icon { font-size: 32px; margin-bottom: 4px; }
+    .edit-empty-title {
+      font-family: var(--font-head); font-size: 22px; font-weight: 600;
+    }
+    .edit-empty-sub {
+      font-size: 14px; color: var(--text-muted); font-weight: 300;
+      line-height: 1.6; max-width: 360px;
+    }
+    .edit-video-header {
+      display: flex; gap: 16px; align-items: flex-start; margin-bottom: 28px;
+    }
+    .edit-video-thumb {
+      width: 140px; height: 79px; border-radius: 7px;
+      object-fit: cover; flex-shrink: 0; background: var(--surface3);
+    }
+    .edit-video-meta { flex: 1; min-width: 0; }
+    .edit-video-published {
+      font-size: 11px; color: var(--text-dim); margin-bottom: 5px;
+      text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .edit-video-orig-title {
+      font-size: 14px; font-weight: 500; line-height: 1.4;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .edit-video-stats {
+      display: flex; gap: 14px; font-size: 12px; color: var(--text-dim);
+    }
+    .edit-section { margin-bottom: 26px; }
+    .edit-section-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .edit-ai-btn {
+      background: var(--blue-pale); border: 1px solid rgba(90,154,184,0.25);
+      color: var(--blue-light); border-radius: 10px; padding: 2px 10px;
+      font-size: 11px; font-weight: 600; font-family: var(--font-body);
+      cursor: pointer; transition: all 0.18s; letter-spacing: 0.03em;
+    }
+    .edit-ai-btn:hover { background: var(--blue); color: #fff; }
+    .edit-ai-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .edit-textarea {
+      width: 100%; background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 9px; padding: 13px 16px; color: var(--text);
+      font-family: var(--font-body); font-size: 14px; outline: none;
+      transition: border-color 0.2s; resize: vertical;
+    }
+    .edit-textarea:focus { border-color: var(--blue-light); }
+    .edit-char-hint {
+      font-size: 11px; color: var(--text-dim); margin-top: 4px; text-align: right;
+    }
+    .edit-char-hint.over { color: var(--red); }
+    .push-bar {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 0 0; border-top: 1px solid var(--border); margin-top: 10px;
+    }
+    .btn-push {
+      background: var(--green); color: #fff; border: none; border-radius: 9px;
+      padding: 12px 28px; font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.03em; transition: background 0.2s;
+    }
+    .btn-push:hover { background: #2ecc71; }
+    .btn-push:disabled { opacity: 0.45; cursor: not-allowed; }
+    .push-status { font-size: 13px; color: var(--text-muted); }
+    .push-status.success { color: var(--green); }
+    .push-status.error { color: var(--red); }
+    .title-suggestions {
+      display: flex; flex-direction: column; gap: 6px; margin-top: 10px;
+    }
+    .title-suggestion {
+      padding: 9px 13px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      transition: border-color 0.15s;
+    }
+    .title-suggestion:hover { border-color: var(--blue); }
+    .title-suggestion-text { flex: 1; line-height: 1.4; }
+    .title-suggestion-use {
+      font-size: 11px; color: var(--blue-light); font-weight: 600;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .tag-edit-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .tag-edit-pill {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 4px 10px 4px 13px;
+      font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;
+    }
+    .tag-remove-btn {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0; transition: color 0.15s;
+    }
+    .tag-remove-btn:hover { color: var(--red); }
+
     /* RESPONSIVE */
     @media (max-width: 700px) {
       #view-optimize, .research-panel-inner { padding: 24px 18px 50px; }
@@ -498,6 +644,7 @@
   <!-- MODE BAR -->
   <div class="mode-bar">
     <button class="mode-pill active" id="pill-optimize" onclick="switchMode('optimize')">Optimize</button>
+    <button class="mode-pill" id="pill-videos" onclick="switchMode('videos')">My Videos</button>
     <button class="mode-pill" id="pill-research" onclick="switchMode('research')">Research</button>
     <div class="mode-niche-badge" id="niche-badge"></div>
   </div>
@@ -550,6 +697,34 @@
 
 
     </div><!-- end view-optimize -->
+
+    <!-- MY VIDEOS VIEW -->
+    <div class="view" id="view-videos">
+      <div class="videos-layout">
+
+        <!-- LEFT: video grid -->
+        <div class="videos-list-col" id="videos-list-col">
+          <div class="videos-list-header">
+            <div class="videos-list-title">Videos</div>
+            <button class="btn-copy" onclick="loadVideos()" id="videos-refresh-btn">Refresh</button>
+          </div>
+          <div id="videos-grid"></div>
+          <div id="videos-pagination" style="padding:16px 20px;display:flex;gap:10px;align-items:center"></div>
+        </div>
+
+        <!-- RIGHT: edit panel -->
+        <div class="videos-edit-col" id="videos-edit-col">
+          <div id="videos-edit-panel">
+            <div class="edit-empty">
+              <div class="edit-empty-icon">🎬</div>
+              <div class="edit-empty-title">Select a video</div>
+              <div class="edit-empty-sub">Click any video on the left to load its current metadata and start optimizing.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end view-videos -->
 
     <!-- RESEARCH VIEW -->
     <div class="view" id="view-research">
@@ -625,7 +800,7 @@ function connectChannel() {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: 'https://messickmarketing.com/youtube',
     response_type: 'token',
-    scope: 'https://www.googleapis.com/auth/youtube.readonly',
+    scope: 'https://www.googleapis.com/auth/youtube',
     state: 'yt_connect'
   });
   window.location.href = 'https://accounts.google.com/o/oauth2/auth?' + p.toString();
@@ -825,6 +1000,7 @@ function switchMode(mode) {
     el.classList.toggle('active', el.id === `pill-${mode}`));
   document.querySelectorAll('.view').forEach(el =>
     el.classList.toggle('active', el.id === `view-${mode}`));
+  if (mode === 'videos') loadVideos();
 }
 
 function switchResearchTab(tab) {
@@ -1387,6 +1563,358 @@ function renderAuditOutput(json, out) {
       <div class="rec-cards">${json.recommendations.map(r => `<div class="rec-card"><div class="rec-title">${esc(r.title)}</div><div class="rec-detail">${esc(r.detail)}</div></div>`).join('')}</div>`;
     out.appendChild(s4);
   }
+}
+
+// ============================================================
+// MY VIDEOS
+// ============================================================
+let videosPageToken = null;
+let videosPrevTokens = [];
+let currentVideoData = null; // full video object being edited
+let editTags = [];
+
+async function loadVideos(pageToken) {
+  const brand = getActive();
+  const grid = document.getElementById('videos-grid');
+  const pagination = document.getElementById('videos-pagination');
+  if (!grid) return;
+
+  if (!brand) {
+    grid.innerHTML = emptyState('📺', 'No channel connected', 'Connect a YouTube channel to browse and edit your videos.', 'Connect Channel', 'connectChannel()');
+    pagination.innerHTML = '';
+    return;
+  }
+
+  const token = sessionTokens[brand.channelId];
+  if (!token) {
+    grid.innerHTML = emptyState('🔑', 'Session expired', 'Reconnect your channel to load videos.', 'Reconnect', 'connectChannel()');
+    pagination.innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = spinner('Loading videos...');
+  pagination.innerHTML = '';
+
+  try {
+    let url = `${YT_API}/search?part=snippet&channelId=${brand.channelId}&order=date&maxResults=20&type=video&access_token=${token}`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    // Fetch view counts via videos.list
+    const videoIds = (data.items || []).map(v => v.id.videoId).filter(Boolean).join(',');
+    let statsMap = {};
+    if (videoIds) {
+      const statsRes = await fetch(`${YT_API}/videos?part=statistics&id=${videoIds}&access_token=${token}`);
+      const statsData = await statsRes.json();
+      (statsData.items || []).forEach(v => { statsMap[v.id] = v.statistics; });
+    }
+
+    grid.innerHTML = '';
+    (data.items || []).forEach(item => {
+      const vid = item.id.videoId;
+      const sn = item.snippet;
+      const stats = statsMap[vid] || {};
+      const views = stats.viewCount ? parseInt(stats.viewCount).toLocaleString() : '-';
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      card.dataset.vid = vid;
+      card.innerHTML = `
+        <img class="video-thumb" src="${sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || ''}" alt="">
+        <div class="video-card-info">
+          <div class="video-card-title">${esc(sn.title)}</div>
+          <div class="video-card-meta">
+            <span class="video-card-views">${views} views</span>
+            <span>${new Date(sn.publishedAt).toLocaleDateString()}</span>
+          </div>
+        </div>`;
+      card.onclick = () => selectVideo(vid, token);
+      grid.appendChild(card);
+    });
+
+    // Pagination
+    pagination.innerHTML = '';
+    if (videosPrevTokens.length > 0 || pageToken) {
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'btn-copy';
+      prevBtn.textContent = '← Prev';
+      prevBtn.disabled = videosPrevTokens.length === 0;
+      prevBtn.onclick = () => {
+        const prev = videosPrevTokens.pop();
+        loadVideos(prev || undefined);
+      };
+      pagination.appendChild(prevBtn);
+    }
+    if (data.nextPageToken) {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'btn-copy';
+      nextBtn.textContent = 'Next →';
+      nextBtn.onclick = () => {
+        if (pageToken) videosPrevTokens.push(pageToken);
+        else videosPrevTokens.push(null);
+        loadVideos(data.nextPageToken);
+      };
+      pagination.appendChild(nextBtn);
+    }
+
+  } catch (e) {
+    grid.innerHTML = errHtml(e.message || 'Failed to load videos.');
+  }
+}
+
+async function selectVideo(videoId, token) {
+  // Highlight selected card
+  document.querySelectorAll('.video-card').forEach(c =>
+    c.classList.toggle('active', c.dataset.vid === videoId));
+
+  const panel = document.getElementById('videos-edit-panel');
+  panel.innerHTML = spinner('Loading video details...');
+
+  try {
+    const res = await fetch(`${YT_API}/videos?part=snippet,statistics&id=${videoId}&access_token=${token}`);
+    const data = await res.json();
+    if (!data.items?.length) throw new Error('Could not load video details.');
+    const video = data.items[0];
+    currentVideoData = video;
+    editTags = [...(video.snippet.tags || [])];
+    renderEditPanel(video, token);
+  } catch (e) {
+    panel.innerHTML = errHtml(e.message || 'Failed to load video.');
+  }
+}
+
+function renderEditPanel(video, token) {
+  const sn = video.snippet;
+  const stats = video.statistics || {};
+  const panel = document.getElementById('videos-edit-panel');
+  const pubDate = new Date(sn.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const views = stats.viewCount ? parseInt(stats.viewCount).toLocaleString() : '-';
+  const likes = stats.likeCount ? parseInt(stats.likeCount).toLocaleString() : '-';
+  const thumb = sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || '';
+
+  panel.innerHTML = `
+    <div class="edit-video-header">
+      <img class="edit-video-thumb" src="${thumb}" alt="">
+      <div class="edit-video-meta">
+        <div class="edit-video-published">Published ${pubDate}</div>
+        <div class="edit-video-orig-title">${esc(sn.title)}</div>
+        <div class="edit-video-stats">
+          <span>${views} views</span>
+          <span>${likes} likes</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="edit-section">
+      <div class="edit-section-label">
+        Title
+        <button class="edit-ai-btn" id="ai-title-btn" onclick="aiRewriteTitle()">✦ AI Rewrite</button>
+      </div>
+      <input type="text" class="form-input" id="edit-title" value="${esc(sn.title)}" oninput="updateCharHint('edit-title','title-hint',70)">
+      <div class="edit-char-hint" id="title-hint">${sn.title.length}/70</div>
+      <div id="title-suggestions"></div>
+    </div>
+
+    <div class="edit-section">
+      <div class="edit-section-label">
+        Description
+        <button class="edit-ai-btn" id="ai-desc-btn" onclick="aiRewriteDesc()">✦ AI Rewrite</button>
+      </div>
+      <textarea class="edit-textarea" id="edit-desc" rows="8" oninput="updateCharHint('edit-desc','desc-hint',5000)">${esc(sn.description)}</textarea>
+      <div class="edit-char-hint" id="desc-hint">${sn.description.length}/5000</div>
+    </div>
+
+    <div class="edit-section">
+      <div class="edit-section-label">
+        Tags
+        <button class="edit-ai-btn" id="ai-tags-btn" onclick="aiRewriteTags()">✦ AI Suggest</button>
+      </div>
+      <div class="tag-edit-pills" id="tag-edit-pills"></div>
+      <input type="text" class="form-input" id="tag-input" placeholder="Type a tag and press Enter"
+        style="margin-top:6px" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditTag(this.value);this.value='';}">
+    </div>
+
+    <div class="push-bar">
+      <button class="btn-push" onclick="pushToYouTube('${video.id}', '${token}')">Push to YouTube</button>
+      <span class="push-status" id="push-status"></span>
+    </div>`;
+
+  renderTagPills();
+  updateCharHint('edit-title', 'title-hint', 70);
+  updateCharHint('edit-desc', 'desc-hint', 5000);
+}
+
+function updateCharHint(inputId, hintId, max) {
+  const el = document.getElementById(inputId);
+  const hint = document.getElementById(hintId);
+  if (!el || !hint) return;
+  const len = el.value.length;
+  hint.textContent = `${len}/${max}`;
+  hint.classList.toggle('over', len > max);
+}
+
+function renderTagPills() {
+  const container = document.getElementById('tag-edit-pills');
+  if (!container) return;
+  container.innerHTML = '';
+  editTags.forEach((tag, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'tag-edit-pill';
+    pill.innerHTML = `${esc(tag)}<button class="tag-remove-btn" onclick="removeEditTag(${i})">×</button>`;
+    container.appendChild(pill);
+  });
+}
+
+function addEditTag(val) {
+  const tag = val.trim();
+  if (tag && !editTags.includes(tag)) {
+    editTags.push(tag);
+    renderTagPills();
+  }
+}
+
+function removeEditTag(index) {
+  editTags.splice(index, 1);
+  renderTagPills();
+}
+
+async function aiRewriteTitle() {
+  const btn = document.getElementById('ai-title-btn');
+  const currentTitle = document.getElementById('edit-title')?.value || '';
+  const suggestionsEl = document.getElementById('title-suggestions');
+  if (!suggestionsEl) return;
+  btn.disabled = true; btn.textContent = '...';
+  suggestionsEl.innerHTML = spinner('Generating title variants...');
+
+  const system = buildSystem(`You are a YouTube SEO copywriter. Return ONLY a valid JSON array with no markdown - exactly 4 objects:
+[
+  { "variant": "A - Topic-led", "text": "title under 70 chars" },
+  { "variant": "B - Benefit-led", "text": "title under 70 chars" },
+  { "variant": "C - Question", "text": "title under 70 chars" },
+  { "variant": "D - Punchy", "text": "title under 70 chars" }
+]
+No em dashes. Each title must be under 70 characters.`);
+
+  try {
+    const raw = await callAI(system, `Rewrite this YouTube title with 4 variants:\n"${currentTitle}"\nDescription context: ${(document.getElementById('edit-desc')?.value || '').slice(0, 300)}`);
+    const titles = parseJSON(raw);
+    suggestionsEl.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'title-suggestions';
+    titles.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'title-suggestion';
+      row.innerHTML = `<span class="title-suggestion-text">${esc(t.text)}<span style="font-size:11px;color:var(--text-dim);margin-left:8px">${t.variant}</span></span><span class="title-suggestion-use">Use →</span>`;
+      row.onclick = () => {
+        document.getElementById('edit-title').value = t.text;
+        updateCharHint('edit-title', 'title-hint', 70);
+        document.querySelectorAll('.title-suggestion').forEach(s => s.style.borderColor = '');
+        row.style.borderColor = 'var(--green)';
+      };
+      wrap.appendChild(row);
+    });
+    suggestionsEl.appendChild(wrap);
+  } catch (e) {
+    suggestionsEl.innerHTML = errHtml('Rewrite failed. Try again.');
+  }
+  btn.disabled = false; btn.textContent = '✦ AI Rewrite';
+}
+
+async function aiRewriteDesc() {
+  const btn = document.getElementById('ai-desc-btn');
+  const currentTitle = document.getElementById('edit-title')?.value || '';
+  const currentDesc = document.getElementById('edit-desc')?.value || '';
+  btn.disabled = true; btn.textContent = '...';
+
+  const system = buildSystem(`You are a YouTube description writer. Write a full YouTube description. Structure: strong hook (2-3 sentences, never start with "In this video"), blank line, what you will learn (3-5 bullet points with dashes), blank line, about the channel/speaker (2-3 sentences), blank line, CTA line. 200-400 words. No em dashes.`);
+
+  try {
+    const raw = await callAI(system, `Rewrite the YouTube description for this video.\nTitle: "${currentTitle}"\nCurrent description:\n${currentDesc}`);
+    const descEl = document.getElementById('edit-desc');
+    if (descEl) {
+      descEl.value = raw.trim();
+      updateCharHint('edit-desc', 'desc-hint', 5000);
+    }
+  } catch (e) {
+    showToast('Description rewrite failed. Try again.', true);
+  }
+  btn.disabled = false; btn.textContent = '✦ AI Rewrite';
+}
+
+async function aiRewriteTags() {
+  const btn = document.getElementById('ai-tags-btn');
+  const currentTitle = document.getElementById('edit-title')?.value || '';
+  btn.disabled = true; btn.textContent = '...';
+
+  const system = buildSystem(`You are a YouTube tag strategist. Return ONLY a valid JSON object with no markdown:
+{
+  "exactMatch": ["5 to 7 specific tags"],
+  "broadMatch": ["6 to 10 broader tags"],
+  "audienceMatch": ["4 to 8 audience-intent tags"]
+}
+Medical/healthcare: include procedure name, symptom variants, location versions. All tags lowercase.`);
+
+  try {
+    const raw = await callAI(system, `Generate YouTube tags for: "${currentTitle}"`);
+    const json = parseJSON(raw);
+    editTags = [...(json.exactMatch || []), ...(json.broadMatch || []), ...(json.audienceMatch || [])];
+    renderTagPills();
+  } catch (e) {
+    showToast('Tag suggestion failed. Try again.', true);
+  }
+  btn.disabled = false; btn.textContent = '✦ AI Suggest';
+}
+
+async function pushToYouTube(videoId, token) {
+  const titleEl = document.getElementById('edit-title');
+  const descEl = document.getElementById('edit-desc');
+  const statusEl = document.getElementById('push-status');
+  const pushBtn = document.querySelector('.btn-push');
+  if (!titleEl || !descEl || !statusEl) return;
+
+  const title = titleEl.value.trim();
+  const description = descEl.value.trim();
+
+  if (!title) { statusEl.textContent = 'Title is required.'; statusEl.className = 'push-status error'; return; }
+  if (title.length > 100) { statusEl.textContent = 'Title exceeds 100 characters.'; statusEl.className = 'push-status error'; return; }
+
+  // Preserve original snippet fields - only overwrite title, description, tags
+  const origSnippet = currentVideoData?.snippet || {};
+  const body = {
+    id: videoId,
+    snippet: {
+      title,
+      description,
+      tags: editTags,
+      categoryId: origSnippet.categoryId || '22',
+      defaultLanguage: origSnippet.defaultLanguage || 'en',
+      defaultAudioLanguage: origSnippet.defaultAudioLanguage || 'en'
+    }
+  };
+
+  pushBtn.disabled = true;
+  statusEl.textContent = 'Saving...';
+  statusEl.className = 'push-status';
+
+  try {
+    const res = await fetch(`${YT_API}/videos?part=snippet&access_token=${token}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'YouTube returned an error.');
+    statusEl.textContent = '✓ Saved to YouTube';
+    statusEl.className = 'push-status success';
+    // Update the card title in the grid
+    const card = document.querySelector(`.video-card[data-vid="${videoId}"] .video-card-title`);
+    if (card) card.textContent = title;
+  } catch (e) {
+    statusEl.textContent = e.message || 'Push failed. Try again.';
+    statusEl.className = 'push-status error';
+  }
+  pushBtn.disabled = false;
 }
 </script>
 </body>
