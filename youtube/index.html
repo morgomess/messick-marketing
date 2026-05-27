@@ -375,6 +375,36 @@
     .check-rule { font-size: 14px; font-weight: 500; }
     .check-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
 
+    /* INLINE SEO SCORE WIDGET */
+    .seo-inline-check {
+      margin-top: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    .seo-check-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+    }
+    .seo-check-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-dim); font-weight: 600; flex: 1;
+    }
+    .seo-check-score { font-size: 14px; font-weight: 700; }
+    .seo-toggle-btn {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 12px; font-family: var(--font-body); padding: 2px 6px;
+      border-radius: 4px; transition: color 0.2s;
+    }
+    .seo-toggle-btn:hover { color: var(--blue-light); }
+    .seo-check-bar-bg { height: 3px; background: var(--surface3); width: 100%; }
+    .seo-check-bar-fill { height: 100%; transition: width 0.5s ease; }
+    .seo-check-items {
+      display: none; flex-direction: column; gap: 6px; padding: 12px 12px 14px;
+    }
+    .seo-inline-check.expanded .seo-check-items { display: flex; }
+    .seo-inline-check.expanded .seo-toggle-btn { color: var(--blue-light); }
+    .seo-inline-check .check-item { padding: 9px 13px; }
+
     /* VIDEO IDEAS */
     .idea-cards { display: flex; flex-direction: column; gap: 12px; }
     .idea-card {
@@ -526,25 +556,7 @@
         <div id="kw-out"></div>
       </div>
 
-      <!-- Section 4: SEO Checklist -->
-      <div class="opt-section">
-        <div class="section-title">SEO Checklist</div>
-        <div class="section-sub">Paste your video content before publishing to catch any issues.</div>
-        <div class="form-group">
-          <label class="form-label">Video Title *</label>
-          <input type="text" class="form-input" id="cl-title" placeholder="Your video title here">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Description *</label>
-          <textarea class="form-textarea" id="cl-desc" placeholder="Full description here" style="min-height:110px"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tags (comma-separated)</label>
-          <textarea class="form-textarea" id="cl-tags" placeholder="tag one, tag two, tag three..."></textarea>
-        </div>
-        <button class="btn-primary" onclick="runChecklist()">Run Checklist</button>
-        <div class="output-area" id="cl-out"></div>
-      </div>
+
 
     </div><!-- end view-optimize -->
 
@@ -1004,6 +1016,15 @@ function renderTitlesOutput(json, out) {
     block.appendChild(box);
     out.appendChild(block);
   }
+
+  // Store for cross-section SEO scoring
+  if (json.titles && json.titles[0]) _lastTitle = json.titles[0].text || '';
+  if (json.description) _lastDesc = json.description;
+
+  // Auto SEO score using title A + description + any already-generated tags
+  if (_lastTitle && _lastDesc) {
+    runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out);
+  }
 }
 
 // ============================================================
@@ -1034,6 +1055,7 @@ Education: include outcome, audience-type, and format variants.`);
 
 function renderTagsOutput(json, out) {
   const all = [...(json.exactMatch||[]), ...(json.broadMatch||[]), ...(json.audienceMatch||[])];
+  _lastTags = all; // store for cross-section scoring
   out.innerHTML = '';
   const summary = document.createElement('div');
   summary.className = 'tag-summary';
@@ -1055,6 +1077,22 @@ function renderTagsOutput(json, out) {
     tier.appendChild(header); tier.appendChild(pills);
     out.appendChild(tier);
   });
+
+  // Auto SEO rescore with tags included if title/desc already generated
+  if (_lastTitle && _lastDesc) {
+    // Remove any existing inline score under tags
+    const prev = out.querySelector('.seo-inline-check');
+    if (prev) prev.remove();
+    runInlineChecklist(_lastTitle, _lastDesc, all, out);
+
+    // Also update the score in the titles section
+    const titlesOut = document.getElementById('titles-out');
+    if (titlesOut) {
+      const prevScore = titlesOut.querySelector('.seo-inline-check');
+      if (prevScore) prevScore.remove();
+      runInlineChecklist(_lastTitle, _lastDesc, all, titlesOut);
+    }
+  }
 }
 
 // ============================================================
@@ -1108,16 +1146,15 @@ OpportunityScore: high demand + low competition = high score. Calibrate to the c
 }
 
 // ============================================================
-// FEATURE 4: SEO CHECKLIST
+// SEO CHECKLIST — runs inline automatically after generation
 // ============================================================
-function runChecklist() {
-  const title = document.getElementById('cl-title').value.trim();
-  const desc = document.getElementById('cl-desc').value.trim();
-  const tagsRaw = document.getElementById('cl-tags').value.trim();
-  const out = document.getElementById('cl-out');
-  if (!title || !desc) { out.innerHTML = errHtml('Title and Description are required.'); return; }
+// Store last-generated content so tag builder can reference title/desc
+let _lastTitle = '';
+let _lastDesc = '';
+let _lastTags = [];
 
-  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+function runInlineChecklist(title, desc, tags, container) {
+  if (!title || !desc) return;
   const brand = getActive();
   const titleLow = title.toLowerCase();
   const descLow = desc.toLowerCase();
@@ -1127,51 +1164,63 @@ function runChecklist() {
   const checks = [
     {
       pass: title.length <= 70,
-      rule: 'Title under 70 characters',
-      detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over limit` : ''}.`
+      rule: 'Title under 70 chars',
+      detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over` : ''}`
     },
     {
       pass: desc150.includes(firstWord),
-      rule: 'Primary keyword in first 150 characters of description',
-      detail: desc150.includes(firstWord)
-        ? 'Keyword found in the opening of your description.'
-        : 'Move a keyword from your title into the first sentence of the description.'
+      rule: 'Keyword in first 150 chars of description',
+      detail: desc150.includes(firstWord) ? 'Found' : 'Move a title keyword to the opening line'
     },
     {
       pass: tags.length === 0 || tags.map(t => t.toLowerCase()).some(tag => titleLow.includes(tag) || tag.split(' ').some(w => w.length > 3 && titleLow.includes(w))),
-      rule: 'Tags include phrases from the title',
-      detail: tags.length === 0 ? 'No tags provided to check.' : 'Check for alignment between title keywords and tags.'
+      rule: 'Tags align with title',
+      detail: tags.length === 0 ? 'No tags yet' : 'Title/tag keyword overlap'
     },
     {
       pass: tags.length >= 15 && tags.length <= 25,
-      rule: 'Tag count between 15 and 25',
-      detail: `${tags.length} tag${tags.length !== 1 ? 's' : ''}. ${tags.length < 15 ? `Add ${15 - tags.length} more.` : tags.length > 25 ? `Remove ${tags.length - 25}.` : 'Good.'}`
+      rule: 'Tag count 15-25',
+      detail: `${tags.length} tags${tags.length < 15 ? ` - add ${15 - tags.length} more` : tags.length > 25 ? ` - remove ${tags.length - 25}` : ''}`
     },
     {
       pass: ['link', 'subscribe', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
-      rule: 'Call to action present in description',
-      detail: 'Look for: subscribe, book, click the link, download, register, etc.'
+      rule: 'CTA in description',
+      detail: 'subscribe, book, click the link, download, etc.'
     },
     {
       pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => desc.toLowerCase().trimStart().startsWith(f)),
       rule: 'No filler opener',
-      detail: 'Start with a strong hook, not "In this video" or "Welcome to".'
+      detail: 'Hook first - not "In this video" or "Welcome to"'
     },
     ...(brand ? [{
       pass: brand.channelName.toLowerCase().split(/\s+/).filter(w => w.length > 3).some(f => titleLow.includes(f) || descLow.includes(f)),
-      rule: 'Brand or channel name referenced',
-      detail: `Look for mention of "${brand.channelName}" in the title or description.`
+      rule: 'Brand name present',
+      detail: `"${brand.channelName}" in title or description`
     }] : [])
   ];
 
-  const pass = checks.filter(c => c.pass).length;
-  const items = checks.map(c => `
-    <div class="check-item ${c.pass ? 'pass' : 'fail'}">
-      <div class="check-icon">${c.pass ? '✅' : '❌'}</div>
-      <div><div class="check-rule">${esc(c.rule)}</div><div class="check-detail">${esc(c.detail)}</div></div>
-    </div>`).join('');
+  const passCount = checks.filter(c => c.pass).length;
+  const total = checks.length;
+  const pct = Math.round((passCount / total) * 100);
+  const scoreColor = pct >= 85 ? 'var(--green)' : pct >= 60 ? '#e67e22' : 'var(--red)';
 
-  out.innerHTML = `<div class="output-label">${pass}/${checks.length} checks passed</div><div class="checklist-items">${items}</div>`;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'seo-inline-check';
+  wrapper.innerHTML = `
+    <div class="seo-check-header">
+      <span class="seo-check-label">SEO Score</span>
+      <span class="seo-check-score" style="color:${scoreColor}">${passCount}/${total}</span>
+      <button class="seo-toggle-btn" onclick="this.closest('.seo-inline-check').classList.toggle('expanded')">Details ▾</button>
+    </div>
+    <div class="seo-check-bar-bg"><div class="seo-check-bar-fill" style="width:${pct}%;background:${scoreColor}"></div></div>
+    <div class="seo-check-items">
+      ${checks.map(c => `
+        <div class="check-item ${c.pass ? 'pass' : 'fail'}">
+          <div class="check-icon">${c.pass ? '✅' : '❌'}</div>
+          <div><div class="check-rule">${esc(c.rule)}</div><div class="check-detail">${esc(c.detail)}</div></div>
+        </div>`).join('')}
+    </div>`;
+  container.appendChild(wrapper);
 }
 
 // ============================================================
