@@ -5,9 +5,8 @@
   2. Enable "YouTube Data API v3" in APIs & Services
   3. Create OAuth 2.0 credentials (Web application type)
   4. Add authorized redirect URI: https://messickmarketing.com/youtube
-  5. Copy the Client ID and replace REPLACE_WITH_CLIENT_ID below
-  6. The Cloudflare Worker URL is already set to the existing proxy
-     Update WORKER_URL below if the worker URL ever changes
+  5. Replace GOOGLE_CLIENT_ID below with your OAuth client ID
+  6. WORKER_URL is already set to the existing Cloudflare proxy
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +23,7 @@
     :root {
       --bg: #0f0f0f;
       --surface: #1a1a1a;
-      --surface2: #222;
+      --surface2: #212121;
       --surface3: #2a2a2a;
       --border: rgba(255,255,255,0.08);
       --border2: rgba(255,255,255,0.13);
@@ -33,12 +32,13 @@
       --text-dim: rgba(240,240,240,0.32);
       --blue: #3a6b8a;
       --blue-light: #5a9ab8;
-      --blue-pale: rgba(58,107,138,0.15);
+      --blue-pale: rgba(58,107,138,0.14);
       --green: #27ae60;
       --red: #c0392b;
       --orange: #d35400;
       --font-head: 'Cormorant Garamond', serif;
       --font-body: 'Jost', sans-serif;
+      --content-max: 820px;
     }
 
     body {
@@ -47,8 +47,9 @@
       color: var(--text);
       height: 100vh;
       overflow: hidden;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 400;
+      line-height: 1.5;
     }
 
     /* PASSWORD GATE */
@@ -66,47 +67,19 @@
       width: 360px;
       text-align: center;
     }
-    .gate-title {
-      font-family: var(--font-head);
-      font-size: 30px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .gate-sub {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-bottom: 32px;
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
+    .gate-title { font-family: var(--font-head); font-size: 30px; font-weight: 600; margin-bottom: 4px; }
+    .gate-sub { font-size: 11px; color: var(--text-dim); margin-bottom: 32px; letter-spacing: 0.1em; text-transform: uppercase; }
     .gate-input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
-      margin-bottom: 12px;
-      outline: none;
+      width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 13px 15px; color: var(--text);
+      font-family: var(--font-body); font-size: 15px; margin-bottom: 12px; outline: none;
       transition: border-color 0.2s;
     }
     .gate-input:focus { border-color: var(--blue-light); }
     .gate-btn {
-      width: 100%;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: var(--font-body);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      transition: background 0.2s;
+      width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 8px;
+      padding: 13px; font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.04em; transition: background 0.2s;
     }
     .gate-btn:hover { background: var(--blue-light); }
     .gate-error { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
@@ -117,564 +90,354 @@
 
     /* TOP BAR */
     .top-bar {
-      height: 54px;
+      height: 56px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 18px;
-      gap: 8px;
+      display: flex; align-items: center;
+      padding: 0 22px; gap: 10px;
       flex-shrink: 0;
     }
     .top-bar-logo {
-      font-family: var(--font-head);
-      font-size: 17px;
-      font-weight: 600;
-      color: var(--blue-light);
-      white-space: nowrap;
-      margin-right: 14px;
-      flex-shrink: 0;
-      letter-spacing: 0.01em;
+      font-family: var(--font-head); font-size: 18px; font-weight: 600;
+      color: var(--blue-light); white-space: nowrap; margin-right: 14px; flex-shrink: 0;
     }
     .brand-tabs {
-      display: flex;
-      gap: 6px;
-      flex: 1;
-      align-items: center;
-      overflow-x: auto;
-      scrollbar-width: none;
+      display: flex; gap: 6px; flex: 1; align-items: center;
+      overflow-x: auto; scrollbar-width: none;
     }
     .brand-tabs::-webkit-scrollbar { display: none; }
     .brand-tab {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px 5px 7px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      transition: all 0.18s;
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 13px 5px 7px; border-radius: 20px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer;
+      font-family: var(--font-body); font-size: 13px; font-weight: 500;
+      white-space: nowrap; transition: all 0.18s;
     }
     .brand-tab:hover { border-color: var(--border2); color: var(--text); }
     .brand-tab.active { border-color: var(--blue); background: var(--blue-pale); color: var(--text); }
-    .brand-tab-img {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
+    .brand-tab-img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
     .brand-tab-init {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--blue);
+      width: 24px; height: 24px; border-radius: 50%; background: var(--blue);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: #fff;
-      flex-shrink: 0;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
     .reanalyze-btn {
-      background: none; border: none;
-      color: var(--text-dim);
-      cursor: pointer;
-      font-size: 12px;
-      padding: 0;
-      line-height: 1;
-      transition: color 0.2s;
-      margin-left: 1px;
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 13px; padding: 0; line-height: 1; transition: color 0.2s; margin-left: 1px;
     }
     .reanalyze-btn:hover { color: var(--blue-light); }
     .connect-btn {
-      margin-left: auto;
-      flex-shrink: 0;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 7px 16px;
-      font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      transition: background 0.2s;
-      white-space: nowrap;
+      margin-left: auto; flex-shrink: 0; background: var(--blue); color: #fff;
+      border: none; border-radius: 20px; padding: 8px 18px;
+      font-family: var(--font-body); font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.03em; transition: background 0.2s; white-space: nowrap;
     }
     .connect-btn:hover { background: var(--blue-light); }
 
-    /* MAIN LAYOUT */
-    .main-layout { display: flex; flex: 1; overflow: hidden; }
-
-    /* SIDEBAR */
-    .sidebar {
-      width: 222px;
+    /* MODE BAR */
+    .mode-bar {
+      height: 46px;
       background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 22px; gap: 4px;
       flex-shrink: 0;
-      overflow-y: auto;
-      scrollbar-width: none;
     }
-    .sidebar::-webkit-scrollbar { display: none; }
-    .nav-section { padding: 14px 0 6px; }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 18px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--text-muted);
-      transition: all 0.15s;
-      border-left: 2px solid transparent;
-      user-select: none;
+    .mode-pill {
+      padding: 6px 18px; border-radius: 20px; border: 1px solid transparent;
+      background: transparent; color: var(--text-muted);
+      font-family: var(--font-body); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
-    .nav-item.active {
-      color: var(--blue-light);
-      background: var(--blue-pale);
-      border-left-color: var(--blue-light);
-      font-weight: 500;
+    .mode-pill:hover { color: var(--text); }
+    .mode-pill.active {
+      background: var(--blue-pale); border-color: var(--blue);
+      color: var(--blue-light); font-weight: 600;
     }
-    .nav-icon { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.65; }
-    .nav-item.active .nav-icon { opacity: 1; }
-    .nav-divider { height: 1px; background: var(--border); margin: 6px 0; }
-    .sidebar-footer {
-      padding: 14px 16px;
-      margin-top: auto;
-      border-top: 1px solid var(--border);
+    .mode-niche-badge {
+      margin-left: auto;
+      display: none;
+      align-items: center; gap: 5px;
+      background: var(--blue-pale); border: 1px solid rgba(90,154,184,0.2);
+      border-radius: 10px; padding: 3px 11px;
+      font-size: 12px; color: var(--blue-light); font-weight: 500;
     }
-    .loc-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--text-dim);
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
-    .loc-input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 10px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 12px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .loc-input:focus { border-color: var(--blue); }
-    .loc-input::placeholder { color: var(--text-dim); }
+    .mode-niche-badge.visible { display: flex; }
 
-    /* CONTENT AREA */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 34px 38px;
+    /* CONTENT SHELL */
+    .content-shell { flex: 1; overflow-y: auto; background: var(--bg); }
+
+    /* VIEWS */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* OPTIMIZE VIEW - single scroll */
+    #view-optimize {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 36px 32px 60px;
+    }
+
+    /* RESEARCH VIEW */
+    #view-research { height: 100%; display: none; flex-direction: column; }
+    #view-research.active { display: flex; }
+    .research-tabs {
+      display: flex; gap: 4px;
+      padding: 14px 32px 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
       background: var(--bg);
     }
+    .research-tab {
+      padding: 8px 18px 10px; border-radius: 8px 8px 0 0;
+      border: 1px solid transparent; border-bottom: none;
+      background: transparent; color: var(--text-muted);
+      font-family: var(--font-body); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .research-tab:hover { color: var(--text); }
+    .research-tab.active {
+      background: var(--surface); border-color: var(--border);
+      color: var(--text); border-bottom-color: var(--surface);
+      margin-bottom: -1px;
+    }
+    .research-panel { display: none; flex: 1; overflow-y: auto; }
+    .research-panel.active { display: block; }
+    .research-panel-inner {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 36px 32px 60px;
+    }
 
-    /* PANELS */
-    .panel { display: none; }
-    .panel.active { display: block; }
-    .panel-header { margin-bottom: 26px; }
+    /* SECTION BLOCKS (Optimize) */
+    .opt-section { margin-bottom: 48px; }
+    .opt-section + .opt-section { padding-top: 40px; border-top: 1px solid var(--border); }
+    .section-title {
+      font-family: var(--font-head); font-size: 22px; font-weight: 600;
+      margin-bottom: 4px; color: var(--text);
+    }
+    .section-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 22px; }
+
+    /* RESEARCH section headers */
     .panel-title {
-      font-family: var(--font-head);
-      font-size: 26px;
-      font-weight: 600;
-      margin-bottom: 3px;
+      font-family: var(--font-head); font-size: 24px; font-weight: 600;
+      margin-bottom: 4px;
     }
-    .panel-sub { font-size: 12px; color: var(--text-muted); font-weight: 300; }
-
-    /* NICHE BADGE */
-    .niche-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--blue-pale);
-      border: 1px solid rgba(90,154,184,0.2);
-      border-radius: 10px;
-      padding: 3px 10px;
-      font-size: 11px;
-      color: var(--blue-light);
-      font-weight: 500;
-      margin-bottom: 18px;
-    }
+    .panel-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 22px; }
 
     /* FORMS */
     .form-group { margin-bottom: 16px; }
     .form-label {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-bottom: 6px;
+      display: block; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--text-muted); font-weight: 500; margin-bottom: 7px;
     }
     .form-input, .form-textarea {
-      width: 100%;
-      max-width: 560px;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 11px 14px;
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 14px;
-      outline: none;
+      width: 100%; background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 9px; padding: 13px 16px; color: var(--text);
+      font-family: var(--font-body); font-size: 15px; outline: none;
       transition: border-color 0.2s;
     }
-    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-textarea { resize: vertical; min-height: 100px; }
     .form-input:focus, .form-textarea:focus { border-color: var(--blue-light); }
     .form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); }
-    .form-row { display: flex; gap: 12px; max-width: 560px; }
+    .form-row { display: flex; gap: 14px; }
     .form-row .form-group { flex: 1; }
-    .form-row .form-group .form-input { max-width: none; }
 
     /* BUTTONS */
     .btn-primary {
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 11px 26px;
-      font-family: var(--font-body);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.04em;
-      transition: background 0.2s;
+      background: var(--blue); color: #fff; border: none; border-radius: 9px;
+      padding: 12px 28px; font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.03em; transition: background 0.2s;
     }
     .btn-primary:hover { background: var(--blue-light); }
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-copy {
-      background: var(--surface2);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 5px 12px;
-      font-family: var(--font-body);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.18s;
-      letter-spacing: 0.03em;
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 13px; font-family: var(--font-body); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.18s; white-space: nowrap;
     }
     .btn-copy:hover { border-color: var(--blue); color: var(--blue-light); }
     .btn-copy.copied { border-color: var(--green); color: var(--green); }
 
     /* OUTPUT */
-    .output-area { margin-top: 26px; }
+    .output-area { margin-top: 24px; }
     .output-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-dim);
-      font-weight: 500;
-      margin-bottom: 12px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-dim); font-weight: 500; margin-bottom: 12px;
     }
 
-    /* SPINNER */
+    /* SPINNER + ERROR */
     .spinner-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-muted);
-      font-size: 13px;
-      padding: 22px 0;
+      display: flex; align-items: center; gap: 10px;
+      color: var(--text-muted); font-size: 14px; padding: 20px 0;
     }
     .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid var(--border2);
-      border-top-color: var(--blue-light);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      flex-shrink: 0;
+      width: 18px; height: 18px; border: 2px solid var(--border2);
+      border-top-color: var(--blue-light); border-radius: 50%;
+      animation: spin 0.7s linear infinite; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-msg {
-      color: var(--red);
-      font-size: 13px;
-      padding: 12px 16px;
-      background: rgba(192,57,43,0.08);
-      border-radius: 8px;
+      color: var(--red); font-size: 14px; padding: 13px 16px;
+      background: rgba(192,57,43,0.08); border-radius: 9px;
       border: 1px solid rgba(192,57,43,0.18);
-      max-width: 520px;
     }
 
     /* TITLE CARDS */
-    .title-cards { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; max-width: 620px; }
+    .title-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
     .title-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 13px 15px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 15px 18px;
+      display: flex; align-items: flex-start; gap: 14px;
     }
     .title-card-main { flex: 1; min-width: 0; }
     .title-variant-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-dim);
-      font-weight: 500;
-      margin-bottom: 3px;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--text-dim); font-weight: 500; margin-bottom: 4px;
     }
-    .title-text { font-size: 15px; font-weight: 500; line-height: 1.4; word-break: break-word; }
-    .title-card-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-      flex-shrink: 0;
-    }
+    .title-text { font-size: 16px; font-weight: 500; line-height: 1.4; word-break: break-word; }
+    .title-card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex-shrink: 0; }
     .char-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      white-space: nowrap;
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 10px; white-space: nowrap;
     }
     .char-badge.good { background: rgba(39,174,96,0.14); color: var(--green); }
     .char-badge.over { background: rgba(192,57,43,0.14); color: var(--red); }
     .description-block {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      max-width: 620px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px;
     }
     .description-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
     }
-    .description-text { font-size: 13px; line-height: 1.75; color: var(--text-muted); white-space: pre-wrap; }
+    .description-text { font-size: 14px; line-height: 1.8; color: var(--text-muted); white-space: pre-wrap; }
 
     /* TAG BUILDER */
     .tag-tier { margin-bottom: 20px; }
     .tag-tier-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 9px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
     }
     .tag-tier-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
-    .tag-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag-pills { display: flex; flex-wrap: wrap; gap: 6px; }
     .tag-pill {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 4px 11px;
-      font-size: 12px;
-      color: var(--text);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 5px 13px; font-size: 13px; color: var(--text);
     }
-    .tag-summary { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .tag-summary { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
 
-    /* KEYWORD SCORER */
-    .keyword-scorecard {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 22px;
-      max-width: 500px;
-      margin-bottom: 22px;
+    /* KEYWORD SCORER (compact inline) */
+    .kw-score-row {
+      display: flex; gap: 10px; align-items: flex-end;
     }
-    .scorecard-kw {
-      font-family: var(--font-head);
-      font-size: 21px;
-      font-weight: 600;
-      margin-bottom: 14px;
+    .kw-score-row .form-group { flex: 1; margin-bottom: 0; }
+    .kw-compact-result {
+      margin-top: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+      display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap;
     }
-    .score-chips { display: flex; gap: 14px; margin-bottom: 14px; }
-    .score-chip-group {}
-    .score-chip-label {
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 4px;
-    }
+    .kw-compact-kw { font-size: 15px; font-weight: 600; min-width: 120px; }
+    .kw-compact-chips { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .score-chip {
-      display: inline-block;
-      padding: 5px 14px;
-      border-radius: 14px;
-      font-size: 12px;
-      font-weight: 600;
+      display: inline-block; padding: 4px 12px; border-radius: 14px;
+      font-size: 12px; font-weight: 600;
     }
+    .chip-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
     .chip-high { background: rgba(192,57,43,0.14); color: #e74c3c; }
     .chip-medium { background: rgba(211,84,0,0.14); color: #e67e22; }
     .chip-low { background: rgba(39,174,96,0.14); color: var(--green); }
-    .opp-label {
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 5px;
-    }
     .opp-bar-bg {
-      height: 7px;
-      background: var(--surface2);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 4px;
-      max-width: 300px;
+      height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; width: 80px;
     }
     .opp-bar-fill {
-      height: 100%;
-      border-radius: 4px;
+      height: 100%; border-radius: 3px;
       background: linear-gradient(90deg, var(--blue), var(--blue-light));
-      transition: width 0.6s ease;
+      transition: width 0.5s ease;
     }
-    .opp-score-num { font-size: 13px; font-weight: 600; color: var(--blue-light); margin-bottom: 10px; }
-    .rationale-text {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.65;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
+    .kw-compact-score { font-size: 14px; font-weight: 600; color: var(--blue-light); }
+    .kw-compact-rationale {
+      width: 100%; font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px;
     }
-    .related-table { width: 100%; max-width: 520px; border-collapse: collapse; }
-    .related-table th {
-      text-align: left;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-dim);
-      font-weight: 500;
-      padding: 0 10px 8px;
-    }
-    .related-table td {
-      padding: 9px 10px;
-      font-size: 13px;
-      border-top: 1px solid var(--border);
-    }
-    .related-table tr:hover td { background: var(--surface); }
 
     /* SEO CHECKLIST */
-    .checklist-items { display: flex; flex-direction: column; gap: 7px; max-width: 540px; }
+    .checklist-items { display: flex; flex-direction: column; gap: 8px; }
     .check-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 11px;
-      padding: 11px 14px;
-      background: var(--surface);
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 13px 16px; background: var(--surface); border-radius: 9px; border: 1px solid var(--border);
     }
-    .check-item.pass { border-color: rgba(39,174,96,0.18); }
-    .check-item.fail { border-color: rgba(192,57,43,0.18); }
-    .check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-    .check-rule { font-size: 13px; font-weight: 500; }
-    .check-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+    .check-item.pass { border-color: rgba(39,174,96,0.2); }
+    .check-item.fail { border-color: rgba(192,57,43,0.2); }
+    .check-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .check-rule { font-size: 14px; font-weight: 500; }
+    .check-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
 
     /* VIDEO IDEAS */
-    .idea-cards { display: flex; flex-direction: column; gap: 11px; max-width: 600px; }
+    .idea-cards { display: flex; flex-direction: column; gap: 12px; }
     .idea-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
     }
-    .idea-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
-    .idea-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; flex-wrap: wrap; }
+    .idea-title { font-size: 16px; font-weight: 500; margin-bottom: 9px; line-height: 1.4; }
+    .idea-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
     .kw-chip {
-      background: var(--blue-pale);
-      color: var(--blue-light);
-      border-radius: 10px;
-      padding: 3px 10px;
-      font-size: 11px;
-      font-weight: 500;
+      background: var(--blue-pale); color: var(--blue-light);
+      border-radius: 10px; padding: 4px 12px; font-size: 12px; font-weight: 500;
     }
-    .diff-badge { border-radius: 10px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+    .diff-badge { border-radius: 10px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
     .diff-easy { background: rgba(39,174,96,0.14); color: var(--green); }
     .diff-medium { background: rgba(211,84,0,0.14); color: #e67e22; }
     .diff-hard { background: rgba(192,57,43,0.14); color: #e74c3c; }
-    .idea-why { font-size: 12px; color: var(--text-muted); line-height: 1.65; }
+    .idea-why { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+    .web-search-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(39,174,96,0.1); border: 1px solid rgba(39,174,96,0.2);
+      border-radius: 10px; padding: 3px 10px;
+      font-size: 11px; color: var(--green); font-weight: 500; margin-bottom: 16px;
+    }
 
     /* CHANNEL AUDIT */
-    .audit-section { margin-bottom: 26px; max-width: 600px; }
+    .audit-section { margin-bottom: 28px; }
     .audit-section-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-dim);
-      font-weight: 500;
-      margin-bottom: 11px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-dim); font-weight: 500; margin-bottom: 12px;
     }
-    .consistency-display { display: flex; align-items: center; gap: 16px; }
+    .consistency-display { display: flex; align-items: center; gap: 18px; margin-bottom: 4px; }
     .consistency-num {
-      font-family: var(--font-head);
-      font-size: 46px;
-      font-weight: 700;
-      color: var(--blue-light);
-      line-height: 1;
-      flex-shrink: 0;
+      font-family: var(--font-head); font-size: 52px; font-weight: 700;
+      color: var(--blue-light); line-height: 1; flex-shrink: 0;
     }
-    .formula-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .formula-chips { display: flex; flex-wrap: wrap; gap: 7px; }
     .formula-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 5px 12px;
-      font-size: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 13px; font-size: 13px;
     }
-    .gap-list { display: flex; flex-direction: column; gap: 6px; }
-    .gap-item { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+    .gap-list { display: flex; flex-direction: column; gap: 7px; }
+    .gap-item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
     .gap-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-    .rec-cards { display: flex; flex-direction: column; gap: 8px; }
-    .rec-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .rec-title { font-size: 13px; font-weight: 600; color: var(--blue-light); margin-bottom: 4px; }
-    .rec-detail { font-size: 12px; color: var(--text-muted); line-height: 1.65; }
+    .rec-cards { display: flex; flex-direction: column; gap: 9px; }
+    .rec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 16px; }
+    .rec-title { font-size: 14px; font-weight: 600; color: var(--blue-light); margin-bottom: 5px; }
+    .rec-detail { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
 
-    /* RECONNECT / NO BRAND */
-    .center-state {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 32px 0;
-      max-width: 420px;
+    /* EMPTY STATES */
+    .empty-state {
+      padding: 40px 0 20px;
+      display: flex; flex-direction: column; gap: 8px; max-width: 400px;
     }
-    .center-state-icon { font-size: 32px; margin-bottom: 12px; }
-    .center-state-title {
-      font-family: var(--font-head);
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    .center-state-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 18px; line-height: 1.6; }
+    .empty-state-icon { font-size: 30px; margin-bottom: 4px; }
+    .empty-state-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; }
+    .empty-state-sub { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; margin-bottom: 10px; }
 
     /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .sidebar { width: 50px; }
-      .nav-item { padding: 12px; justify-content: center; }
-      .nav-label { display: none; }
-      .sidebar-footer { display: none; }
-      .content-area { padding: 20px 16px; }
+    @media (max-width: 700px) {
+      #view-optimize, .research-panel-inner { padding: 24px 18px 50px; }
+      .form-row { flex-direction: column; gap: 0; }
       .top-bar-logo { display: none; }
+      .kw-score-row { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -702,70 +465,23 @@
     <button class="connect-btn" onclick="connectChannel()">Connect Channel +</button>
   </div>
 
-  <!-- MAIN LAYOUT -->
-  <div class="main-layout">
+  <!-- MODE BAR -->
+  <div class="mode-bar">
+    <button class="mode-pill active" id="pill-optimize" onclick="switchMode('optimize')">Optimize</button>
+    <button class="mode-pill" id="pill-research" onclick="switchMode('research')">Research</button>
+    <div class="mode-niche-badge" id="niche-badge"></div>
+  </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <div class="nav-section">
-        <div class="nav-item active" data-panel="titles" onclick="switchPanel('titles')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M3 5h14M3 10h10M3 15h7" stroke-linecap="round"/>
-          </svg>
-          <span class="nav-label">Title &amp; Description</span>
-        </div>
-        <div class="nav-item" data-panel="tags" onclick="switchPanel('tags')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M3 10l1.5-5.5h11L17 10M3 10h14M5 10l1.5 5.5h7L15 10" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="nav-label">Tag Builder</span>
-        </div>
-        <div class="nav-item" data-panel="keywords" onclick="switchPanel('keywords')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5l3 3" stroke-linecap="round"/>
-          </svg>
-          <span class="nav-label">Keyword Scorer</span>
-        </div>
-        <div class="nav-item" data-panel="checklist" onclick="switchPanel('checklist')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="3" width="14" height="14" rx="2"/>
-            <path d="M7 10l2.5 2.5 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="nav-label">SEO Checklist</span>
-        </div>
-        <div class="nav-item" data-panel="ideas" onclick="switchPanel('ideas')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M10 3a5 5 0 0 1 3 9v1H7v-1A5 5 0 0 1 10 3z" stroke-linejoin="round"/>
-            <path d="M8 16h4M9 18h2" stroke-linecap="round"/>
-          </svg>
-          <span class="nav-label">Video Ideas</span>
-        </div>
-        <div class="nav-item" data-panel="audit" onclick="switchPanel('audit')">
-          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="3" width="14" height="14" rx="2"/>
-            <path d="M7 11l1.5-3 2 4 1.5-2.5 1 1.5 1-2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="nav-label">Channel Audit</span>
-        </div>
-      </div>
-      <div class="nav-divider"></div>
-      <div class="sidebar-footer">
-        <div class="loc-label">Location (optional)</div>
-        <input type="text" class="loc-input" id="loc-input"
-          placeholder="e.g. Houston, TX" oninput="saveLocation()">
-      </div>
-    </div>
+  <!-- CONTENT SHELL -->
+  <div class="content-shell">
 
-    <!-- CONTENT AREA -->
-    <div class="content-area">
+    <!-- OPTIMIZE VIEW -->
+    <div class="view active" id="view-optimize">
 
-      <!-- Title & Description -->
-      <div class="panel active" id="panel-titles">
-        <div class="panel-header">
-          <div class="panel-title">Title &amp; Description Generator</div>
-          <div class="panel-sub">4 title variants with character count + a full YouTube description.</div>
-        </div>
-        <div id="titles-badge"></div>
+      <!-- Section 1: Title & Description -->
+      <div class="opt-section">
+        <div class="section-title">Title &amp; Description</div>
+        <div class="section-sub">4 title variants with character count + a full YouTube description.</div>
         <div class="form-group">
           <label class="form-label">Topic / Procedure *</label>
           <input type="text" class="form-input" id="t-topic" placeholder="e.g. Laparoscopic appendectomy recovery">
@@ -784,13 +500,10 @@
         <div class="output-area" id="titles-out"></div>
       </div>
 
-      <!-- Tag Builder -->
-      <div class="panel" id="panel-tags">
-        <div class="panel-header">
-          <div class="panel-title">Tag Builder</div>
-          <div class="panel-sub">3-tier tag strategy: Exact Match, Broad Match, and Audience Match.</div>
-        </div>
-        <div id="tags-badge"></div>
+      <!-- Section 2: Tags -->
+      <div class="opt-section">
+        <div class="section-title">Tag Builder</div>
+        <div class="section-sub">3-tier tag strategy: Exact Match, Broad Match, and Audience Match.</div>
         <div class="form-group">
           <label class="form-label">Topic *</label>
           <input type="text" class="form-input" id="tg-topic" placeholder="e.g. minimally invasive surgery">
@@ -799,27 +512,24 @@
         <div class="output-area" id="tags-out"></div>
       </div>
 
-      <!-- Keyword Scorer -->
-      <div class="panel" id="panel-keywords">
-        <div class="panel-header">
-          <div class="panel-title">Keyword Scorer</div>
-          <div class="panel-sub">Demand, competition, and opportunity - calibrated to your channel's niche.</div>
+      <!-- Section 3: Keyword Score -->
+      <div class="opt-section">
+        <div class="section-title">Keyword Score</div>
+        <div class="section-sub">Demand, competition, and opportunity calibrated to your channel's niche.</div>
+        <div class="kw-score-row">
+          <div class="form-group">
+            <label class="form-label">Keyword or Phrase *</label>
+            <input type="text" class="form-input" id="kw-input" placeholder="e.g. hernia surgery recovery time">
+          </div>
+          <button class="btn-primary" style="margin-bottom:0;height:50px;align-self:flex-end" onclick="scoreKeyword()">Score</button>
         </div>
-        <div id="kw-badge"></div>
-        <div class="form-group">
-          <label class="form-label">Keyword or Phrase *</label>
-          <input type="text" class="form-input" id="kw-input" placeholder="e.g. hernia surgery recovery time">
-        </div>
-        <button class="btn-primary" onclick="scoreKeyword()">Score Keyword</button>
-        <div class="output-area" id="kw-out"></div>
+        <div id="kw-out"></div>
       </div>
 
-      <!-- SEO Checklist -->
-      <div class="panel" id="panel-checklist">
-        <div class="panel-header">
-          <div class="panel-title">SEO Checklist</div>
-          <div class="panel-sub">Audit your title, description, and tags before publishing.</div>
-        </div>
+      <!-- Section 4: SEO Checklist -->
+      <div class="opt-section">
+        <div class="section-title">SEO Checklist</div>
+        <div class="section-sub">Paste your video content before publishing to catch any issues.</div>
         <div class="form-group">
           <label class="form-label">Video Title *</label>
           <input type="text" class="form-input" id="cl-title" placeholder="Your video title here">
@@ -829,36 +539,44 @@
           <textarea class="form-textarea" id="cl-desc" placeholder="Full description here" style="min-height:110px"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Tags (comma-separated) *</label>
+          <label class="form-label">Tags (comma-separated)</label>
           <textarea class="form-textarea" id="cl-tags" placeholder="tag one, tag two, tag three..."></textarea>
         </div>
         <button class="btn-primary" onclick="runChecklist()">Run Checklist</button>
         <div class="output-area" id="cl-out"></div>
       </div>
 
-      <!-- Video Ideas -->
-      <div class="panel" id="panel-ideas">
-        <div class="panel-header">
-          <div class="panel-title">Daily Video Ideas</div>
-          <div class="panel-sub">5 on-brand ideas generated from your channel's niche and recent content.</div>
-        </div>
-        <div id="ideas-badge"></div>
-        <button class="btn-primary" onclick="generateIdeas()">Generate 5 Ideas</button>
-        <div class="output-area" id="ideas-out"></div>
+    </div><!-- end view-optimize -->
+
+    <!-- RESEARCH VIEW -->
+    <div class="view" id="view-research">
+      <div class="research-tabs">
+        <button class="research-tab active" data-rtab="audit" onclick="switchResearchTab('audit')">Channel Audit</button>
+        <button class="research-tab" data-rtab="ideas" onclick="switchResearchTab('ideas')">Video Ideas</button>
       </div>
 
-      <!-- Channel Audit -->
-      <div class="panel" id="panel-audit">
-        <div class="panel-header">
+      <!-- Audit Panel -->
+      <div class="research-panel active" id="rpanel-audit">
+        <div class="research-panel-inner">
           <div class="panel-title">Channel Audit</div>
-          <div class="panel-sub">Analyzes your 20 most recent videos for keyword consistency, title patterns, topic gaps, and quick wins.</div>
+          <div class="panel-sub">Fetches your 20 most recent videos and analyzes keyword consistency, title patterns, and topic gaps.</div>
+          <div id="audit-body"></div>
         </div>
-        <div id="audit-body"></div>
       </div>
 
-    </div>
-  </div>
-</div>
+      <!-- Ideas Panel -->
+      <div class="research-panel" id="rpanel-ideas">
+        <div class="research-panel-inner">
+          <div class="panel-title">Video Ideas</div>
+          <div class="panel-sub">5 on-brand ideas generated with live web search for trending topics and competitor content.</div>
+          <button class="btn-primary" onclick="generateIdeas()">Generate 5 Ideas</button>
+          <div class="output-area" id="ideas-out"></div>
+        </div>
+      </div>
+    </div><!-- end view-research -->
+
+  </div><!-- end content-shell -->
+</div><!-- end app -->
 
 <script>
 // ============================================================
@@ -875,6 +593,8 @@ const PASSWORD = 'Messick2026';
 let brands = JSON.parse(localStorage.getItem('mm_yt_brands') || '[]');
 let activeId = localStorage.getItem('mm_yt_active') || null;
 const sessionTokens = {};
+let currentMode = 'optimize';
+let currentResearchTab = 'audit';
 
 // ============================================================
 // BOOT
@@ -891,10 +611,7 @@ function handleOAuthReturn() {
   const token = p.get('access_token');
   const state = p.get('state');
   history.replaceState(null, '', window.location.pathname);
-  if (token && state === 'yt_connect') {
-    showApp();
-    onOAuthToken(token);
-  }
+  if (token && state === 'yt_connect') { showApp(); onOAuthToken(token); }
 }
 
 // ============================================================
@@ -914,20 +631,14 @@ function connectChannel() {
 async function onOAuthToken(token) {
   const overlay = showOverlay('Connecting channel...');
   try {
-    const [chanRes, vidRes] = await Promise.all([
-      fetch(`${YT_API}/channels?part=snippet,statistics&mine=true&access_token=${token}`),
-      null
-    ]);
+    const chanRes = await fetch(`${YT_API}/channels?part=snippet,statistics&mine=true&access_token=${token}`);
     const chanData = await chanRes.json();
     if (!chanData.items?.length) throw new Error('No YouTube channel found for this Google account.');
-
     const ch = chanData.items[0];
     const channelId = ch.id;
 
-    const vidRes2 = await fetch(
-      `${YT_API}/search?part=snippet&channelId=${channelId}&order=date&maxResults=10&type=video&access_token=${token}`
-    );
-    const vidData = await vidRes2.json();
+    const vidRes = await fetch(`${YT_API}/search?part=snippet&channelId=${channelId}&order=date&maxResults=10&type=video&access_token=${token}`);
+    const vidData = await vidRes.json();
     const recentVideos = (vidData.items || []).map(v => v.snippet.title);
 
     sessionTokens[channelId] = token;
@@ -941,7 +652,6 @@ async function onOAuthToken(token) {
       videoCount: parseInt(ch.statistics.videoCount || 0, 10),
       description: ch.snippet.description || '',
       recentVideos,
-      location: existing?.location || '',
       nicheProfile: existing?.nicheProfile || null,
       connectedAt: new Date().toISOString()
     };
@@ -956,8 +666,7 @@ async function onOAuthToken(token) {
 
     removeOverlay(overlay);
     renderBrandTabs();
-    renderNicheBadges();
-    updateLocField();
+    renderNicheBadge();
     renderAuditBody();
   } catch (e) {
     removeOverlay(overlay);
@@ -972,7 +681,7 @@ async function detectNiche(channelId) {
   const brand = getBrand(channelId);
   if (!brand) return;
 
-  const system = `You are a YouTube channel niche analyst. Analyze the channel data provided and return ONLY a valid JSON object with no markdown, no explanation. The object must have exactly these fields:
+  const system = `You are a YouTube channel niche analyst. Return ONLY a valid JSON object with no markdown:
 {
   "primaryNiche": "one of: healthcare, medical-specialty, digital-education, wellness, va-business, fitness, finance, real-estate, legal, other",
   "secondaryNiches": ["strings"],
@@ -1003,7 +712,7 @@ async function reanalyzeNiche(channelId) {
   const reBtn = document.querySelector(`.brand-tab[data-cid="${channelId}"] .reanalyze-btn`);
   if (reBtn) reBtn.textContent = '...';
   await detectNiche(channelId);
-  renderNicheBadges();
+  renderNicheBadge();
 }
 
 // ============================================================
@@ -1019,18 +728,8 @@ function switchBrand(id) {
   activeId = id;
   localStorage.setItem('mm_yt_active', id);
   renderBrandTabs();
-  updateLocField();
-  renderNicheBadges();
+  renderNicheBadge();
   renderAuditBody();
-}
-function saveLocation() {
-  const val = document.getElementById('loc-input').value.trim();
-  const idx = brands.findIndex(b => b.channelId === activeId);
-  if (idx >= 0) { brands[idx].location = val; saveBrands(); }
-}
-function updateLocField() {
-  const inp = document.getElementById('loc-input');
-  if (inp) inp.value = getActive()?.location || '';
 }
 
 // ============================================================
@@ -1048,33 +747,32 @@ function buildSystem(featureInstructions) {
       if (np.secondaryNiches?.length) ctx += `Secondary niches: ${np.secondaryNiches.join(', ')}\n`;
       ctx += `Target audience: ${np.targetAudience}\n`;
       if (np.contentThemes?.length) ctx += `Content themes: ${np.contentThemes.join(', ')}\n`;
-      if (np.locationSignals?.length) ctx += `Location signals detected: ${np.locationSignals.join(', ')}\n`;
+      if (np.locationSignals?.length) ctx += `Location signals: ${np.locationSignals.join(', ')}\n`;
     }
-    if (brand.location) ctx += `User location: ${brand.location}\n`;
     if (brand.recentVideos?.length) ctx += `Recent videos: ${brand.recentVideos.join(' | ')}\n`;
     ctx += '\n';
   }
 
-  return `${ctx}RULES (always follow without exception):
+  return `${ctx}RULES (always follow):
 - Never use em dashes. Use a single hyphen if needed.
 - Never start a YouTube description with "In this video"
 - All titles must be under 70 characters
 - Use patient-friendly, outcome-focused language for medical/healthcare brands
 - Use income/lifestyle/outcome language for VA and digital education brands
-- Include location signals in titles and tags when location is set for the brand
 - Single hyphen only if punctuation needed - no double hyphens
 
 ${featureInstructions}`;
 }
 
 // ============================================================
-// AI CALL
+// AI CALLS
 // ============================================================
-async function callAI(system, userMsg) {
+async function callAI(system, userMsg, extraBody) {
+  const body = { system, messages: [{ role: 'user', content: userMsg }], ...extraBody };
   const res = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ system, messages: [{ role: 'user', content: userMsg }] })
+    body: JSON.stringify(body)
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
@@ -1082,8 +780,7 @@ async function callAI(system, userMsg) {
 }
 
 function parseJSON(text) {
-  let s = text.trim();
-  s = s.replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  let s = text.trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').trim();
   const start = Math.min(
     s.indexOf('{') === -1 ? Infinity : s.indexOf('{'),
     s.indexOf('[') === -1 ? Infinity : s.indexOf('[')
@@ -1107,15 +804,33 @@ function checkPassword() {
 function showApp() {
   document.getElementById('password-gate').style.display = 'none';
   document.getElementById('app').classList.add('visible');
-  // Repair activeId if needed
   if (activeId && !getBrand(activeId)) {
     activeId = brands[0]?.channelId || null;
     if (activeId) localStorage.setItem('mm_yt_active', activeId);
   }
   renderBrandTabs();
-  updateLocField();
-  renderNicheBadges();
+  renderNicheBadge();
   renderAuditBody();
+}
+
+// ============================================================
+// MODE + RESEARCH TAB SWITCHING
+// ============================================================
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-pill').forEach(el =>
+    el.classList.toggle('active', el.id === `pill-${mode}`));
+  document.querySelectorAll('.view').forEach(el =>
+    el.classList.toggle('active', el.id === `view-${mode}`));
+}
+
+function switchResearchTab(tab) {
+  currentResearchTab = tab;
+  document.querySelectorAll('.research-tab').forEach(el =>
+    el.classList.toggle('active', el.dataset.rtab === tab));
+  document.querySelectorAll('.research-panel').forEach(el =>
+    el.classList.toggle('active', el.id === `rpanel-${tab}`));
+  if (tab === 'audit') renderAuditBody();
 }
 
 // ============================================================
@@ -1129,37 +844,24 @@ function renderBrandTabs() {
     btn.className = 'brand-tab' + (b.channelId === activeId ? ' active' : '');
     btn.dataset.cid = b.channelId;
     btn.onclick = () => switchBrand(b.channelId);
-
     const img = b.profileImageUrl
       ? `<img class="brand-tab-img" src="${esc(b.profileImageUrl)}" alt="">`
       : `<div class="brand-tab-init">${esc(b.channelName.charAt(0).toUpperCase())}</div>`;
-
     btn.innerHTML = `${img}<span>${esc(b.channelName)}</span><button class="reanalyze-btn" title="Re-analyze niche" onclick="event.stopPropagation();reanalyzeNiche('${esc(b.channelId)}')">↻</button>`;
     c.appendChild(btn);
   });
 }
 
-// ============================================================
-// NICHE BADGES
-// ============================================================
-function renderNicheBadges() {
+function renderNicheBadge() {
   const np = getActive()?.nicheProfile;
-  const badge = np ? `<div class="niche-badge"><span style="font-size:8px">●</span>${esc(np.primaryNiche)}</div>` : '';
-  ['titles', 'tags', 'kw', 'ideas'].forEach(id => {
-    const el = document.getElementById(`${id}-badge`);
-    if (el) el.innerHTML = badge;
-  });
-}
-
-// ============================================================
-// NAV
-// ============================================================
-function switchPanel(id) {
-  document.querySelectorAll('.nav-item').forEach(el =>
-    el.classList.toggle('active', el.dataset.panel === id));
-  document.querySelectorAll('.panel').forEach(el =>
-    el.classList.toggle('active', el.id === `panel-${id}`));
-  if (id === 'audit') renderAuditBody();
+  const el = document.getElementById('niche-badge');
+  if (!el) return;
+  if (np) {
+    el.textContent = np.primaryNiche;
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
 }
 
 // ============================================================
@@ -1177,66 +879,67 @@ function errHtml(msg) {
   return `<div class="error-msg">${esc(msg)}</div>`;
 }
 function chipClass(level) {
-  const map = { High: 'chip-high', Medium: 'chip-medium', Low: 'chip-low' };
-  return map[level] || 'chip-medium';
+  return { High: 'chip-high', Medium: 'chip-medium', Low: 'chip-low' }[level] || 'chip-medium';
 }
-
-// Copy button pattern - stores text in data attribute
-function copyFromBtn(btn) {
-  const text = btn.dataset.copy;
-  navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.classList.add('copied');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = orig; }, 1800);
-  });
-}
-
 function makeCopyBtn(text, label) {
   const btn = document.createElement('button');
   btn.className = 'btn-copy';
   btn.textContent = label || 'Copy';
   btn.dataset.copy = text;
-  btn.onclick = () => copyFromBtn(btn);
+  btn.onclick = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.classList.add('copied'); btn.textContent = 'Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = orig; }, 1800);
+    });
+  };
   return btn;
 }
-
-// Loading overlay
 function showOverlay(msg) {
   const el = document.createElement('div');
-  el.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.72);
-    display:flex;align-items:center;justify-content:center;z-index:500;
-    flex-direction:column;gap:14px;font-family:var(--font-body);color:#f0f0f0;font-size:14px;`;
-  el.innerHTML = `<div class="spinner" style="width:24px;height:24px;border-width:2px"></div><div id="_ol_msg">${esc(msg)}</div>`;
+  el.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;
+    align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:14px;
+    font-family:var(--font-body);color:#f0f0f0;font-size:15px;`;
+  el.innerHTML = `<div class="spinner" style="width:22px;height:22px"></div><div id="_ol_msg">${esc(msg)}</div>`;
   document.body.appendChild(el);
-  el.setMsg = (m) => { const d = el.querySelector('#_ol_msg'); if (d) d.textContent = m; };
+  el.setMsg = m => { const d = el.querySelector('#_ol_msg'); if (d) d.textContent = m; };
   return el;
 }
 function removeOverlay(el) { el?.remove(); }
-
 function showToast(msg, isErr) {
   const el = document.createElement('div');
-  el.style.cssText = `position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:8px;
+  el.style.cssText = `position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:9px;
     background:${isErr ? '#c0392b' : '#27ae60'};color:#fff;font-family:var(--font-body);
-    font-size:13px;font-weight:500;z-index:600;`;
+    font-size:14px;font-weight:500;z-index:600;`;
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3500);
 }
+function emptyState(icon, title, sub, btnLabel, btnAction) {
+  return `<div class="empty-state">
+    <div class="empty-state-icon">${icon}</div>
+    <div class="empty-state-title">${title}</div>
+    <div class="empty-state-sub">${sub}</div>
+    <button class="btn-primary" onclick="${btnAction}">${btnLabel}</button>
+  </div>`;
+}
 
 // ============================================================
-// FEATURE 1: TITLE & DESCRIPTION GENERATOR
+// FEATURE 1: TITLE & DESCRIPTION
 // ============================================================
 async function generateTitles() {
   const topic = document.getElementById('t-topic').value.trim();
   const benefit = document.getElementById('t-benefit').value.trim();
   const speaker = document.getElementById('t-speaker').value.trim();
   const out = document.getElementById('titles-out');
-
   if (!topic || !benefit) { out.innerHTML = errHtml('Topic and Key Benefit are required.'); return; }
   out.innerHTML = spinner('Generating titles and description...');
 
-  const system = buildSystem(`You are a YouTube SEO copywriter. Return ONLY a valid JSON object with no markdown, no explanation:
+  // Auto-fill tag topic from title topic
+  const tgField = document.getElementById('tg-topic');
+  if (tgField && !tgField.value.trim()) tgField.value = topic;
+
+  const system = buildSystem(`You are a YouTube SEO copywriter. Return ONLY a valid JSON object with no markdown:
 {
   "titles": [
     { "variant": "A - Topic-led", "text": "..." },
@@ -1244,18 +947,13 @@ async function generateTitles() {
     { "variant": "C - Question", "text": "..." },
     { "variant": "D - Speaker-led", "text": "..." }
   ],
-  "description": "Full YouTube description. Structure: Hook paragraph (2-3 sentences, no filler opener), blank line, What You Will Learn section (3-5 bullet points with dashes), blank line, About section (2-3 sentences about the speaker or channel), blank line, CTA line."
+  "description": "Full YouTube description. Structure: Hook paragraph (2-3 sentences, no filler opener), blank line, What You Will Learn (3-5 bullet points with dashes), blank line, About section (2-3 sentences), blank line, CTA line."
 }
-All title texts must be under 70 characters. No em dashes anywhere.`);
-
-  const userMsg = `Generate for:
-Topic/Procedure: ${topic}
-Key Benefit: ${benefit}${speaker ? `\nSpeaker: ${speaker}` : ''}`;
+All titles under 70 characters. No em dashes.`);
 
   try {
-    const raw = await callAI(system, userMsg);
-    const json = parseJSON(raw);
-    renderTitlesOutput(json, out);
+    const raw = await callAI(system, `Topic: ${topic}\nKey Benefit: ${benefit}${speaker ? `\nSpeaker: ${speaker}` : ''}`);
+    renderTitlesOutput(parseJSON(raw), out);
   } catch (e) {
     out.innerHTML = errHtml('Generation failed. Try again.');
     console.error(e);
@@ -1264,9 +962,8 @@ Key Benefit: ${benefit}${speaker ? `\nSpeaker: ${speaker}` : ''}`;
 
 function renderTitlesOutput(json, out) {
   out.innerHTML = '';
-
-  const cardsDiv = document.createElement('div');
-  cardsDiv.innerHTML = `<div class="output-label">Title Variants</div>`;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div class="output-label">Title Variants</div>`;
   const cards = document.createElement('div');
   cards.className = 'title-cards';
 
@@ -1282,33 +979,29 @@ function renderTitlesOutput(json, out) {
     const badge = document.createElement('span');
     badge.className = 'char-badge ' + (chars <= 70 ? 'good' : 'over');
     badge.textContent = chars;
-    const copy = makeCopyBtn(t.text);
     actions.appendChild(badge);
-    actions.appendChild(copy);
-    card.appendChild(main);
-    card.appendChild(actions);
+    actions.appendChild(makeCopyBtn(t.text));
+    card.appendChild(main); card.appendChild(actions);
     cards.appendChild(card);
   });
 
-  cardsDiv.appendChild(cards);
-  out.appendChild(cardsDiv);
+  wrap.appendChild(cards);
+  out.appendChild(wrap);
 
   if (json.description) {
-    const desc = json.description;
     const block = document.createElement('div');
     block.innerHTML = `<div class="output-label" style="margin-top:20px">Description</div>`;
-    const descBox = document.createElement('div');
-    descBox.className = 'description-block';
+    const box = document.createElement('div');
+    box.className = 'description-block';
     const header = document.createElement('div');
     header.className = 'description-header';
-    header.innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Full description</span>`;
-    header.appendChild(makeCopyBtn(desc));
+    header.innerHTML = `<span style="font-size:13px;color:var(--text-muted)">Full description</span>`;
+    header.appendChild(makeCopyBtn(json.description));
     const body = document.createElement('div');
     body.className = 'description-text';
-    body.textContent = desc;
-    descBox.appendChild(header);
-    descBox.appendChild(body);
-    block.appendChild(descBox);
+    body.textContent = json.description;
+    box.appendChild(header); box.appendChild(body);
+    block.appendChild(box);
     out.appendChild(block);
   }
 }
@@ -1324,17 +1017,16 @@ async function generateTags() {
 
   const system = buildSystem(`You are a YouTube tag strategist. Return ONLY a valid JSON object with no markdown:
 {
-  "exactMatch": ["5 to 7 highly specific tags matching the exact topic"],
-  "broadMatch": ["6 to 10 broader related topic tags"],
-  "audienceMatch": ["4 to 8 audience-intent tags based on who is searching - condition, symptom, goal, outcome"]
+  "exactMatch": ["5 to 7 highly specific tags"],
+  "broadMatch": ["6 to 10 broader related tags"],
+  "audienceMatch": ["4 to 8 audience-intent tags based on who is searching"]
 }
-For medical/healthcare: include procedure name, symptom variants, and location-qualified versions.
-For education: include outcome, audience-type, and platform or format variants.`);
+Medical/healthcare: include procedure name, symptom variants, and location-qualified versions.
+Education: include outcome, audience-type, and format variants.`);
 
   try {
     const raw = await callAI(system, `Build a 3-tier YouTube tag strategy for: ${topic}`);
-    const json = parseJSON(raw);
-    renderTagsOutput(json, out);
+    renderTagsOutput(parseJSON(raw), out);
   } catch (e) {
     out.innerHTML = errHtml('Tag generation failed. Try again.');
   }
@@ -1343,20 +1035,13 @@ For education: include outcome, audience-type, and platform or format variants.`
 function renderTagsOutput(json, out) {
   const all = [...(json.exactMatch||[]), ...(json.broadMatch||[]), ...(json.audienceMatch||[])];
   out.innerHTML = '';
-
   const summary = document.createElement('div');
   summary.className = 'tag-summary';
   summary.appendChild(document.createTextNode(`Total tags: ${all.length} `));
   summary.appendChild(makeCopyBtn(all.join(', '), 'Copy All'));
   out.appendChild(summary);
 
-  const tiers = [
-    { label: 'Exact Match', key: 'exactMatch' },
-    { label: 'Broad Match', key: 'broadMatch' },
-    { label: 'Audience Match', key: 'audienceMatch' }
-  ];
-
-  tiers.forEach(({ label, key }) => {
+  [['Exact Match', 'exactMatch'], ['Broad Match', 'broadMatch'], ['Audience Match', 'audienceMatch']].forEach(([label, key]) => {
     const tags = json[key] || [];
     const tier = document.createElement('div');
     tier.className = 'tag-tier';
@@ -1366,113 +1051,70 @@ function renderTagsOutput(json, out) {
     header.appendChild(makeCopyBtn(tags.join(', ')));
     const pills = document.createElement('div');
     pills.className = 'tag-pills';
-    tags.forEach(t => {
-      const pill = document.createElement('span');
-      pill.className = 'tag-pill';
-      pill.textContent = t;
-      pills.appendChild(pill);
-    });
-    tier.appendChild(header);
-    tier.appendChild(pills);
+    tags.forEach(t => { const p = document.createElement('span'); p.className = 'tag-pill'; p.textContent = t; pills.appendChild(p); });
+    tier.appendChild(header); tier.appendChild(pills);
     out.appendChild(tier);
   });
 }
 
 // ============================================================
-// FEATURE 3: KEYWORD SCORER
+// FEATURE 3: KEYWORD SCORER (compact inline)
 // ============================================================
 async function scoreKeyword() {
   const kw = document.getElementById('kw-input').value.trim();
   const out = document.getElementById('kw-out');
   if (!kw) { out.innerHTML = errHtml('Please enter a keyword.'); return; }
-  out.innerHTML = spinner('Scoring keyword...');
+  out.innerHTML = spinner('Scoring...');
 
-  const system = buildSystem(`You are a YouTube keyword research analyst. Return ONLY a valid JSON object with no markdown:
+  const system = buildSystem(`You are a YouTube keyword analyst. Return ONLY a valid JSON object with no markdown:
 {
   "demand": "High or Medium or Low",
   "competition": "High or Medium or Low",
   "opportunityScore": 0 to 100,
-  "rationale": "One sentence explaining the score and the opportunity for this specific channel's niche.",
-  "related": [
-    { "keyword": "string", "demand": "High|Medium|Low", "competition": "High|Medium|Low", "opportunityScore": 0-100 },
-    { "keyword": "string", "demand": "High|Medium|Low", "competition": "High|Medium|Low", "opportunityScore": 0-100 },
-    { "keyword": "string", "demand": "High|Medium|Low", "competition": "High|Medium|Low", "opportunityScore": 0-100 },
-    { "keyword": "string", "demand": "High|Medium|Low", "competition": "High|Medium|Low", "opportunityScore": 0-100 },
-    { "keyword": "string", "demand": "High|Medium|Low", "competition": "High|Medium|Low", "opportunityScore": 0-100 }
-  ]
+  "rationale": "One sentence explaining the score and opportunity for this channel's niche."
 }
-OpportunityScore: high demand + low competition = high score. Same keyword scores differently by niche - calibrate accordingly.`);
+OpportunityScore: high demand + low competition = high score. Calibrate to the channel niche.`);
 
   try {
     const raw = await callAI(system, `Score this YouTube keyword: "${kw}"`);
     const json = parseJSON(raw);
-    renderKeywordOutput(kw, json, out);
+    out.innerHTML = '';
+    const result = document.createElement('div');
+    result.className = 'kw-compact-result';
+    result.innerHTML = `
+      <div class="kw-compact-kw">${esc(kw)}</div>
+      <div class="kw-compact-chips">
+        <div>
+          <div class="chip-label">Demand</div>
+          <span class="score-chip ${chipClass(json.demand)}">${esc(json.demand)}</span>
+        </div>
+        <div>
+          <div class="chip-label">Competition</div>
+          <span class="score-chip ${chipClass(json.competition)}">${esc(json.competition)}</span>
+        </div>
+        <div>
+          <div class="chip-label">Opportunity</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+            <div class="opp-bar-bg"><div class="opp-bar-fill" style="width:${json.opportunityScore}%"></div></div>
+            <span class="kw-compact-score">${json.opportunityScore}</span>
+          </div>
+        </div>
+      </div>
+      <div class="kw-compact-rationale">${esc(json.rationale)}</div>`;
+    out.appendChild(result);
   } catch (e) {
     out.innerHTML = errHtml('Scoring failed. Try again.');
   }
 }
 
-function renderKeywordOutput(kw, json, out) {
-  out.innerHTML = '';
-
-  const card = document.createElement('div');
-  card.className = 'keyword-scorecard';
-  card.innerHTML = `
-    <div class="scorecard-kw">${esc(kw)}</div>
-    <div class="score-chips">
-      <div class="score-chip-group">
-        <div class="score-chip-label">Demand</div>
-        <span class="score-chip ${chipClass(json.demand)}">${esc(json.demand)}</span>
-      </div>
-      <div class="score-chip-group">
-        <div class="score-chip-label">Competition</div>
-        <span class="score-chip ${chipClass(json.competition)}">${esc(json.competition)}</span>
-      </div>
-    </div>
-    <div class="opp-label">Opportunity Score</div>
-    <div class="opp-bar-bg"><div class="opp-bar-fill" style="width:${json.opportunityScore}%"></div></div>
-    <div class="opp-score-num">${json.opportunityScore} / 100</div>
-    <div class="rationale-text">${esc(json.rationale)}</div>`;
-  out.appendChild(card);
-
-  if (json.related?.length) {
-    const wrap = document.createElement('div');
-    wrap.innerHTML = `<div class="output-label" style="margin-top:4px">Related Keywords</div>`;
-    const table = document.createElement('table');
-    table.className = 'related-table';
-    table.innerHTML = `<thead><tr><th>Keyword</th><th>Demand</th><th>Competition</th><th>Score</th></tr></thead>`;
-    const tbody = document.createElement('tbody');
-    json.related.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${esc(r.keyword)}</td>
-        <td><span class="score-chip ${chipClass(r.demand)}">${esc(r.demand)}</span></td>
-        <td><span class="score-chip ${chipClass(r.competition)}">${esc(r.competition)}</span></td>
-        <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="opp-bar-bg" style="width:56px;flex-shrink:0">
-              <div class="opp-bar-fill" style="width:${r.opportunityScore}%"></div>
-            </div>
-            <span style="font-size:12px;color:var(--blue-light);font-weight:600">${r.opportunityScore}</span>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    out.appendChild(wrap);
-  }
-}
-
 // ============================================================
-// FEATURE 4: SEO CHECKLIST (client-side)
+// FEATURE 4: SEO CHECKLIST
 // ============================================================
 function runChecklist() {
   const title = document.getElementById('cl-title').value.trim();
   const desc = document.getElementById('cl-desc').value.trim();
   const tagsRaw = document.getElementById('cl-tags').value.trim();
   const out = document.getElementById('cl-out');
-
   if (!title || !desc) { out.innerHTML = errHtml('Title and Description are required.'); return; }
 
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -1480,147 +1122,130 @@ function runChecklist() {
   const titleLow = title.toLowerCase();
   const descLow = desc.toLowerCase();
   const desc150 = desc.slice(0, 150).toLowerCase();
-  const firstWords = titleLow.split(/\s+/).slice(0, 3).join(' ');
+  const firstWord = titleLow.split(/\s+/)[0];
 
-  const checks = [];
-
-  checks.push({
-    pass: title.length <= 70,
-    rule: 'Title under 70 characters',
-    detail: `${title.length} characters${title.length > 70 ? ` - ${title.length - 70} over limit` : ''}.`
-  });
-
-  const kwInDesc150 = desc150.includes(titleLow.split(' ')[0]) || desc150.includes(firstWords.split(' ')[0]);
-  checks.push({
-    pass: kwInDesc150,
-    rule: 'Primary keyword in first 150 characters of description',
-    detail: kwInDesc150 ? 'Keyword found in opening of description.' : 'Move a keyword from the title into the first sentence of your description.'
-  });
-
-  const tagsLow = tags.map(t => t.toLowerCase());
-  const titleTagMatch = tagsLow.some(tag => titleLow.includes(tag) || tag.includes(firstWords.split(' ')[0]));
-  checks.push({
-    pass: titleTagMatch || tags.length === 0,
-    rule: 'Tags include phrases from the title',
-    detail: titleTagMatch ? 'Tag alignment with title found.' : 'At least one tag should match a phrase in your title.'
-  });
-
-  checks.push({
-    pass: tags.length >= 15 && tags.length <= 25,
-    rule: 'Tag count between 15 and 25',
-    detail: `You have ${tags.length} tag${tags.length !== 1 ? 's' : ''}. ${tags.length < 15 ? `Add ${15 - tags.length} more.` : tags.length > 25 ? `Remove ${tags.length - 25}.` : 'Good count.'}`
-  });
-
-  const ctaWords = ['link', 'subscribe', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'grab', 'get ', 'register', 'sign up'];
-  const hasCta = ctaWords.some(k => descLow.includes(k));
-  checks.push({
-    pass: hasCta,
-    rule: 'Call to action present in description',
-    detail: hasCta ? 'CTA found.' : 'Add a CTA - subscribe, book a consult, click the link, etc.'
-  });
-
-  const fillers = ['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"];
-  const hasFillerOpener = fillers.some(f => desc.toLowerCase().trimStart().startsWith(f));
-  checks.push({
-    pass: !hasFillerOpener,
-    rule: 'No filler opener',
-    detail: hasFillerOpener ? 'Start with a strong hook - not "In this video" or "Welcome to".' : 'No filler opener found.'
-  });
-
-  if (brand?.location) {
-    const locWords = brand.location.toLowerCase().split(/[\s,]+/).filter(w => w.length > 2);
-    const hasLoc = locWords.some(w => titleLow.includes(w) || descLow.includes(w));
-    checks.push({
-      pass: hasLoc,
-      rule: `Location signal present (${brand.location})`,
-      detail: hasLoc ? `"${brand.location}" referenced.` : `Add "${brand.location}" to your title or description for local SEO.`
-    });
-  }
-
-  if (brand) {
-    const fragments = brand.channelName.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-    const hasBrand = fragments.some(f => titleLow.includes(f) || descLow.includes(f));
-    checks.push({
-      pass: hasBrand,
+  const checks = [
+    {
+      pass: title.length <= 70,
+      rule: 'Title under 70 characters',
+      detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over limit` : ''}.`
+    },
+    {
+      pass: desc150.includes(firstWord),
+      rule: 'Primary keyword in first 150 characters of description',
+      detail: desc150.includes(firstWord)
+        ? 'Keyword found in the opening of your description.'
+        : 'Move a keyword from your title into the first sentence of the description.'
+    },
+    {
+      pass: tags.length === 0 || tags.map(t => t.toLowerCase()).some(tag => titleLow.includes(tag) || tag.split(' ').some(w => w.length > 3 && titleLow.includes(w))),
+      rule: 'Tags include phrases from the title',
+      detail: tags.length === 0 ? 'No tags provided to check.' : 'Check for alignment between title keywords and tags.'
+    },
+    {
+      pass: tags.length >= 15 && tags.length <= 25,
+      rule: 'Tag count between 15 and 25',
+      detail: `${tags.length} tag${tags.length !== 1 ? 's' : ''}. ${tags.length < 15 ? `Add ${15 - tags.length} more.` : tags.length > 25 ? `Remove ${tags.length - 25}.` : 'Good.'}`
+    },
+    {
+      pass: ['link', 'subscribe', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
+      rule: 'Call to action present in description',
+      detail: 'Look for: subscribe, book, click the link, download, register, etc.'
+    },
+    {
+      pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => desc.toLowerCase().trimStart().startsWith(f)),
+      rule: 'No filler opener',
+      detail: 'Start with a strong hook, not "In this video" or "Welcome to".'
+    },
+    ...(brand ? [{
+      pass: brand.channelName.toLowerCase().split(/\s+/).filter(w => w.length > 3).some(f => titleLow.includes(f) || descLow.includes(f)),
       rule: 'Brand or channel name referenced',
-      detail: hasBrand ? 'Brand name found.' : `Mention "${brand.channelName}" somewhere in the title or description.`
-    });
-  }
+      detail: `Look for mention of "${brand.channelName}" in the title or description.`
+    }] : [])
+  ];
 
   const pass = checks.filter(c => c.pass).length;
-  const total = checks.length;
-
   const items = checks.map(c => `
     <div class="check-item ${c.pass ? 'pass' : 'fail'}">
       <div class="check-icon">${c.pass ? '✅' : '❌'}</div>
-      <div>
-        <div class="check-rule">${esc(c.rule)}</div>
-        <div class="check-detail">${esc(c.detail)}</div>
-      </div>
+      <div><div class="check-rule">${esc(c.rule)}</div><div class="check-detail">${esc(c.detail)}</div></div>
     </div>`).join('');
 
-  out.innerHTML = `
-    <div class="output-label">${pass}/${total} checks passed</div>
-    <div class="checklist-items">${items}</div>`;
+  out.innerHTML = `<div class="output-label">${pass}/${checks.length} checks passed</div><div class="checklist-items">${items}</div>`;
 }
 
 // ============================================================
-// FEATURE 5: DAILY VIDEO IDEAS
+// FEATURE 5: VIDEO IDEAS (with web search attempt)
 // ============================================================
 async function generateIdeas() {
   const brand = getActive();
   const out = document.getElementById('ideas-out');
 
   if (!brand) {
-    out.innerHTML = `<div class="center-state">
-      <div class="center-state-icon">🎯</div>
-      <div class="center-state-title">No channel connected</div>
-      <div class="center-state-sub">Connect a YouTube channel so ideas can be tailored to your niche and recent content.</div>
-      <button class="btn-primary" onclick="connectChannel()">Connect Channel</button>
-    </div>`;
+    out.innerHTML = emptyState('🎯', 'No channel connected', 'Connect a YouTube channel so ideas can be tailored to your niche.', 'Connect Channel', 'connectChannel()');
     return;
   }
 
-  out.innerHTML = spinner('Generating ideas...');
+  out.innerHTML = spinner('Searching for trending topics and generating ideas...');
 
-  const system = buildSystem(`You are a YouTube content strategist. Return ONLY a valid JSON array with exactly 5 objects, no markdown:
+  const system = buildSystem(`You are a YouTube content strategist with access to current web data. Search for trending topics, popular video formats, and competitor content in this channel's niche. Then generate ideas that are timely and informed by what is actually performing well right now.
+
+Return ONLY a valid JSON array with exactly 5 objects, no markdown:
 [
   {
     "title": "Video title under 70 characters",
     "targetKeyword": "main keyword phrase",
-    "whyItFits": "1 to 2 sentences on why this fits the channel niche and audience.",
-    "difficulty": "Easy or Medium or Hard"
+    "whyItFits": "1-2 sentences on why this fits the channel and is timely right now.",
+    "difficulty": "Easy or Medium or Hard",
+    "trendSignal": "Brief note on what current trend or search pattern this taps into"
   }
 ]
-Difficulty guide: Easy = clear angle, lower competition. Medium = solid demand, some competition. Hard = competitive or needs deep expertise.
-Generate ideas that are fresh - do not repeat any recent video topics. Be specific and outcome-focused.`);
+Difficulty: Easy = clear angle, lower competition. Medium = solid demand, some competition. Hard = competitive or deep expertise needed.
+Do not repeat any of the channel's recent video topics. Be specific and outcome-focused.`);
 
-  const userMsg = `Generate 5 fresh video ideas. Recent videos to avoid repeating: ${(brand.recentVideos || []).slice(0, 10).join(' | ')}`;
+  const userMsg = `Generate 5 trending video ideas for this channel. Search for what is performing well in this niche right now. Recent videos to avoid: ${(brand.recentVideos || []).slice(0, 10).join(' | ')}`;
 
   try {
-    const raw = await callAI(system, userMsg);
+    const raw = await callAI(system, userMsg, {
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+    });
     const json = parseJSON(raw);
-    renderIdeasOutput(json, out);
+    renderIdeasOutput(json, out, true);
   } catch (e) {
-    out.innerHTML = errHtml('Idea generation failed. Try again.');
+    // Fall back without web search tool
+    try {
+      const raw2 = await callAI(system, userMsg);
+      const json2 = parseJSON(raw2);
+      renderIdeasOutput(json2, out, false);
+    } catch (e2) {
+      out.innerHTML = errHtml('Idea generation failed. Try again.');
+    }
   }
 }
 
-function renderIdeasOutput(ideas, out) {
+function renderIdeasOutput(ideas, out, webSearched) {
   const diffClass = { Easy: 'diff-easy', Medium: 'diff-medium', Hard: 'diff-hard' };
   out.innerHTML = '';
+  if (webSearched) {
+    const badge = document.createElement('div');
+    badge.className = 'web-search-badge';
+    badge.innerHTML = `<span>●</span> Informed by live web search`;
+    out.appendChild(badge);
+  }
   const wrap = document.createElement('div');
   wrap.className = 'idea-cards';
   (ideas || []).forEach(idea => {
     const card = document.createElement('div');
     card.className = 'idea-card';
+    const trendLine = idea.trendSignal ? `<div style="font-size:11px;color:var(--text-dim);margin-top:6px;font-style:italic">${esc(idea.trendSignal)}</div>` : '';
     card.innerHTML = `
       <div class="idea-title">${esc(idea.title)}</div>
       <div class="idea-meta">
         <span class="kw-chip">${esc(idea.targetKeyword)}</span>
         <span class="diff-badge ${diffClass[idea.difficulty] || 'diff-medium'}">${esc(idea.difficulty)}</span>
       </div>
-      <div class="idea-why">${esc(idea.whyItFits)}</div>`;
+      <div class="idea-why">${esc(idea.whyItFits)}</div>
+      ${trendLine}`;
     wrap.appendChild(card);
   });
   out.appendChild(wrap);
@@ -1635,28 +1260,15 @@ function renderAuditBody() {
   const brand = getActive();
 
   if (!brand) {
-    el.innerHTML = `<div class="center-state">
-      <div class="center-state-icon">📊</div>
-      <div class="center-state-title">No channel connected</div>
-      <div class="center-state-sub">Connect a YouTube channel first.</div>
-      <button class="btn-primary" onclick="connectChannel()">Connect Channel</button>
-    </div>`;
+    el.innerHTML = emptyState('📊', 'No channel connected', 'Connect a YouTube channel to run an audit.', 'Connect Channel', 'connectChannel()');
     return;
   }
-
   if (!sessionTokens[brand.channelId]) {
-    el.innerHTML = `<div class="center-state">
-      <div class="center-state-icon">🔑</div>
-      <div class="center-state-title">Session expired</div>
-      <div class="center-state-sub">Reconnect to fetch live video data for the audit. Your channel data and niche profile are still saved.</div>
-      <button class="btn-primary" onclick="connectChannel()">Reconnect Channel</button>
-    </div>`;
+    el.innerHTML = emptyState('🔑', 'Session expired', 'Reconnect to fetch live video data for the audit. Your channel data and niche profile are still saved.', 'Reconnect Channel', 'connectChannel()');
     return;
   }
 
-  el.innerHTML = `
-    <button class="btn-primary" onclick="runAudit()">Run Audit</button>
-    <div id="audit-out" style="margin-top:26px"></div>`;
+  el.innerHTML = `<button class="btn-primary" onclick="runAudit()">Run Audit</button><div id="audit-out" style="margin-top:26px"></div>`;
 }
 
 async function runAudit() {
@@ -1664,14 +1276,12 @@ async function runAudit() {
   const token = sessionTokens[brand?.channelId];
   if (!brand || !token) return;
   const out = document.getElementById('audit-out');
-  out.innerHTML = spinner('Fetching videos and running analysis...');
+  out.innerHTML = spinner('Fetching videos and analyzing...');
 
   try {
-    const res = await fetch(
-      `${YT_API}/search?part=snippet&channelId=${brand.channelId}&order=date&maxResults=20&type=video&access_token=${token}`
-    );
+    const res = await fetch(`${YT_API}/search?part=snippet&channelId=${brand.channelId}&order=date&maxResults=20&type=video&access_token=${token}`);
     const data = await res.json();
-    if (!data.items?.length) throw new Error('Could not fetch videos. Your session may have expired - try reconnecting.');
+    if (!data.items?.length) throw new Error('Could not fetch videos. Try reconnecting.');
 
     const titles = data.items.map(v => v.snippet.title);
 
@@ -1681,72 +1291,63 @@ async function runAudit() {
   "titleFormulas": ["detected pattern 1", "detected pattern 2"],
   "topicGaps": ["gap 1", "gap 2", "gap 3"],
   "recommendations": [
-    { "title": "Short rec title", "detail": "2 to 3 actionable sentences." },
-    { "title": "Short rec title", "detail": "2 to 3 actionable sentences." },
-    { "title": "Short rec title", "detail": "2 to 3 actionable sentences." }
+    { "title": "Short title", "detail": "2-3 actionable sentences." },
+    { "title": "Short title", "detail": "2-3 actionable sentences." },
+    { "title": "Short title", "detail": "2-3 actionable sentences." }
   ]
 }
-keywordConsistencyScore: 0 = scattered topics, 100 = tight niche with consistent keyword themes.
-titleFormulas: patterns you detect (e.g. "How To + Outcome", "Number + Benefit list", "Question format").
-topicGaps: important topics in this niche that are missing from the channel.
-recommendations: specific, actionable, grounded in what you actually see.`);
+keywordConsistencyScore: 0 = scattered, 100 = tight niche focus.
+titleFormulas: patterns detected (e.g. "How To + Outcome", "Number + Benefit").
+topicGaps: important topics in this niche missing from the channel.`);
 
-    const raw = await callAI(system,
-      `Analyze these 20 most recent video titles:\n${titles.map((t, i) => `${i + 1}. ${t}`).join('\n')}`
-    );
+    const raw = await callAI(system, `Analyze these 20 most recent video titles:\n${titles.map((t, i) => `${i + 1}. ${t}`).join('\n')}`);
     const json = parseJSON(raw);
-    renderAuditOutput(json, out, titles);
+    renderAuditOutput(json, out);
   } catch (e) {
     out.innerHTML = errHtml(e.message || 'Audit failed. Try again.');
   }
 }
 
-function renderAuditOutput(json, out, titles) {
+function renderAuditOutput(json, out) {
   out.innerHTML = '';
-
   const score = json.keywordConsistencyScore || 0;
 
-  const consistencySection = document.createElement('div');
-  consistencySection.className = 'audit-section';
-  consistencySection.innerHTML = `
-    <div class="audit-section-title">Keyword Consistency Score</div>
+  const s1 = document.createElement('div');
+  s1.className = 'audit-section';
+  s1.innerHTML = `<div class="audit-section-title">Keyword Consistency Score</div>
     <div class="consistency-display">
       <div class="consistency-num">${score}</div>
       <div style="flex:1">
-        <div class="opp-bar-bg" style="max-width:none">
+        <div class="opp-bar-bg" style="width:100%;max-width:300px">
           <div class="opp-bar-fill" style="width:${score}%"></div>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">out of 100</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:5px">out of 100</div>
       </div>
     </div>`;
-  out.appendChild(consistencySection);
+  out.appendChild(s1);
 
   if (json.titleFormulas?.length) {
-    const sec = document.createElement('div');
-    sec.className = 'audit-section';
-    sec.innerHTML = `<div class="audit-section-title">Title Formulas Detected</div>
+    const s2 = document.createElement('div');
+    s2.className = 'audit-section';
+    s2.innerHTML = `<div class="audit-section-title">Title Formulas Detected</div>
       <div class="formula-chips">${json.titleFormulas.map(f => `<span class="formula-chip">${esc(f)}</span>`).join('')}</div>`;
-    out.appendChild(sec);
+    out.appendChild(s2);
   }
 
   if (json.topicGaps?.length) {
-    const sec = document.createElement('div');
-    sec.className = 'audit-section';
-    sec.innerHTML = `<div class="audit-section-title">Topic Gaps</div>
-      <div class="gap-list">${json.topicGaps.map(g =>
-        `<div class="gap-item"><div class="gap-dot"></div>${esc(g)}</div>`
-      ).join('')}</div>`;
-    out.appendChild(sec);
+    const s3 = document.createElement('div');
+    s3.className = 'audit-section';
+    s3.innerHTML = `<div class="audit-section-title">Topic Gaps</div>
+      <div class="gap-list">${json.topicGaps.map(g => `<div class="gap-item"><div class="gap-dot"></div>${esc(g)}</div>`).join('')}</div>`;
+    out.appendChild(s3);
   }
 
   if (json.recommendations?.length) {
-    const sec = document.createElement('div');
-    sec.className = 'audit-section';
-    sec.innerHTML = `<div class="audit-section-title">Recommendations</div>
-      <div class="rec-cards">${json.recommendations.map(r =>
-        `<div class="rec-card"><div class="rec-title">${esc(r.title)}</div><div class="rec-detail">${esc(r.detail)}</div></div>`
-      ).join('')}</div>`;
-    out.appendChild(sec);
+    const s4 = document.createElement('div');
+    s4.className = 'audit-section';
+    s4.innerHTML = `<div class="audit-section-title">Recommendations</div>
+      <div class="rec-cards">${json.recommendations.map(r => `<div class="rec-card"><div class="rec-title">${esc(r.title)}</div><div class="rec-detail">${esc(r.detail)}</div></div>`).join('')}</div>`;
+    out.appendChild(s4);
   }
 }
 </script>
