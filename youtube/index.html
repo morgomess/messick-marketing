@@ -1887,7 +1887,7 @@ async function aiRewriteTags() {
   "broadMatch": ["6 to 10 broader tags"],
   "audienceMatch": ["4 to 8 audience-intent tags"]
 }
-Medical/healthcare: include procedure name, symptom variants, location versions. All tags lowercase.`);
+Rules: every tag must be under 30 characters. All tags lowercase. No special characters. Medical/healthcare: include procedure name, symptom variants, location versions. Education: include outcome, audience-type, format variants.`);
 
   try {
     const raw = await callAI(system, `Generate YouTube tags for: "${currentTitle}"`);
@@ -1915,12 +1915,26 @@ async function pushToYouTube(videoId, token) {
 
   // Preserve original snippet fields - only overwrite title, description, tags
   const origSnippet = currentVideoData?.snippet || {};
+  // Sanitize tags: max 30 chars each, no leading/trailing spaces, no special chars, total under 500 chars
+  const cleanTags = editTags
+    .map(t => t.trim().replace(/[<>]/g, ''))
+    .filter(t => t.length > 0 && t.length <= 30)
+    .filter((t, i, arr) => arr.indexOf(t) === i); // dedupe
+  // Trim to fit 500 char total limit
+  const finalTags = [];
+  let total = 0;
+  for (const t of cleanTags) {
+    if (total + t.length + (finalTags.length > 0 ? 1 : 0) > 500) break;
+    finalTags.push(t);
+    total += t.length + (finalTags.length > 1 ? 1 : 0);
+  }
+
   const body = {
     id: videoId,
     snippet: {
       title,
       description,
-      tags: editTags,
+      tags: finalTags,
       categoryId: origSnippet.categoryId || '22',
       defaultLanguage: origSnippet.defaultLanguage || 'en',
       defaultAudioLanguage: origSnippet.defaultAudioLanguage || 'en'
