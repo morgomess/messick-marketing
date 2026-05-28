@@ -247,11 +247,11 @@ h2.sh.on-dark em{color:var(--steel-light)}
 @media(max-width:860px){.svc-card-unified{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:580px){.svc-card-unified{grid-template-columns:1fr}}
 .spec-flip-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:2rem}
-.spec-flip{height:70px;perspective:600px;cursor:default}
-.spec-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
-.spec-flip:hover .spec-flip-inner{transform:rotateY(180deg)}
+.spec-flip{height:70px;perspective:1000px;cursor:default}
+.spec-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+.spec-flip:hover .spec-flip-inner{transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}
 .spec-flip-front,.spec-flip-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;padding:.5rem .7rem;background:rgba(0,0,0,.22);border-radius:3px}
-.spec-flip-back{transform:rotateY(180deg);background:rgba(0,0,0,.28)}
+.spec-flip-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);background:rgba(0,0,0,.28)}
 .spec-flip-front span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.78rem;font-weight:400;color:rgba(255,255,255,.88);text-align:center;line-height:1.25;letter-spacing:.02em}
 .spec-flip-back span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.68rem;font-weight:300;color:rgba(255,255,255,.82);text-align:center;line-height:1.45}
 @media(max-width:900px){.spec-flip-grid{grid-template-columns:repeat(4,1fr)}}
