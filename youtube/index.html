@@ -2663,14 +2663,7 @@ async function auditCoverUpload() {
   const brand = getActive();
   const brandCtx = brand?.nicheProfile ? `Channel niche: ${brand.nicheProfile.primaryNiche}. Target audience: ${brand.nicheProfile.targetAudience}.` : '';
 
-  const payload = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: coverUploadFile.type || 'image/jpeg', data: coverUploadB64 } },
-        { type: 'text', text: `Audit this reel cover thumbnail for ${platMap[platform]}.
+  const auditPrompt = `Audit this reel cover thumbnail for ${platMap[platform]}.
 ${context ? 'Topic: ' + context : ''}
 ${brandCtx}
 
@@ -2688,21 +2681,28 @@ Score and critique it as a cover thumbnail designer. Return ONLY valid JSON:
   "color_notes": "brief note on color use and contrast",
   "composition_notes": "brief note on layout and visual focus",
   "canva_search_terms": ["3-4 search terms to find a better template"]
-}` }
-      ]
-    }]
-  };
+}`;
+
+  const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
 
   try {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payload })
+      body: JSON.stringify({
+        system,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: coverUploadFile.type || 'image/jpeg', data: coverUploadB64 } },
+            { type: 'text', text: auditPrompt }
+          ]
+        }]
+      })
     });
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message || 'API error');
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
-    const d = parseJSON(text);
+    if (data.error) throw new Error(data.error);
+    const d = parseJSON(data.text || '');
     out.innerHTML = renderCoverAudit(d);
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
