@@ -665,6 +665,95 @@
     .btn-push-thumb:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* RESPONSIVE */
+    /* ── REELS VIEW ── */
+    #view-reels { height: 100%; display: none; flex-direction: column; }
+    #view-reels.active { display: flex; }
+    .reels-tabs {
+      display: flex; gap: 4px;
+      padding: 14px 32px 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .reels-tab {
+      padding: 8px 18px 10px; border-radius: 8px 8px 0 0;
+      border: 1px solid transparent; border-bottom: none;
+      background: transparent; color: var(--text-muted);
+      font-family: var(--font-body); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .reels-tab:hover { color: var(--text); }
+    .reels-tab.active {
+      background: var(--surface); border-color: var(--border);
+      color: var(--text); border-bottom-color: var(--surface);
+      margin-bottom: -1px;
+    }
+    .reels-panel { display: none; flex: 1; overflow-y: auto; }
+    .reels-panel.active { display: block; }
+    .reels-panel-inner {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 36px 32px 60px;
+    }
+    .reel-output-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px; margin-top: 20px;
+    }
+    .reel-output-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .reel-score-row {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .reel-score-chip {
+      padding: 5px 14px; border-radius: 14px; font-size: 12px; font-weight: 600;
+    }
+    .reel-score-high { background: rgba(39,174,96,0.14); color: var(--green); }
+    .reel-score-mid { background: rgba(211,84,0,0.14); color: #e67e22; }
+    .reel-score-low { background: rgba(192,57,43,0.14); color: #e74c3c; }
+    .upload-drop-zone {
+      border: 2px dashed var(--border2); border-radius: 12px;
+      padding: 48px 24px; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--surface);
+    }
+    .upload-drop-zone:hover, .upload-drop-zone.drag-over {
+      border-color: var(--blue-light); background: var(--blue-pale);
+    }
+    .upload-drop-icon { font-size: 36px; margin-bottom: 12px; }
+    .upload-drop-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+    .upload-drop-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; }
+    .upload-preview {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 18px; background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 10px; margin-top: 16px;
+    }
+    .upload-preview-thumb {
+      width: 80px; height: 80px; border-radius: 8px; object-fit: cover;
+      background: var(--surface3); flex-shrink: 0;
+    }
+    .upload-preview-info { flex: 1; min-width: 0; }
+    .upload-preview-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .upload-preview-size { font-size: 12px; color: var(--text-dim); }
+    .video-import-card {
+      display: flex; gap: 12px; padding: 12px;
+      border-radius: 9px; cursor: pointer;
+      transition: background 0.15s; border: 1px solid transparent; margin-bottom: 6px;
+    }
+    .video-import-card:hover { background: var(--surface); border-color: var(--border); }
+    .video-import-card.selected { background: var(--blue-pale); border-color: var(--blue); }
+    .video-import-thumb {
+      width: 88px; height: 50px; border-radius: 5px;
+      object-fit: cover; flex-shrink: 0; background: var(--surface3);
+    }
+    .video-import-title {
+      font-size: 13px; font-weight: 500; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; margin-bottom: 4px;
+    }
+    .video-import-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 10px; }
+
     @media (max-width: 700px) {
       #view-optimize, .research-panel-inner { padding: 24px 18px 50px; }
       .form-row { flex-direction: column; gap: 0; }
@@ -702,6 +791,7 @@
     <button class="mode-pill active" id="pill-optimize" onclick="switchMode('optimize')">Optimize</button>
     <button class="mode-pill" id="pill-videos" onclick="switchMode('videos')">My Videos</button>
     <button class="mode-pill" id="pill-research" onclick="switchMode('research')">Research</button>
+    <button class="mode-pill" id="pill-reels" onclick="switchMode('reels')">Reels Studio</button>
     <div class="mode-niche-badge" id="niche-badge"></div>
   </div>
 
@@ -808,6 +898,126 @@
         </div>
       </div>
     </div><!-- end view-research -->
+
+    <!-- REELS STUDIO VIEW -->
+    <div class="view" id="view-reels">
+      <div class="reels-tabs">
+        <button class="reels-tab active" data-rtab="manual" onclick="switchReelsTab('manual')">Manual Entry</button>
+        <button class="reels-tab" data-rtab="import" onclick="switchReelsTab('import')">Import from Video</button>
+        <button class="reels-tab" data-rtab="audit" onclick="switchReelsTab('audit')">Upload &amp; Audit</button>
+      </div>
+
+      <!-- MANUAL ENTRY PANEL -->
+      <div class="reels-panel active" id="rp-manual">
+        <div class="reels-panel-inner">
+          <div class="panel-title">Create Reel Metadata</div>
+          <div class="panel-sub">Enter your reel topic and details to generate optimized captions, hashtags, hooks, and a posting strategy.</div>
+          <div class="form-group">
+            <label class="form-label">Reel Topic / Procedure *</label>
+            <input type="text" class="form-input" id="rl-topic" placeholder="e.g. Varicose vein treatment, UFE recovery, PAD symptoms">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Platform</label>
+              <select class="form-input" id="rl-platform">
+                <option value="instagram">Instagram Reels</option>
+                <option value="facebook">Facebook Reels</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube Shorts</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reel Length (seconds)</label>
+              <input type="number" class="form-input" id="rl-length" placeholder="e.g. 30" min="5" max="180">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Key Message / Hook Idea (optional)</label>
+            <input type="text" class="form-input" id="rl-hook" placeholder="e.g. 'Most people don't know this about leg pain...'">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Call to Action</label>
+            <select class="form-input" id="rl-cta">
+              <option value="book">Book a consultation</option>
+              <option value="link">Link in bio</option>
+              <option value="call">Call us today</option>
+              <option value="dm">DM us</option>
+              <option value="save">Save this post</option>
+              <option value="comment">Comment below</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="generateReelMeta()">Generate Reel Package</button>
+          <div id="rl-manual-out"></div>
+        </div>
+      </div>
+
+      <!-- IMPORT FROM VIDEO PANEL -->
+      <div class="reels-panel" id="rp-import">
+        <div class="reels-panel-inner">
+          <div class="panel-title">Import from Connected Video</div>
+          <div class="panel-sub">Select an existing YouTube video to repurpose its content into a Reel - hooks, short captions, and hashtags adapted for short-form.</div>
+          <div id="rl-import-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">🔗</div>
+              <div class="empty-state-title">No channel connected</div>
+              <div class="empty-state-sub">Connect a YouTube channel using the button in the top bar to browse your videos here.</div>
+            </div>
+          </div>
+          <div id="rl-import-selected" style="display:none; margin-top:20px;">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:10px;">Selected Video</div>
+            <div id="rl-import-preview"></div>
+            <div class="form-group" style="margin-top:16px;">
+              <label class="form-label">Target Platform</label>
+              <select class="form-input" id="rl-import-platform">
+                <option value="instagram">Instagram Reels</option>
+                <option value="facebook">Facebook Reels</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube Shorts</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="generateReelFromVideo()">Generate Reel Package</button>
+          </div>
+          <div id="rl-import-out"></div>
+        </div>
+      </div>
+
+      <!-- UPLOAD & AUDIT PANEL -->
+      <div class="reels-panel" id="rp-audit">
+        <div class="reels-panel-inner">
+          <div class="panel-title">Upload &amp; Audit</div>
+          <div class="panel-sub">Upload a screenshot or image of an existing reel, post, or design. AI will analyze it and return an optimization report with a score, specific fixes, and rewritten copy.</div>
+
+          <div class="upload-drop-zone" id="rl-drop-zone" onclick="document.getElementById('rl-file-input').click()">
+            <div class="upload-drop-icon">📎</div>
+            <div class="upload-drop-title">Drop file or click to upload</div>
+            <div class="upload-drop-sub">Screenshots, cover images, captions - JPG, PNG, PDF accepted</div>
+            <input type="file" id="rl-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleReelUpload(this.files[0])">
+          </div>
+
+          <div id="rl-upload-preview" style="display:none;"></div>
+
+          <div id="rl-audit-form" style="display:none; margin-top:20px;">
+            <div class="form-group">
+              <label class="form-label">Platform this is for</label>
+              <select class="form-input" id="rl-audit-platform">
+                <option value="instagram">Instagram Reels</option>
+                <option value="facebook">Facebook Reels</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube Shorts</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Additional context (optional)</label>
+              <input type="text" class="form-input" id="rl-audit-context" placeholder="e.g. This is for a vascular clinic targeting leg pain patients">
+            </div>
+            <button class="btn-primary" onclick="auditReelUpload()">Audit This Design</button>
+          </div>
+
+          <div id="rl-audit-out"></div>
+        </div>
+      </div>
+
+    </div><!-- end view-reels -->
 
   </div><!-- end content-shell -->
 </div><!-- end app -->
@@ -2261,6 +2471,293 @@ async function pushThumbnail(videoId) {
     if (statusEl) { statusEl.textContent = e.message || 'Push failed.'; statusEl.className = 'push-status error'; }
   }
   if (pushBtn) pushBtn.disabled = false;
+}
+
+// ============================================================
+// REELS STUDIO
+// ============================================================
+let currentReelsTab = 'manual';
+let reelSelectedVideo = null;
+let reelUploadFile = null;
+let reelUploadB64 = null;
+
+function switchReelsTab(tab) {
+  currentReelsTab = tab;
+  document.querySelectorAll('.reels-tab').forEach(el =>
+    el.classList.toggle('active', el.dataset.rtab === tab));
+  document.querySelectorAll('.reels-panel').forEach(el =>
+    el.classList.toggle('active', el.id === `rp-${tab}`));
+  if (tab === 'import') renderReelImportList();
+}
+
+// -- Manual Entry --
+async function generateReelMeta() {
+  const topic = document.getElementById('rl-topic').value.trim();
+  const platform = document.getElementById('rl-platform').value;
+  const length = document.getElementById('rl-length').value || '30';
+  const hook = document.getElementById('rl-hook').value.trim();
+  const cta = document.getElementById('rl-cta').value;
+  const out = document.getElementById('rl-manual-out');
+  if (!topic) { out.innerHTML = '<div class="error-msg">Please enter a topic.</div>'; return; }
+
+  const ctaMap = { book:'Book a consultation', link:'Link in bio', call:'Call us today', dm:'DM us', save:'Save this post', comment:'Comment below' };
+  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating reel package...</div>';
+
+  const system = buildSystem(`You are a short-form video content specialist. Return ONLY valid JSON with no markdown. Generate a complete reel package for the platform and topic provided.`);
+  const userMsg = `Topic: ${topic}
+Platform: ${platMap[platform]}
+Reel length: ${length} seconds
+${hook ? 'Hook idea from user: ' + hook : ''}
+CTA: ${ctaMap[cta]}
+
+Return this exact JSON structure:
+{
+  "hook": "opening 1-2 sentence hook for the first 3 seconds",
+  "caption_short": "short caption under 150 chars with emoji, no hashtags",
+  "caption_long": "full caption 150-300 chars with 1-2 line breaks, no hashtags",
+  "hashtags": ["array", "of", "20-25", "hashtags", "no", "hash", "symbol"],
+  "on_screen_text": ["3-5 text overlays for the reel, short phrases"],
+  "cta_line": "closing CTA line for caption",
+  "posting_tips": ["2-3 short tips specific to this platform and topic"],
+  "best_post_times": "best posting windows for this platform"
+}`;
+
+  try {
+    const raw = await callAI(system, userMsg);
+    const d = parseJSON(raw);
+    out.innerHTML = renderReelPackage(d, platform);
+  } catch(e) {
+    out.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+// -- Import from Video --
+function renderReelImportList() {
+  const el = document.getElementById('rl-import-list');
+  const brand = getActive();
+  if (!brand) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔗</div><div class="empty-state-title">No channel connected</div><div class="empty-state-sub">Connect a YouTube channel using the button in the top bar to browse your videos here.</div></div>`;
+    return;
+  }
+  // Try to load from stored videos list or fetch
+  const storedVideos = JSON.parse(localStorage.getItem('mm_yt_videos_' + brand.channelId) || '[]');
+  if (storedVideos.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎬</div><div class="empty-state-title">No videos loaded yet</div><div class="empty-state-sub">Switch to My Videos tab and click Refresh to load your channel videos, then come back here.</div></div>`;
+    return;
+  }
+  el.innerHTML = `<div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:12px;">Select a video to repurpose</div>` +
+    storedVideos.slice(0, 20).map(v => `
+    <div class="video-import-card${reelSelectedVideo?.id === v.id ? ' selected' : ''}" onclick="selectReelVideo(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+      <img class="video-import-thumb" src="${v.thumbnail || ''}" onerror="this.style.display='none'">
+      <div>
+        <div class="video-import-title">${v.title}</div>
+        <div class="video-import-meta"><span>${v.views ? v.views.toLocaleString() + ' views' : ''}</span><span>${v.publishedAt ? new Date(v.publishedAt).toLocaleDateString() : ''}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function selectReelVideo(video) {
+  reelSelectedVideo = video;
+  document.querySelectorAll('.video-import-card').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  const preview = document.getElementById('rl-import-preview');
+  preview.innerHTML = `<div class="upload-preview"><img class="upload-preview-thumb" src="${video.thumbnail || ''}" onerror="this.style.display='none'"><div class="upload-preview-info"><div class="upload-preview-name">${video.title}</div><div class="upload-preview-size">${video.views ? video.views.toLocaleString() + ' views' : 'No view data'}</div></div></div>`;
+  document.getElementById('rl-import-selected').style.display = 'block';
+  document.getElementById('rl-import-out').innerHTML = '';
+}
+
+async function generateReelFromVideo() {
+  if (!reelSelectedVideo) return;
+  const platform = document.getElementById('rl-import-platform').value;
+  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+  const out = document.getElementById('rl-import-out');
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Repurposing video for short-form...</div>';
+
+  const system = buildSystem(`You are a short-form video content specialist. You repurpose long-form YouTube content into platform-optimized Reels/Shorts. Return ONLY valid JSON with no markdown.`);
+  const userMsg = `Repurpose this YouTube video into a ${platMap[platform]}:
+Title: ${reelSelectedVideo.title}
+${reelSelectedVideo.description ? 'Description: ' + reelSelectedVideo.description.substring(0, 500) : ''}
+
+Return this exact JSON:
+{
+  "hook": "opening 1-2 sentence hook adapted from the video topic",
+  "caption_short": "short caption under 150 chars, no hashtags",
+  "caption_long": "full caption 150-300 chars, no hashtags",
+  "hashtags": ["20-25 hashtags without hash symbol"],
+  "on_screen_text": ["3-5 text overlay suggestions"],
+  "repurpose_angle": "1-2 sentences explaining which part of the video to use and why",
+  "cta_line": "closing CTA line",
+  "posting_tips": ["2-3 platform-specific tips"]
+}`;
+
+  try {
+    const raw = await callAI(system, userMsg);
+    const d = parseJSON(raw);
+    out.innerHTML = renderReelPackage(d, platform);
+  } catch(e) {
+    out.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+// -- Upload & Audit --
+function handleReelUpload(file) {
+  if (!file) return;
+  reelUploadFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    reelUploadB64 = e.target.result.split(',')[1];
+    const preview = document.getElementById('rl-upload-preview');
+    const isImage = file.type.startsWith('image/');
+    preview.innerHTML = `<div class="upload-preview" style="margin-top:16px;">
+      ${isImage ? `<img class="upload-preview-thumb" src="${e.target.result}">` : '<div class="upload-preview-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;">📄</div>'}
+      <div class="upload-preview-info">
+        <div class="upload-preview-name">${file.name}</div>
+        <div class="upload-preview-size">${(file.size/1024).toFixed(1)} KB - ready to audit</div>
+      </div>
+    </div>`;
+    preview.style.display = 'block';
+    document.getElementById('rl-audit-form').style.display = 'block';
+    document.getElementById('rl-audit-out').innerHTML = '';
+    const zone = document.getElementById('rl-drop-zone');
+    zone.querySelector('.upload-drop-title').textContent = '✓ File loaded';
+    zone.querySelector('.upload-drop-sub').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// drag and drop
+(function initDropZone() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const zone = document.getElementById('rl-drop-zone');
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) handleReelUpload(e.dataTransfer.files[0]);
+    });
+  });
+})();
+
+async function auditReelUpload() {
+  if (!reelUploadB64 || !reelUploadFile) return;
+  const platform = document.getElementById('rl-audit-platform').value;
+  const context = document.getElementById('rl-audit-context').value.trim();
+  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+  const out = document.getElementById('rl-audit-out');
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing design...</div>';
+
+  const mediaType = reelUploadFile.type === 'application/pdf' ? 'application/pdf' : (reelUploadFile.type || 'image/jpeg');
+  const contentType = reelUploadFile.type === 'application/pdf' ? 'document' : 'image';
+
+  const brand = getActive();
+  const systemCtx = brand?.nicheProfile ? `Channel niche: ${brand.nicheProfile.primaryNiche}. Target: ${brand.nicheProfile.targetAudience}.` : '';
+
+  const payload = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: contentType, source: { type: 'base64', media_type: mediaType, data: reelUploadB64 } },
+        { type: 'text', text: `Audit this reel/social media design for ${platMap[platform]}.
+${context ? 'Context: ' + context : ''}
+${systemCtx}
+
+Return ONLY valid JSON:
+{
+  "overall_score": number 0-100,
+  "score_label": "Poor|Fair|Good|Strong",
+  "strengths": ["up to 3 things done well"],
+  "critical_fixes": ["top 3 specific improvements needed"],
+  "hook_rating": "Weak|Fair|Strong",
+  "hook_rewrite": "rewritten hook if needed",
+  "caption_rewrite": "optimized caption if visible",
+  "hashtag_suggestions": ["10-15 hashtags without hash symbol"],
+  "visual_notes": "brief note on visual composition or text placement",
+  "platform_fit": "brief note on how well this fits ${platMap[platform]}"
+}` }
+      ]
+    }]
+  };
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const d = parseJSON(text);
+    out.innerHTML = renderReelAudit(d);
+  } catch(e) {
+    out.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+// -- Render helpers --
+function renderReelPackage(d, platform) {
+  const ht = (d.hashtags || []).map(t => `#${t}`).join(' ');
+  return `
+  <div class="reel-output-block">
+    <div class="reel-output-label">Hook <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.hook)})">Copy</button></div>
+    <div style="font-size:15px; line-height:1.6; margin-bottom:4px;">${d.hook || ''}</div>
+  </div>
+  ${d.repurpose_angle ? `<div class="reel-output-block"><div class="reel-output-label">Repurpose Angle</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.repurpose_angle}</div></div>` : ''}
+  <div class="reel-output-block">
+    <div class="reel-output-label">Short Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify((d.caption_short||'') + ' ' + (d.cta_line||''))})">Copy</button></div>
+    <div style="font-size:14px; line-height:1.7;">${d.caption_short || ''}</div>
+    ${d.cta_line ? `<div style="font-size:13px; color:var(--blue-light); margin-top:8px; font-weight:500;">${d.cta_line}</div>` : ''}
+  </div>
+  <div class="reel-output-block">
+    <div class="reel-output-label">Long Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify((d.caption_long||'') + '\n\n' + (d.cta_line||'') + '\n\n' + ht)})">Copy</button></div>
+    <div style="font-size:14px; line-height:1.7; white-space:pre-line;">${d.caption_long || ''}</div>
+    ${d.cta_line ? `<div style="font-size:13px; color:var(--blue-light); margin-top:8px; font-weight:500;">${d.cta_line}</div>` : ''}
+  </div>
+  ${d.on_screen_text?.length ? `<div class="reel-output-block"><div class="reel-output-label">On-Screen Text Overlays</div>${d.on_screen_text.map(t => `<div style="padding:7px 12px; background:var(--surface2); border-radius:7px; margin-bottom:6px; font-size:13px; font-weight:500;">${t}</div>`).join('')}</div>` : ''}
+  <div class="reel-output-block">
+    <div class="reel-output-label">Hashtags (${(d.hashtags||[]).length}) <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(ht)})">Copy All</button></div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">${(d.hashtags||[]).map(t=>`<span class="tag-pill">#${t}</span>`).join('')}</div>
+  </div>
+  ${d.best_post_times ? `<div class="reel-output-block"><div class="reel-output-label">Best Posting Times</div><div style="font-size:13px; color:var(--text-muted);">${d.best_post_times}</div></div>` : ''}
+  ${d.posting_tips?.length ? `<div class="reel-output-block"><div class="reel-output-label">Posting Tips</div>${d.posting_tips.map(t=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot"></div><span style="font-size:13px;">${t}</span></div>`).join('')}</div>` : ''}`;
+}
+
+function renderReelAudit(d) {
+  const score = d.overall_score || 0;
+  const scoreClass = score >= 70 ? 'reel-score-high' : score >= 45 ? 'reel-score-mid' : 'reel-score-low';
+  const ht = (d.hashtag_suggestions || []).map(t => `#${t}`).join(' ');
+  return `
+  <div class="reel-output-block" style="margin-top:20px;">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+      <div style="font-family:var(--font-head); font-size:52px; font-weight:700; color:var(--blue-light); line-height:1;">${score}</div>
+      <div><span class="reel-score-chip ${scoreClass}">${d.score_label || ''}</span><div style="font-size:12px; color:var(--text-dim); margin-top:4px;">Overall Score</div></div>
+    </div>
+    <div class="reel-score-row">
+      <span class="reel-score-chip reel-score-mid">Hook: ${d.hook_rating || 'N/A'}</span>
+    </div>
+  </div>
+  ${d.strengths?.length ? `<div class="reel-output-block"><div class="reel-output-label">What's Working</div>${d.strengths.map(s=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--green);"></div><span style="font-size:13px;">${s}</span></div>`).join('')}</div>` : ''}
+  <div class="reel-output-block">
+    <div class="reel-output-label">Critical Fixes</div>
+    ${(d.critical_fixes||[]).map(s=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--red);"></div><span style="font-size:13px;">${s}</span></div>`).join('')}
+  </div>
+  ${d.hook_rewrite ? `<div class="reel-output-block"><div class="reel-output-label">Rewritten Hook <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.hook_rewrite)})">Copy</button></div><div style="font-size:14px; line-height:1.6;">${d.hook_rewrite}</div></div>` : ''}
+  ${d.caption_rewrite ? `<div class="reel-output-block"><div class="reel-output-label">Optimized Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.caption_rewrite)})">Copy</button></div><div style="font-size:14px; line-height:1.7;">${d.caption_rewrite}</div></div>` : ''}
+  ${d.hashtag_suggestions?.length ? `<div class="reel-output-block"><div class="reel-output-label">Suggested Hashtags <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(ht)})">Copy All</button></div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.hashtag_suggestions.map(t=>`<span class="tag-pill">#${t}</span>`).join('')}</div></div>` : ''}
+  ${d.visual_notes ? `<div class="reel-output-block"><div class="reel-output-label">Visual Notes</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.visual_notes}</div></div>` : ''}
+  ${d.platform_fit ? `<div class="reel-output-block"><div class="reel-output-label">Platform Fit</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.platform_fit}</div></div>` : ''}`;
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
 }
 </script>
 </body>
