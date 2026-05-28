@@ -2810,32 +2810,45 @@ async function generateImprovedCover() {
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
 
   // Step 1: send the uploaded image to Claude to extract subject/person description + build prompt
-  const promptSystem = `You are an expert image prompt writer for Imagen (Google). You will receive an image and audit notes. Your job is to write a single detailed Imagen prompt for an improved version. 
+  const promptSystem = `You are an expert image prompt writer for Imagen 4 (Google). You will receive a reference image and audit notes. Your job is to write a single detailed Imagen prompt for an improved cover thumbnail that uses the reference image as its visual foundation.
+
+STEP 1 - EXTRACT from the reference image before writing anything:
+- If a real person is present: describe them with precision - approximate age range, body type/build, skin tone, hair color/length/style, glasses if any, clothing color and style, expression, posture, what they are doing. This description MUST appear verbatim in the prompt so Imagen recreates a similar person.
+- Note the setting/background (medical office, clinic, outdoor, etc.)
+- Note any visible text (for reference only - do not copy hex codes or technical strings into the prompt)
+- Note the overall lighting and mood
+
+STEP 2 - WRITE the Imagen prompt using this structure:
+[SUBJECT & PERSON - use your extracted description] + [SETTING & BACKGROUND] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE - use color names not hex codes] + [TEXT OVERLAY if any] + [QUALITY FOOTER]
 
 CRITICAL rules:
-- If the image contains a real person or patient, describe their appearance in detail (approximate age, skin tone, hair, clothing, expression, body position) so the new image recreates a similar subject.
-- Incorporate the brand colors exactly as provided.
-- Apply the audit fixes while keeping the strong elements.
-- Output the prompt text ONLY - no JSON, no quotes, no preamble, no explanation.`;
+- NEVER put hex codes (like #0c2044) into the prompt as text - translate them to color names (e.g. "dark navy blue", "warm terracotta red")
+- Brand colors must be described as colors applied to backgrounds, overlays, and design elements - not rendered as visible text
+- The person description must be specific enough that Imagen generates someone who looks similar - include body type, not just face
+- Output the prompt text ONLY - no JSON, no preamble, no explanation, no bullet points`;
 
   const fixes = (audit.critical_fixes || []).join('; ');
   const goodParts = (audit.what_works || []).join('; ');
   const compNotes = audit.composition_notes || '';
   const headline = (audit.headline_rewrites || [])[0] || '';
 
-  const promptUserMsg = `This is the current reel cover thumbnail I want to improve. Analyze it carefully - especially any person or subject shown - then write an Imagen prompt for an improved version.
+  const brandColorDesc = brandColors
+    ? `Brand colors: ${brandColors}. Use these as background, overlay, and accent colors - describe them by color name in the prompt, never as hex codes.`
+    : '';
+
+  const promptUserMsg = `This is the reel cover I want to improve. Study the image carefully - especially the person shown - then write an Imagen 4 prompt for an improved version that uses this image as its base.
 
 Platform: ${platMap[platform]}
 ${context ? 'Topic: ' + context : ''}
-${brandColors ? 'Brand colors to use: ' + brandColors : ''}
+${brandColorDesc}
 
-Keep what worked: ${goodParts || 'clean visual composition'}.
-Apply these fixes: ${fixes || 'improve visual hierarchy and text legibility'}.
-${compNotes ? 'Composition direction: ' + compNotes : ''}
-${headline ? 'Include this headline text on the cover: "' + headline + '"' : ''}
+Improvements to apply:
+- Keep what worked: ${goodParts || 'clean composition and clear subject'}
+- Fix: ${fixes || 'improve visual hierarchy and text legibility'}
+${compNotes ? '- Composition: ' + compNotes : ''}
+${headline ? '- Headline text to show on cover: "' + headline + '"' : ''}
 
-If the image has a real person, describe them precisely so the new image uses a similar subject.
-Requirements: 9:16 vertical portrait format, high resolution, sharp focus, professional social media cover, no watermarks, visually striking.`;
+Quality footer must include: professional social media reel cover, 9:16 vertical portrait, high resolution, sharp focus, visually striking, no watermarks.`;
 
   try {
     const promptRes = await fetch(WORKER_URL, {
