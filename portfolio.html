@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio | Messick Marketing</title>
+  <meta name="description" content="Real work. Real clients. Healthcare content marketing that drives patient volume and builds practice authority." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #111111;
+      --white: #faf8f5;
+      --blue: #3a6b8a;
+      --blue-light: #5a9ab8;
+      --blue-pale: #e8f2f7;
+      --gray: #888;
+      --gray-light: #e8e6e3;
+      --font-display: 'Dancing Script', cursive;
+      --font-editorial: 'Cormorant Garamond', serif;
+      --font-body: 'Jost', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--white);
+      color: var(--black);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--black);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(250,248,245,0.7);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--white); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--black);
+      padding: 140px 40px 80px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-editorial);
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      font-family: var(--font-display);
+      font-style: normal;
+      color: var(--blue-light);
+    }
+    .hero-sub {
+      font-family: var(--font-editorial);
+      font-size: 1.25rem;
+      font-style: italic;
+      color: rgba(250,248,245,0.65);
+      max-width: 560px;
+      margin: 0 auto 48px;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-number {
+      font-family: var(--font-editorial);
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--white);
+      display: block;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(250,248,245,0.5);
+      margin-top: 6px;
+      display: block;
+    }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    /* ── FEATURED CASE STUDIES ── */
+    .featured-section {
+      padding: 100px 40px;
+      background: var(--white);
+    }
+    .featured-section .section-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .featured-section .section-header h2 {
+      font-family: var(--font-editorial);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 400;
+      color: var(--black);
+      line-height: 1.2;
+    }
+    .featured-section .section-header p {
+      font-family: var(--font-editorial);
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--gray);
+      margin-top: 12px;
+    }
+
+    /* Case Study Card */
+    .case-study {
+      max-width: 1160px;
+      margin: 0 auto 100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--gray-light);
+      overflow: hidden;
+    }
+    .case-study:last-child { margin-bottom: 0; }
+    .case-study.reverse { direction: rtl; }
+    .case-study.reverse > * { direction: ltr; }
+
+    .cs-visual {
+      background: var(--black);
+      position: relative;
+      min-height: 500px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-visual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      flex: 1;
+      background: #1a1a1a;
+      padding: 3px;
+    }
+    .cs-visual-grid img,
+    .cs-visual-grid video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      aspect-ratio: 1 / 1;
+    }
+    .cs-visual-grid .span-full {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+    .cs-client-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(17,17,17,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 14px;
+      border-radius: 4px;
+      z-index: 2;
+    }
+    .cs-client-badge span {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+    }
+
+    .cs-content {
+      padding: 56px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--white);
+    }
+    .cs-specialty {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 16px;
+    }
+    .cs-content h3 {
+      font-family: var(--font-editorial);
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+      font-weight: 500;
+      color: var(--black);
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .cs-content p {
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .cs-services {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 36px;
+    }
+    .service-tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--blue-pale);
+      border: 1px solid rgba(58,107,138,0.2);
+      padding: 5px 12px;
+      border-radius: 2px;
+    }
+    .cs-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding-top: 32px;
+      border-top: 1px solid var(--gray-light);
+    }
+    .metric {
+      text-align: left;
+    }
+    .metric-value {
+      font-family: var(--font-editorial);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--black);
+      display: block;
+      line-height: 1;
+    }
+    .metric-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--gray);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 5px;
+      display: block;
+    }
+    .cs-blog-link {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-light);
+    }
+    .cs-blog-link a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--blue);
+      text-decoration: none;
+      transition: gap 0.2s;
+    }
+    .cs-blog-link a:hover { gap: 14px; }
+    .cs-blog-link .blog-meta {
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    /* ── WORK SAMPLES STRIP ── */
+    .samples-section {
+      background: var(--black);
+      padding: 100px 40px;
+    }
+    .samples-section .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .samples-section .section-header h2 {
+      font-family: var(--font-editorial);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 400;
+      color: var(--white);
+    }
+    .samples-section .section-header p {
+      font-family: var(--font-editorial);
+      font-size: 1.05rem;
+      font-style: italic;
+      color: rgba(250,248,245,0.5);
+      margin-top: 10px;
+    }
+
+    .samples-grid {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+    }
+    .sample-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      cursor: pointer;
+      background: #1a1a1a;
+    }
+    .sample-card img,
+    .sample-card video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .sample-card:hover img,
+    .sample-card:hover video { transform: scale(1.04); }
+    .sample-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(17,17,17,0.92) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px;
+    }
+    .sample-card:hover .sample-overlay { opacity: 1; }
+    .sample-client {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 5px;
+    }
+    .sample-title {
+      font-family: var(--font-editorial);
+      font-size: 0.95rem;
+      color: var(--white);
+      line-height: 1.3;
+    }
+
+    /* ── BLOG PREVIEWS ── */
+    .blog-section {
+      background: var(--white);
+      padding: 100px 40px;
+    }
+    .blog-section .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .blog-section .section-header h2 {
+      font-family: var(--font-editorial);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 400;
+      color: var(--black);
+    }
+    .blog-section .section-header p {
+      font-family: var(--font-editorial);
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--gray);
+      margin-top: 10px;
+    }
+    .blog-grid {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .blog-card {
+      border: 1px solid var(--gray-light);
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .blog-card:hover {
+      border-color: var(--blue-light);
+      box-shadow: 0 4px 24px rgba(58,107,138,0.12);
+    }
+    .blog-card-top {
+      background: var(--black);
+      padding: 28px 24px 20px;
+    }
+    .blog-card-client {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 10px;
+    }
+    .blog-card-title {
+      font-family: var(--font-editorial);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--white);
+      line-height: 1.35;
+    }
+    .blog-card-body {
+      padding: 20px 24px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .blog-card-excerpt {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 16px;
+    }
+    .blog-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .blog-card-date {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--gray);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .blog-card-arrow {
+      font-size: 0.9rem;
+      color: var(--blue);
+      font-weight: 500;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--black);
+      padding: 100px 40px;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-family: var(--font-editorial);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    .cta-section h2 em {
+      font-family: var(--font-display);
+      font-style: normal;
+      color: var(--blue-light);
+    }
+    .cta-section p {
+      font-family: var(--font-editorial);
+      font-size: 1.15rem;
+      font-style: italic;
+      color: rgba(250,248,245,0.6);
+      margin-bottom: 40px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-primary {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--blue);
+      border: 1px solid var(--blue);
+      padding: 16px 40px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--blue-light);
+      border-color: var(--blue-light);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0a0a0a;
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    footer .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--white);
+      text-decoration: none;
+    }
+    footer p {
+      font-size: 0.75rem;
+      color: rgba(250,248,245,0.35);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .case-study,
+      .case-study.reverse { grid-template-columns: 1fr; direction: ltr; }
+      .cs-visual { min-height: 320px; }
+      .cs-content { padding: 40px 32px; }
+      .cs-metrics { grid-template-columns: repeat(3, 1fr); }
+      .samples-grid { grid-template-columns: repeat(2, 1fr); }
+      .blog-grid { grid-template-columns: repeat(2, 1fr); }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 110px 24px 60px; }
+      .hero-stats { gap: 32px; }
+      .featured-section, .samples-section, .blog-section, .cta-section { padding: 70px 24px; }
+      .samples-grid, .blog-grid { grid-template-columns: 1fr 1fr; }
+      .cs-metrics { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/index.html" class="nav-logo">Messick Marketing</a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Home</a></li>
+    <li><a href="/portfolio.html" class="active">Portfolio</a></li>
+    <li><a href="/index.html#services">Services</a></li>
+    <li><a href="/index.html#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Client Work</p>
+  <h1>Real practices.<br><em>Real results.</em></h1>
+  <p class="hero-sub">Healthcare content built to drive patient volume, build authority, and fill appointment books.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-number">8+</span>
+      <span class="stat-label">Active Clients</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number">5</span>
+      <span class="stat-label">Specialties Served</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number">4</span>
+      <span class="stat-label">States</span>
+    </div>
+    <div class="stat">
+      <span class="stat-number">7+</span>
+      <span class="stat-label">Videos Produced</span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED CASE STUDIES -->
+<section class="featured-section">
+  <div class="section-header">
+    <span class="section-label">Featured Work</span>
+    <h2>Three practices. Three stories.</h2>
+    <p>Anchor clients representing the depth and range of Messick Marketing's specialty expertise.</p>
+  </div>
+
+  <!-- CASE STUDY 1: ECCO Medical -->
+  <div class="case-study">
+    <div class="cs-visual">
+      <div class="cs-visual-grid">
+        <img src="/portfolio-assets/ecco-minimally-invasive.png" alt="ECCO Medical - Minimally Invasive Care" loading="lazy" />
+        <img src="/portfolio-assets/ecco-joint-embolization.png" alt="ECCO Medical - Joint Embolization Infographic" loading="lazy" />
+        <img src="/portfolio-assets/ecco-fibroids-prostate.png" alt="ECCO Medical - Fibroids or Enlarged Prostate" loading="lazy" />
+        <img src="/portfolio-assets/ecco-may-wk2.png" alt="ECCO Medical - Monthly Social" loading="lazy" />
+      </div>
+      <div class="cs-client-badge"><span>ECCO Medical</span></div>
+    </div>
+    <div class="cs-content">
+      <span class="cs-specialty">Interventional Radiology - Colorado</span>
+      <h3>Full-service content for Colorado's leading IR practice</h3>
+      <p>ECCO Medical offers minimally invasive care across UFE, PAE, GAE, PAD, and vein treatments. Messick Marketing handles monthly social, short-form video, blog content, and patient education graphics - building awareness across a multi-condition service line in both English and Spanish.</p>
+      <div class="cs-services">
+        <span class="service-tag">Social Media</span>
+        <span class="service-tag">Short-Form Video</span>
+        <span class="service-tag">Blog Content</span>
+        <span class="service-tag">Patient Education</span>
+        <span class="service-tag">Bilingual Content</span>
+      </div>
+      <div class="cs-metrics">
+        <div class="metric">
+          <span class="metric-value">5+</span>
+          <span class="metric-label">Procedures Covered</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">2x</span>
+          <span class="metric-label">Monthly Videos</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">2</span>
+          <span class="metric-label">Clinic Locations</span>
+        </div>
+      </div>
+      <div class="cs-blog-link">
+        <a href="https://eccomedical.com/bringing-providers-together-inside-ecco-medicals-education-dinners/" target="_blank" rel="noopener">
+          <span>&#8594;</span>
+          <div>
+            <div>Bringing Providers Together: Inside ECCO Medical's Education Dinners</div>
+            <div class="blog-meta">eccomedical.com - Recent Blog Post</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE STUDY 2: JVI -->
+  <div class="case-study reverse">
+    <div class="cs-visual">
+      <div class="cs-visual-grid">
+        <img src="/portfolio-assets/jvi-ufe-vs-surgery.png" alt="JVI - UFE vs Surgery Infographic" loading="lazy" />
+        <img src="/portfolio-assets/jvi-hip-oa.png" alt="JVI - Hip Osteoarthritis TAME" loading="lazy" />
+        <img src="/portfolio-assets/jvi-msk-trials.png" alt="JVI - Active MSK Clinical Trials" loading="lazy" />
+        <img src="/portfolio-assets/jvi-knee-pain.png" alt="JVI - 3 Things Every Knee Pain Patient Should Know" loading="lazy" />
+      </div>
+      <div class="cs-client-badge"><span>Joint &amp; Vascular Institute</span></div>
+    </div>
+    <div class="cs-content">
+      <span class="cs-specialty">IR / MSK Embolization - Multi-Market</span>
+      <h3>Clinical authority content for a nationally recognized MSK practice</h3>
+      <p>JVI is at the forefront of musculoskeletal embolization - GAE, HAE, UFE, and active clinical trials including the RESORB trial and TriNav OBL study. Messick Marketing produces content that educates patients and referring providers alike, from procedure breakdowns to clinical trial recruitment graphics.</p>
+      <div class="cs-services">
+        <span class="service-tag">Social Media</span>
+        <span class="service-tag">Short-Form Video</span>
+        <span class="service-tag">Clinical Trial Content</span>
+        <span class="service-tag">Patient Education</span>
+        <span class="service-tag">Infographics</span>
+      </div>
+      <div class="cs-metrics">
+        <div class="metric">
+          <span class="metric-value">6+</span>
+          <span class="metric-label">Active Trials</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">Multi</span>
+          <span class="metric-label">Market Reach</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">4+</span>
+          <span class="metric-label">Platforms</span>
+        </div>
+      </div>
+      <div class="cs-blog-link">
+        <a href="https://jointvascular.com" target="_blank" rel="noopener">
+          <span>&#8594;</span>
+          <div>
+            <div>Active MSK Clinical Trials + Patient Education Content</div>
+            <div class="blog-meta">jointvascular.com</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE STUDY 3: Texas Vascular -->
+  <div class="case-study">
+    <div class="cs-visual">
+      <div class="cs-visual-grid">
+        <img src="/portfolio-assets/tvi-ufe-before-after.png" alt="TVI - Before After UFE" loading="lazy" />
+        <img src="/portfolio-assets/tvi-you-dont-need-hysterectomy.png" alt="TVI - You Don't Need a Hysterectomy" loading="lazy" />
+        <img src="/portfolio-assets/tvi-faq-vein.png" alt="TVI - FAQ Is Vein Treatment Painful" loading="lazy" />
+        <img src="/portfolio-assets/tvi-testimonial.png" alt="TVI - Patient Testimonial" loading="lazy" />
+      </div>
+      <div class="cs-client-badge"><span>Texas Vascular Institute</span></div>
+    </div>
+    <div class="cs-content">
+      <span class="cs-specialty">Vascular / PAD / Women's Health - Texas</span>
+      <h3>Patient-first content for a high-volume Texas vascular practice</h3>
+      <p>Texas Vascular Institute treats PAD, vein disease, UFE, and a range of vascular conditions across Texas. Messick Marketing produces social content, short-form video, and patient education that speaks directly to patients searching for non-surgical alternatives - including bold awareness campaigns like "You Don't Need a Hysterectomy."</p>
+      <div class="cs-services">
+        <span class="service-tag">Social Media</span>
+        <span class="service-tag">Short-Form Video</span>
+        <span class="service-tag">Blog Content</span>
+        <span class="service-tag">Patient Education</span>
+        <span class="service-tag">Testimonial Graphics</span>
+      </div>
+      <div class="cs-metrics">
+        <div class="metric">
+          <span class="metric-value">3+</span>
+          <span class="metric-label">Videos Produced</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">378</span>
+          <span class="metric-label">5-Star Reviews</span>
+        </div>
+        <div class="metric">
+          <span class="metric-value">5★</span>
+          <span class="metric-label">Avg Rating</span>
+        </div>
+      </div>
+      <div class="cs-blog-link">
+        <a href="https://texasvascular.com/blog/uterine-fibroid-embolization/" target="_blank" rel="noopener">
+          <span>&#8594;</span>
+          <div>
+            <div>Uterine Fibroid Embolization (UFE): Treatment Guide</div>
+            <div class="blog-meta">texasvascular.com - Recent Blog Post</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK SAMPLES STRIP -->
+<section class="samples-section">
+  <div class="section-header">
+    <span class="section-label" style="color:var(--blue-light)">Work Samples</span>
+    <h2>More from the roster</h2>
+    <p>Aspire Therapy, Sound Vascular, OBL Marketing, and Brain Talk Foundation.</p>
+  </div>
+  <div class="samples-grid">
+
+    <!-- Aspire -->
+    <div class="sample-card">
+      <img src="/portfolio-assets/aspire-stop-waiting.png" alt="Aspire - Stop Waiting Start Healing" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">Aspire Therapy</span>
+        <span class="sample-title">Stop Waiting. Start Healing.</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <img src="/portfolio-assets/aspire-not-all-pt.png" alt="Aspire - Not All PT Looks the Same" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">Aspire Therapy</span>
+        <span class="sample-title">Not All PT Looks the Same</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/aspire-back-pain.mp4" autoplay muted loop playsinline></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Aspire Therapy</span>
+        <span class="sample-title">Back Pain - Short Form Video</span>
+      </div>
+    </div>
+
+    <!-- SVV -->
+    <div class="sample-card">
+      <img src="/portfolio-assets/svv-fibroid-relief.png" alt="Sound Vascular - Fibroid Relief Without Surgery" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">Sound Vascular &amp; Vein</span>
+        <span class="sample-title">Fibroid Relief Without Surgery</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <img src="/portfolio-assets/svv-pelvic-pressure.png" alt="Sound Vascular - Pelvic Pressure" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">Sound Vascular &amp; Vein</span>
+        <span class="sample-title">Symptom Awareness - Fibroids</span>
+      </div>
+    </div>
+
+    <!-- OBL -->
+    <div class="sample-card">
+      <img src="/portfolio-assets/obl-2am-searches.png" alt="OBL Marketing - 2AM Searches" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">OBL Marketing</span>
+        <span class="sample-title">2 AM Searches - Is Your Practice Showing Up?</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <img src="/portfolio-assets/obl-did-you-know.png" alt="OBL Marketing - Did You Know ChatGPT" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">OBL Marketing</span>
+        <span class="sample-title">40M People Asked ChatGPT a Health Question Today</span>
+      </div>
+    </div>
+
+    <!-- Dr Kelli -->
+    <div class="sample-card">
+      <img src="/portfolio-assets/kelli-pickleball-parkinsons.png" alt="Brain Talk - Pickleball for Parkinson's" loading="lazy" />
+      <div class="sample-overlay">
+        <span class="sample-client">Brain Talk Foundation</span>
+        <span class="sample-title">Pickleball for Parkinson's - June 6</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- BLOG PREVIEWS -->
+<section class="blog-section">
+  <div class="section-header">
+    <span class="section-label">Long-Form Content</span>
+    <h2>SEO content that earns traffic</h2>
+    <p>Procedure-level blog posts written for patients - and optimized for search.</p>
+  </div>
+  <div class="blog-grid">
+
+    <a class="blog-card" href="https://eccomedical.com/bringing-providers-together-inside-ecco-medicals-education-dinners/" target="_blank" rel="noopener">
+      <div class="blog-card-top">
+        <div class="blog-card-client">ECCO Medical</div>
+        <div class="blog-card-title">Bringing Providers Together: Inside ECCO Medical's Education Dinners</div>
+      </div>
+      <div class="blog-card-body">
+        <p class="blog-card-excerpt">How ECCO's quarterly IR education dinners connect Colorado providers with minimally invasive treatment options - and change the standard of care.</p>
+        <div class="blog-card-footer">
+          <span class="blog-card-date">eccomedical.com</span>
+          <span class="blog-card-arrow">&#8599;</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="blog-card" href="https://www.soundvascular.com/is-it-just-a-heavy-period-what-your-body-might-actually-be-telling-you/" target="_blank" rel="noopener">
+      <div class="blog-card-top">
+        <div class="blog-card-client">Sound Vascular &amp; Vein</div>
+        <div class="blog-card-title">Is It "Just a Heavy Period"? What Your Body Might Actually Be Telling You</div>
+      </div>
+      <div class="blog-card-body">
+        <p class="blog-card-excerpt">A guide to understanding when heavy periods may signal fibroids - and what non-surgical options like UFE can do to restore quality of life.</p>
+        <div class="blog-card-footer">
+          <span class="blog-card-date">soundvascular.com</span>
+          <span class="blog-card-arrow">&#8599;</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="blog-card" href="https://texasvascular.com/blog/uterine-fibroid-embolization/" target="_blank" rel="noopener">
+      <div class="blog-card-top">
+        <div class="blog-card-client">Texas Vascular Institute</div>
+        <div class="blog-card-title">Uterine Fibroid Embolization (UFE): Treatment Guide</div>
+      </div>
+      <div class="blog-card-body">
+        <p class="blog-card-excerpt">A comprehensive patient guide to UFE - how it works, what to expect, and why it's a proven non-surgical alternative to hysterectomy for fibroid relief.</p>
+        <div class="blog-card-footer">
+          <span class="blog-card-date">texasvascular.com</span>
+          <span class="blog-card-arrow">&#8599;</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="blog-card" href="https://weaspire.net/blog/blog-physical-therapy-louisville-co-outpatient-pt-aspire.html" target="_blank" rel="noopener">
+      <div class="blog-card-top">
+        <div class="blog-card-client">Aspire Therapy &amp; Wellness</div>
+        <div class="blog-card-title">Physical Therapy in Louisville, CO: What Outpatient PT at ASPIRE Can Do for You</div>
+      </div>
+      <div class="blog-card-body">
+        <p class="blog-card-excerpt">No referral needed. ASPIRE's outpatient PT clinic treats back pain, sports injuries, and post-surgical recovery - with one-on-one care and evaluations within 48 hours.</p>
+        <div class="blog-card-footer">
+          <span class="blog-card-date">weaspire.net</span>
+          <span class="blog-card-arrow">&#8599;</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to see what your<br><em>practice could look like?</em></h2>
+  <p>Let's talk about your specialty, your market, and what content strategy could move the needle.</p>
+  <a href="/index.html#contact" class="btn-primary">Start the Conversation</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/index.html" class="footer-logo">Messick Marketing</a>
+  <p>&copy; 2026 Messick Marketing. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
