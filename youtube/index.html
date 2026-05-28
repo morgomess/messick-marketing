@@ -1022,6 +1022,10 @@
                 <input type="text" class="form-input" id="rl-audit-context" placeholder="e.g. Varicose vein treatment">
               </div>
             </div>
+            <div class="form-group">
+              <label class="form-label">Brand colors (used when generating improved version)</label>
+              <input type="text" class="form-input" id="rl-audit-colors" placeholder="e.g. #1a3a5c navy blue, #ffffff white, #e8a020 gold">
+            </div>
             <button class="btn-primary" onclick="auditCoverUpload()">Audit This Cover</button>
           </div>
 
@@ -2800,35 +2804,53 @@ async function generateImprovedCover() {
   const audit = window._lastCoverAudit || {};
   const platform = document.getElementById('rl-audit-platform').value;
   const context = document.getElementById('rl-audit-context').value.trim();
+  const brandColors = (document.getElementById('rl-audit-colors')?.value || '').trim();
   const platMap = { instagram:'Instagram Reels (9:16 vertical)', facebook:'Facebook Reels (9:16 vertical)', tiktok:'TikTok cover (9:16 vertical)', youtube:'YouTube Shorts cover (9:16 vertical)' };
 
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Writing image prompt...</div>';
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
 
-  // Step 1: build an Imagen prompt from the audit data + uploaded image
-  const promptSystem = `You are an expert image prompt writer for Imagen (Google). Write a single detailed image generation prompt that describes a reel cover thumbnail. Output the prompt text only - no JSON, no quotes, no preamble.`;
+  // Step 1: send the uploaded image to Claude to extract subject/person description + build prompt
+  const promptSystem = `You are an expert image prompt writer for Imagen (Google). You will receive an image and audit notes. Your job is to write a single detailed Imagen prompt for an improved version. 
+
+CRITICAL rules:
+- If the image contains a real person or patient, describe their appearance in detail (approximate age, skin tone, hair, clothing, expression, body position) so the new image recreates a similar subject.
+- Incorporate the brand colors exactly as provided.
+- Apply the audit fixes while keeping the strong elements.
+- Output the prompt text ONLY - no JSON, no quotes, no preamble, no explanation.`;
 
   const fixes = (audit.critical_fixes || []).join('; ');
   const goodParts = (audit.what_works || []).join('; ');
-  const colorNotes = audit.color_notes || '';
   const compNotes = audit.composition_notes || '';
   const headline = (audit.headline_rewrites || [])[0] || '';
 
-  const promptUserMsg = `Create an Imagen prompt for an improved reel cover thumbnail for ${platMap[platform]}.
+  const promptUserMsg = `This is the current reel cover thumbnail I want to improve. Analyze it carefully - especially any person or subject shown - then write an Imagen prompt for an improved version.
+
+Platform: ${platMap[platform]}
 ${context ? 'Topic: ' + context : ''}
+${brandColors ? 'Brand colors to use: ' + brandColors : ''}
 
-Keep what worked from the original: ${goodParts || 'clean visual composition'}.
+Keep what worked: ${goodParts || 'clean visual composition'}.
 Apply these fixes: ${fixes || 'improve visual hierarchy and text legibility'}.
-${colorNotes ? 'Color direction: ' + colorNotes : ''}
-${compNotes ? 'Composition: ' + compNotes : ''}
-${headline ? 'Headline text visible on cover: "' + headline + '"' : ''}
+${compNotes ? 'Composition direction: ' + compNotes : ''}
+${headline ? 'Include this headline text on the cover: "' + headline + '"' : ''}
 
+If the image has a real person, describe them precisely so the new image uses a similar subject.
 Requirements: 9:16 vertical portrait format, high resolution, sharp focus, professional social media cover, no watermarks, visually striking.`;
 
   try {
     const promptRes = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: promptSystem, messages: [{ role: 'user', content: promptUserMsg }] })
+      body: JSON.stringify({
+        system: promptSystem,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: coverUploadFile?.type || 'image/jpeg', data: coverUploadB64 } },
+            { type: 'text', text: promptUserMsg }
+          ]
+        }]
+      })
     });
     const promptData = await promptRes.json();
     if (promptData.error) throw new Error(promptData.error);
