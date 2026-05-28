@@ -1022,9 +1022,19 @@
                 <input type="text" class="form-input" id="rl-audit-context" placeholder="e.g. Varicose vein treatment">
               </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Brand colors (used when generating improved version)</label>
-              <input type="text" class="form-input" id="rl-audit-colors" placeholder="e.g. #1a3a5c navy blue, #ffffff white, #e8a020 gold">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Brand colors (for improved version)</label>
+                <input type="text" class="form-input" id="rl-audit-colors" placeholder="e.g. #1a3a5c navy blue, #ffffff white">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Output format</label>
+                <select class="form-input" id="rl-aspect-ratio">
+                  <option value="9:16">9:16 vertical (Reels / Shorts)</option>
+                  <option value="16:9">16:9 horizontal (YouTube)</option>
+                  <option value="both">Both formats</option>
+                </select>
+              </div>
             </div>
             <button class="btn-primary" onclick="auditCoverUpload()">Audit This Cover</button>
           </div>
@@ -2805,6 +2815,9 @@ async function generateImprovedCover() {
   const platform = document.getElementById('rl-audit-platform').value;
   const context = document.getElementById('rl-audit-context').value.trim();
   const brandColors = (document.getElementById('rl-audit-colors')?.value || '').trim();
+  const ratioSel = document.getElementById('rl-aspect-ratio')?.value || '9:16';
+  const bothFormats = ratioSel === 'both';
+  const ratios = bothFormats ? ['9:16', '16:9'] : [ratioSel];
   const platMap = { instagram:'Instagram Reels (9:16 vertical)', facebook:'Facebook Reels (9:16 vertical)', tiktok:'TikTok cover (9:16 vertical)', youtube:'YouTube Shorts cover (9:16 vertical)' };
 
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
@@ -2877,36 +2890,44 @@ Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, 
     if (promptData.error) throw new Error(promptData.error);
     const imagePrompt = (promptData.text || '').trim();
 
-    // Step 2: generate with Imagen
-    out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating improved cover...</div>';
-    const imgRes = await fetch(`${WORKER_URL}/imagen`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: '9:16' })
-    });
-    const imgData = await imgRes.json();
-    const pred = (imgData.predictions || [])[0];
-    if (!pred?.bytesBase64Encoded) throw new Error('Image generation returned no result.');
+    // Step 2: generate with Imagen (one or both ratios)
+    out.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div>Generating ${bothFormats ? 'both formats' : ratios[0]}...</div>`;
+    window._lastImagePrompt = imagePrompt;
 
-    const b64 = pred.bytesBase64Encoded;
+    const results = [];
+    for (const ratio of ratios) {
+      const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: ratio })
+      });
+      const imgData = await imgRes.json();
+      const pred = (imgData.predictions || [])[0];
+      if (!pred?.bytesBase64Encoded) throw new Error(`Image generation failed for ${ratio}.`);
+      results.push({ ratio, b64: pred.bytesBase64Encoded });
+    }
+
+    const imagesHTML = results.map(r => `
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:8px; font-weight:600;">${r.ratio === '9:16' ? '9:16 — Vertical (Reels / Shorts)' : '16:9 — Horizontal (YouTube)'}</div>
+        <div style="text-align:center; margin-bottom:10px;">
+          <img src="data:image/png;base64,${r.b64}" style="max-width:${r.ratio === '9:16' ? '200px' : '100%'}; width:100%; border-radius:10px; border:1px solid var(--border2);">
+        </div>
+        <a href="data:image/png;base64,${r.b64}" download="cover-${r.ratio.replace(':','-')}.png" class="btn-primary" style="text-decoration:none; text-align:center; display:block;">Download ${r.ratio}</a>
+      </div>`).join('<div style="border-top:1px solid var(--border); margin:4px 0 18px;"></div>');
+
     out.innerHTML = `
       <div class="reel-output-block" style="margin-top:4px;">
-        <div class="reel-output-label" style="margin-bottom:12px;">Improved Cover</div>
-        <div style="text-align:center; margin-bottom:14px;">
-          <img src="data:image/png;base64,${b64}" style="max-width:260px; width:100%; border-radius:10px; border:1px solid var(--border2);">
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="data:image/png;base64,${b64}" download="reel-cover-improved.png" class="btn-primary" style="text-decoration:none; text-align:center; flex:1;">Download</a>
-          <button class="btn-copy" style="flex:1;" onclick="generateImprovedCover()">Regenerate</button>
-        </div>
-        <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+        <div class="reel-output-label" style="margin-bottom:14px;">Improved Cover${bothFormats ? 's' : ''}</div>
+        ${imagesHTML}
+        <button class="btn-copy" style="width:100%; margin-bottom:4px;" onclick="generateImprovedCover()">Regenerate</button>
+        <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
           <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:8px;">Refine this result</div>
-          <textarea id="rl-reprompt-input" class="form-textarea" rows="2" placeholder="e.g. Make the background darker, use orange instead of teal, add more contrast, remove the text overlay..." style="font-size:13px; margin-bottom:8px;"></textarea>
+          <textarea id="rl-reprompt-input" class="form-textarea" rows="2" placeholder="e.g. Make the background darker, use orange instead of teal, more contrast, remove text overlay..." style="font-size:13px; margin-bottom:8px;"></textarea>
           <button class="btn-primary" style="width:100%;" onclick="regenWithNotes()">Apply &amp; Regenerate</button>
         </div>
         ${imagePrompt ? `<div style="margin-top:10px;"><details><summary style="font-size:11px; color:var(--text-dim); cursor:pointer; letter-spacing:0.06em; text-transform:uppercase;">Prompt used</summary><div style="font-size:12px; color:var(--text-dim); line-height:1.6; padding-top:8px;">${imagePrompt}</div></details></div>` : ''}
       </div>`;
-  window._lastImagePrompt = imagePrompt;
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
@@ -2943,7 +2964,7 @@ ${notes || 'Improve contrast and visual impact'}` }]
     const imgRes = await fetch(`${WORKER_URL}/imagen`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: refinedPrompt, count: 1, aspectRatio: '9:16' })
+      body: JSON.stringify({ prompt: refinedPrompt, count: 1, aspectRatio: (document.getElementById('rl-aspect-ratio')?.value === '16:9' ? '16:9' : '9:16') })
     });
     const imgData = await imgRes.json();
     const pred = (imgData.predictions || [])[0];
