@@ -400,43 +400,33 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 @keyframes tickerScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
 @media(max-width:580px){.stat-ticker-wrap{max-width:100%}.stat-ticker-track span{font-size:.82rem}}
 @media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
-/* ── STRATEGY SECTION ── */
-.strategy-section{background:var(--white);padding:100px 5%}
-.strategy-wrap{max-width:1100px;margin:0 auto}
-.strategy-top{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:end;margin-bottom:3.5rem}
-.strategy-headline{font-family:var(--font-heading);font-size:clamp(2rem,3.5vw,3rem);font-weight:300;line-height:1.15;color:var(--black)}
-.strategy-headline em{font-style:italic;color:var(--steel)}
-.strategy-right p{font-size:.9rem;color:var(--text-muted-light);line-height:1.85}
-/* timeline */
-.s-timeline{display:flex;flex-direction:column;gap:0;position:relative;margin-bottom:3rem}
-.s-timeline::before{content:'';position:absolute;left:22px;top:0;bottom:0;width:1px;background:rgba(0,0,0,.1)}
-.s-step{display:grid;grid-template-columns:44px 1fr;gap:1.4rem;padding:2rem 0;position:relative;opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
-.s-step.s-revealed{opacity:1;transform:none}
-.s-step:first-child{padding-top:.5rem}
-.s-dot{width:44px;height:44px;border-radius:50%;border:1px solid rgba(58,107,138,.35);background:rgba(58,107,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .4s,border-color .4s}
-.s-step.active .s-dot,.s-step.s-revealed .s-dot{background:var(--steel);border-color:var(--steel)}
-.s-dot span{font-family:var(--font-heading);font-size:.72rem;font-weight:700;color:var(--steel)}
-.s-step.active .s-dot span,.s-step.s-revealed .s-dot span{color:var(--white)}
-.s-content{padding-top:.55rem}
-.s-label{font-size:.63rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);opacity:.65;margin-bottom:.3rem}
-.s-title{font-family:var(--font-heading);font-size:1.1rem;color:var(--black);margin-bottom:.5rem;line-height:1.2}
-.s-desc{font-size:.84rem;color:var(--text-muted-light);line-height:1.75}
-/* channel row */
-.s-channels{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
-.s-chip{font-size:.68rem;font-weight:500;letter-spacing:.05em;color:var(--steel);background:rgba(58,107,138,.06);border:1px solid rgba(58,107,138,.18);border-radius:2px;padding:.22rem .6rem}
-/* progress bar */
-.s-progress-wrap{margin-bottom:3rem}
-.s-progress-label{display:flex;justify-content:space-between;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.4);margin-bottom:.6rem}
-.s-progress-track{height:2px;background:rgba(0,0,0,.08);border-radius:2px;overflow:hidden}
-.s-progress-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--steel),var(--steel-light));width:0;transition:width 1.4s cubic-bezier(.25,.46,.45,.94)}
-.s-progress-fill.animate{width:100%}
-/* beyond */
-.s-beyond{border-top:1px solid rgba(0,0,0,.08);padding-top:2.2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;margin-bottom:2.4rem}
-.s-beyond p{font-size:.88rem;color:var(--text-muted-light);line-height:1.8;max-width:620px}
-.s-beyond p em{color:var(--steel);font-style:normal}
-.strategy-cta{display:flex;gap:1rem;flex-wrap:wrap}
-@media(max-width:860px){.strategy-top{grid-template-columns:1fr;gap:1.8rem}}
-@media(max-width:580px){.s-timeline::before{left:18px}.s-dot{width:36px;height:36px}.s-step{grid-template-columns:36px 1fr;gap:1rem}}
+/* ── FULL SERVICE SECTION ── */
+.fullservice-section{background:var(--white);padding:100px 5%}
+.fullservice-wrap{max-width:1100px;margin:0 auto}
+.fs-header{max-width:620px;margin-bottom:4rem}
+.fs-headline{font-family:var(--font-heading);font-size:clamp(2rem,3.5vw,3rem);font-weight:300;line-height:1.15;color:var(--black);margin-bottom:.6rem}
+.fs-headline em{font-style:italic;color:var(--steel)}
+.fs-sub{font-size:.9rem;color:var(--text-muted-light);line-height:1.85;margin-top:1.2rem}
+.fs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);margin-bottom:3.5rem}
+.fs-card{background:var(--white);padding:2.2rem 1.8rem;position:relative;overflow:hidden;transition:background .3s}
+.fs-card::after{content:'';position:absolute;inset:0;background:var(--steel);transform:translateY(100%);transition:transform .35s cubic-bezier(.25,.46,.45,.94);z-index:0}
+.fs-card:hover::after{transform:translateY(0)}
+.fs-card-num{font-family:var(--font-heading);font-size:.7rem;font-weight:700;letter-spacing:.18em;color:var(--steel);margin-bottom:1.1rem;position:relative;z-index:1;transition:color .3s}
+.fs-card h3{font-family:var(--font-heading);font-size:1.05rem;font-weight:400;color:var(--black);margin-bottom:.7rem;line-height:1.25;position:relative;z-index:1;transition:color .3s}
+.fs-card p{font-size:.84rem;color:var(--text-muted-light);line-height:1.75;position:relative;z-index:1;transition:color .3s}
+.fs-card:hover .fs-card-num{color:rgba(255,255,255,.55)}
+.fs-card:hover h3,.fs-card:hover p{color:rgba(255,255,255,.92)}
+.fs-niche-strip{border-top:1px solid rgba(0,0,0,.08);padding-top:2.8rem;overflow:hidden;position:relative;margin-bottom:3rem}
+.fs-niche-strip::before,.fs-niche-strip::after{content:'';position:absolute;top:2.8rem;bottom:0;width:80px;z-index:2}
+.fs-niche-strip::before{left:0;background:linear-gradient(to right,var(--white),transparent)}
+.fs-niche-strip::after{right:0;background:linear-gradient(to left,var(--white),transparent)}
+.fs-niche-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:1.2rem}
+.fs-niche-track{display:flex;gap:3rem;animation:fsMarquee 28s linear infinite;width:max-content}
+.fs-niche-item{font-size:.8rem;font-weight:500;color:var(--text-muted-light);white-space:nowrap}
+@keyframes fsMarquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.fs-cta{display:flex;gap:1rem;flex-wrap:wrap}
+@media(max-width:860px){.fs-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.fs-grid{grid-template-columns:1fr}.fs-card{padding:1.8rem 1.4rem}}
 </style>
 <script type="application/ld+json">
 {
@@ -600,60 +590,108 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
   </div>
 </section>
 
-<!-- STRATEGY SECTION -->
-<section class="strategy-section">
-  <div class="strategy-wrap">
+<!-- FULL SERVICE SECTION -->
+<section class="fullservice-section">
+  <div class="fullservice-wrap">
 
-    <div class="strategy-top fu">
-      <div>
-        <p class="eyebrow" style="margin-bottom:.9rem">Our Process</p>
-        <h2 class="strategy-headline">A 90-day strategy, <em>built around your practice.</em></h2>
-        <p class="sub fu" style="margin-top:1.2rem;max-width:540px">Every client engagement starts with a focused roadmap. Here&rsquo;s what a first quarter often looks like.</p>
+    <div class="fs-header fu">
+      <p class="eyebrow" style="margin-bottom:.9rem">One Team. Every Channel.</p>
+      <h2 class="fs-headline">Everything You Need, <em>In One Place.</em></h2>
+      <p class="fs-sub">Strategy, content, social, SEO, and web copy &#x2014; handled by a single team that already speaks healthcare fluently. No handoffs. No learning curve. No gaps.</p>
+    </div>
+
+    <div class="fs-grid fu">
+
+      <div class="fs-card">
+        <div class="fs-card-num">01</div>
+        <h3>Content Strategy</h3>
+        <p>A clear roadmap connecting what you publish to how you grow &#x2014; built around your procedures, not a generic template.</p>
+      </div>
+
+      <div class="fs-card">
+        <div class="fs-card-num">02</div>
+        <h3>Blog &amp; Long-Form</h3>
+        <p>Procedure explainers and patient education written with clinical accuracy &#x2014; and built to rank on Google.</p>
+      </div>
+
+      <div class="fs-card">
+        <div class="fs-card-num">03</div>
+        <h3>Social Media</h3>
+        <p>Platform-native content across Instagram, Facebook, LinkedIn, and YouTube. Monthly management, fully handled.</p>
+      </div>
+
+      <div class="fs-card">
+        <div class="fs-card-num">04</div>
+        <h3>Website &amp; Copy</h3>
+        <p>Conversion-focused service pages and web copy designed to turn visitors into scheduled consultations.</p>
+      </div>
+
+      <div class="fs-card">
+        <div class="fs-card-num">05</div>
+        <h3>SEO &amp; Visibility</h3>
+        <p>GBP optimization, local search, and AI search positioning &#x2014; so patients find you wherever they look first.</p>
+      </div>
+
+      <div class="fs-card">
+        <div class="fs-card-num">06</div>
+        <h3>AI-Ready Presence</h3>
+        <p>Content built for the way patients search now &#x2014; AI answer engines, voice search, and conversational discovery.</p>
+      </div>
+
+    </div>
+
+    <div class="fs-niche-strip fu">
+      <div class="fs-niche-label">Healthcare niches we serve</div>
+      <div class="fs-niche-track">
+        <span class="fs-niche-item">Interventional Radiology</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Vascular &amp; Vein</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">OBL / MSO</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Women&#x2019;s Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Brain Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Cardiovascular</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Pain Management</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Spine &amp; Neurology</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Orthopedic</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Mental Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Multi-location Groups</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Interventional Radiology</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Vascular &amp; Vein</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">OBL / MSO</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Women&#x2019;s Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Brain Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Cardiovascular</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Pain Management</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Spine &amp; Neurology</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Orthopedic</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Mental Health</span>
+        <span class="fs-niche-item">&#x2022;</span>
+        <span class="fs-niche-item">Multi-location Groups</span>
+        <span class="fs-niche-item">&#x2022;</span>
       </div>
     </div>
 
-    <!-- Animated progress bar -->
-    <div class="s-progress-wrap fu">
-      <div class="s-progress-label"><span>Day 1</span><span>Day 90</span></div>
-      <div class="s-progress-track"><div class="s-progress-fill" id="stratProgress"></div></div>
-    </div>
-
-    <!-- Timeline steps -->
-    <div class="s-timeline">
-
-      <div class="s-step">
-        <div class="s-dot"><span>01</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 1 – 30</div>
-          <div class="s-title">Clarify</div>
-          <div class="s-desc">Messaging, service lines, voice, and content priorities.</div>
-        </div>
-      </div>
-
-      <div class="s-step">
-        <div class="s-dot"><span>02</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 31 – 60</div>
-          <div class="s-title">Create</div>
-          <div class="s-desc">Blog posts, social content, Google Business Profile, and copywriting.</div>
-        </div>
-      </div>
-
-      <div class="s-step">
-        <div class="s-dot"><span>03</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 61 – 90</div>
-          <div class="s-title">Optimize</div>
-          <div class="s-desc">Review performance, refine strategy, and plan the next quarter.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="s-beyond fu">
-      <div class="strategy-cta">
-        <a href="#contact" class="btn btn-steel">Build your strategy</a>
-      </div>
+    <div class="fs-cta fu">
+      <a href="#contact" class="btn btn-steel">Start the conversation</a>
     </div>
 
   </div>
@@ -968,25 +1006,7 @@ document.getElementById('testiNext').addEventListener('click', () => showTesti(c
 setInterval(() => showTesti(cur + 1), 6000);
 
 // â”€â”€ CONTACT FORM â”€â”€
-// 90-day step reveal — each step fades in as it scrolls into view,
-// progress bar increments by 1/3 per revealed step
-(function() {
-  var steps = Array.prototype.slice.call(document.querySelectorAll('.s-step'));
-  var fill  = document.getElementById('stratProgress');
-  if (!steps.length) return;
-  var count = 0;
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (!e.isIntersecting) return;
-      e.target.classList.add('s-revealed');
-      count++;
-      var pct = (count / steps.length) * 100;
-      setTimeout(function() { if (fill) fill.style.width = pct + '%'; }, 120);
-      io.unobserve(e.target);
-    });
-  }, { threshold: 0.4, rootMargin: '0px 0px -8% 0px' });
-  steps.forEach(function(s) { io.observe(s); });
-})();
+
 
 // Counter animation for 2M+
 function animateCounter(el, target, duration) {
