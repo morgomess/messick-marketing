@@ -2810,23 +2810,31 @@ async function generateImprovedCover() {
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
 
   // Step 1: send the uploaded image to Claude to extract subject/person description + build prompt
-  const promptSystem = `You are an expert image prompt writer for Imagen 4 (Google). You will receive a reference image and audit notes. Your job is to write a single detailed Imagen prompt for an improved cover thumbnail.
+  const promptSystem = `You are an expert Imagen 4 prompt writer specializing in high-CTR social media cover thumbnails using 2026 best practices.
 
-EXTRACT from the reference image:
-- The setting/background (medical office, clinic, etc.)
-- The overall visual style, layout, and composition
-- The lighting and mood
-- Any text overlays (note the content only, not styling metadata)
+2026 THUMBNAIL BEST PRACTICES you must apply:
+- High-contrast minimalist design: 70/30 color split so the subject pops. Top combos: Red/Blue, Yellow/Purple, Orange/Teal
+- Rim light / sticker effect: cyan or magenta rim light around the subject creates a mobile pop-out effect
+- Bold text overlay: short punchy headline (5 words max), teases the answer without giving it away
+- For healthcare: clean trustworthy composition, physician or patient looking directly at camera with intentional expression (not open-mouth shock)
+- All key elements centered in safe zone (works for both 9:16 and 16:9 crops)
+- Teal-orange color grading is the hottest CTR style in 2026
+- NO busy backgrounds, NO cluttered text, NO generic stock photo feel
 
-DO NOT attempt to recreate or describe the specific person in the image. Instead use a generic professional subject description appropriate to the topic (e.g. "a friendly professional woman in a clinical setting" or "a confident medical professional").
+EXTRACT from the reference image (use for style/layout reference only, not to recreate any person):
+- Setting and background environment
+- Overall layout structure
+- Any text content visible (topic only)
+- Lighting direction and mood
 
-WRITE the Imagen prompt using this structure:
-[GENERIC PROFESSIONAL SUBJECT appropriate to topic] + [SETTING & BACKGROUND from reference] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE - color names only] + [TEXT OVERLAY if any] + [QUALITY FOOTER]
+WRITE the prompt in this exact structure:
+[SUBJECT - physician or patient archetype looking directly at camera, intentional expression, rim-lit with cyan or magenta] + [SETTING from reference - clean clinical background, slightly blurred] + [COMPOSITION - centered safe zone, 70/30 color split, sticker effect] + [LIGHTING - rim light, teal-orange grade, high contrast] + [BRAND COLORS as design elements - translated to color names, used for text block background and overlays] + [TEXT OVERLAY - bold short headline if provided] + [QUALITY FOOTER: professional social media thumbnail, 9:16 vertical, ultra sharp, high resolution, vibrant contrast, mobile-optimized]
 
-CRITICAL rules:
-- NEVER put hex codes (like #0c2044) into the prompt - translate to color names (e.g. "dark navy blue", "warm terracotta")
-- Brand colors apply to backgrounds, overlays, and design elements - not as visible text
-- Output the prompt text ONLY - no JSON, no preamble, no explanation, no bullet points`;
+CRITICAL:
+- NEVER put hex codes into the prompt as text - always translate to descriptive color names
+- Brand colors go on design elements (background blocks, overlays, borders) not as visible labels
+- DO NOT generate a specific real person - use an archetype (e.g. "a confident middle-aged woman physician in a white coat looking directly at camera")
+- Output the prompt text ONLY - no JSON, no preamble, no explanation`;
 
   const fixes = (audit.critical_fixes || []).join('; ');
   const goodParts = (audit.what_works || []).join('; ');
@@ -2837,19 +2845,18 @@ CRITICAL rules:
     ? `Brand colors: ${brandColors}. Use these as background, overlay, and accent colors - describe them by color name in the prompt, never as hex codes.`
     : '';
 
-  const promptUserMsg = `This is the reel cover I want to improve. Use it as a visual reference for style, setting, and layout - then write an Imagen 4 prompt for an improved version.
+  const promptUserMsg = `Reference image attached. Use it for setting, layout, and topic context only - do not recreate the person shown.
 
 Platform: ${platMap[platform]}
 ${context ? 'Topic: ' + context : ''}
 ${brandColorDesc}
+${headline ? 'Headline text for bold overlay: "' + headline + '"' : ''}
 
-Improvements to apply:
-- Keep what worked: ${goodParts || 'clean composition and clear subject'}
-- Fix: ${fixes || 'improve visual hierarchy and text legibility'}
-${compNotes ? '- Composition: ' + compNotes : ''}
-${headline ? '- Headline text to show on cover: "' + headline + '"' : ''}
+Audit fixes to apply: ${fixes || 'improve contrast, visual hierarchy, and mobile legibility'}
+Keep: ${goodParts || 'clean clinical setting'}
+${compNotes ? 'Composition notes: ' + compNotes : ''}
 
-Quality footer must include: professional social media reel cover, 9:16 vertical portrait, high resolution, sharp focus, visually striking, no watermarks.`;
+Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout.`;
 
   try {
     const promptRes = await fetch(WORKER_URL, {
@@ -2892,7 +2899,74 @@ Quality footer must include: professional social media reel cover, 9:16 vertical
           <a href="data:image/png;base64,${b64}" download="reel-cover-improved.png" class="btn-primary" style="text-decoration:none; text-align:center; flex:1;">Download</a>
           <button class="btn-copy" style="flex:1;" onclick="generateImprovedCover()">Regenerate</button>
         </div>
-        ${imagePrompt ? `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);"><div style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:6px;">Prompt used</div><div style="font-size:12px; color:var(--text-dim); line-height:1.6;">${imagePrompt}</div></div>` : ''}
+        <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:8px;">Refine this result</div>
+          <textarea id="rl-reprompt-input" class="form-textarea" rows="2" placeholder="e.g. Make the background darker, use orange instead of teal, add more contrast, remove the text overlay..." style="font-size:13px; margin-bottom:8px;"></textarea>
+          <button class="btn-primary" style="width:100%;" onclick="regenWithNotes()">Apply &amp; Regenerate</button>
+        </div>
+        ${imagePrompt ? `<div style="margin-top:10px;"><details><summary style="font-size:11px; color:var(--text-dim); cursor:pointer; letter-spacing:0.06em; text-transform:uppercase;">Prompt used</summary><div style="font-size:12px; color:var(--text-dim); line-height:1.6; padding-top:8px;">${imagePrompt}</div></details></div>` : ''}
+      </div>`;
+  window._lastImagePrompt = imagePrompt;
+  } catch(e) {
+    out.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+async function regenWithNotes() {
+  const notes = (document.getElementById('rl-reprompt-input')?.value || '').trim();
+  const basePrompt = window._lastImagePrompt || '';
+  const out = document.getElementById('rl-regen-out');
+  if (!basePrompt) { generateImprovedCover(); return; }
+
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Refining prompt...</div>';
+
+  const refineSystem = `You are an Imagen 4 prompt editor. You will receive an existing image generation prompt and refinement notes from the user. Rewrite the prompt incorporating the notes while keeping all 2026 thumbnail best practices (rim light, 70/30 contrast split, bold centered safe-zone layout, teal-orange grading). Output the revised prompt text ONLY - no explanation, no preamble. NEVER include hex codes as text.`;
+
+  try {
+    const promptRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: refineSystem,
+        messages: [{ role: 'user', content: `Original prompt:
+${basePrompt}
+
+Refinement notes:
+${notes || 'Improve contrast and visual impact'}` }]
+      })
+    });
+    const promptData = await promptRes.json();
+    if (promptData.error) throw new Error(promptData.error);
+    const refinedPrompt = (promptData.text || '').trim();
+
+    out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating refined cover...</div>';
+    const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: refinedPrompt, count: 1, aspectRatio: '9:16' })
+    });
+    const imgData = await imgRes.json();
+    const pred = (imgData.predictions || [])[0];
+    if (!pred?.bytesBase64Encoded) throw new Error('Image generation returned no result.');
+
+    const b64 = pred.bytesBase64Encoded;
+    window._lastImagePrompt = refinedPrompt;
+    out.innerHTML = `
+      <div class="reel-output-block" style="margin-top:4px;">
+        <div class="reel-output-label" style="margin-bottom:12px;">Refined Cover</div>
+        <div style="text-align:center; margin-bottom:14px;">
+          <img src="data:image/png;base64,${b64}" style="max-width:260px; width:100%; border-radius:10px; border:1px solid var(--border2);">
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="data:image/png;base64,${b64}" download="reel-cover-refined.png" class="btn-primary" style="text-decoration:none; text-align:center; flex:1;">Download</a>
+          <button class="btn-copy" style="flex:1;" onclick="generateImprovedCover()">Start Over</button>
+        </div>
+        <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:8px;">Refine further</div>
+          <textarea id="rl-reprompt-input" class="form-textarea" rows="2" placeholder="Keep refining..." style="font-size:13px; margin-bottom:8px;"></textarea>
+          <button class="btn-primary" style="width:100%;" onclick="regenWithNotes()">Apply &amp; Regenerate</button>
+        </div>
+        <div style="margin-top:10px;"><details><summary style="font-size:11px; color:var(--text-dim); cursor:pointer; letter-spacing:0.06em; text-transform:uppercase;">Prompt used</summary><div style="font-size:12px; color:var(--text-dim); line-height:1.6; padding-top:8px;">${refinedPrompt}</div></details></div>
       </div>`;
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
