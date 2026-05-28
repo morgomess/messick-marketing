@@ -2703,6 +2703,7 @@ Score and critique it as a cover thumbnail designer. Return ONLY valid JSON:
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     const d = parseJSON(data.text || '');
+    window._lastCoverAudit = d;
     out.innerHTML = renderCoverAudit(d);
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
@@ -2770,7 +2771,96 @@ function renderCoverAudit(d) {
   ${d.headline_rewrites?.length ? `<div class="reel-output-block"><div class="reel-output-label">Headline Rewrites</div>${d.headline_rewrites.map(h=>`<div style="padding:9px 13px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; font-size:14px; font-weight:600; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>${h}</span><button class="btn-copy" onclick="copyText(this,'${h.replace(/'/g,"\'")}')">Copy</button></div>`).join('')}</div>` : ''}
   ${d.color_notes ? `<div class="reel-output-block"><div class="reel-output-label">Color Notes</div><div style="font-size:13px; color:var(--text-muted);">${d.color_notes}</div></div>` : ''}
   ${d.composition_notes ? `<div class="reel-output-block"><div class="reel-output-label">Composition Notes</div><div style="font-size:13px; color:var(--text-muted);">${d.composition_notes}</div></div>` : ''}
-  ${d.canva_search_terms?.length ? `<div class="reel-output-block"><div class="reel-output-label">Better Template Search</div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.canva_search_terms.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}`;
+  ${d.canva_search_terms?.length ? `<div class="reel-output-block"><div class="reel-output-label">Better Template Search</div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.canva_search_terms.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}
+  <div class="reel-output-block" style="border-color:var(--blue); background:var(--blue-pale);">
+    <div style="font-family:var(--font-head); font-size:18px; font-weight:600; margin-bottom:6px;">Generate an improved version?</div>
+    <div style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Use the elements from your uploaded cover - colors, style, subject - as a starting point and apply the audit fixes to generate a new version.</div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-primary" onclick="confirmRegenCover(true)" style="flex:1;">Yes, generate improved cover</button>
+      <button class="btn-copy" onclick="confirmRegenCover(false)" style="flex:1; padding:12px;">No thanks</button>
+    </div>
+  </div>
+  <div id="rl-regen-out"></div>`;
+}
+
+// -- Regen Cover from Audit --
+function confirmRegenCover(yes) {
+  const block = document.querySelector('#rl-audit-out .reel-output-block:last-of-type');
+  if (block) block.style.display = 'none';
+  const out = document.getElementById('rl-regen-out');
+  if (!yes) {
+    out.innerHTML = '';
+    return;
+  }
+  generateImprovedCover();
+}
+
+async function generateImprovedCover() {
+  const out = document.getElementById('rl-regen-out');
+  const audit = window._lastCoverAudit || {};
+  const platform = document.getElementById('rl-audit-platform').value;
+  const context = document.getElementById('rl-audit-context').value.trim();
+  const platMap = { instagram:'Instagram Reels (9:16 vertical)', facebook:'Facebook Reels (9:16 vertical)', tiktok:'TikTok cover (9:16 vertical)', youtube:'YouTube Shorts cover (9:16 vertical)' };
+
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Writing image prompt...</div>';
+
+  // Step 1: build an Imagen prompt from the audit data + uploaded image
+  const promptSystem = `You are an expert image prompt writer for Imagen (Google). Write a single detailed image generation prompt that describes a reel cover thumbnail. Output the prompt text only - no JSON, no quotes, no preamble.`;
+
+  const fixes = (audit.critical_fixes || []).join('; ');
+  const goodParts = (audit.what_works || []).join('; ');
+  const colorNotes = audit.color_notes || '';
+  const compNotes = audit.composition_notes || '';
+  const headline = (audit.headline_rewrites || [])[0] || '';
+
+  const promptUserMsg = `Create an Imagen prompt for an improved reel cover thumbnail for ${platMap[platform]}.
+${context ? 'Topic: ' + context : ''}
+
+Keep what worked from the original: ${goodParts || 'clean visual composition'}.
+Apply these fixes: ${fixes || 'improve visual hierarchy and text legibility'}.
+${colorNotes ? 'Color direction: ' + colorNotes : ''}
+${compNotes ? 'Composition: ' + compNotes : ''}
+${headline ? 'Headline text visible on cover: "' + headline + '"' : ''}
+
+Requirements: 9:16 vertical portrait format, high resolution, sharp focus, professional social media cover, no watermarks, visually striking.`;
+
+  try {
+    const promptRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: promptSystem, messages: [{ role: 'user', content: promptUserMsg }] })
+    });
+    const promptData = await promptRes.json();
+    if (promptData.error) throw new Error(promptData.error);
+    const imagePrompt = (promptData.text || '').trim();
+
+    // Step 2: generate with Imagen
+    out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating improved cover...</div>';
+    const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: '9:16' })
+    });
+    const imgData = await imgRes.json();
+    const pred = (imgData.predictions || [])[0];
+    if (!pred?.bytesBase64Encoded) throw new Error('Image generation returned no result.');
+
+    const b64 = pred.bytesBase64Encoded;
+    out.innerHTML = `
+      <div class="reel-output-block" style="margin-top:4px;">
+        <div class="reel-output-label" style="margin-bottom:12px;">Improved Cover</div>
+        <div style="text-align:center; margin-bottom:14px;">
+          <img src="data:image/png;base64,${b64}" style="max-width:260px; width:100%; border-radius:10px; border:1px solid var(--border2);">
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="data:image/png;base64,${b64}" download="reel-cover-improved.png" class="btn-primary" style="text-decoration:none; text-align:center; flex:1;">Download</a>
+          <button class="btn-copy" style="flex:1;" onclick="generateImprovedCover()">Regenerate</button>
+        </div>
+        ${imagePrompt ? `<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);"><div style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:6px;">Prompt used</div><div style="font-size:12px; color:var(--text-dim); line-height:1.6;">${imagePrompt}</div></div>` : ''}
+      </div>`;
+  } catch(e) {
+    out.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
 }
 
 function copyText(btn, text) {
