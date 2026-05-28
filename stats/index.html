@@ -2,25 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Audit AI App | Engagement Strategy Tool</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com&display=swap">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>Social Audit Tool | Messick Marketing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #F4F5F7; --card: #FFFFFF; --primary: #5B7FFF; --primary-soft: #EEF2FF;
-            --text: #1A1D23; --text-muted: #6B7280; --border: #E2E4E9;
-            --green: #10B981; --green-bg: #ECFDF5; --amber: #F59E0B; --amber-bg: #FFFBEB;
-            --red: #EF4444; --red-bg: #FEF2F2; --purple: #8B5CF6; --purple-bg: #F5F3FF;
+            --bg: #f0eeeb; --card: #faf8f5; --primary: #3a6b8a; --primary-soft: #d4e8f2;
+            --text: #111111; --text-muted: #5a6b74; --border: #d8d5cf;
+            --green: #2d7a4f; --green-bg: #e6f4ec; --amber: #b07d2a; --amber-bg: #fdf3e0;
+            --red: #b94040; --red-bg: #faeaea; --purple: #5a4b8a; --purple-bg: #eeebf7;
+            --steel: #3a6b8a; --steel-light: #5a9ab8; --black: #111111; --white: #faf8f5;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; line-height: 1.5; }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 2rem; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-        .logo { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--primary); cursor: pointer; font-size: 1rem; letter-spacing: -0.5px; }
+        body { background: var(--bg); color: var(--text); font-family: 'Jost', sans-serif; line-height: 1.5; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 2rem; background: var(--black); border-bottom: 2px solid var(--steel); position: sticky; top: 0; z-index: 50; }
+        .logo { font-family: 'Dancing Script', cursive; font-weight: 700; color: var(--white); cursor: pointer; font-size: 1.35rem; letter-spacing: 0.5px; }
         .nav-actions { display: flex; gap: 8px; }
         main { padding: 2rem; max-width: 960px; margin: 0 auto; }
         .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary { background: var(--steel); color: var(--white); }
+        .btn-primary:hover { background: var(--steel-light); }
         .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
         .btn-ghost:hover { background: var(--bg); }
         .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
@@ -28,7 +30,7 @@
         .btn-danger:hover { background: #FEE2E2; }
         .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .btn-icon:hover { background: var(--red-bg); color: var(--red); border-color: #FECACA; }
-        .form-container { background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .form-container { background: var(--white); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
         label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem; }
         input, select { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; background: white; }
         input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
@@ -40,7 +42,7 @@
         .loader { border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; display: inline-block; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .card { background: var(--white); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .boost-box { border-left: 4px solid; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.85rem; }
         .boost-asap { background: var(--red-bg); border-color: var(--red); }
@@ -67,7 +69,7 @@
         th { text-align: left; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border); }
         td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
         tr:last-child td { border-bottom: none; }
-        .rank-num { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--primary-soft); color: var(--primary); font-weight: 800; font-size: 0.7rem; align-items: center; justify-content: center; }
+        .rank-num { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--primary-soft); color: var(--steel); font-weight: 800; font-size: 0.7rem; align-items: center; justify-content: center; }
         .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .confirm-dialog { background: white; border-radius: 12px; padding: 2rem; max-width: 360px; width: 90%; text-align: center; }
         .section-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; }
@@ -107,9 +109,9 @@
 <body>
 
 <nav class="top-nav">
-    <div class="logo" onclick="app.view('dashboard')">Social Audit // AI</div>
+    <div class="logo" onclick="app.view('dashboard')">Messick Marketing</div>
     <div class="nav-actions">
-        <button class="btn btn-ghost btn-sm" onclick="app.toggleSettings()">API Settings</button>
+        <button class="btn btn-sm" style="background:transparent; color:#faf8f5; border:1px solid rgba(250,248,245,0.3); font-family:inherit; font-size:0.85rem; font-weight:600; padding:0.35rem 0.7rem; border-radius:8px; cursor:pointer;" onclick="app.toggleSettings()">API Settings</button>
         <button class="btn btn-primary btn-sm" onclick="app.view('input')">+ New Audit</button>
     </div>
 </nav>
@@ -601,5 +603,8 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
 };
 app.init();
 </script>
+<footer style="text-align:center; padding:2rem 1rem; font-family:'Jost',sans-serif; font-size:0.75rem; color:#888; border-top:1px solid #d8d5cf; margin-top:2rem;">
+  <span style="font-family:'Dancing Script',cursive; font-size:1rem; color:#3a6b8a;">Messick Marketing</span> &nbsp;&middot;&nbsp; Internal Tool &nbsp;&middot;&nbsp; <a href="https://messickmarketing.com" style="color:#3a6b8a; text-decoration:none;">messickmarketing.com</a>
+</footer>
 </body>
 </html>
