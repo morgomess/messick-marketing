@@ -791,7 +791,7 @@
     <button class="mode-pill active" id="pill-optimize" onclick="switchMode('optimize')">Optimize</button>
     <button class="mode-pill" id="pill-videos" onclick="switchMode('videos')">My Videos</button>
     <button class="mode-pill" id="pill-research" onclick="switchMode('research')">Research</button>
-    <button class="mode-pill" id="pill-reels" onclick="switchMode('reels')">Reels Studio</button>
+    <button class="mode-pill" id="pill-reels" onclick="switchMode('reels')">Reel Covers</button>
     <div class="mode-niche-badge" id="niche-badge"></div>
   </div>
 
@@ -899,7 +899,7 @@
       </div>
     </div><!-- end view-research -->
 
-    <!-- REELS STUDIO VIEW -->
+    <!-- REEL COVER THUMBNAIL VIEW -->
     <div class="view" id="view-reels">
       <div class="reels-tabs">
         <button class="reels-tab active" data-rtab="manual" onclick="switchReelsTab('manual')">Manual Entry</button>
@@ -910,8 +910,8 @@
       <!-- MANUAL ENTRY PANEL -->
       <div class="reels-panel active" id="rp-manual">
         <div class="reels-panel-inner">
-          <div class="panel-title">Create Reel Metadata</div>
-          <div class="panel-sub">Enter your reel topic and details to generate optimized captions, hashtags, hooks, and a posting strategy.</div>
+          <div class="panel-title">Reel Cover Generator</div>
+          <div class="panel-sub">Describe your reel and get AI-generated cover thumbnail concepts, overlay text, color direction, and a ready-to-use design brief.</div>
           <div class="form-group">
             <label class="form-label">Reel Topic / Procedure *</label>
             <input type="text" class="form-input" id="rl-topic" placeholder="e.g. Varicose vein treatment, UFE recovery, PAD symptoms">
@@ -927,26 +927,25 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Reel Length (seconds)</label>
-              <input type="number" class="form-input" id="rl-length" placeholder="e.g. 30" min="5" max="180">
+              <label class="form-label">Cover Style</label>
+              <select class="form-input" id="rl-style">
+                <option value="clean">Clean &amp; Clinical</option>
+                <option value="bold">Bold Text-Forward</option>
+                <option value="lifestyle">Lifestyle / Patient-Focused</option>
+                <option value="educational">Educational / Infographic</option>
+                <option value="before_after">Before &amp; After Frame</option>
+              </select>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Key Message / Hook Idea (optional)</label>
-            <input type="text" class="form-input" id="rl-hook" placeholder="e.g. 'Most people don't know this about leg pain...'">
+            <label class="form-label">Brand Colors (optional)</label>
+            <input type="text" class="form-input" id="rl-colors" placeholder="e.g. Navy blue and white, or leave blank to use channel brand">
           </div>
           <div class="form-group">
-            <label class="form-label">Call to Action</label>
-            <select class="form-input" id="rl-cta">
-              <option value="book">Book a consultation</option>
-              <option value="link">Link in bio</option>
-              <option value="call">Call us today</option>
-              <option value="dm">DM us</option>
-              <option value="save">Save this post</option>
-              <option value="comment">Comment below</option>
-            </select>
+            <label class="form-label">Cover Headline / Text Overlay (optional)</label>
+            <input type="text" class="form-input" id="rl-headline" placeholder="e.g. 'Is your leg pain PAD?' or leave blank for AI to suggest">
           </div>
-          <button class="btn-primary" onclick="generateReelMeta()">Generate Reel Package</button>
+          <button class="btn-primary" onclick="generateCoverBrief()">Generate Cover Brief</button>
           <div id="rl-manual-out"></div>
         </div>
       </div>
@@ -955,7 +954,7 @@
       <div class="reels-panel" id="rp-import">
         <div class="reels-panel-inner">
           <div class="panel-title">Import from Connected Video</div>
-          <div class="panel-sub">Select an existing YouTube video to repurpose its content into a Reel - hooks, short captions, and hashtags adapted for short-form.</div>
+          <div class="panel-sub">Select an existing YouTube video and generate a reel cover thumbnail brief based on its title, topic, and channel niche.</div>
           <div id="rl-import-list">
             <div class="empty-state">
               <div class="empty-state-icon">🔗</div>
@@ -966,16 +965,27 @@
           <div id="rl-import-selected" style="display:none; margin-top:20px;">
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:10px;">Selected Video</div>
             <div id="rl-import-preview"></div>
-            <div class="form-group" style="margin-top:16px;">
-              <label class="form-label">Target Platform</label>
-              <select class="form-input" id="rl-import-platform">
-                <option value="instagram">Instagram Reels</option>
-                <option value="facebook">Facebook Reels</option>
-                <option value="tiktok">TikTok</option>
-                <option value="youtube">YouTube Shorts</option>
-              </select>
+            <div class="form-row" style="margin-top:16px;">
+              <div class="form-group">
+                <label class="form-label">Target Platform</label>
+                <select class="form-input" id="rl-import-platform">
+                  <option value="instagram">Instagram Reels</option>
+                  <option value="facebook">Facebook Reels</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube Shorts</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cover Style</label>
+                <select class="form-input" id="rl-import-style">
+                  <option value="clean">Clean &amp; Clinical</option>
+                  <option value="bold">Bold Text-Forward</option>
+                  <option value="lifestyle">Lifestyle / Patient-Focused</option>
+                  <option value="educational">Educational / Infographic</option>
+                </select>
+              </div>
             </div>
-            <button class="btn-primary" onclick="generateReelFromVideo()">Generate Reel Package</button>
+            <button class="btn-primary" onclick="generateCoverFromVideo()">Generate Cover Brief</button>
           </div>
           <div id="rl-import-out"></div>
         </div>
@@ -984,33 +994,35 @@
       <!-- UPLOAD & AUDIT PANEL -->
       <div class="reels-panel" id="rp-audit">
         <div class="reels-panel-inner">
-          <div class="panel-title">Upload &amp; Audit</div>
-          <div class="panel-sub">Upload a screenshot or image of an existing reel, post, or design. AI will analyze it and return an optimization report with a score, specific fixes, and rewritten copy.</div>
+          <div class="panel-title">Audit Existing Cover</div>
+          <div class="panel-sub">Upload a reel cover thumbnail or screenshot. AI will score it on click-through potential, text legibility, visual hierarchy, and platform fit - and return specific fixes.</div>
 
           <div class="upload-drop-zone" id="rl-drop-zone" onclick="document.getElementById('rl-file-input').click()">
-            <div class="upload-drop-icon">📎</div>
-            <div class="upload-drop-title">Drop file or click to upload</div>
-            <div class="upload-drop-sub">Screenshots, cover images, captions - JPG, PNG, PDF accepted</div>
-            <input type="file" id="rl-file-input" accept="image/*,application/pdf" style="display:none" onchange="handleReelUpload(this.files[0])">
+            <div class="upload-drop-icon">🖼️</div>
+            <div class="upload-drop-title">Drop cover image or click to upload</div>
+            <div class="upload-drop-sub">JPG or PNG - your current reel cover thumbnail</div>
+            <input type="file" id="rl-file-input" accept="image/*" style="display:none" onchange="handleCoverUpload(this.files[0])">
           </div>
 
           <div id="rl-upload-preview" style="display:none;"></div>
 
           <div id="rl-audit-form" style="display:none; margin-top:20px;">
-            <div class="form-group">
-              <label class="form-label">Platform this is for</label>
-              <select class="form-input" id="rl-audit-platform">
-                <option value="instagram">Instagram Reels</option>
-                <option value="facebook">Facebook Reels</option>
-                <option value="tiktok">TikTok</option>
-                <option value="youtube">YouTube Shorts</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Platform</label>
+                <select class="form-input" id="rl-audit-platform">
+                  <option value="instagram">Instagram Reels</option>
+                  <option value="facebook">Facebook Reels</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube Shorts</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Reel topic (optional)</label>
+                <input type="text" class="form-input" id="rl-audit-context" placeholder="e.g. Varicose vein treatment">
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Additional context (optional)</label>
-              <input type="text" class="form-input" id="rl-audit-context" placeholder="e.g. This is for a vascular clinic targeting leg pain patients">
-            </div>
-            <button class="btn-primary" onclick="auditReelUpload()">Audit This Design</button>
+            <button class="btn-primary" onclick="auditCoverUpload()">Audit This Cover</button>
           </div>
 
           <div id="rl-audit-out"></div>
@@ -2474,12 +2486,12 @@ async function pushThumbnail(videoId) {
 }
 
 // ============================================================
-// REELS STUDIO
+// REEL COVER THUMBNAIL STUDIO
 // ============================================================
 let currentReelsTab = 'manual';
 let reelSelectedVideo = null;
-let reelUploadFile = null;
-let reelUploadB64 = null;
+let coverUploadFile = null;
+let coverUploadB64 = null;
 
 function switchReelsTab(tab) {
   currentReelsTab = tab;
@@ -2491,49 +2503,53 @@ function switchReelsTab(tab) {
 }
 
 // -- Manual Entry --
-async function generateReelMeta() {
+// -- Manual Entry: Cover Brief --
+async function generateCoverBrief() {
   const topic = document.getElementById('rl-topic').value.trim();
   const platform = document.getElementById('rl-platform').value;
-  const length = document.getElementById('rl-length').value || '30';
-  const hook = document.getElementById('rl-hook').value.trim();
-  const cta = document.getElementById('rl-cta').value;
+  const style = document.getElementById('rl-style').value;
+  const colors = document.getElementById('rl-colors').value.trim();
+  const headline = document.getElementById('rl-headline').value.trim();
   const out = document.getElementById('rl-manual-out');
   if (!topic) { out.innerHTML = '<div class="error-msg">Please enter a topic.</div>'; return; }
 
-  const ctaMap = { book:'Book a consultation', link:'Link in bio', call:'Call us today', dm:'DM us', save:'Save this post', comment:'Comment below' };
-  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+  const platMap = { instagram:'Instagram Reels (9:16, 1080x1920px)', facebook:'Facebook Reels (9:16, 1080x1920px)', tiktok:'TikTok (9:16, 1080x1920px)', youtube:'YouTube Shorts (9:16, 1080x1920px)' };
+  const styleMap = { clean:'Clean & Clinical (white space, minimal text, professional)', bold:'Bold Text-Forward (large type, high contrast, hook-first)', lifestyle:'Lifestyle / Patient-Focused (warm, human, relatable)', educational:'Educational / Infographic (icons, data, structured layout)', before_after:'Before & After Frame (split screen or sequential)' };
 
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating reel package...</div>';
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief...</div>';
 
-  const system = buildSystem(`You are a short-form video content specialist. Return ONLY valid JSON with no markdown. Generate a complete reel package for the platform and topic provided.`);
-  const userMsg = `Topic: ${topic}
+  const system = buildSystem('You are a social media visual designer specializing in healthcare and specialty medical content. Return ONLY valid JSON with no markdown.');
+  const userMsg = `Generate a reel cover thumbnail design brief for:
+Topic: ${topic}
 Platform: ${platMap[platform]}
-Reel length: ${length} seconds
-${hook ? 'Hook idea from user: ' + hook : ''}
-CTA: ${ctaMap[cta]}
+Style: ${styleMap[style]}
+${colors ? 'Brand colors: ' + colors : ''}
+${headline ? 'Preferred headline: ' + headline : ''}
 
-Return this exact JSON structure:
+Return this exact JSON:
 {
-  "hook": "opening 1-2 sentence hook for the first 3 seconds",
-  "caption_short": "short caption under 150 chars with emoji, no hashtags",
-  "caption_long": "full caption 150-300 chars with 1-2 line breaks, no hashtags",
-  "hashtags": ["array", "of", "20-25", "hashtags", "no", "hash", "symbol"],
-  "on_screen_text": ["3-5 text overlays for the reel, short phrases"],
-  "cta_line": "closing CTA line for caption",
-  "posting_tips": ["2-3 short tips specific to this platform and topic"],
-  "best_post_times": "best posting windows for this platform"
+  "headline_options": ["3 short punchy cover text options, under 8 words each"],
+  "subtext": "optional 1-line subtext or leave empty string",
+  "visual_concept": "2-3 sentence description of the visual scene or composition",
+  "color_palette": ["primary hex", "secondary hex", "accent hex"],
+  "color_rationale": "one sentence explaining the color choice",
+  "typography_direction": "font style recommendation (e.g. bold sans-serif, clean serif) and placement notes",
+  "design_notes": ["3-4 specific design instructions for a Canva designer"],
+  "ctr_hooks": ["2-3 psychological hooks this cover uses to drive clicks"],
+  "avoid": ["2-3 things to avoid for this topic/platform combo"],
+  "canva_search_terms": ["3-4 Canva template search terms to find a good starting point"]
 }`;
 
   try {
     const raw = await callAI(system, userMsg);
     const d = parseJSON(raw);
-    out.innerHTML = renderReelPackage(d, platform);
+    out.innerHTML = renderCoverBrief(d);
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
 }
 
-// -- Import from Video --
+// -- Import from Video: Cover Brief --
 function renderReelImportList() {
   const el = document.getElementById('rl-import-list');
   const brand = getActive();
@@ -2541,15 +2557,14 @@ function renderReelImportList() {
     el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔗</div><div class="empty-state-title">No channel connected</div><div class="empty-state-sub">Connect a YouTube channel using the button in the top bar to browse your videos here.</div></div>`;
     return;
   }
-  // Try to load from stored videos list or fetch
   const storedVideos = JSON.parse(localStorage.getItem('mm_yt_videos_' + brand.channelId) || '[]');
   if (storedVideos.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎬</div><div class="empty-state-title">No videos loaded yet</div><div class="empty-state-sub">Switch to My Videos tab and click Refresh to load your channel videos, then come back here.</div></div>`;
     return;
   }
-  el.innerHTML = `<div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:12px;">Select a video to repurpose</div>` +
+  el.innerHTML = `<div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:12px;">Select a video to create a reel cover for</div>` +
     storedVideos.slice(0, 20).map(v => `
-    <div class="video-import-card${reelSelectedVideo?.id === v.id ? ' selected' : ''}" onclick="selectReelVideo(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+    <div class="video-import-card${reelSelectedVideo?.id === v.id ? ' selected' : ''}" onclick="selectReelVideo(${JSON.stringify(v).replace(/"/g,'&quot;')}, event)">
       <img class="video-import-thumb" src="${v.thumbnail || ''}" onerror="this.style.display='none'">
       <div>
         <div class="video-import-title">${v.title}</div>
@@ -2558,102 +2573,95 @@ function renderReelImportList() {
     </div>`).join('');
 }
 
-function selectReelVideo(video) {
+function selectReelVideo(video, e) {
   reelSelectedVideo = video;
   document.querySelectorAll('.video-import-card').forEach(el => el.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  e.currentTarget.classList.add('selected');
   const preview = document.getElementById('rl-import-preview');
   preview.innerHTML = `<div class="upload-preview"><img class="upload-preview-thumb" src="${video.thumbnail || ''}" onerror="this.style.display='none'"><div class="upload-preview-info"><div class="upload-preview-name">${video.title}</div><div class="upload-preview-size">${video.views ? video.views.toLocaleString() + ' views' : 'No view data'}</div></div></div>`;
   document.getElementById('rl-import-selected').style.display = 'block';
   document.getElementById('rl-import-out').innerHTML = '';
 }
 
-async function generateReelFromVideo() {
+async function generateCoverFromVideo() {
   if (!reelSelectedVideo) return;
   const platform = document.getElementById('rl-import-platform').value;
-  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+  const style = document.getElementById('rl-import-style').value;
+  const platMap = { instagram:'Instagram Reels (9:16)', facebook:'Facebook Reels (9:16)', tiktok:'TikTok (9:16)', youtube:'YouTube Shorts (9:16)' };
+  const styleMap = { clean:'Clean & Clinical', bold:'Bold Text-Forward', lifestyle:'Lifestyle / Patient-Focused', educational:'Educational / Infographic' };
   const out = document.getElementById('rl-import-out');
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Repurposing video for short-form...</div>';
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief from video...</div>';
 
-  const system = buildSystem(`You are a short-form video content specialist. You repurpose long-form YouTube content into platform-optimized Reels/Shorts. Return ONLY valid JSON with no markdown.`);
-  const userMsg = `Repurpose this YouTube video into a ${platMap[platform]}:
-Title: ${reelSelectedVideo.title}
-${reelSelectedVideo.description ? 'Description: ' + reelSelectedVideo.description.substring(0, 500) : ''}
+  const system = buildSystem('You are a social media visual designer specializing in healthcare content. Return ONLY valid JSON with no markdown.');
+  const userMsg = `Generate a reel cover thumbnail design brief to repurpose this YouTube video as a ${platMap[platform]}:
+Video title: ${reelSelectedVideo.title}
+${reelSelectedVideo.description ? 'Description excerpt: ' + reelSelectedVideo.description.substring(0, 300) : ''}
+Style: ${styleMap[style]}
 
 Return this exact JSON:
 {
-  "hook": "opening 1-2 sentence hook adapted from the video topic",
-  "caption_short": "short caption under 150 chars, no hashtags",
-  "caption_long": "full caption 150-300 chars, no hashtags",
-  "hashtags": ["20-25 hashtags without hash symbol"],
-  "on_screen_text": ["3-5 text overlay suggestions"],
-  "repurpose_angle": "1-2 sentences explaining which part of the video to use and why",
-  "cta_line": "closing CTA line",
-  "posting_tips": ["2-3 platform-specific tips"]
+  "headline_options": ["3 short cover text options adapted from the video, under 8 words each"],
+  "subtext": "optional 1-line subtext or empty string",
+  "visual_concept": "2-3 sentence description of the visual scene or composition",
+  "color_palette": ["primary hex", "secondary hex", "accent hex"],
+  "color_rationale": "one sentence",
+  "typography_direction": "font style and placement notes",
+  "design_notes": ["3-4 specific design instructions"],
+  "repurpose_angle": "1 sentence on what angle from the video to highlight on the cover",
+  "ctr_hooks": ["2-3 psychological hooks this cover uses"],
+  "canva_search_terms": ["3-4 Canva template search terms"]
 }`;
 
   try {
     const raw = await callAI(system, userMsg);
     const d = parseJSON(raw);
-    out.innerHTML = renderReelPackage(d, platform);
+    out.innerHTML = renderCoverBrief(d);
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
 }
 
 // -- Upload & Audit --
-function handleReelUpload(file) {
+function handleCoverUpload(file) {
   if (!file) return;
-  reelUploadFile = file;
+  coverUploadFile = file;
   const reader = new FileReader();
   reader.onload = (e) => {
-    reelUploadB64 = e.target.result.split(',')[1];
+    coverUploadB64 = e.target.result.split(',')[1];
     const preview = document.getElementById('rl-upload-preview');
-    const isImage = file.type.startsWith('image/');
-    preview.innerHTML = `<div class="upload-preview" style="margin-top:16px;">
-      ${isImage ? `<img class="upload-preview-thumb" src="${e.target.result}">` : '<div class="upload-preview-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;">📄</div>'}
-      <div class="upload-preview-info">
-        <div class="upload-preview-name">${file.name}</div>
-        <div class="upload-preview-size">${(file.size/1024).toFixed(1)} KB - ready to audit</div>
-      </div>
-    </div>`;
+    preview.innerHTML = `<div style="margin-top:16px; text-align:center;"><img src="${e.target.result}" style="max-width:100%; max-height:320px; border-radius:10px; border:1px solid var(--border2);"><div style="font-size:12px; color:var(--text-dim); margin-top:8px;">${file.name} - ${(file.size/1024).toFixed(1)} KB</div></div>`;
     preview.style.display = 'block';
     document.getElementById('rl-audit-form').style.display = 'block';
     document.getElementById('rl-audit-out').innerHTML = '';
     const zone = document.getElementById('rl-drop-zone');
-    zone.querySelector('.upload-drop-title').textContent = '✓ File loaded';
+    zone.querySelector('.upload-drop-title').textContent = '✓ Cover loaded';
     zone.querySelector('.upload-drop-sub').textContent = file.name;
   };
   reader.readAsDataURL(file);
 }
 
-// drag and drop
-(function initDropZone() {
-  document.addEventListener('DOMContentLoaded', () => {
-    const zone = document.getElementById('rl-drop-zone');
-    if (!zone) return;
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault(); zone.classList.remove('drag-over');
-      if (e.dataTransfer.files[0]) handleReelUpload(e.dataTransfer.files[0]);
-    });
+// drag and drop init
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('rl-drop-zone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleCoverUpload(e.dataTransfer.files[0]);
   });
-})();
+});
 
-async function auditReelUpload() {
-  if (!reelUploadB64 || !reelUploadFile) return;
+async function auditCoverUpload() {
+  if (!coverUploadB64 || !coverUploadFile) return;
   const platform = document.getElementById('rl-audit-platform').value;
   const context = document.getElementById('rl-audit-context').value.trim();
   const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
   const out = document.getElementById('rl-audit-out');
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing design...</div>';
-
-  const mediaType = reelUploadFile.type === 'application/pdf' ? 'application/pdf' : (reelUploadFile.type || 'image/jpeg');
-  const contentType = reelUploadFile.type === 'application/pdf' ? 'document' : 'image';
+  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Auditing cover thumbnail...</div>';
 
   const brand = getActive();
-  const systemCtx = brand?.nicheProfile ? `Channel niche: ${brand.nicheProfile.primaryNiche}. Target: ${brand.nicheProfile.targetAudience}.` : '';
+  const brandCtx = brand?.nicheProfile ? `Channel niche: ${brand.nicheProfile.primaryNiche}. Target audience: ${brand.nicheProfile.targetAudience}.` : '';
 
   const payload = {
     model: 'claude-sonnet-4-20250514',
@@ -2661,23 +2669,25 @@ async function auditReelUpload() {
     messages: [{
       role: 'user',
       content: [
-        { type: contentType, source: { type: 'base64', media_type: mediaType, data: reelUploadB64 } },
-        { type: 'text', text: `Audit this reel/social media design for ${platMap[platform]}.
-${context ? 'Context: ' + context : ''}
-${systemCtx}
+        { type: 'image', source: { type: 'base64', media_type: coverUploadFile.type || 'image/jpeg', data: coverUploadB64 } },
+        { type: 'text', text: `Audit this reel cover thumbnail for ${platMap[platform]}.
+${context ? 'Topic: ' + context : ''}
+${brandCtx}
 
-Return ONLY valid JSON:
+Score and critique it as a cover thumbnail designer. Return ONLY valid JSON:
 {
   "overall_score": number 0-100,
   "score_label": "Poor|Fair|Good|Strong",
-  "strengths": ["up to 3 things done well"],
-  "critical_fixes": ["top 3 specific improvements needed"],
-  "hook_rating": "Weak|Fair|Strong",
-  "hook_rewrite": "rewritten hook if needed",
-  "caption_rewrite": "optimized caption if visible",
-  "hashtag_suggestions": ["10-15 hashtags without hash symbol"],
-  "visual_notes": "brief note on visual composition or text placement",
-  "platform_fit": "brief note on how well this fits ${platMap[platform]}"
+  "ctr_potential": "Low|Medium|High",
+  "text_legibility": "Poor|Fair|Good",
+  "visual_hierarchy": "Weak|Fair|Strong",
+  "platform_fit": "Poor|Fair|Good|Strong",
+  "what_works": ["up to 3 things done well"],
+  "critical_fixes": ["top 3 most impactful improvements"],
+  "headline_rewrites": ["2-3 alternative headline options if text is visible"],
+  "color_notes": "brief note on color use and contrast",
+  "composition_notes": "brief note on layout and visual focus",
+  "canva_search_terms": ["3-4 search terms to find a better template"]
 }` }
       ]
     }]
@@ -2693,64 +2703,74 @@ Return ONLY valid JSON:
     if (data.error) throw new Error(data.error.message || 'API error');
     const text = data.content?.find(b => b.type === 'text')?.text || '';
     const d = parseJSON(text);
-    out.innerHTML = renderReelAudit(d);
+    out.innerHTML = renderCoverAudit(d);
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
 }
 
-// -- Render helpers --
-function renderReelPackage(d, platform) {
-  const ht = (d.hashtags || []).map(t => `#${t}`).join(' ');
-  return `
-  <div class="reel-output-block">
-    <div class="reel-output-label">Hook <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.hook)})">Copy</button></div>
-    <div style="font-size:15px; line-height:1.6; margin-bottom:4px;">${d.hook || ''}</div>
-  </div>
-  ${d.repurpose_angle ? `<div class="reel-output-block"><div class="reel-output-label">Repurpose Angle</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.repurpose_angle}</div></div>` : ''}
-  <div class="reel-output-block">
-    <div class="reel-output-label">Short Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify((d.caption_short||'') + ' ' + (d.cta_line||''))})">Copy</button></div>
-    <div style="font-size:14px; line-height:1.7;">${d.caption_short || ''}</div>
-    ${d.cta_line ? `<div style="font-size:13px; color:var(--blue-light); margin-top:8px; font-weight:500;">${d.cta_line}</div>` : ''}
-  </div>
-  <div class="reel-output-block">
-    <div class="reel-output-label">Long Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify((d.caption_long||'') + '\n\n' + (d.cta_line||'') + '\n\n' + ht)})">Copy</button></div>
-    <div style="font-size:14px; line-height:1.7; white-space:pre-line;">${d.caption_long || ''}</div>
-    ${d.cta_line ? `<div style="font-size:13px; color:var(--blue-light); margin-top:8px; font-weight:500;">${d.cta_line}</div>` : ''}
-  </div>
-  ${d.on_screen_text?.length ? `<div class="reel-output-block"><div class="reel-output-label">On-Screen Text Overlays</div>${d.on_screen_text.map(t => `<div style="padding:7px 12px; background:var(--surface2); border-radius:7px; margin-bottom:6px; font-size:13px; font-weight:500;">${t}</div>`).join('')}</div>` : ''}
-  <div class="reel-output-block">
-    <div class="reel-output-label">Hashtags (${(d.hashtags||[]).length}) <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(ht)})">Copy All</button></div>
-    <div style="display:flex; flex-wrap:wrap; gap:6px;">${(d.hashtags||[]).map(t=>`<span class="tag-pill">#${t}</span>`).join('')}</div>
-  </div>
-  ${d.best_post_times ? `<div class="reel-output-block"><div class="reel-output-label">Best Posting Times</div><div style="font-size:13px; color:var(--text-muted);">${d.best_post_times}</div></div>` : ''}
-  ${d.posting_tips?.length ? `<div class="reel-output-block"><div class="reel-output-label">Posting Tips</div>${d.posting_tips.map(t=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot"></div><span style="font-size:13px;">${t}</span></div>`).join('')}</div>` : ''}`;
-}
-
-function renderReelAudit(d) {
-  const score = d.overall_score || 0;
-  const scoreClass = score >= 70 ? 'reel-score-high' : score >= 45 ? 'reel-score-mid' : 'reel-score-low';
-  const ht = (d.hashtag_suggestions || []).map(t => `#${t}`).join(' ');
+// -- Render: Cover Brief --
+function renderCoverBrief(d) {
+  const swatches = (d.color_palette || []).map(c => `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:20px;height:20px;border-radius:4px;background:${c};display:inline-block;border:1px solid rgba(255,255,255,0.15);"></span><span style="font-size:12px;color:var(--text-muted);">${c}</span></span>`).join(' ');
   return `
   <div class="reel-output-block" style="margin-top:20px;">
-    <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+    <div class="reel-output-label">Headline Options</div>
+    ${(d.headline_options||[]).map(h => `<div style="padding:9px 13px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; font-size:15px; font-weight:600; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>${h}</span><button class="btn-copy" onclick="copyText(this,'${h.replace(/'/g,"\'")}')">Copy</button></div>`).join('')}
+    ${d.subtext ? `<div style="font-size:13px; color:var(--text-muted); margin-top:6px;">Subtext: ${d.subtext}</div>` : ''}
+  </div>
+  <div class="reel-output-block">
+    <div class="reel-output-label">Visual Concept</div>
+    <div style="font-size:14px; line-height:1.7; color:var(--text-muted);">${d.visual_concept||''}</div>
+    ${d.repurpose_angle ? `<div style="font-size:13px; color:var(--blue-light); margin-top:8px; font-weight:500;">Angle: ${d.repurpose_angle}</div>` : ''}
+  </div>
+  <div class="reel-output-block">
+    <div class="reel-output-label">Color Palette</div>
+    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">${swatches}</div>
+    <div style="font-size:13px; color:var(--text-muted);">${d.color_rationale||''}</div>
+  </div>
+  <div class="reel-output-block">
+    <div class="reel-output-label">Typography Direction</div>
+    <div style="font-size:14px; color:var(--text-muted);">${d.typography_direction||''}</div>
+  </div>
+  <div class="reel-output-block">
+    <div class="reel-output-label">Design Notes</div>
+    ${(d.design_notes||[]).map(n=>`<div class="gap-item" style="margin-bottom:8px;"><div class="gap-dot" style="background:var(--blue-light);"></div><span style="font-size:13px;">${n}</span></div>`).join('')}
+  </div>
+  ${d.ctr_hooks?.length ? `<div class="reel-output-block"><div class="reel-output-label">CTR Psychology</div>${d.ctr_hooks.map(n=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot"></div><span style="font-size:13px;">${n}</span></div>`).join('')}</div>` : ''}
+  ${d.avoid?.length ? `<div class="reel-output-block"><div class="reel-output-label">Avoid</div>${d.avoid.map(n=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--red);"></div><span style="font-size:13px;">${n}</span></div>`).join('')}</div>` : ''}
+  ${d.canva_search_terms?.length ? `<div class="reel-output-block"><div class="reel-output-label">Canva Template Search</div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.canva_search_terms.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}`;
+}
+
+// -- Render: Cover Audit --
+function renderCoverAudit(d) {
+  const score = d.overall_score || 0;
+  const scoreClass = score >= 70 ? 'reel-score-high' : score >= 45 ? 'reel-score-mid' : 'reel-score-low';
+  const ratingChip = (val, label) => {
+    const cls = ['Good','Strong','High'].includes(val) ? 'reel-score-high' : ['Fair','Medium'].includes(val) ? 'reel-score-mid' : 'reel-score-low';
+    return `<span class="reel-score-chip ${cls}">${label}: ${val||'N/A'}</span>`;
+  };
+  return `
+  <div class="reel-output-block" style="margin-top:20px;">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
       <div style="font-family:var(--font-head); font-size:52px; font-weight:700; color:var(--blue-light); line-height:1;">${score}</div>
-      <div><span class="reel-score-chip ${scoreClass}">${d.score_label || ''}</span><div style="font-size:12px; color:var(--text-dim); margin-top:4px;">Overall Score</div></div>
+      <div><span class="reel-score-chip ${scoreClass}">${d.score_label||''}</span><div style="font-size:12px; color:var(--text-dim); margin-top:4px;">Cover Score</div></div>
     </div>
-    <div class="reel-score-row">
-      <span class="reel-score-chip reel-score-mid">Hook: ${d.hook_rating || 'N/A'}</span>
+    <div class="reel-score-row" style="flex-wrap:wrap; gap:8px;">
+      ${ratingChip(d.ctr_potential,'CTR Potential')}
+      ${ratingChip(d.text_legibility,'Text Legibility')}
+      ${ratingChip(d.visual_hierarchy,'Visual Hierarchy')}
+      ${ratingChip(d.platform_fit,'Platform Fit')}
     </div>
   </div>
-  ${d.strengths?.length ? `<div class="reel-output-block"><div class="reel-output-label">What's Working</div>${d.strengths.map(s=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--green);"></div><span style="font-size:13px;">${s}</span></div>`).join('')}</div>` : ''}
+  ${d.what_works?.length ? `<div class="reel-output-block"><div class="reel-output-label">What's Working</div>${d.what_works.map(s=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--green);"></div><span style="font-size:13px;">${s}</span></div>`).join('')}</div>` : ''}
   <div class="reel-output-block">
     <div class="reel-output-label">Critical Fixes</div>
     ${(d.critical_fixes||[]).map(s=>`<div class="gap-item" style="margin-bottom:7px;"><div class="gap-dot" style="background:var(--red);"></div><span style="font-size:13px;">${s}</span></div>`).join('')}
   </div>
-  ${d.hook_rewrite ? `<div class="reel-output-block"><div class="reel-output-label">Rewritten Hook <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.hook_rewrite)})">Copy</button></div><div style="font-size:14px; line-height:1.6;">${d.hook_rewrite}</div></div>` : ''}
-  ${d.caption_rewrite ? `<div class="reel-output-block"><div class="reel-output-label">Optimized Caption <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(d.caption_rewrite)})">Copy</button></div><div style="font-size:14px; line-height:1.7;">${d.caption_rewrite}</div></div>` : ''}
-  ${d.hashtag_suggestions?.length ? `<div class="reel-output-block"><div class="reel-output-label">Suggested Hashtags <button class="btn-copy" onclick="copyText(this, ${JSON.stringify(ht)})">Copy All</button></div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.hashtag_suggestions.map(t=>`<span class="tag-pill">#${t}</span>`).join('')}</div></div>` : ''}
-  ${d.visual_notes ? `<div class="reel-output-block"><div class="reel-output-label">Visual Notes</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.visual_notes}</div></div>` : ''}
-  ${d.platform_fit ? `<div class="reel-output-block"><div class="reel-output-label">Platform Fit</div><div style="font-size:13px; color:var(--text-muted); line-height:1.6;">${d.platform_fit}</div></div>` : ''}`;
+  ${d.headline_rewrites?.length ? `<div class="reel-output-block"><div class="reel-output-label">Headline Rewrites</div>${d.headline_rewrites.map(h=>`<div style="padding:9px 13px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; font-size:14px; font-weight:600; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>${h}</span><button class="btn-copy" onclick="copyText(this,'${h.replace(/'/g,"\'")}')">Copy</button></div>`).join('')}</div>` : ''}
+  ${d.color_notes ? `<div class="reel-output-block"><div class="reel-output-label">Color Notes</div><div style="font-size:13px; color:var(--text-muted);">${d.color_notes}</div></div>` : ''}
+  ${d.composition_notes ? `<div class="reel-output-block"><div class="reel-output-label">Composition Notes</div><div style="font-size:13px; color:var(--text-muted);">${d.composition_notes}</div></div>` : ''}
+  ${d.canva_search_terms?.length ? `<div class="reel-output-block"><div class="reel-output-label">Better Template Search</div><div style="display:flex; flex-wrap:wrap; gap:6px;">${d.canva_search_terms.map(t=>`<span class="tag-pill">${t}</span>`).join('')}</div></div>` : ''}`;
 }
 
 function copyText(btn, text) {
