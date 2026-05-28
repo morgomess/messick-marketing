@@ -2810,21 +2810,22 @@ async function generateImprovedCover() {
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
 
   // Step 1: send the uploaded image to Claude to extract subject/person description + build prompt
-  const promptSystem = `You are an expert image prompt writer for Imagen 4 (Google). You will receive a reference image and audit notes. Your job is to write a single detailed Imagen prompt for an improved cover thumbnail that uses the reference image as its visual foundation.
+  const promptSystem = `You are an expert image prompt writer for Imagen 4 (Google). You will receive a reference image and audit notes. Your job is to write a single detailed Imagen prompt for an improved cover thumbnail.
 
-STEP 1 - EXTRACT from the reference image before writing anything:
-- If a real person is present: describe them with precision - approximate age range, body type/build, skin tone, hair color/length/style, glasses if any, clothing color and style, expression, posture, what they are doing. This description MUST appear verbatim in the prompt so Imagen recreates a similar person.
-- Note the setting/background (medical office, clinic, outdoor, etc.)
-- Note any visible text (for reference only - do not copy hex codes or technical strings into the prompt)
-- Note the overall lighting and mood
+EXTRACT from the reference image:
+- The setting/background (medical office, clinic, etc.)
+- The overall visual style, layout, and composition
+- The lighting and mood
+- Any text overlays (note the content only, not styling metadata)
 
-STEP 2 - WRITE the Imagen prompt using this structure:
-[SUBJECT & PERSON - use your extracted description] + [SETTING & BACKGROUND] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE - use color names not hex codes] + [TEXT OVERLAY if any] + [QUALITY FOOTER]
+DO NOT attempt to recreate or describe the specific person in the image. Instead use a generic professional subject description appropriate to the topic (e.g. "a friendly professional woman in a clinical setting" or "a confident medical professional").
+
+WRITE the Imagen prompt using this structure:
+[GENERIC PROFESSIONAL SUBJECT appropriate to topic] + [SETTING & BACKGROUND from reference] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE - color names only] + [TEXT OVERLAY if any] + [QUALITY FOOTER]
 
 CRITICAL rules:
-- NEVER put hex codes (like #0c2044) into the prompt as text - translate them to color names (e.g. "dark navy blue", "warm terracotta red")
-- Brand colors must be described as colors applied to backgrounds, overlays, and design elements - not rendered as visible text
-- The person description must be specific enough that Imagen generates someone who looks similar - include body type, not just face
+- NEVER put hex codes (like #0c2044) into the prompt - translate to color names (e.g. "dark navy blue", "warm terracotta")
+- Brand colors apply to backgrounds, overlays, and design elements - not as visible text
 - Output the prompt text ONLY - no JSON, no preamble, no explanation, no bullet points`;
 
   const fixes = (audit.critical_fixes || []).join('; ');
@@ -2836,7 +2837,7 @@ CRITICAL rules:
     ? `Brand colors: ${brandColors}. Use these as background, overlay, and accent colors - describe them by color name in the prompt, never as hex codes.`
     : '';
 
-  const promptUserMsg = `This is the reel cover I want to improve. Study the image carefully - especially the person shown - then write an Imagen 4 prompt for an improved version that uses this image as its base.
+  const promptUserMsg = `This is the reel cover I want to improve. Use it as a visual reference for style, setting, and layout - then write an Imagen 4 prompt for an improved version.
 
 Platform: ${platMap[platform]}
 ${context ? 'Topic: ' + context : ''}
