@@ -36,7 +36,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 <meta property="og:url" content="https://messickmarketing.com"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.cdnfonts.com/css/tex-gyre-heros" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -253,10 +253,16 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .insight-lead{max-width:820px;line-height:1.85}
 @media(max-width:960px){.svc-card-grid{grid-template-columns:1fr}.svc-card-row2{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:580px){.svc-card-row2{grid-template-columns:1fr}}
-.specialty-pills{display:grid;grid-template-columns:repeat(6,auto);justify-content:start;gap:.75rem;margin-top:2rem}
-@media(max-width:900px){.specialty-pills{grid-template-columns:repeat(4,auto)}}
-@media(max-width:560px){.specialty-pills{grid-template-columns:repeat(2,auto)}}
-.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--white);font-family:var(--font-body);font-size:.82rem;padding:.45rem 1rem;border-radius:99px;letter-spacing:.03em}
+.spec-flip-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:2rem}
+.spec-flip{height:70px;perspective:600px;cursor:default}
+.spec-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+.spec-flip:hover .spec-flip-inner{transform:rotateY(180deg)}
+.spec-flip-front,.spec-flip-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;padding:.5rem .7rem;background:rgba(0,0,0,.22);border-radius:3px}
+.spec-flip-back{transform:rotateY(180deg);background:rgba(0,0,0,.28)}
+.spec-flip-front span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.78rem;font-weight:400;color:rgba(255,255,255,.88);text-align:center;line-height:1.25;letter-spacing:.02em}
+.spec-flip-back span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.68rem;font-weight:300;color:rgba(255,255,255,.82);text-align:center;line-height:1.45}
+@media(max-width:900px){.spec-flip-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:560px){.spec-flip-grid{grid-template-columns:repeat(2,1fr)}.spec-flip{height:60px}}
 .bar-chart{margin-top:2.5rem;display:grid;gap:1.2rem}
 .bar-row{display:grid;grid-template-columns:100px 1fr 48px;gap:1rem;align-items:center}
 .bar-label{font-size:.85rem;color:var(--text-muted-light);font-family:var(--font-body)}
@@ -703,19 +709,92 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
     <p class="eyebrow light fu">Specialty Expertise</p>
     <h2 class="sh on-dark fu">We write about the procedures most agencies have to Google.</h2>
     <p class="sub on-dark fu" style="color:var(--steel-light)">UFE, GAE, PAE, kyphoplasty, DVT, CVI, embolization — this is our daily vocabulary, not a learning curve.</p>
-    <div class="specialty-pills fu">
-      <span class="pill">Interventional Radiology</span>
-      <span class="pill">Vascular &amp; Vein</span>
-      <span class="pill">Brain Health</span>
-      <span class="pill">OBL / MSO</span>
-      <span class="pill">Women’s Health</span>
-      <span class="pill">Mental Health</span>
-      <span class="pill">Orthopedic</span>
-      <span class="pill">PT / OT / SLP</span>
-      <span class="pill">Cardiovascular</span>
-      <span class="pill">Pain Management</span>
-      <span class="pill">Spine &amp; Neurology</span>
-      <span class="pill">Multi-location Groups</span>
+    <div class="spec-flip-grid fu">
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Interventional Radiology</span></div>
+          <div class="spec-flip-back"><span>UFE, GAE, PAE &#x2014; we write the procedures your patients are searching for</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Vascular &amp; Vein</span></div>
+          <div class="spec-flip-back"><span>CVI, DVT, PAD &#x2014; clinical accuracy without the learning curve</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Brain Health</span></div>
+          <div class="spec-flip-back"><span>Neurology meets narrative &#x2014; content that builds trust before the first appointment</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>OBL / MSO</span></div>
+          <div class="spec-flip-back"><span>We know the operational side, not just the clinical</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Women&#x2019;s Health</span></div>
+          <div class="spec-flip-back"><span>Sensitive topics, handled with authority and care</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Mental Health</span></div>
+          <div class="spec-flip-back"><span>Stigma-aware copy that meets patients where they are</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Orthopedic</span></div>
+          <div class="spec-flip-back"><span>Joints, spine, and sports med &#x2014; written for real patients</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>PT / OT / SLP</span></div>
+          <div class="spec-flip-back"><span>Rehab specialties that rarely get the content they deserve</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Cardiovascular</span></div>
+          <div class="spec-flip-back"><span>Heart health content that&#x2019;s accurate, warm, and searchable</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Pain Management</span></div>
+          <div class="spec-flip-back"><span>Complex conditions, clear copy &#x2014; no jargon, no fluff</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Spine &amp; Neurology</span></div>
+          <div class="spec-flip-back"><span>From discectomy to nerve blocks &#x2014; we know this territory</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Multi-location Groups</span></div>
+          <div class="spec-flip-back"><span>Consistent voice across every location and provider</span></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
