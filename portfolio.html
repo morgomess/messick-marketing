@@ -634,6 +634,23 @@
         background: linear-gradient(to top, rgba(17,17,17,0.85) 0%, transparent 60%);
       }
     }
+    .sample-card.is-hidden { display: none; }
+    .load-more-wrap { text-align: center; margin-top: 44px; }
+    .load-more-btn {
+      font-family: var(--font-display);
+      background: var(--blue);
+      color: var(--white);
+      border: none;
+      padding: 15px 38px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.2s ease;
+    }
+    .load-more-btn:hover { background: var(--blue-light); }
   </style>
 </head>
 <body>
@@ -830,7 +847,7 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/aspire-back-pain.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/aspire-back-pain.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Aspire Therapy</span>
         <span class="sample-title">Back Pain - Short Form Video</span>
@@ -913,10 +930,17 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/braintalk-reel.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/braintalk-reel.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Brain Talk Foundation</span>
         <span class="sample-title">Brain Talk Day - Event Recap</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/kelli-speaking-reel.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Brain Talk Foundation</span>
+        <span class="sample-title">Dr. Kelli - Speaking Reel</span>
       </div>
     </div>
 
@@ -957,14 +981,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/blackhills-coming-soon.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/blackhills-coming-soon.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">Coming Soon - Launch Announcement</span>
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/blackhills-pfe-explainer.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/blackhills-pfe-explainer.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">PFE for Chronic Heel Pain - Explainer</span>
@@ -1008,7 +1032,7 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/denver-stress-quiz.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/denver-stress-quiz.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Stress &amp; Mental Health - Quiz Reel</span>
@@ -1017,14 +1041,14 @@
 
     <!-- VIP -->
     <div class="sample-card">
-      <video src="/portfolio-assets/vip-embolization-explainer.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/vip-embolization-explainer.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Vascular &amp; Interventional Partners</span>
         <span class="sample-title">Embolization Explainer - Short-Form Video</span>
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/vip-brand-reel.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/vip-brand-reel.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Vascular &amp; Interventional Partners</span>
         <span class="sample-title">Brand Reel - Meet the Team</span>
@@ -1061,13 +1085,16 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/dcc-clinic-reel.mp4" autoplay muted loop playsinline></video>
+      <video src="/portfolio-assets/dcc-clinic-reel.mp4" muted loop playsinline preload="none"></video>
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">Inside the Cath Lab - Short-Form Video</span>
       </div>
     </div>
 
+  </div>
+  <div class="load-more-wrap">
+    <button class="load-more-btn" id="loadMoreSamples">Load more work</button>
   </div>
 </section>
 
@@ -1257,6 +1284,41 @@
   const nl = document.getElementById('navLinks');
   hbg.addEventListener('click', () => nl.classList.toggle('open'));
   nl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nl.classList.remove('open')));
+</script>
+
+<script>
+(function(){
+  var grid = document.querySelector('.samples-grid');
+  if(!grid) return;
+  var cards = [].slice.call(grid.querySelectorAll('.sample-card'));
+  var BATCH = 9, shown = BATCH;
+  var btn = document.getElementById('loadMoreSamples');
+  var wrap = btn ? btn.parentNode : null;
+
+  cards.forEach(function(c, i){ if(i >= BATCH) c.classList.add('is-hidden'); });
+  if(cards.length <= BATCH && wrap){ wrap.style.display = 'none'; }
+
+  function reveal(){
+    cards.slice(shown, shown + BATCH).forEach(function(c){ c.classList.remove('is-hidden'); });
+    shown += BATCH;
+    if(shown >= cards.length && wrap){ wrap.style.display = 'none'; }
+  }
+  if(btn){ btn.addEventListener('click', reveal); }
+
+  // Play videos only while on screen; pause off screen. Saves load and CPU.
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        var v = e.target;
+        if(e.isIntersecting){ var p = v.play(); if(p && p.catch){ p.catch(function(){}); } }
+        else { v.pause(); }
+      });
+    }, { rootMargin: '150px 0px', threshold: 0.1 });
+    grid.querySelectorAll('video').forEach(function(v){ io.observe(v); });
+  } else {
+    grid.querySelectorAll('video').forEach(function(v){ v.setAttribute('autoplay',''); });
+  }
+})();
 </script>
 
 </body>
