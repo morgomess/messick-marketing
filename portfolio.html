@@ -405,6 +405,21 @@
       background: var(--white);
       padding: 100px 40px;
     }
+    .web-section { background: var(--blue-pale); padding: 100px 40px; }
+    .web-grid { max-width: 1160px; margin: 3rem auto 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+    .web-card { display: block; text-decoration: none; color: inherit; background: var(--white); border: 1px solid var(--gray-light); border-radius: 10px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
+    .web-card:hover { transform: translateY(-5px); box-shadow: 0 20px 50px rgba(0,0,0,.12); }
+    .web-chrome { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #f1efea; border-bottom: 1px solid var(--gray-light); }
+    .web-dot { width: 10px; height: 10px; border-radius: 50%; background: #cfcbc4; }
+    .web-url { margin-left: 10px; font-family: var(--font-body); font-size: .72rem; color: var(--gray); }
+    .web-preview { position: relative; width: 100%; aspect-ratio: 16/10; overflow: hidden; background: #fff; }
+    .web-preview iframe { position: absolute; top: 0; left: 0; width: 320%; height: 320%; border: 0; transform: scale(.3125); transform-origin: 0 0; pointer-events: none; }
+    .web-meta { padding: 1.5rem 1.7rem; }
+    .web-type { font-family: var(--font-body); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
+    .web-meta h3 { font-family: var(--font-editorial); font-size: 1.5rem; color: var(--black); margin: .4rem 0 .5rem; line-height: 1.2; }
+    .web-meta p { font-family: var(--font-body); font-size: .86rem; color: var(--gray); line-height: 1.6; margin-bottom: .9rem; }
+    .web-cta { font-family: var(--font-body); font-size: .8rem; font-weight: 600; color: var(--blue); letter-spacing: .02em; }
+    @media(max-width:760px){ .web-grid { grid-template-columns: 1fr; } .web-section { padding: 70px 24px; } }
     .blog-section .section-header {
       text-align: center;
       margin-bottom: 60px;
@@ -917,6 +932,36 @@
 </section>
 
 <!-- CTA -->
+<section class="web-section">
+  <div class="section-header">
+    <span class="section-label">Website Design</span>
+    <h2>Sites built to convert.</h2>
+    <p>Concept builds showing how we design conversion-focused healthcare websites - fast, responsive, and built to turn visitors into booked appointments.</p>
+  </div>
+  <div class="web-grid">
+    <a class="web-card" href="/websites/vascularandvein.html" target="_blank" rel="noopener">
+      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">meridian vascular + vein</span></div>
+      <div class="web-preview"><iframe src="/websites/vascularandvein.html" loading="lazy" title="Meridian Vascular and Vein concept site" scrolling="no"></iframe></div>
+      <div class="web-meta">
+        <span class="web-type">Vascular &amp; Vein</span>
+        <h3>Meridian Vascular + Vein</h3>
+        <p>A multi-location vascular practice concept with a symptom checker, condition library, and procedure pages built around how patients actually search.</p>
+        <span class="web-cta">View live demo &#x2192;</span>
+      </div>
+    </a>
+    <a class="web-card" href="/websites/therapist.html" target="_blank" rel="noopener">
+      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">sarah calloway, lpc</span></div>
+      <div class="web-preview"><iframe src="/websites/therapist.html" loading="lazy" title="Sarah Calloway LPC concept site" scrolling="no"></iframe></div>
+      <div class="web-meta">
+        <span class="web-type">Mental Health</span>
+        <h3>Sarah Calloway, LPC</h3>
+        <p>A private-practice therapy concept designed around trust and fit - warm, calm, and built to turn quiet browsers into booked consultations.</p>
+        <span class="web-cta">View live demo &#x2192;</span>
+      </div>
+    </a>
+  </div>
+</section>
+
 <section class="cta-section">
   <h2>Ready to see what your<br><em>practice could look like?</em></h2>
   <p>Let's talk about your specialty, your market, and what content strategy could move the needle.</p>
