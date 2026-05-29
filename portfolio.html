@@ -7,7 +7,8 @@
   <meta name="description" content="Real work. Real clients. Healthcare content marketing that drives patient volume and builds practice authority." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.cdnfonts.com/css/tex-gyre-heros" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,9 +20,9 @@
       --blue-pale: #e8f2f7;
       --gray: #888;
       --gray-light: #e8e6e3;
-      --font-display: 'Dancing Script', cursive;
-      --font-editorial: 'Cormorant Garamond', serif;
-      --font-body: 'Jost', sans-serif;
+      --font-display: 'TeX Gyre Heros', 'Helvetica Neue', Arial, sans-serif;
+      --font-editorial: 'TeX Gyre Heros', 'Helvetica Neue', Arial, sans-serif;
+      --font-body: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -71,6 +72,21 @@
     }
     .nav-links a:hover,
     .nav-links a.active { color: var(--white); }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--white);
+    }
 
     /* ── HERO ── */
     .hero {
@@ -581,15 +597,42 @@
       .samples-grid { grid-template-columns: repeat(2, 1fr); }
       .blog-grid { grid-template-columns: repeat(2, 1fr); }
       nav { padding: 0 20px; }
-      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 64px;
+        left: 0; right: 0;
+        background: var(--black);
+        padding: 1.5rem 20px;
+        gap: 1.4rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+      }
+      .nav-links.open { display: flex; }
     }
     @media (max-width: 600px) {
-      .hero { padding: 110px 24px 60px; }
-      .hero-stats { gap: 32px; }
-      .featured-section, .samples-section, .blog-section, .cta-section { padding: 70px 24px; }
+      .hero { padding: 110px 20px 60px; }
+      .hero h1 { font-size: clamp(2.1rem, 9vw, 3rem); }
+      .hero-sub { font-size: 1.05rem; }
+      .hero-stats { gap: 28px; }
+      .featured-section, .samples-section, .blog-section, .cta-section { padding: 70px 20px; }
+      .cs-content { padding: 32px 24px; }
       .samples-grid, .blog-grid { grid-template-columns: 1fr 1fr; }
       .cs-metrics { grid-template-columns: 1fr 1fr; }
       footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+    @media (max-width: 430px) {
+      .blog-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 20px; }
+      .stat-number { font-size: 2.1rem; }
+    }
+    /* Touch devices have no hover, so reveal sample captions by default */
+    @media (hover: none) {
+      .sample-overlay {
+        opacity: 1;
+        background: linear-gradient(to top, rgba(17,17,17,0.85) 0%, transparent 60%);
+      }
     }
   </style>
 </head>
@@ -598,12 +641,15 @@
 <!-- NAV -->
 <nav>
   <a href="/index.html" class="nav-logo">Messick Marketing</a>
-  <ul class="nav-links">
+  <ul class="nav-links" id="navLinks">
     <li><a href="/index.html">Home</a></li>
     <li><a href="/portfolio.html" class="active">Portfolio</a></li>
     <li><a href="/index.html#services">Services</a></li>
     <li><a href="/index.html#contact">Contact</a></li>
   </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -955,6 +1001,13 @@
   <a href="/index.html" class="footer-logo">Messick Marketing</a>
   <p>&copy; 2026 Messick Marketing. All rights reserved.</p>
 </footer>
+
+<script>
+  const hbg = document.getElementById('hamburger');
+  const nl = document.getElementById('navLinks');
+  hbg.addEventListener('click', () => nl.classList.toggle('open'));
+  nl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nl.classList.remove('open')));
+</script>
 
 </body>
 </html>
