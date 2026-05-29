@@ -36,7 +36,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 <meta property="og:url" content="https://messickmarketing.com"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.cdnfonts.com/css/tex-gyre-heros" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -234,29 +234,28 @@ h2.sh.on-dark em{color:var(--steel-light)}
 .insight-list li{color:var(--text-muted-dark);font-size:.9rem;line-height:1.7;padding-left:1.4rem;position:relative}
 .insight-list li::before{content:'';position:absolute;left:0;top:.72rem;width:7px;height:7px;background:var(--steel-light)}
 /* ── SVC CARDS ── */
-.svc-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:2.8rem}
-.svc-card-row2{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:1.4rem}
+.svc-card-unified{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:2.8rem}
 .svc-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:1.8rem 1.6rem;position:relative;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
 .svc-card::before{content:'';position:absolute;inset:0;border-radius:6px;background:linear-gradient(135deg,rgba(58,107,138,.18) 0%,transparent 60%);opacity:0;transition:opacity .3s ease;pointer-events:none}
 .svc-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(58,107,138,.18);border-color:rgba(90,154,184,.3)}
 .svc-card:hover::before{opacity:1}
-.svc-card.primary{background:rgba(58,107,138,.12);border-color:rgba(90,154,184,.22)}
-.svc-card.primary::before{background:linear-gradient(135deg,rgba(58,107,138,.28) 0%,transparent 70%)}
 .svc-card-icon{width:38px;height:38px;border-radius:8px;background:rgba(90,154,184,.12);display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem;flex-shrink:0}
 .svc-card-icon svg{stroke:var(--steel-light);width:20px;height:20px}
-.svc-card.primary .svc-card-icon{background:rgba(90,154,184,.2)}
 .svc-card h3{font-family:var(--font-heading);font-size:1.05rem;color:var(--white);margin-bottom:.55rem;line-height:1.25}
-.svc-card.primary h3{font-size:1.2rem;color:var(--white)}
 .svc-card p{font-size:.84rem;line-height:1.75;color:var(--text-muted-dark)}
-.svc-card.primary p{font-size:.88rem;color:rgba(232,228,222,.75)}
-.svc-section-cta{margin-top:2.8rem;display:flex;gap:1rem;flex-wrap:wrap}
 .insight-lead{max-width:820px;line-height:1.85}
-@media(max-width:960px){.svc-card-grid{grid-template-columns:1fr}.svc-card-row2{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:580px){.svc-card-row2{grid-template-columns:1fr}}
-.specialty-pills{display:grid;grid-template-columns:repeat(6,auto);justify-content:start;gap:.75rem;margin-top:2rem}
-@media(max-width:900px){.specialty-pills{grid-template-columns:repeat(4,auto)}}
-@media(max-width:560px){.specialty-pills{grid-template-columns:repeat(2,auto)}}
-.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--white);font-family:var(--font-body);font-size:.82rem;padding:.45rem 1rem;border-radius:99px;letter-spacing:.03em}
+@media(max-width:860px){.svc-card-unified{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.svc-card-unified{grid-template-columns:1fr}}
+.spec-flip-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:2rem}
+.spec-flip{height:70px;perspective:1000px;-webkit-perspective:1000px;cursor:default}
+.spec-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .5s cubic-bezier(.25,.46,.45,.94);will-change:transform}
+.spec-flip:hover .spec-flip-inner{transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}
+.spec-flip-front,.spec-flip-back{position:absolute;top:0;right:0;bottom:0;left:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;padding:.5rem .7rem;background:rgba(0,0,0,.22);border-radius:3px}
+.spec-flip-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);background:rgba(0,0,0,.28)}
+.spec-flip-front span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.78rem;font-weight:400;color:rgba(255,255,255,.88);text-align:center;line-height:1.25;letter-spacing:.02em}
+.spec-flip-back span{font-family:'Jost','Helvetica Neue',sans-serif;font-size:.68rem;font-weight:300;color:rgba(255,255,255,.82);text-align:center;line-height:1.45}
+@media(max-width:900px){.spec-flip-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:560px){.spec-flip-grid{grid-template-columns:repeat(2,1fr)}.spec-flip{height:60px}}
 .bar-chart{margin-top:2.5rem;display:grid;gap:1.2rem}
 .bar-row{display:grid;grid-template-columns:100px 1fr 48px;gap:1rem;align-items:center}
 .bar-label{font-size:.85rem;color:var(--text-muted-light);font-family:var(--font-body)}
@@ -403,43 +402,15 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 @keyframes tickerScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
 @media(max-width:580px){.stat-ticker-wrap{max-width:100%}.stat-ticker-track span{font-size:.82rem}}
 @media(max-width:580px){.stats-bar .inner{grid-template-columns:1fr;gap:1.6rem}}
-/* ── STRATEGY SECTION ── */
-.strategy-section{background:var(--white);padding:100px 5%}
-.strategy-wrap{max-width:1100px;margin:0 auto}
-.strategy-top{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:end;margin-bottom:3.5rem}
-.strategy-headline{font-family:var(--font-heading);font-size:clamp(2rem,3.5vw,3rem);font-weight:300;line-height:1.15;color:var(--black)}
-.strategy-headline em{font-style:italic;color:var(--steel)}
-.strategy-right p{font-size:.9rem;color:var(--text-muted-light);line-height:1.85}
-/* timeline */
-.s-timeline{display:flex;flex-direction:column;gap:0;position:relative;margin-bottom:3rem}
-.s-timeline::before{content:'';position:absolute;left:22px;top:0;bottom:0;width:1px;background:rgba(0,0,0,.1)}
-.s-step{display:grid;grid-template-columns:44px 1fr;gap:1.4rem;padding:2rem 0;position:relative;opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
-.s-step.s-revealed{opacity:1;transform:none}
-.s-step:first-child{padding-top:.5rem}
-.s-dot{width:44px;height:44px;border-radius:50%;border:1px solid rgba(58,107,138,.35);background:rgba(58,107,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .4s,border-color .4s}
-.s-step.active .s-dot,.s-step.s-revealed .s-dot{background:var(--steel);border-color:var(--steel)}
-.s-dot span{font-family:var(--font-heading);font-size:.72rem;font-weight:700;color:var(--steel)}
-.s-step.active .s-dot span,.s-step.s-revealed .s-dot span{color:var(--white)}
-.s-content{padding-top:.55rem}
-.s-label{font-size:.63rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);opacity:.65;margin-bottom:.3rem}
-.s-title{font-family:var(--font-heading);font-size:1.1rem;color:var(--black);margin-bottom:.5rem;line-height:1.2}
-.s-desc{font-size:.84rem;color:var(--text-muted-light);line-height:1.75}
-/* channel row */
-.s-channels{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
-.s-chip{font-size:.68rem;font-weight:500;letter-spacing:.05em;color:var(--steel);background:rgba(58,107,138,.06);border:1px solid rgba(58,107,138,.18);border-radius:2px;padding:.22rem .6rem}
-/* progress bar */
-.s-progress-wrap{margin-bottom:3rem}
-.s-progress-label{display:flex;justify-content:space-between;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,0,0,.4);margin-bottom:.6rem}
-.s-progress-track{height:2px;background:rgba(0,0,0,.08);border-radius:2px;overflow:hidden}
-.s-progress-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--steel),var(--steel-light));width:0;transition:width 1.4s cubic-bezier(.25,.46,.45,.94)}
-.s-progress-fill.animate{width:100%}
-/* beyond */
-.s-beyond{border-top:1px solid rgba(0,0,0,.08);padding-top:2.2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;margin-bottom:2.4rem}
-.s-beyond p{font-size:.88rem;color:var(--text-muted-light);line-height:1.8;max-width:620px}
-.s-beyond p em{color:var(--steel);font-style:normal}
-.strategy-cta{display:flex;gap:1rem;flex-wrap:wrap}
-@media(max-width:860px){.strategy-top{grid-template-columns:1fr;gap:1.8rem}}
-@media(max-width:580px){.s-timeline::before{left:18px}.s-dot{width:36px;height:36px}.s-step{grid-template-columns:36px 1fr;gap:1rem}}
+/* ── SERVICES MARQUEE ── */
+.svc-niche-strip{border-top:1px solid rgba(255,255,255,.08);padding-top:2.5rem;overflow:hidden;position:relative;margin-top:3rem}
+.svc-niche-strip::before,.svc-niche-strip::after{content:'';position:absolute;top:2.5rem;bottom:0;width:80px;z-index:2}
+.svc-niche-strip::before{left:0;background:linear-gradient(to right,var(--black),transparent)}
+.svc-niche-strip::after{right:0;background:linear-gradient(to left,var(--black),transparent)}
+.svc-niche-label{font-size:.62rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--steel-light);margin-bottom:1.2rem}.port-preview{border-top:1px solid rgba(255,255,255,.08);padding-top:2.5rem;margin-top:3rem}.port-preview-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:1.6rem}.port-preview-head .svc-niche-label{margin-bottom:0}.port-preview-link{font-family:'Jost',sans-serif;font-size:.82rem;letter-spacing:.03em;color:var(--steel-light);text-decoration:none;white-space:nowrap;transition:color .2s}.port-preview-link:hover{color:#fff}.port-preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}.port-thumb{display:block;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.08);aspect-ratio:1/1;background:rgba(255,255,255,.03)}.port-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}.port-thumb:hover img{transform:scale(1.05)}@media(max-width:680px){.port-preview-grid{grid-template-columns:repeat(2,1fr);gap:.7rem}}
+.svc-niche-track{display:flex;gap:3rem;animation:svcMarquee 28s linear infinite;width:max-content}
+.svc-niche-item{font-size:.8rem;font-weight:500;color:var(--text-muted-dark);white-space:nowrap}
+@keyframes svcMarquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 </style>
 <script type="application/ld+json">
 {
@@ -543,123 +514,77 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 <section id="visibility" class="insight-section">
   <div class="inner">
     <p class="eyebrow light fu">What We Do</p>
-    <h2 class="sh on-dark fu" style="max-width:860px;line-height:1.15">Full-service content, <em>built for the way patients search.</em></h2>
-    <p class="insight-lead fu on-dark">We don&rsquo;t use generic healthcare templates. Every caption, blog post, and piece of copy is written with a real understanding of the procedures you perform and the patients you serve.</p>
+    <h2 class="sh on-dark fu" style="max-width:860px;line-height:1.15">Everything You Need, <em>In One Place.</em></h2>
+    <p class="insight-lead fu on-dark">One team. Every channel. Specialists in the specialties.</p>
 
-    <!-- Row 1: Primary services -->
-    <div class="svc-card-grid fu">
+    <div class="svc-card-unified fu">
 
-      <div class="svc-card primary">
+      <div class="svc-card">
         <div class="svc-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
         </div>
-        <h3>Content Marketing</h3>
-        <p>Your Google Business Profile, blog, social channels, website, and YouTube should all be telling the same story. We build cohesive, specialty-specific messaging across every platform so patients hear a consistent voice - wherever they find you first.</p>
+        <h3>Content Strategy</h3>
+        <p>A clear roadmap connecting what you publish to how you grow, built around your procedures and patient journey - not a generic template.</p>
       </div>
-
-      <div class="svc-card primary">
-        <div class="svc-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-        </div>
-        <h3>AI Expertise</h3>
-        <p>40 million people ask AI a health question every day. The way patients find and choose a provider is changing fast - we build content and automations that keep your practice visible in that shift, not behind it.</p>
-      </div>
-
-    </div>
-
-    <!-- Row 2: Secondary services -->
-    <div class="svc-card-row2 fu">
 
       <div class="svc-card">
         <div class="svc-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <h3>Social Media Management</h3>
-        <p>Consistent social growth and patient engagement without adding work to your staff - scheduling, moderation, and monthly reporting handled end-to-end.</p>
+        <p>Platform-native content across Instagram, Facebook, LinkedIn, and YouTube. Scheduling, moderation, and monthly reporting handled end-to-end.</p>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Blog &amp; Long-Form Content</h3>
+        <p>Procedure explainers and patient education written with clinical accuracy and built to rank on Google.</p>
       </div>
 
       <div class="svc-card">
         <div class="svc-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         </div>
-        <h3>Website Design</h3>
-        <p>Conversion-focused healthcare websites built for trust, SEO, and turning visitors into scheduled consultations.</p>
+        <h3>Website &amp; Web Copy</h3>
+        <p>Conversion-focused service pages and web copy designed to turn visitors into scheduled consultations.</p>
       </div>
 
       <div class="svc-card">
         <div class="svc-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
-        <h3>Blog Posts &amp; Copywriting</h3>
-        <p>Long-form blog content, procedure explainers, and website copy written with clinical accuracy and built to rank.</p>
+        <h3>SEO &amp; Local Visibility</h3>
+        <p>GBP optimization, local search, and AI search positioning so patients find you wherever they look first.</p>
       </div>
 
-    </div>
-
-    <div class="svc-section-cta fu">
-      <a href="#portfolio" class="btn btn-steel">See how it works</a>
-      <a href="https://calendly.com/morgan-messickmarketing/30min" class="btn btn-ghost" target="_blank" rel="noopener">Book a strategy call</a>
-    </div>
-  </div>
-</section>
-
-<!-- STRATEGY SECTION -->
-<section class="strategy-section">
-  <div class="strategy-wrap">
-
-    <div class="strategy-top fu">
-      <div>
-        <p class="eyebrow" style="margin-bottom:.9rem">Our Process</p>
-        <h2 class="strategy-headline">A 90-day strategy, <em>built around your practice.</em></h2>
-        <p class="sub fu" style="margin-top:1.2rem;max-width:540px">Every client engagement starts with a focused roadmap. Here&rsquo;s what a first quarter often looks like.</p>
-      </div>
-    </div>
-
-    <!-- Animated progress bar -->
-    <div class="s-progress-wrap fu">
-      <div class="s-progress-label"><span>Day 1</span><span>Day 90</span></div>
-      <div class="s-progress-track"><div class="s-progress-fill" id="stratProgress"></div></div>
-    </div>
-
-    <!-- Timeline steps -->
-    <div class="s-timeline">
-
-      <div class="s-step">
-        <div class="s-dot"><span>01</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 1 – 30</div>
-          <div class="s-title">Clarify</div>
-          <div class="s-desc">Messaging, service lines, voice, and content priorities.</div>
+      <div class="svc-card">
+        <div class="svc-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         </div>
-      </div>
-
-      <div class="s-step">
-        <div class="s-dot"><span>02</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 31 – 60</div>
-          <div class="s-title">Create</div>
-          <div class="s-desc">Blog posts, social content, Google Business Profile, and copywriting.</div>
-        </div>
-      </div>
-
-      <div class="s-step">
-        <div class="s-dot"><span>03</span></div>
-        <div class="s-content">
-          <div class="s-label">Days 61 – 90</div>
-          <div class="s-title">Optimize</div>
-          <div class="s-desc">Review performance, refine strategy, and plan the next quarter.</div>
-        </div>
+        <h3>AI-Ready Presence</h3>
+        <p>40 million people ask AI a health question every day. We build content that keeps your practice visible in that shift, not behind it.</p>
       </div>
 
     </div>
 
-    <div class="s-beyond fu">
-      <div class="strategy-cta">
-        <a href="#contact" class="btn btn-steel">Build your strategy</a>
+    <div class="port-preview fu">
+      <div class="port-preview-head">
+        <div class="svc-niche-label">Selected work</div>
+        <a class="port-preview-link" href="/portfolio">View full portfolio &#x2192;</a>
+      </div>
+      <div class="port-preview-grid">
+        <a class="port-thumb" href="/portfolio"><img src="/portfolio-assets/tvi-ufe-before-after.png" alt="UFE patient education - Texas Vascular Institute" loading="lazy"/></a>
+        <a class="port-thumb" href="/portfolio"><img src="/portfolio-assets/jvi-knee-pain.png" alt="Knee pain education - Joint and Vascular Institute" loading="lazy"/></a>
+        <a class="port-thumb" href="/portfolio"><img src="/portfolio-assets/ecco-minimally-invasive.png" alt="Minimally invasive care - ECCO Medical" loading="lazy"/></a>
+        <a class="port-thumb" href="/portfolio"><img src="/portfolio-assets/svv-fibroid-relief.png" alt="Fibroid relief - Sound Vascular and Vein" loading="lazy"/></a>
       </div>
     </div>
 
   </div>
+</section>
+
 </section>
 
 <!-- SPECIALTIES -->
@@ -667,20 +592,93 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
   <div class="inner">
     <p class="eyebrow light fu">Specialty Expertise</p>
     <h2 class="sh on-dark fu">We write about the procedures most agencies have to Google.</h2>
-    <p class="sub on-dark fu" style="color:var(--steel-light)">UFE, GAE, PAE, kyphoplasty, DVT, CVI, embolization — this is our daily vocabulary, not a learning curve.</p>
-    <div class="specialty-pills fu">
-      <span class="pill">Interventional Radiology</span>
-      <span class="pill">Vascular &amp; Vein</span>
-      <span class="pill">Brain Health</span>
-      <span class="pill">OBL / MSO</span>
-      <span class="pill">Women’s Health</span>
-      <span class="pill">Mental Health</span>
-      <span class="pill">Orthopedic</span>
-      <span class="pill">PT / OT / SLP</span>
-      <span class="pill">Cardiovascular</span>
-      <span class="pill">Pain Management</span>
-      <span class="pill">Spine &amp; Neurology</span>
-      <span class="pill">Multi-location Groups</span>
+    <p class="sub on-dark fu" style="color:var(--steel-light)">UFE, GAE, PAE, kyphoplasty, DVT, CVI, embolization - this is our daily vocabulary, not a learning curve.</p>
+    <div class="spec-flip-grid fu">
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Interventional Radiology</span></div>
+          <div class="spec-flip-back"><span>UFE, GAE, PAE - we write the procedures your patients are searching for</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Vascular &amp; Vein</span></div>
+          <div class="spec-flip-back"><span>CVI, DVT, PAD - clinical accuracy without the learning curve</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Brain Health</span></div>
+          <div class="spec-flip-back"><span>Neurology meets narrative - content that builds trust before the first appointment</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>OBL / MSO</span></div>
+          <div class="spec-flip-back"><span>We know the operational side, not just the clinical</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Women&#x2019;s Health</span></div>
+          <div class="spec-flip-back"><span>Sensitive topics, handled with authority and care</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Mental Health</span></div>
+          <div class="spec-flip-back"><span>Stigma-aware copy that meets patients where they are</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Orthopedic</span></div>
+          <div class="spec-flip-back"><span>Joints, spine, and sports med - written for real patients</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>PT / OT / SLP</span></div>
+          <div class="spec-flip-back"><span>Rehab specialties that rarely get the content they deserve</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Cardiovascular</span></div>
+          <div class="spec-flip-back"><span>Heart health content that&#x2019;s accurate, warm, and searchable</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Pain Management</span></div>
+          <div class="spec-flip-back"><span>Complex conditions, clear copy - no jargon, no fluff</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Spine &amp; Neurology</span></div>
+          <div class="spec-flip-back"><span>From discectomy to nerve blocks - we know this territory</span></div>
+        </div>
+      </div>
+
+      <div class="spec-flip">
+        <div class="spec-flip-inner">
+          <div class="spec-flip-front"><span>Multi-location Groups</span></div>
+          <div class="spec-flip-back"><span>Consistent voice across every location and provider</span></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -694,7 +692,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
       <article class="process-step fu">
         <span>1</span>
         <h3>We learn your practice and goals.</h3>
-        <p>Procedures, patients, providers — we go deep before writing a single word.</p>
+        <p>Procedures, patients, providers - we go deep before writing a single word.</p>
       </article>
       <article class="process-step fu">
         <span>2</span>
@@ -977,25 +975,7 @@ document.getElementById('testiNext').addEventListener('click', () => showTesti(c
 setInterval(() => showTesti(cur + 1), 6000);
 
 // â”€â”€ CONTACT FORM â”€â”€
-// 90-day step reveal — each step fades in as it scrolls into view,
-// progress bar increments by 1/3 per revealed step
-(function() {
-  var steps = Array.prototype.slice.call(document.querySelectorAll('.s-step'));
-  var fill  = document.getElementById('stratProgress');
-  if (!steps.length) return;
-  var count = 0;
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (!e.isIntersecting) return;
-      e.target.classList.add('s-revealed');
-      count++;
-      var pct = (count / steps.length) * 100;
-      setTimeout(function() { if (fill) fill.style.width = pct + '%'; }, 120);
-      io.unobserve(e.target);
-    });
-  }, { threshold: 0.4, rootMargin: '0px 0px -8% 0px' });
-  steps.forEach(function(s) { io.observe(s); });
-})();
+
 
 // Counter animation for 2M+
 function animateCounter(el, target, duration) {
