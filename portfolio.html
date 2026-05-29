@@ -307,6 +307,7 @@
       color: var(--black);
       display: block;
       line-height: 1;
+      overflow-wrap: break-word;
     }
     .metric-label {
       font-size: 0.7rem;
@@ -594,7 +595,7 @@
       .cs-visual { min-height: 320px; }
       .cs-content { padding: 40px 32px; }
       .cs-metrics { grid-template-columns: repeat(3, 1fr); }
-      .samples-grid { grid-template-columns: repeat(2, 1fr); }
+      .samples-grid { grid-template-columns: repeat(3, 1fr); }
       .blog-grid { grid-template-columns: repeat(2, 1fr); }
       nav { padding: 0 20px; }
       .hamburger { display: flex; }
@@ -619,7 +620,13 @@
       .featured-section, .samples-section, .blog-section, .cta-section { padding: 70px 20px; }
       .cs-content { padding: 32px 24px; }
       .samples-grid, .blog-grid { grid-template-columns: 1fr 1fr; }
-      .cs-metrics { grid-template-columns: 1fr 1fr; }
+      .cs-metrics { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .metric-value { font-size: 1.05rem; line-height: 1.15; }
+      .metric-label { font-size: 0.58rem; letter-spacing: 0.04em; margin-top: 4px; }
+      .sample-overlay { padding: 12px; }
+      .sample-title { font-size: 0.82rem; }
+      .sample-client { font-size: 0.56rem; letter-spacing: 0.12em; }
+      .load-more-btn { padding: 13px 26px; font-size: 0.72rem; }
       footer { flex-direction: column; gap: 12px; text-align: center; }
     }
     @media (max-width: 430px) {
