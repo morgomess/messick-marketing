@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Symptom Checker - Patient Education Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c1219;--ink2:#2d3a47;--muted:#6b7a8d;--rule:#dde2e8;
+  --teal:#0a7b6a;--teal2:#0e9e89;--teal-pale:#e4f3f1;--teal-mid:#c2e8e3;
+  --bg:#f7f9fb;--white:#ffffff;--gold:#b8892e;--f:'Figtree',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--white);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:40px;border-bottom:1px solid var(--rule);background:var(--bg)}
+.header-top-badges{display:flex;align-items:center;gap:20px}
+.hbadge{font-size:11px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px}
+.hbadge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);flex-shrink:0}
+.header-top-right{display:flex;align-items:center;gap:16px}
+.h-phone{font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;transition:color .15s}
+.h-phone:hover{color:var(--ink)}
+.h-cta{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--teal);color:#fff;padding:7px 16px;text-decoration:none;transition:background .15s}
+.h-cta:hover{background:var(--teal2)}
+.header-main{display:flex;flex-direction:column;align-items:center;padding:18px 48px 0}
+.h-logo{font-size:21px;font-weight:700;letter-spacing:-.025em;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.h-logo-icon{width:26px;height:26px;border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.h-logo em{font-style:normal;color:var(--teal)}
+.h-nav{display:flex;align-items:center;border-top:1px solid var(--rule);width:100%;justify-content:center}
+.h-nav a{font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--muted);text-decoration:none;padding:11px 22px;border-right:1px solid var(--rule);transition:color .15s,background .15s;white-space:nowrap}
+.h-nav a:first-child{border-left:1px solid var(--rule)}
+.h-nav a:hover{color:var(--ink);background:var(--bg)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--ink2);transition:transform .25s,opacity .25s}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--white);z-index:190;flex-direction:column;padding-top:110px}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:16px 32px;font-size:15px;font-weight:500;color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--rule);transition:color .15s}
+.mobile-menu a:hover{color:var(--teal)}
+.mobile-menu .m-cta{background:var(--teal);color:#fff;margin:24px 32px 0;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:12px;padding:14px 24px;text-align:center}
+
+/* ── HERO ── */
+.hero{background:var(--ink);min-height:calc(100vh - 113px);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.hero-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px}
+.hero-glow{position:absolute;top:-260px;right:-160px;width:800px;height:700px;background:radial-gradient(ellipse,rgba(10,123,106,.16) 0%,transparent 60%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-200px;left:-100px;width:500px;height:500px;background:radial-gradient(ellipse,rgba(10,123,106,.07) 0%,transparent 65%);pointer-events:none}
+.hero-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px 48px 60px;max-width:860px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:28px}
+.hero-eyebrow-line{width:28px;height:1.5px;background:var(--teal2);flex-shrink:0}
+.hero h1{font-size:clamp(40px,6.5vw,82px);font-weight:700;line-height:1;letter-spacing:-.03em;color:#fff;margin-bottom:28px}
+.hero h1 .light{font-weight:300;font-style:italic;color:var(--teal2)}
+.hero-sub{font-size:17px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.5);max-width:540px;margin-bottom:44px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-fill{font-size:13px;font-weight:700;letter-spacing:.04em;background:var(--teal);color:#fff;padding:15px 32px;text-decoration:none;display:inline-block;transition:background .15s,transform .15s}
+.btn-fill:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-outline{font-size:13px;font-weight:500;color:rgba(255,255,255,.5);text-decoration:none;display:inline-block;padding:15px 24px;border:1px solid rgba(255,255,255,.14);transition:color .15s,border-color .15s}
+.btn-outline:hover{color:#fff;border-color:rgba(255,255,255,.35)}
+.hero-stats{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.07)}
+.hstat{padding:30px 48px;border-right:1px solid rgba(255,255,255,.07)}
+.hstat:last-child{border-right:none}
+.hstat-n{font-size:clamp(30px,3.5vw,48px);font-weight:700;letter-spacing:-.03em;color:#fff;display:block;line-height:1;margin-bottom:6px}
+.hstat-n .acc{color:var(--teal2)}
+.hstat-l{font-size:12px;font-weight:400;color:rgba(255,255,255,.3)}
+
+/* ── TRUST ── */
+.trust{background:var(--teal);padding:0 48px;display:flex;align-items:center;overflow-x:auto;scrollbar-width:none}
+.trust::-webkit-scrollbar{display:none}
+.trust-item{display:flex;align-items:center;gap:8px;padding:14px 28px 14px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;white-space:nowrap}
+.trust-item:last-child{border-right:none}
+.trust-item span{font-size:12px;font-weight:600;color:#fff}
+
+/* ── SYMPTOM CHECKER ── */
+.symptom-sec{background:var(--ink);padding:80px 48px;border-bottom:1px solid rgba(255,255,255,.07);position:relative;overflow:hidden}
+.symptom-sec .hero-dots{opacity:.4}
+.symptom-sec .hero-glow{top:-300px;right:-300px;opacity:.7}
+.symptom-inner{position:relative;z-index:2;max-width:760px;margin:0 auto}
+.symptom-sec .sec-label{color:var(--teal2)}
+.symptom-sec .sec-h2{color:#fff}
+.symptom-sec .sec-h2 em{color:var(--teal2)}
+.sc-widget{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);padding:40px;margin-top:40px}
+.sc-step{display:none}
+.sc-step.active{display:block}
+.sc-q{font-size:20px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:8px;line-height:1.3}
+.sc-hint{font-size:13px;font-weight:300;color:rgba(255,255,255,.4);margin-bottom:28px}
+.sc-options{display:flex;flex-direction:column;gap:10px}
+.sc-opt{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  cursor:pointer;transition:background .15s,border-color .15s;text-align:left;width:100%;
+  font-family:var(--f);
+}
+.sc-opt:hover{background:rgba(14,158,137,.15);border-color:var(--teal2)}
+.sc-opt-icon{width:36px;height:36px;border-radius:50%;background:rgba(14,158,137,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.sc-opt-label{font-size:15px;font-weight:600;color:#fff}
+.sc-opt-sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.45);margin-top:2px}
+.sc-progress{display:flex;gap:6px;margin-bottom:28px}
+.sc-pip{height:3px;flex:1;background:rgba(255,255,255,.1);transition:background .3s}
+.sc-pip.done{background:var(--teal2)}
+.sc-back{background:none;border:none;font-family:var(--f);font-size:12px;font-weight:500;color:rgba(255,255,255,.35);cursor:pointer;padding:0;margin-bottom:24px;display:none;transition:color .15s}
+.sc-back:hover{color:rgba(255,255,255,.7)}
+.sc-result{display:none;animation:fadeIn .4s ease}
+.sc-result.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sc-result-card{background:rgba(14,158,137,.12);border:1px solid rgba(14,158,137,.3);padding:32px}
+.sc-result-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal2);margin-bottom:12px}
+.sc-result-title{font-size:22px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:10px}
+.sc-result-body{font-size:14px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.6);margin-bottom:24px}
+.sc-result-btns{display:flex;gap:12px;flex-wrap:wrap}
+.sc-restart{background:none;border:1px solid rgba(255,255,255,.15);font-family:var(--f);font-size:12px;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;padding:10px 18px;transition:color .15s,border-color .15s}
+.sc-restart:hover{color:#fff;border-color:rgba(255,255,255,.35)}
+
+/* ── SECTION COMMONS ── */
+.sec-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-idx{font-weight:400;color:var(--muted);letter-spacing:.08em}
+.sec-h2{font-size:clamp(26px,3.8vw,46px);font-weight:700;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin-bottom:48px}
+.sec-h2 em{font-style:italic;font-weight:300;color:var(--teal)}
+
+/* ── CONDITIONS ── */
+.conditions{padding:80px 48px;border-bottom:1px solid var(--rule)}
+.cond-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.cond-card{background:var(--white);padding:32px 28px;position:relative;overflow:hidden;transition:background .2s}
+.cond-card:hover{background:var(--teal-pale)}
+.cond-n{position:absolute;top:10px;right:16px;font-size:52px;font-weight:700;letter-spacing:-.04em;color:var(--rule);line-height:1;transition:color .2s;pointer-events:none}
+.cond-card:hover .cond-n{color:rgba(10,123,106,.1)}
+.cond-cat{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.cond-name{font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.2;margin-bottom:10px}
+.cond-desc{font-size:13px;font-weight:400;line-height:1.75;color:var(--muted)}
+.cond-more{display:inline-flex;align-items:center;gap:5px;margin-top:16px;font-size:12px;font-weight:700;color:var(--teal);text-decoration:none;opacity:0;transition:opacity .2s}
+.cond-card:hover .cond-more{opacity:1}
+
+/* ── PROCEDURE EXPLAINERS ── */
+.procedures{padding:80px 48px;border-bottom:1px solid var(--rule);background:var(--bg)}
+.proc-tabs{display:flex;gap:0;border:1px solid var(--rule);margin-bottom:48px;overflow-x:auto;scrollbar-width:none}
+.proc-tabs::-webkit-scrollbar{display:none}
+.proc-tab{
+  flex:1;padding:18px 28px;text-align:center;cursor:pointer;
+  font-size:13px;font-weight:600;letter-spacing:.02em;
+  color:var(--muted);background:var(--white);
+  border-right:1px solid var(--rule);
+  transition:color .15s,background .15s;white-space:nowrap;
+  border:none;font-family:var(--f);
+}
+.proc-tab:last-child{border-right:none}
+.proc-tab.active{background:var(--teal);color:#fff}
+.proc-tab:not(.active):hover{background:var(--teal-pale);color:var(--ink)}
+
+.proc-panel{display:none}
+.proc-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+
+.proc-info h3{font-size:28px;font-weight:700;letter-spacing:-.025em;color:var(--ink);margin-bottom:8px}
+.proc-info .proc-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+.proc-info p{font-size:14px;font-weight:400;line-height:1.8;color:var(--muted);margin-bottom:24px}
+
+.proc-timeline{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.proc-tl-item{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:start;padding:16px 0;border-bottom:1px solid var(--rule)}
+.proc-tl-item:last-child{border-bottom:none}
+.proc-tl-day{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);padding-top:2px}
+.proc-tl-text{font-size:13px;font-weight:400;line-height:1.65;color:var(--ink2)}
+.proc-tl-text strong{font-weight:600;color:var(--ink)}
+
+/* ── SVG ANIMATION AREA ── */
+.proc-visual{background:var(--white);border:1px solid var(--rule);padding:32px;display:flex;flex-direction:column;align-items:center}
+.proc-visual-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;align-self:flex-start}
+.proc-svg-wrap{width:100%;max-width:320px;margin:0 auto}
+.proc-svg-wrap svg{width:100%;height:auto;display:block}
+.proc-anim-controls{display:flex;gap:10px;margin-top:20px;width:100%;justify-content:center}
+.anim-btn{
+  font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:9px 20px;cursor:pointer;border:1px solid var(--rule);background:var(--white);
+  color:var(--muted);transition:all .15s;
+}
+.anim-btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.anim-btn:hover{border-color:var(--teal);color:var(--teal)}
+.anim-btn.primary:hover{background:var(--teal2);border-color:var(--teal2);color:#fff}
+.anim-step-label{font-size:12px;font-weight:500;color:var(--muted);text-align:center;margin-top:12px;min-height:18px}
+
+/* UFE SVG elements */
+.uterus-body{fill:#fde8e8;stroke:#d97a7a;stroke-width:1.5}
+.uterus-tubes{fill:none;stroke:#d97a7a;stroke-width:1.5}
+.fibroid{fill:#c25050;opacity:1;transition:r .8s ease,opacity .8s ease}
+.fibroid.shrunk{r:0;opacity:0}
+.catheter{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset 1.2s ease}
+.catheter.drawn{stroke-dashoffset:0}
+.embolics{opacity:0;transition:opacity .6s ease}
+.embolics.show{opacity:1}
+.blood-flow{fill:none;stroke:#e88;stroke-width:1;opacity:0.4;stroke-dasharray:4 3;animation:none}
+.blood-flow.blocked{stroke:#aaa;animation:none;opacity:0.15}
+
+/* PAE SVG elements */
+.prostate-body{fill:#fef3e8;stroke:#d4956e;stroke-width:1.5}
+.prostate-inner{fill:#f5c8a0;stroke:#c47a4e;stroke-width:1}
+.pae-catheter{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset 1.2s ease}
+.pae-catheter.drawn{stroke-dashoffset:0}
+.pae-embolics{opacity:0;transition:opacity .6s ease}
+.pae-embolics.show{opacity:1}
+.prostate-shrink{transition:transform .9s ease;transform-origin:160px 140px}
+.prostate-shrink.shrunk{transform:scale(.72)}
+
+/* Vein ablation SVG */
+.vein-body{fill:#e8eef8;stroke:#7a9fd4;stroke-width:1.5}
+.vein-bad{fill:#d4736e;opacity:1;transition:opacity .7s ease}
+.vein-bad.gone{opacity:0}
+.vein-good{fill:#6db87a;opacity:0;transition:opacity .8s ease}
+.vein-good.show{opacity:1}
+.ablation-wire{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:180;stroke-dashoffset:180;transition:stroke-dashoffset 1.1s ease}
+.ablation-wire.drawn{stroke-dashoffset:0}
+.heat-pulse{fill:rgba(255,140,50,.0);r:0;transition:r .5s ease,fill .5s ease}
+.heat-pulse.active{r:12;fill:rgba(255,140,50,.25)}
+
+/* label text in SVGs */
+.svg-label{font-family:var(--f);font-size:11px;font-weight:600;fill:var(--muted)}
+.svg-label-sm{font-family:var(--f);font-size:10px;font-weight:400;fill:var(--muted)}
+.svg-label-teal{font-family:var(--f);font-size:11px;font-weight:700;fill:var(--teal)}
+
+/* ── WHY ── */
+.why{display:grid;grid-template-columns:5fr 7fr;border-bottom:1px solid var(--rule)}
+.why-l{background:var(--ink);padding:80px 56px 80px 48px;display:flex;flex-direction:column;justify-content:space-between}
+.why-l .sec-label{color:var(--teal2)}
+.why-l .sec-h2{color:#fff;margin-bottom:20px}
+.why-l .sec-h2 em{color:var(--teal2)}
+.why-l p{font-size:15px;font-weight:300;line-height:1.85;color:rgba(255,255,255,.45);max-width:360px;margin-bottom:36px}
+.why-r{padding:80px 48px 80px 56px;display:flex;flex-direction:column;justify-content:center}
+.why-feat{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;padding:26px 0;border-bottom:1px solid var(--rule)}
+.why-feat:first-child{border-top:1px solid var(--rule)}
+.why-icon{width:44px;height:44px;border-radius:8px;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;color:var(--teal);flex-shrink:0}
+.why-feat h4{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--ink);margin-bottom:5px}
+.why-feat p{font-size:13px;font-weight:400;line-height:1.7;color:var(--muted)}
+
+/* ── PROVIDERS ── */
+.providers{padding:80px 48px;border-bottom:1px solid rgba(255,255,255,.07);background:var(--ink)}
+.providers .sec-label{color:var(--teal2)}
+.providers .sec-idx{color:rgba(255,255,255,.3)}
+.providers .sec-h2{color:#fff}
+.providers .sec-h2 em{color:var(--teal2)}
+.providers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:48px}
+.pcard{border:1px solid rgba(255,255,255,.12);padding:32px;border-radius:4px;transition:border-color .2s,box-shadow .2s}
+.pcard:hover{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.pcard-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.pcard-init{width:50px;height:50px;border-radius:50%;flex-shrink:0;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.pcard-name{font-size:16px;font-weight:700;letter-spacing:-.02em;color:#fff;line-height:1.2}
+.pcard-role{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-top:3px}
+.pcard-bio{font-size:13px;font-weight:400;line-height:1.8;color:rgba(255,255,255,.62);margin-bottom:20px}
+.pcard-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ptag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;background:var(--teal-pale);color:var(--teal);border-radius:2px}
+
+/* ── TESTIMONIALS ── */
+.testimonials{background:var(--bg);padding:80px 48px;border-bottom:1px solid var(--rule)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:48px}
+.tcard{background:var(--white);border:1px solid var(--rule);padding:32px;border-radius:4px}
+.tcard-stars{display:flex;gap:3px;margin-bottom:18px}
+.tstar{width:11px;height:11px;background:var(--gold);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.tcard-body{font-size:15px;font-weight:300;font-style:italic;line-height:1.8;color:var(--ink2);margin-bottom:24px}
+.tcard-rule{height:1px;background:var(--rule);margin-bottom:16px}
+.tcard-name{font-size:14px;font-weight:700;color:var(--ink)}
+.tcard-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.tcard-tag{display:inline-block;margin-top:12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;background:var(--teal-pale);color:var(--teal);border-radius:2px}
+
+/* ── CTA ── */
+.cta-sec{background:var(--teal);padding:100px 48px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden}
+.cta-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1px);background-size:28px 28px}
+.cta-inner{position:relative;z-index:2;max-width:600px}
+.cta-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:20px}
+.cta-h2{font-size:clamp(28px,4.5vw,56px);font-weight:700;letter-spacing:-.03em;line-height:1.05;color:#fff;margin-bottom:16px}
+.cta-h2 em{font-weight:300;font-style:italic}
+.cta-desc{font-size:16px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.65);max-width:460px;margin:0 auto 44px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-white{font-size:13px;font-weight:700;letter-spacing:.04em;background:#fff;color:var(--teal);padding:16px 32px;text-decoration:none;display:inline-block;transition:background .15s,color .15s,transform .15s}
+.btn-white:hover{background:var(--ink);color:#fff;transform:translateY(-1px)}
+.btn-ghost-w{font-size:13px;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;display:inline-block;padding:15px 24px;border:1px solid rgba(255,255,255,.25);transition:color .15s,border-color .15s}
+.btn-ghost-w:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);padding:60px 48px 32px}
+.footer-grid{display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:32px}
+.f-logo{font-size:18px;font-weight:700;letter-spacing:-.02em;color:#fff;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.f-logo-icon{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--teal2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.f-sub{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--teal2);margin-bottom:16px}
+.f-desc{font-size:13px;font-weight:300;line-height:1.8;color:rgba(255,255,255,.32);max-width:280px;margin-bottom:24px}
+.f-contact a{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.38);text-decoration:none;margin-bottom:8px;transition:color .15s}
+.f-contact a:hover{color:rgba(255,255,255,.75)}
+.f-contact svg{color:var(--teal2);flex-shrink:0}
+.f-col h4{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:16px}
+.f-col ul{list-style:none}
+.f-col li{margin-bottom:10px}
+.f-col a{font-size:13px;font-weight:400;color:rgba(255,255,255,.38);text-decoration:none;transition:color .15s}
+.f-col a:hover{color:rgba(255,255,255,.75)}
+.f-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.f-bottom p{font-size:11px;color:rgba(255,255,255,.2)}
+.f-disclaimer{max-width:720px;margin:20px auto 0;font-size:10px;line-height:1.7;color:rgba(255,255,255,.28);text-align:center}
+.f-legal{display:flex;gap:20px}
+.f-legal a{font-size:11px;color:rgba(255,255,255,.2);text-decoration:none;transition:color .15s}
+.f-legal a:hover{color:rgba(255,255,255,.5)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .header-top{padding:0 20px}.header-main{padding:14px 20px 0}
+  .h-nav{display:none}.header-top-right .h-cta{display:none}.hamburger{display:flex}
+  .hero-inner{padding:52px 20px 40px}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .hstat{padding:20px}
+  .hstat:nth-child(2){border-right:none}
+  .hstat:nth-child(3),.hstat:nth-child(4){border-top:1px solid rgba(255,255,255,.07)}
+  .trust{padding:0 20px}
+  .symptom-sec{padding:52px 20px}
+  .conditions{padding:52px 20px}.cond-grid{grid-template-columns:1fr}
+  .procedures{padding:52px 20px}
+  .proc-panel.active{grid-template-columns:1fr}
+  .why{grid-template-columns:1fr}.why-l{padding:52px 20px}.why-r{padding:52px 20px}
+  .providers{padding:52px 20px}.providers-grid{grid-template-columns:1fr}
+  .testimonials{padding:52px 20px}.tgrid{grid-template-columns:1fr}
+  .cta-sec{padding:64px 20px}
+  footer{padding:48px 20px 24px}.footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .f-bottom{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:700px){
+  .hero-inner{padding:44px 20px 36px}
+  .symptom-sec,.conditions,.procedures,.providers,.testimonials{padding:48px 18px}
+  .why-l,.why-r{padding:48px 18px}
+  .cta-sec{padding:56px 18px}
+}
+@media(max-width:500px){
+  .footer-grid{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:1fr}
+  .hstat{border-right:none !important;border-top:1px solid rgba(255,255,255,.07) !important}
+  .hstat:first-child{border-top:none !important}
+  .hero h1{font-size:clamp(30px,8.5vw,40px)}
+}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<section class="symptom-sec" id="symptom-checker">
+  <div class="hero-dots"></div><div class="hero-glow"></div>
+  <div class="symptom-inner">
+    <div class="sec-label" style="color:var(--teal2)">Interactive Tool</div>
+    <h2 class="sec-h2" style="color:#fff;margin-bottom:8px">Not sure where to start?<br><em style="color:var(--teal2)">Check your symptoms.</em></h2>
+    <p style="font-size:15px;font-weight:300;color:rgba(255,255,255,.45);max-width:520px;line-height:1.7;margin-bottom:0">Answer 3 quick questions and we'll point you toward the right care - and whether Meridian can help.</p>
+
+    <div class="sc-widget">
+      <div class="sc-progress">
+        <div class="sc-pip" id="pip1"></div>
+        <div class="sc-pip" id="pip2"></div>
+        <div class="sc-pip" id="pip3"></div>
+      </div>
+      <button class="sc-back" id="sc-back" onclick="scBack()">← Back</button>
+
+      <!-- Step 1 -->
+      <div class="sc-step active" id="sc-step-1">
+        <div class="sc-q">Where is your main symptom?</div>
+        <div class="sc-hint">Select the area that's bothering you most.</div>
+        <div class="sc-options">
+          <button class="sc-opt" onclick="scNext(1,'legs')"><div class="sc-opt-icon">🦵</div><div><div class="sc-opt-label">Legs or feet</div><div class="sc-opt-sub">Pain, swelling, heaviness, visible veins</div></div></button>
+          <button class="sc-opt" onclick="scNext(1,'pelvis')"><div class="sc-opt-icon">🫁</div><div><div class="sc-opt-label">Pelvic or abdominal area</div><div class="sc-opt-sub">Pressure, heavy periods, urinary issues</div></div></button>
+          <button class="sc-opt" onclick="scNext(1,'wound')"><div class="sc-opt-icon">🩹</div><div><div class="sc-opt-label">A wound that won't heal</div><div class="sc-opt-sub">Sore or ulcer lasting more than 2 weeks</div></div></button>
+        </div>
+      </div>
+
+      <!-- Step 2a: legs -->
+      <div class="sc-step" id="sc-step-2a">
+        <div class="sc-q">How would you describe your leg symptoms?</div>
+        <div class="sc-hint">Choose the one that best fits.</div>
+        <div class="sc-options">
+          <button class="sc-opt" onclick="scNext(2,'vein')"><div class="sc-opt-icon">🔵</div><div><div class="sc-opt-label">Visible bulging or spider veins</div><div class="sc-opt-sub">Aching, swelling, skin discoloration, itching</div></div></button>
+          <button class="sc-opt" onclick="scNext(2,'pad')"><div class="sc-opt-icon">⚡</div><div><div class="sc-opt-label">Cramping or pain when walking</div><div class="sc-opt-sub">Relieves with rest, cold feet, slow-healing sores</div></div></button>
+          <button class="sc-opt" onclick="scNext(2,'dvt')"><div class="sc-opt-icon">🔴</div><div><div class="sc-opt-label">Sudden swelling, redness or warmth</div><div class="sc-opt-sub">One leg more than the other, started recently</div></div></button>
+        </div>
+      </div>
+
+      <!-- Step 2b: pelvis -->
+      <div class="sc-step" id="sc-step-2b">
+        <div class="sc-q">What describes your symptoms best?</div>
+        <div class="sc-hint">This helps us match you to the right specialist.</div>
+        <div class="sc-options">
+          <button class="sc-opt" onclick="scNext(2,'ufe')"><div class="sc-opt-icon">🌸</div><div><div class="sc-opt-label">Heavy periods or pelvic pressure</div><div class="sc-opt-sub">Bloating, frequent urination, pain during sex</div></div></button>
+          <button class="sc-opt" onclick="scNext(2,'pae')"><div class="sc-opt-icon">🔷</div><div><div class="sc-opt-label">Urinary frequency or weak flow</div><div class="sc-opt-sub">Getting up at night, incomplete emptying</div></div></button>
+        </div>
+      </div>
+
+      <!-- Step 2c: wound -->
+      <div class="sc-step" id="sc-step-2c">
+        <div class="sc-q">How long has the wound been there?</div>
+        <div class="sc-hint">Non-healing wounds are often a circulation issue.</div>
+        <div class="sc-options">
+          <button class="sc-opt" onclick="scNext(2,'wound-short')"><div class="sc-opt-icon">📅</div><div><div class="sc-opt-label">2-6 weeks</div><div class="sc-opt-sub">Started recently, not improving</div></div></button>
+          <button class="sc-opt" onclick="scNext(2,'wound-long')"><div class="sc-opt-icon">⏳</div><div><div class="sc-opt-label">More than 6 weeks</div><div class="sc-opt-sub">Tried treatments, keeps coming back</div></div></button>
+        </div>
+      </div>
+
+      <!-- Step 3 (shared) -->
+      <div class="sc-step" id="sc-step-3">
+        <div class="sc-q">Have you seen a doctor about this yet?</div>
+        <div class="sc-hint">This helps us understand where you are in your care journey.</div>
+        <div class="sc-options">
+          <button class="sc-opt" onclick="scResult()"><div class="sc-opt-icon">👍</div><div><div class="sc-opt-label">Yes - referred or self-researching</div><div class="sc-opt-sub">I have some diagnosis or direction already</div></div></button>
+          <button class="sc-opt" onclick="scResult()"><div class="sc-opt-icon">🆕</div><div><div class="sc-opt-label">No - this is my first step</div><div class="sc-opt-sub">I haven't seen anyone about this yet</div></div></button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="sc-result" id="sc-result">
+        <div class="sc-result-card">
+          <div class="sc-result-tag" id="sc-result-tag">Your match</div>
+          <div class="sc-result-title" id="sc-result-title">Loading...</div>
+          <div class="sc-result-body" id="sc-result-body">...</div>
+          <div class="sc-result-btns">
+            <a href="#" class="btn-fill" style="font-size:12px;padding:12px 24px">Book a Consultation</a>
+            <button class="sc-restart" onclick="scReset()">Start Over</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+// ── SYMPTOM CHECKER ──
+let scPath='',scCurrentStep=1;
+const scResults={
+  vein:{tag:'Vein Disease',title:'You may have venous insufficiency',body:'Your symptoms - visible veins, leg aching, swelling, or heaviness - are consistent with venous insufficiency or varicose veins. This is a highly treatable condition. In-office vein ablation or sclerotherapy can resolve symptoms, usually in a single visit. Most insurance plans cover treatment.'},
+  pad:{tag:'Arterial Disease',title:'Your symptoms suggest Peripheral Artery Disease',body:'Leg cramping that comes on with walking and improves with rest is a classic sign of PAD (poor circulation). This is a progressive condition that can lead to serious complications if untreated - but it responds very well to minimally invasive treatment. We recommend an urgent evaluation.'},
+  dvt:{tag:'Urgent - Please Call Us Today',title:'Your symptoms may indicate a blood clot (DVT)',body:'Sudden leg swelling, redness, or warmth - especially in one leg - can be signs of a deep vein thrombosis. This is a medical urgency. Please call our office today or go to urgent care. DVT is treatable but requires prompt evaluation.'},
+  ufe:{tag:'Women\'s Health',title:'You may be a candidate for UFE',body:'Heavy periods, pelvic pressure, and bloating are hallmark symptoms of uterine fibroids. Uterine Fibroid Embolization (UFE) is a non-surgical treatment that shrinks fibroids and resolves symptoms without a hysterectomy. Most women return to work within 2 weeks.'},
+  pae:{tag:'Men\'s Health',title:'You may be a candidate for PAE',body:'Urinary frequency, weak flow, and nighttime trips to the bathroom are classic BPH symptoms. Prostate Artery Embolization (PAE) reduces the prostate without surgery, preserves sexual function, and has most patients home the same day. Covered by many insurance plans.'},
+  'wound-short':{tag:'Wound Care',title:'A vascular evaluation is recommended',body:'Wounds that don\'t heal within 2 weeks often have an underlying circulation issue. A vascular evaluation can identify whether poor blood flow is preventing healing - and treat it. Early intervention significantly reduces the risk of serious complications.'},
+  'wound-long':{tag:'Wound Care - Urgent Evaluation',title:'Please schedule a priority appointment',body:'Chronic wounds lasting more than 6 weeks are a strong signal of significant vascular disease. We recommend a priority appointment. Our team specializes in finding and fixing the vascular cause so healing can finally happen. Limb-preservation starts here.'}
+};
+
+function scNext(step,path){
+  scPath=path;
+  document.getElementById('sc-back').style.display='block';
+  document.getElementById('pip'+step).classList.add('done');
+  document.querySelectorAll('.sc-step').forEach(s=>s.classList.remove('active'));
+  if(step===1){
+    const map={legs:'2a',pelvis:'2b',wound:'2c'};
+    document.getElementById('sc-step-'+map[path]).classList.add('active');
+    scCurrentStep=2;
+  } else {
+    document.getElementById('sc-step-3').classList.add('active');
+    scCurrentStep=3;
+  }
+}
+
+function scResult(){
+  document.getElementById('pip3').classList.add('done');
+  document.getElementById('sc-back').style.display='none';
+  document.querySelectorAll('.sc-step').forEach(s=>s.classList.remove('active'));
+  const r=scResults[scPath]||{tag:'Your Result',title:'We can help',body:'Based on your symptoms, our team can evaluate and provide treatment options. Book a consultation to get started.'};
+  document.getElementById('sc-result-tag').textContent=r.tag;
+  document.getElementById('sc-result-title').textContent=r.title;
+  document.getElementById('sc-result-body').textContent=r.body;
+  const res=document.getElementById('sc-result');
+  res.classList.add('show');
+}
+
+function scBack(){
+  document.getElementById('sc-result').classList.remove('show');
+  document.querySelectorAll('.sc-step').forEach(s=>s.classList.remove('active'));
+  if(scCurrentStep===3){
+    document.getElementById('pip3').classList.remove('done');
+    const map={vein:'2a',pad:'2a',dvt:'2a',ufe:'2b',pae:'2b','wound-short':'2c','wound-long':'2c'};
+    document.getElementById('sc-step-'+map[scPath]).classList.add('active');
+    scCurrentStep=2;
+  } else {
+    document.getElementById('pip2').classList.remove('done');
+    document.getElementById('sc-step-1').classList.add('active');
+    document.getElementById('sc-back').style.display='none';
+    scCurrentStep=1;scPath='';
+  }
+}
+
+function scReset(){
+  scPath='';scCurrentStep=1;
+  document.getElementById('sc-result').classList.remove('show');
+  document.getElementById('sc-back').style.display='none';
+  document.querySelectorAll('.sc-pip').forEach(p=>p.classList.remove('done'));
+  document.querySelectorAll('.sc-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-step-1').classList.add('active');
+}
+</script>
+</body>
+</html>

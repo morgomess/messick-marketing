@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Procedure Explainer - Patient Education Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c1219;--ink2:#2d3a47;--muted:#6b7a8d;--rule:#dde2e8;
+  --teal:#0a7b6a;--teal2:#0e9e89;--teal-pale:#e4f3f1;--teal-mid:#c2e8e3;
+  --bg:#f7f9fb;--white:#ffffff;--gold:#b8892e;--f:'Figtree',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--white);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:40px;border-bottom:1px solid var(--rule);background:var(--bg)}
+.header-top-badges{display:flex;align-items:center;gap:20px}
+.hbadge{font-size:11px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px}
+.hbadge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2);flex-shrink:0}
+.header-top-right{display:flex;align-items:center;gap:16px}
+.h-phone{font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;transition:color .15s}
+.h-phone:hover{color:var(--ink)}
+.h-cta{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--teal);color:#fff;padding:7px 16px;text-decoration:none;transition:background .15s}
+.h-cta:hover{background:var(--teal2)}
+.header-main{display:flex;flex-direction:column;align-items:center;padding:18px 48px 0}
+.h-logo{font-size:21px;font-weight:700;letter-spacing:-.025em;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.h-logo-icon{width:26px;height:26px;border-radius:50%;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.h-logo em{font-style:normal;color:var(--teal)}
+.h-nav{display:flex;align-items:center;border-top:1px solid var(--rule);width:100%;justify-content:center}
+.h-nav a{font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--muted);text-decoration:none;padding:11px 22px;border-right:1px solid var(--rule);transition:color .15s,background .15s;white-space:nowrap}
+.h-nav a:first-child{border-left:1px solid var(--rule)}
+.h-nav a:hover{color:var(--ink);background:var(--bg)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--ink2);transition:transform .25s,opacity .25s}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--white);z-index:190;flex-direction:column;padding-top:110px}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:16px 32px;font-size:15px;font-weight:500;color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--rule);transition:color .15s}
+.mobile-menu a:hover{color:var(--teal)}
+.mobile-menu .m-cta{background:var(--teal);color:#fff;margin:24px 32px 0;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:12px;padding:14px 24px;text-align:center}
+
+/* ── HERO ── */
+.hero{background:var(--ink);min-height:calc(100vh - 113px);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.hero-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);background-size:28px 28px}
+.hero-glow{position:absolute;top:-260px;right:-160px;width:800px;height:700px;background:radial-gradient(ellipse,rgba(10,123,106,.16) 0%,transparent 60%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-200px;left:-100px;width:500px;height:500px;background:radial-gradient(ellipse,rgba(10,123,106,.07) 0%,transparent 65%);pointer-events:none}
+.hero-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px 48px 60px;max-width:860px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2);margin-bottom:28px}
+.hero-eyebrow-line{width:28px;height:1.5px;background:var(--teal2);flex-shrink:0}
+.hero h1{font-size:clamp(40px,6.5vw,82px);font-weight:700;line-height:1;letter-spacing:-.03em;color:#fff;margin-bottom:28px}
+.hero h1 .light{font-weight:300;font-style:italic;color:var(--teal2)}
+.hero-sub{font-size:17px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.5);max-width:540px;margin-bottom:44px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-fill{font-size:13px;font-weight:700;letter-spacing:.04em;background:var(--teal);color:#fff;padding:15px 32px;text-decoration:none;display:inline-block;transition:background .15s,transform .15s}
+.btn-fill:hover{background:var(--teal2);transform:translateY(-1px)}
+.btn-outline{font-size:13px;font-weight:500;color:rgba(255,255,255,.5);text-decoration:none;display:inline-block;padding:15px 24px;border:1px solid rgba(255,255,255,.14);transition:color .15s,border-color .15s}
+.btn-outline:hover{color:#fff;border-color:rgba(255,255,255,.35)}
+.hero-stats{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.07)}
+.hstat{padding:30px 48px;border-right:1px solid rgba(255,255,255,.07)}
+.hstat:last-child{border-right:none}
+.hstat-n{font-size:clamp(30px,3.5vw,48px);font-weight:700;letter-spacing:-.03em;color:#fff;display:block;line-height:1;margin-bottom:6px}
+.hstat-n .acc{color:var(--teal2)}
+.hstat-l{font-size:12px;font-weight:400;color:rgba(255,255,255,.3)}
+
+/* ── TRUST ── */
+.trust{background:var(--teal);padding:0 48px;display:flex;align-items:center;overflow-x:auto;scrollbar-width:none}
+.trust::-webkit-scrollbar{display:none}
+.trust-item{display:flex;align-items:center;gap:8px;padding:14px 28px 14px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;white-space:nowrap}
+.trust-item:last-child{border-right:none}
+.trust-item span{font-size:12px;font-weight:600;color:#fff}
+
+/* ── SYMPTOM CHECKER ── */
+.symptom-sec{background:var(--ink);padding:80px 48px;border-bottom:1px solid rgba(255,255,255,.07);position:relative;overflow:hidden}
+.symptom-sec .hero-dots{opacity:.4}
+.symptom-sec .hero-glow{top:-300px;right:-300px;opacity:.7}
+.symptom-inner{position:relative;z-index:2;max-width:760px;margin:0 auto}
+.symptom-sec .sec-label{color:var(--teal2)}
+.symptom-sec .sec-h2{color:#fff}
+.symptom-sec .sec-h2 em{color:var(--teal2)}
+.sc-widget{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);padding:40px;margin-top:40px}
+.sc-step{display:none}
+.sc-step.active{display:block}
+.sc-q{font-size:20px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:8px;line-height:1.3}
+.sc-hint{font-size:13px;font-weight:300;color:rgba(255,255,255,.4);margin-bottom:28px}
+.sc-options{display:flex;flex-direction:column;gap:10px}
+.sc-opt{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  cursor:pointer;transition:background .15s,border-color .15s;text-align:left;width:100%;
+  font-family:var(--f);
+}
+.sc-opt:hover{background:rgba(14,158,137,.15);border-color:var(--teal2)}
+.sc-opt-icon{width:36px;height:36px;border-radius:50%;background:rgba(14,158,137,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.sc-opt-label{font-size:15px;font-weight:600;color:#fff}
+.sc-opt-sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.45);margin-top:2px}
+.sc-progress{display:flex;gap:6px;margin-bottom:28px}
+.sc-pip{height:3px;flex:1;background:rgba(255,255,255,.1);transition:background .3s}
+.sc-pip.done{background:var(--teal2)}
+.sc-back{background:none;border:none;font-family:var(--f);font-size:12px;font-weight:500;color:rgba(255,255,255,.35);cursor:pointer;padding:0;margin-bottom:24px;display:none;transition:color .15s}
+.sc-back:hover{color:rgba(255,255,255,.7)}
+.sc-result{display:none;animation:fadeIn .4s ease}
+.sc-result.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sc-result-card{background:rgba(14,158,137,.12);border:1px solid rgba(14,158,137,.3);padding:32px}
+.sc-result-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal2);margin-bottom:12px}
+.sc-result-title{font-size:22px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:10px}
+.sc-result-body{font-size:14px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.6);margin-bottom:24px}
+.sc-result-btns{display:flex;gap:12px;flex-wrap:wrap}
+.sc-restart{background:none;border:1px solid rgba(255,255,255,.15);font-family:var(--f);font-size:12px;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;padding:10px 18px;transition:color .15s,border-color .15s}
+.sc-restart:hover{color:#fff;border-color:rgba(255,255,255,.35)}
+
+/* ── SECTION COMMONS ── */
+.sec-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-idx{font-weight:400;color:var(--muted);letter-spacing:.08em}
+.sec-h2{font-size:clamp(26px,3.8vw,46px);font-weight:700;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin-bottom:48px}
+.sec-h2 em{font-style:italic;font-weight:300;color:var(--teal)}
+
+/* ── CONDITIONS ── */
+.conditions{padding:80px 48px;border-bottom:1px solid var(--rule)}
+.cond-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.cond-card{background:var(--white);padding:32px 28px;position:relative;overflow:hidden;transition:background .2s}
+.cond-card:hover{background:var(--teal-pale)}
+.cond-n{position:absolute;top:10px;right:16px;font-size:52px;font-weight:700;letter-spacing:-.04em;color:var(--rule);line-height:1;transition:color .2s;pointer-events:none}
+.cond-card:hover .cond-n{color:rgba(10,123,106,.1)}
+.cond-cat{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.cond-name{font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.2;margin-bottom:10px}
+.cond-desc{font-size:13px;font-weight:400;line-height:1.75;color:var(--muted)}
+.cond-more{display:inline-flex;align-items:center;gap:5px;margin-top:16px;font-size:12px;font-weight:700;color:var(--teal);text-decoration:none;opacity:0;transition:opacity .2s}
+.cond-card:hover .cond-more{opacity:1}
+
+/* ── PROCEDURE EXPLAINERS ── */
+.procedures{padding:80px 48px;border-bottom:1px solid var(--rule);background:var(--bg)}
+.proc-tabs{display:flex;gap:0;border:1px solid var(--rule);margin-bottom:48px;overflow-x:auto;scrollbar-width:none}
+.proc-tabs::-webkit-scrollbar{display:none}
+.proc-tab{
+  flex:1;padding:18px 28px;text-align:center;cursor:pointer;
+  font-size:13px;font-weight:600;letter-spacing:.02em;
+  color:var(--muted);background:var(--white);
+  border-right:1px solid var(--rule);
+  transition:color .15s,background .15s;white-space:nowrap;
+  border:none;font-family:var(--f);
+}
+.proc-tab:last-child{border-right:none}
+.proc-tab.active{background:var(--teal);color:#fff}
+.proc-tab:not(.active):hover{background:var(--teal-pale);color:var(--ink)}
+
+.proc-panel{display:none}
+.proc-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+
+.proc-info h3{font-size:28px;font-weight:700;letter-spacing:-.025em;color:var(--ink);margin-bottom:8px}
+.proc-info .proc-tag{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+.proc-info p{font-size:14px;font-weight:400;line-height:1.8;color:var(--muted);margin-bottom:24px}
+
+.proc-timeline{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.proc-tl-item{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:start;padding:16px 0;border-bottom:1px solid var(--rule)}
+.proc-tl-item:last-child{border-bottom:none}
+.proc-tl-day{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);padding-top:2px}
+.proc-tl-text{font-size:13px;font-weight:400;line-height:1.65;color:var(--ink2)}
+.proc-tl-text strong{font-weight:600;color:var(--ink)}
+
+/* ── SVG ANIMATION AREA ── */
+.proc-visual{background:var(--white);border:1px solid var(--rule);padding:32px;display:flex;flex-direction:column;align-items:center}
+.proc-visual-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;align-self:flex-start}
+.proc-svg-wrap{width:100%;max-width:320px;margin:0 auto}
+.proc-svg-wrap svg{width:100%;height:auto;display:block}
+.proc-anim-controls{display:flex;gap:10px;margin-top:20px;width:100%;justify-content:center}
+.anim-btn{
+  font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:9px 20px;cursor:pointer;border:1px solid var(--rule);background:var(--white);
+  color:var(--muted);transition:all .15s;
+}
+.anim-btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.anim-btn:hover{border-color:var(--teal);color:var(--teal)}
+.anim-btn.primary:hover{background:var(--teal2);border-color:var(--teal2);color:#fff}
+.anim-step-label{font-size:12px;font-weight:500;color:var(--muted);text-align:center;margin-top:12px;min-height:18px}
+
+/* UFE SVG elements */
+.uterus-body{fill:#fde8e8;stroke:#d97a7a;stroke-width:1.5}
+.uterus-tubes{fill:none;stroke:#d97a7a;stroke-width:1.5}
+.fibroid{fill:#c25050;opacity:1;transition:r .8s ease,opacity .8s ease}
+.fibroid.shrunk{r:0;opacity:0}
+.catheter{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset 1.2s ease}
+.catheter.drawn{stroke-dashoffset:0}
+.embolics{opacity:0;transition:opacity .6s ease}
+.embolics.show{opacity:1}
+.blood-flow{fill:none;stroke:#e88;stroke-width:1;opacity:0.4;stroke-dasharray:4 3;animation:none}
+.blood-flow.blocked{stroke:#aaa;animation:none;opacity:0.15}
+
+/* PAE SVG elements */
+.prostate-body{fill:#fef3e8;stroke:#d4956e;stroke-width:1.5}
+.prostate-inner{fill:#f5c8a0;stroke:#c47a4e;stroke-width:1}
+.pae-catheter{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset 1.2s ease}
+.pae-catheter.drawn{stroke-dashoffset:0}
+.pae-embolics{opacity:0;transition:opacity .6s ease}
+.pae-embolics.show{opacity:1}
+.prostate-shrink{transition:transform .9s ease;transform-origin:160px 140px}
+.prostate-shrink.shrunk{transform:scale(.72)}
+
+/* Vein ablation SVG */
+.vein-body{fill:#e8eef8;stroke:#7a9fd4;stroke-width:1.5}
+.vein-bad{fill:#d4736e;opacity:1;transition:opacity .7s ease}
+.vein-bad.gone{opacity:0}
+.vein-good{fill:#6db87a;opacity:0;transition:opacity .8s ease}
+.vein-good.show{opacity:1}
+.ablation-wire{stroke:#0a7b6a;stroke-width:2;fill:none;stroke-dasharray:180;stroke-dashoffset:180;transition:stroke-dashoffset 1.1s ease}
+.ablation-wire.drawn{stroke-dashoffset:0}
+.heat-pulse{fill:rgba(255,140,50,.0);r:0;transition:r .5s ease,fill .5s ease}
+.heat-pulse.active{r:12;fill:rgba(255,140,50,.25)}
+
+/* label text in SVGs */
+.svg-label{font-family:var(--f);font-size:11px;font-weight:600;fill:var(--muted)}
+.svg-label-sm{font-family:var(--f);font-size:10px;font-weight:400;fill:var(--muted)}
+.svg-label-teal{font-family:var(--f);font-size:11px;font-weight:700;fill:var(--teal)}
+
+/* ── WHY ── */
+.why{display:grid;grid-template-columns:5fr 7fr;border-bottom:1px solid var(--rule)}
+.why-l{background:var(--ink);padding:80px 56px 80px 48px;display:flex;flex-direction:column;justify-content:space-between}
+.why-l .sec-label{color:var(--teal2)}
+.why-l .sec-h2{color:#fff;margin-bottom:20px}
+.why-l .sec-h2 em{color:var(--teal2)}
+.why-l p{font-size:15px;font-weight:300;line-height:1.85;color:rgba(255,255,255,.45);max-width:360px;margin-bottom:36px}
+.why-r{padding:80px 48px 80px 56px;display:flex;flex-direction:column;justify-content:center}
+.why-feat{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;padding:26px 0;border-bottom:1px solid var(--rule)}
+.why-feat:first-child{border-top:1px solid var(--rule)}
+.why-icon{width:44px;height:44px;border-radius:8px;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;color:var(--teal);flex-shrink:0}
+.why-feat h4{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--ink);margin-bottom:5px}
+.why-feat p{font-size:13px;font-weight:400;line-height:1.7;color:var(--muted)}
+
+/* ── PROVIDERS ── */
+.providers{padding:80px 48px;border-bottom:1px solid rgba(255,255,255,.07);background:var(--ink)}
+.providers .sec-label{color:var(--teal2)}
+.providers .sec-idx{color:rgba(255,255,255,.3)}
+.providers .sec-h2{color:#fff}
+.providers .sec-h2 em{color:var(--teal2)}
+.providers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:48px}
+.pcard{border:1px solid rgba(255,255,255,.12);padding:32px;border-radius:4px;transition:border-color .2s,box-shadow .2s}
+.pcard:hover{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.pcard-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.pcard-init{width:50px;height:50px;border-radius:50%;flex-shrink:0;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.pcard-name{font-size:16px;font-weight:700;letter-spacing:-.02em;color:#fff;line-height:1.2}
+.pcard-role{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-top:3px}
+.pcard-bio{font-size:13px;font-weight:400;line-height:1.8;color:rgba(255,255,255,.62);margin-bottom:20px}
+.pcard-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ptag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;background:var(--teal-pale);color:var(--teal);border-radius:2px}
+
+/* ── TESTIMONIALS ── */
+.testimonials{background:var(--bg);padding:80px 48px;border-bottom:1px solid var(--rule)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:48px}
+.tcard{background:var(--white);border:1px solid var(--rule);padding:32px;border-radius:4px}
+.tcard-stars{display:flex;gap:3px;margin-bottom:18px}
+.tstar{width:11px;height:11px;background:var(--gold);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.tcard-body{font-size:15px;font-weight:300;font-style:italic;line-height:1.8;color:var(--ink2);margin-bottom:24px}
+.tcard-rule{height:1px;background:var(--rule);margin-bottom:16px}
+.tcard-name{font-size:14px;font-weight:700;color:var(--ink)}
+.tcard-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.tcard-tag{display:inline-block;margin-top:12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;background:var(--teal-pale);color:var(--teal);border-radius:2px}
+
+/* ── CTA ── */
+.cta-sec{background:var(--teal);padding:100px 48px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden}
+.cta-dots{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1px);background-size:28px 28px}
+.cta-inner{position:relative;z-index:2;max-width:600px}
+.cta-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:20px}
+.cta-h2{font-size:clamp(28px,4.5vw,56px);font-weight:700;letter-spacing:-.03em;line-height:1.05;color:#fff;margin-bottom:16px}
+.cta-h2 em{font-weight:300;font-style:italic}
+.cta-desc{font-size:16px;font-weight:300;line-height:1.75;color:rgba(255,255,255,.65);max-width:460px;margin:0 auto 44px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-white{font-size:13px;font-weight:700;letter-spacing:.04em;background:#fff;color:var(--teal);padding:16px 32px;text-decoration:none;display:inline-block;transition:background .15s,color .15s,transform .15s}
+.btn-white:hover{background:var(--ink);color:#fff;transform:translateY(-1px)}
+.btn-ghost-w{font-size:13px;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;display:inline-block;padding:15px 24px;border:1px solid rgba(255,255,255,.25);transition:color .15s,border-color .15s}
+.btn-ghost-w:hover{color:#fff;border-color:rgba(255,255,255,.5)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);padding:60px 48px 32px}
+.footer-grid{display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr;gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:32px}
+.f-logo{font-size:18px;font-weight:700;letter-spacing:-.02em;color:#fff;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.f-logo-icon{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--teal2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.f-sub{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--teal2);margin-bottom:16px}
+.f-desc{font-size:13px;font-weight:300;line-height:1.8;color:rgba(255,255,255,.32);max-width:280px;margin-bottom:24px}
+.f-contact a{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.38);text-decoration:none;margin-bottom:8px;transition:color .15s}
+.f-contact a:hover{color:rgba(255,255,255,.75)}
+.f-contact svg{color:var(--teal2);flex-shrink:0}
+.f-col h4{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:16px}
+.f-col ul{list-style:none}
+.f-col li{margin-bottom:10px}
+.f-col a{font-size:13px;font-weight:400;color:rgba(255,255,255,.38);text-decoration:none;transition:color .15s}
+.f-col a:hover{color:rgba(255,255,255,.75)}
+.f-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.f-bottom p{font-size:11px;color:rgba(255,255,255,.2)}
+.f-disclaimer{max-width:720px;margin:20px auto 0;font-size:10px;line-height:1.7;color:rgba(255,255,255,.28);text-align:center}
+.f-legal{display:flex;gap:20px}
+.f-legal a{font-size:11px;color:rgba(255,255,255,.2);text-decoration:none;transition:color .15s}
+.f-legal a:hover{color:rgba(255,255,255,.5)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .header-top{padding:0 20px}.header-main{padding:14px 20px 0}
+  .h-nav{display:none}.header-top-right .h-cta{display:none}.hamburger{display:flex}
+  .hero-inner{padding:52px 20px 40px}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .hstat{padding:20px}
+  .hstat:nth-child(2){border-right:none}
+  .hstat:nth-child(3),.hstat:nth-child(4){border-top:1px solid rgba(255,255,255,.07)}
+  .trust{padding:0 20px}
+  .symptom-sec{padding:52px 20px}
+  .conditions{padding:52px 20px}.cond-grid{grid-template-columns:1fr}
+  .procedures{padding:52px 20px}
+  .proc-panel.active{grid-template-columns:1fr}
+  .why{grid-template-columns:1fr}.why-l{padding:52px 20px}.why-r{padding:52px 20px}
+  .providers{padding:52px 20px}.providers-grid{grid-template-columns:1fr}
+  .testimonials{padding:52px 20px}.tgrid{grid-template-columns:1fr}
+  .cta-sec{padding:64px 20px}
+  footer{padding:48px 20px 24px}.footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .f-bottom{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:700px){
+  .hero-inner{padding:44px 20px 36px}
+  .symptom-sec,.conditions,.procedures,.providers,.testimonials{padding:48px 18px}
+  .why-l,.why-r{padding:48px 18px}
+  .cta-sec{padding:56px 18px}
+}
+@media(max-width:500px){
+  .footer-grid{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:1fr}
+  .hstat{border-right:none !important;border-top:1px solid rgba(255,255,255,.07) !important}
+  .hstat:first-child{border-top:none !important}
+  .hero h1{font-size:clamp(30px,8.5vw,40px)}
+}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<section class="procedures" id="procedures">
+  <div class="sec-label">How It Works <span class="sec-idx"> -  02 / 04</span></div>
+  <h2 class="sec-h2">See exactly what<br><em>happens during your procedure.</em></h2>
+
+  <div class="proc-tabs">
+    <button class="proc-tab active" onclick="showProc('ufe',this)">Uterine Fibroid Embolization (UFE)</button>
+    <button class="proc-tab" onclick="showProc('pae',this)">Prostate Artery Embolization (PAE)</button>
+    <button class="proc-tab" onclick="showProc('vein',this)">Vein Ablation</button>
+  </div>
+
+  <!-- UFE PANEL -->
+  <div class="proc-panel active" id="proc-ufe">
+    <div class="proc-info">
+      <div class="proc-tag">Women's Health · Minimally Invasive</div>
+      <h3>Uterine Fibroid Embolization</h3>
+      <p>UFE cuts off the blood supply to fibroids using tiny particles injected through a catheter. No incision larger than a pinhole. No hysterectomy. Fibroids shrink over weeks, and symptoms improve dramatically for most women.</p>
+      <div class="proc-timeline">
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>30-90 min procedure.</strong> Catheter inserted at wrist or groin. Particles delivered to fibroid blood supply under imaging guidance. You're awake with sedation.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-3</div><div class="proc-tl-text"><strong>Cramping and fatigue</strong> are normal as fibroids begin to lose blood supply. Most patients manage at home with prescribed medication.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Week 2</div><div class="proc-tl-text"><strong>Most women return to work.</strong> Symptoms - heavy periods, pelvic pressure - begin to noticeably improve.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Fibroids have shrunk significantly</strong> (typically 40-60%). Follow-up imaging confirms results. Most patients report major quality-of-life improvement.</div></div>
+      </div>
+    </div>
+    <div class="proc-visual">
+      <div class="proc-visual-title">Animated Procedure Walkthrough</div>
+      <div class="proc-svg-wrap">
+        <svg id="ufe-svg" viewBox="0 0 280 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Uterus body -->
+          <path class="uterus-body" d="M90,180 Q70,160 72,130 Q74,100 100,90 Q120,82 140,82 Q160,82 180,90 Q206,100 208,130 Q210,160 190,180 Q175,195 165,200 Q155,210 140,215 Q125,210 115,200 Q105,195 90,180Z"/>
+          <!-- Tubes -->
+          <path class="uterus-tubes" d="M100,95 Q80,75 55,78 Q42,79 38,90"/>
+          <path class="uterus-tubes" d="M180,95 Q200,75 225,78 Q238,79 242,90"/>
+          <!-- Ovary left -->
+          <ellipse cx="35" cy="96" rx="12" ry="9" fill="#fde8e8" stroke="#d97a7a" stroke-width="1.2"/>
+          <!-- Ovary right -->
+          <ellipse cx="245" cy="96" rx="12" ry="9" fill="#fde8e8" stroke="#d97a7a" stroke-width="1.2"/>
+          <!-- Fibroids -->
+          <circle id="f1" class="fibroid" cx="128" cy="130" r="18"/>
+          <circle id="f2" class="fibroid" cx="158" cy="148" r="13"/>
+          <circle id="f3" class="fibroid" cx="115" cy="155" r="10"/>
+          <!-- Catheter path (hidden initially) -->
+          <path id="ufe-cath" class="catheter" d="M140,10 L140,50 Q140,70 135,90 Q130,110 128,130"/>
+          <!-- Embolic particles (hidden) -->
+          <g id="ufe-emb" class="embolics">
+            <circle cx="124" cy="118" r="3" fill="#0a7b6a" opacity=".8"/>
+            <circle cx="130" cy="115" r="2.5" fill="#0a7b6a" opacity=".7"/>
+            <circle cx="136" cy="120" r="3" fill="#0a7b6a" opacity=".8"/>
+            <circle cx="122" cy="126" r="2" fill="#0a7b6a" opacity=".6"/>
+            <circle cx="132" cy="125" r="2.5" fill="#0a7b6a" opacity=".7"/>
+          </g>
+          <!-- Labels -->
+          <text x="140" y="240" text-anchor="middle" class="svg-label" id="ufe-status-label">Uterus with fibroids (shown in red)</text>
+          <!-- Step indicator dots -->
+          <circle id="ufe-d1" cx="100" cy="272" r="5" fill="var(--teal2)"/>
+          <circle id="ufe-d2" cx="120" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="ufe-d3" cx="140" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="ufe-d4" cx="160" cy="272" r="5" fill="var(--rule)"/>
+          <text x="140" y="290" text-anchor="middle" class="svg-label-sm">Step 1 of 4</text>
+        </svg>
+      </div>
+      <div class="anim-step-label" id="ufe-step-label">Fibroids are supplied by blood vessels from the uterine arteries.</div>
+      <div class="proc-anim-controls">
+        <button class="anim-btn" id="ufe-prev-btn" onclick="ufeStep(-1)" disabled>← Prev</button>
+        <button class="anim-btn primary" id="ufe-next-btn" onclick="ufeStep(1)">Next Step →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAE PANEL -->
+  <div class="proc-panel" id="proc-pae">
+    <div class="proc-info">
+      <div class="proc-tag">Men's Health · Minimally Invasive</div>
+      <h3>Prostate Artery Embolization</h3>
+      <p>PAE reduces an enlarged prostate by cutting off part of its blood supply with microscopic particles. The result: a smaller prostate, dramatically better urinary flow, and no hospital stay. Sexual function is preserved.</p>
+      <div class="proc-timeline">
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>2-3 hour procedure.</strong> Catheter inserted at wrist. Particles delivered to prostate arteries under live imaging. Light sedation, no general anesthesia.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-5</div><div class="proc-tl-text"><strong>Mild urinary symptoms and fatigue.</strong> Temporary urgency or discomfort is normal. Most patients go home same day or next morning.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Week 2-3</div><div class="proc-tl-text"><strong>Urinary flow begins improving.</strong> Nighttime trips decrease. Patients report noticeably better sleep within the first month.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Prostate has reduced in volume</strong> by 20-40%. Symptom scores improve by 60-80% in most patients. Follow-up confirms results.</div></div>
+      </div>
+    </div>
+    <div class="proc-visual">
+      <div class="proc-visual-title">Animated Procedure Walkthrough</div>
+      <div class="proc-svg-wrap">
+        <svg id="pae-svg" viewBox="0 0 280 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Bladder -->
+          <ellipse cx="140" cy="80" rx="55" ry="45" fill="#e8eef8" stroke="#7a9fd4" stroke-width="1.5"/>
+          <text x="140" y="84" text-anchor="middle" class="svg-label-sm" fill="#7a9fd4">Bladder</text>
+          <!-- Prostate -->
+          <g id="pae-prostate" class="prostate-shrink">
+            <ellipse cx="140" cy="148" rx="42" ry="32" class="prostate-body"/>
+            <ellipse cx="140" cy="148" rx="22" ry="16" class="prostate-inner"/>
+          </g>
+          <!-- Urethra -->
+          <line x1="140" y1="125" x2="140" y2="220" stroke="#7a9fd4" stroke-width="2.5" stroke-dasharray="4 3"/>
+          <!-- Prostate arteries -->
+          <path d="M98,148 Q75,135 60,115" fill="none" stroke="#d97a7a" stroke-width="1.5" id="pa-l"/>
+          <path d="M182,148 Q205,135 220,115" fill="none" stroke="#d97a7a" stroke-width="1.5" id="pa-r"/>
+          <!-- Catheter -->
+          <path id="pae-cath" class="pae-catheter" d="M140,10 L140,40 Q145,80 160,110 Q175,130 182,148"/>
+          <!-- Embolics -->
+          <g id="pae-emb" class="pae-embolics">
+            <circle cx="178" cy="144" r="3" fill="#0a7b6a" opacity=".8"/>
+            <circle cx="184" cy="150" r="2.5" fill="#0a7b6a" opacity=".7"/>
+            <circle cx="176" cy="152" r="2" fill="#0a7b6a" opacity=".7"/>
+            <circle cx="98" cy="144" r="3" fill="#0a7b6a" opacity=".8"/>
+            <circle cx="92" cy="150" r="2.5" fill="#0a7b6a" opacity=".7"/>
+          </g>
+          <text x="140" y="248" text-anchor="middle" class="svg-label" id="pae-status-label">Enlarged prostate compressing urethra</text>
+          <circle id="pae-d1" cx="100" cy="272" r="5" fill="var(--teal2)"/>
+          <circle id="pae-d2" cx="120" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="pae-d3" cx="140" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="pae-d4" cx="160" cy="272" r="5" fill="var(--rule)"/>
+          <text x="140" y="290" text-anchor="middle" class="svg-label-sm">Step 1 of 4</text>
+        </svg>
+      </div>
+      <div class="anim-step-label" id="pae-step-label">The enlarged prostate presses against the urethra, blocking flow.</div>
+      <div class="proc-anim-controls">
+        <button class="anim-btn" id="pae-prev-btn" onclick="paeStep(-1)" disabled>← Prev</button>
+        <button class="anim-btn primary" id="pae-next-btn" onclick="paeStep(1)">Next Step →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VEIN ABLATION PANEL -->
+  <div class="proc-panel" id="proc-vein">
+    <div class="proc-info">
+      <div class="proc-tag">Vein Disease · In-Office Procedure</div>
+      <h3>Vein Ablation</h3>
+      <p>Endovenous ablation uses laser or radiofrequency energy to close damaged veins from the inside. The treated vein collapses and is absorbed. Blood reroutes through healthy veins. Most patients walk out the same day.</p>
+      <div class="proc-timeline">
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>45-60 min procedure.</strong> A thin wire inserted through a tiny nick in the skin. Heat applied along the damaged vein under ultrasound guidance. Local anesthesia only.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-3</div><div class="proc-tl-text"><strong>Wear compression stockings.</strong> Mild bruising and tenderness along the treated vein is normal. Walking is encouraged immediately.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Week 1-2</div><div class="proc-tl-text"><strong>Return to all normal activities.</strong> The treated vein begins to be absorbed by the body. Aching and heaviness improve quickly.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 1-3</div><div class="proc-tl-text"><strong>Vein is fully absorbed.</strong> Skin appearance improves. Follow-up ultrasound confirms closure. 95%+ success rate at 5 years.</div></div>
+      </div>
+    </div>
+    <div class="proc-visual">
+      <div class="proc-visual-title">Animated Procedure Walkthrough</div>
+      <div class="proc-svg-wrap">
+        <svg id="vein-svg" viewBox="0 0 280 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Leg outline -->
+          <path d="M80,20 Q65,40 62,100 Q60,160 65,230 Q70,260 90,270 Q110,278 140,278 Q170,278 190,270 Q210,260 215,230 Q220,160 218,100 Q215,40 200,20 Q175,10 140,10 Q105,10 80,20Z" fill="#fef9f5" stroke="#ddd" stroke-width="1"/>
+          <!-- Great saphenous vein (bad) -->
+          <path id="vein-bad-path" class="vein-bad" d="M135,25 Q132,80 130,140 Q128,200 130,265" fill="none" stroke="#d4736e" stroke-width="8" stroke-linecap="round"/>
+          <!-- Good vein (deep, shown after) -->
+          <path id="vein-good-path" class="vein-good" d="M145,25 Q143,80 142,140 Q141,200 142,265" fill="none" stroke="#6db87a" stroke-width="6" stroke-linecap="round" opacity="0"/>
+          <!-- Ablation wire -->
+          <path id="vein-wire" class="ablation-wire" d="M133,260 Q131,200 130,140 Q129,80 132,30"/>
+          <!-- Heat pulses along wire -->
+          <circle id="hp1" class="heat-pulse" cx="131" cy="200" r="0"/>
+          <circle id="hp2" class="heat-pulse" cx="130" cy="150" r="0"/>
+          <circle id="hp3" class="heat-pulse" cx="131" cy="100" r="0"/>
+          <!-- Labels -->
+          <text x="170" y="120" class="svg-label" id="vein-bad-label">Damaged vein</text>
+          <line x1="155" y1="118" x2="138" y2="120" stroke="#d4736e" stroke-width="1"/>
+          <text x="140" y="248" text-anchor="middle" class="svg-label" id="vein-status-label">Great saphenous vein - damaged valves</text>
+          <circle id="vein-d1" cx="100" cy="272" r="5" fill="var(--teal2)"/>
+          <circle id="vein-d2" cx="120" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="vein-d3" cx="140" cy="272" r="5" fill="var(--rule)"/>
+          <circle id="vein-d4" cx="160" cy="272" r="5" fill="var(--rule)"/>
+          <text x="140" y="290" text-anchor="middle" class="svg-label-sm">Step 1 of 4</text>
+        </svg>
+      </div>
+      <div class="anim-step-label" id="vein-step-label">The damaged great saphenous vein has failing valves causing blood to pool.</div>
+      <div class="proc-anim-controls">
+        <button class="anim-btn" id="vein-prev-btn" onclick="veinStep(-1)" disabled>← Prev</button>
+        <button class="anim-btn primary" id="vein-next-btn" onclick="veinStep(1)">Next Step →</button>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+// ── PROCEDURE TABS ──
+function showProc(id,btn){
+  document.querySelectorAll('.proc-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.proc-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('proc-'+id).classList.add('active');
+}
+
+// ── UFE ANIMATION ──
+let ufeS=1;
+const ufeSteps={
+  1:{label:'Fibroids are supplied by blood vessels from the uterine arteries.',statusLabel:'Uterus with fibroids (shown in red)',stepText:'Step 1 of 4',dots:[1,0,0,0]},
+  2:{label:'A thin catheter is guided through the artery to the fibroid blood supply.',statusLabel:'Catheter advancing to fibroid vessels',stepText:'Step 2 of 4',dots:[1,1,0,0]},
+  3:{label:'Tiny embolic particles are released, blocking blood flow to the fibroids.',statusLabel:'Particles blocking fibroid blood supply',stepText:'Step 3 of 4',dots:[1,1,1,0]},
+  4:{label:'Fibroids shrink over weeks. Symptoms resolve. No surgery needed.',statusLabel:'Fibroids shrinking - procedure complete',stepText:'Step 4 of 4',dots:[1,1,1,1]}
+};
+function ufeRender(s){
+  const d=ufeSteps[s];
+  document.getElementById('ufe-step-label').textContent=d.label;
+  document.getElementById('ufe-status-label').textContent=d.statusLabel;
+  document.querySelector('#ufe-svg text:last-child').textContent=d.stepText;
+  d.dots.forEach((v,i)=>{document.getElementById('ufe-d'+(i+1)).style.fill=v?'var(--teal2)':'var(--rule)'});
+  const cath=document.getElementById('ufe-cath');
+  const emb=document.getElementById('ufe-emb');
+  const f1=document.getElementById('f1'),f2=document.getElementById('f2'),f3=document.getElementById('f3');
+  if(s>=2){cath.classList.add('drawn')}else{cath.classList.remove('drawn')}
+  if(s>=3){emb.classList.add('show')}else{emb.classList.remove('show')}
+  if(s>=4){f1.classList.add('shrunk');f2.classList.add('shrunk');f3.classList.add('shrunk')}
+  else{f1.classList.remove('shrunk');f2.classList.remove('shrunk');f3.classList.remove('shrunk')}
+  document.getElementById('ufe-prev-btn').disabled=s===1;
+  document.getElementById('ufe-next-btn').disabled=s===4;
+}
+function ufeStep(d){ufeS=Math.max(1,Math.min(4,ufeS+d));ufeRender(ufeS)}
+
+// ── PAE ANIMATION ──
+let paeS=1;
+const paeSteps={
+  1:{label:'The enlarged prostate presses against the urethra, blocking flow.',statusLabel:'Enlarged prostate compressing urethra',stepText:'Step 1 of 4',dots:[1,0,0,0]},
+  2:{label:'A catheter is guided through the wrist artery to the prostate\'s blood supply.',statusLabel:'Catheter advancing to prostate arteries',stepText:'Step 2 of 4',dots:[1,1,0,0]},
+  3:{label:'Tiny particles are released into the prostate arteries, reducing its blood supply.',statusLabel:'Particles blocking prostate blood supply',stepText:'Step 3 of 4',dots:[1,1,1,0]},
+  4:{label:'The prostate shrinks. Urinary flow improves dramatically. Sexual function preserved.',statusLabel:'Prostate reduced - symptoms resolving',stepText:'Step 4 of 4',dots:[1,1,1,1]}
+};
+function paeRender(s){
+  const d=paeSteps[s];
+  document.getElementById('pae-step-label').textContent=d.label;
+  document.getElementById('pae-status-label').textContent=d.statusLabel;
+  document.querySelector('#pae-svg text:last-child').textContent=d.stepText;
+  d.dots.forEach((v,i)=>{document.getElementById('pae-d'+(i+1)).style.fill=v?'var(--teal2)':'var(--rule)'});
+  const cath=document.getElementById('pae-cath');
+  const emb=document.getElementById('pae-emb');
+  const prostate=document.getElementById('pae-prostate');
+  if(s>=2){cath.classList.add('drawn')}else{cath.classList.remove('drawn')}
+  if(s>=3){emb.classList.add('show')}else{emb.classList.remove('show')}
+  if(s>=4){prostate.classList.add('shrunk')}else{prostate.classList.remove('shrunk')}
+  document.getElementById('pae-prev-btn').disabled=s===1;
+  document.getElementById('pae-next-btn').disabled=s===4;
+}
+function paeStep(d){paeS=Math.max(1,Math.min(4,paeS+d));paeRender(paeS)}
+
+// ── VEIN ANIMATION ──
+let veinS=1;
+const veinSteps={
+  1:{label:'The damaged great saphenous vein has failing valves causing blood to pool.',statusLabel:'Great saphenous vein - damaged valves',stepText:'Step 1 of 4',dots:[1,0,0,0]},
+  2:{label:'A thin ablation wire is inserted through a tiny nick under ultrasound guidance.',statusLabel:'Ablation wire being positioned inside vein',stepText:'Step 2 of 4',dots:[1,1,0,0]},
+  3:{label:'Heat energy closes the vein from the inside as the wire is slowly withdrawn.',statusLabel:'Heat energy sealing the damaged vein',stepText:'Step 3 of 4',dots:[1,1,1,0]},
+  4:{label:'The vein collapses and is absorbed. Blood flows through healthy veins instead.',statusLabel:'Vein sealed - blood rerouted to healthy veins',stepText:'Step 4 of 4',dots:[1,1,1,1]}
+};
+function veinRender(s){
+  const d=veinSteps[s];
+  document.getElementById('vein-step-label').textContent=d.label;
+  document.getElementById('vein-status-label').textContent=d.statusLabel;
+  document.querySelector('#vein-svg text:last-child').textContent=d.stepText;
+  d.dots.forEach((v,i)=>{document.getElementById('vein-d'+(i+1)).style.fill=v?'var(--teal2)':'var(--rule)'});
+  const wire=document.getElementById('vein-wire');
+  const badVein=document.getElementById('vein-bad-path');
+  const goodVein=document.getElementById('vein-good-path');
+  if(s>=2){wire.classList.add('drawn')}else{wire.classList.remove('drawn')}
+  if(s>=3){
+    ['hp1','hp2','hp3'].forEach((id,i)=>{
+      setTimeout(()=>{
+        const el=document.getElementById(id);
+        el.classList.add('active');
+        setTimeout(()=>el.classList.remove('active'),500);
+      },i*200);
+    });
+  }
+  if(s>=4){badVein.classList.add('gone');goodVein.classList.add('show');goodVein.style.opacity='1'}
+  else{badVein.classList.remove('gone');goodVein.classList.remove('show');goodVein.style.opacity='0'}
+  document.getElementById('vein-prev-btn').disabled=s===1;
+  document.getElementById('vein-next-btn').disabled=s===4;
+}
+function veinStep(d){veinS=Math.max(1,Math.min(4,veinS+d));veinRender(veinS)}
+</script>
+</body>
+</html>

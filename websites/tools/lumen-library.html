@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen Procedure Library - Patient Education Tool</title>
+<meta name="description" content="Lumen Interventional Radiology brings hospital-grade, image-guided procedures into a calm outpatient setting. No general anesthesia. Pinhole access. Home the same day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#15120e;--charcoal:#241f19;--charcoal2:#2f2820;
+  --copper:#b87a47;--copper-deep:#9a6235;--copper-soft:#d9b48a;
+  --paper:#f5f0e8;--paper2:#ece2d4;--line:#e2d8c8;--line-dk:#3a322a;
+  --muted:#7e7468;--muted-lt:#b8ab99;--white:#ffffff;
+  --display:'Fraunces',Georgia,serif;--body:'Hanken Grotesk',sans-serif;--mark:'Outfit',sans-serif;
+  --shadow:0 24px 60px rgba(30,21,12,.14);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+img{display:block;max-width:100%}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+.eyebrow{font-family:var(--mark);font-size:.74rem;font-weight:400;letter-spacing:.32em;text-transform:uppercase;color:var(--copper)}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.08;letter-spacing:-.01em}
+
+/* logo mark */
+.mark{display:flex;align-items:center;gap:13px;text-decoration:none}
+.mark svg{width:38px;height:auto;flex-shrink:0}
+.mark .wm{display:flex;flex-direction:column;line-height:1}
+.mark .wm b{font-family:var(--mark);font-weight:300;font-size:1.18rem;letter-spacing:.42em;color:var(--ink)}
+.mark .wm span{font-family:var(--mark);font-weight:300;font-size:.5rem;letter-spacing:.34em;color:var(--muted);text-transform:uppercase;margin-top:4px;padding-left:3px}
+.on-dark .wm b{color:var(--paper)}.on-dark .wm span{color:var(--muted-lt)}
+
+/* header */
+header{position:sticky;top:0;z-index:300;background:rgba(245,240,232,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.utility{background:var(--charcoal);color:var(--paper2)}
+.utility .wrap{display:flex;align-items:center;justify-content:space-between;height:38px;font-size:.72rem}
+.utility-badges{display:flex;gap:22px}
+.utility-badges span{display:flex;align-items:center;gap:7px;color:var(--muted-lt);font-weight:400}
+.utility-badges i{width:5px;height:5px;border-radius:50%;background:var(--copper);display:inline-block}
+.utility-right{color:var(--muted-lt);letter-spacing:.08em}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+.nav-links{display:flex;gap:34px;align-items:center}
+.nav-links a{font-size:.86rem;font-weight:500;text-decoration:none;color:var(--ink);transition:color .18s;position:relative}
+.nav-links a:hover{color:var(--copper)}
+.btn{font-family:var(--body);font-weight:600;font-size:.82rem;letter-spacing:.02em;text-decoration:none;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:0;transition:all .2s ease}
+.btn-primary{background:var(--copper);color:#fff;padding:13px 26px;border-radius:2px}
+.btn-primary:hover{background:var(--copper-deep);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--paper);padding:13px 26px;border:1px solid rgba(245,240,232,.45);border-radius:2px}
+.btn-ghost:hover{border-color:var(--copper-soft);background:rgba(184,122,71,.14)}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
+.hamburger span{width:24px;height:2px;background:var(--ink);transition:.25s}
+
+/* hero */
+.hero{position:relative;min-height:88vh;display:flex;align-items:center;background:var(--charcoal)}
+.hero-bg{position:absolute;inset:0;background:url('assets/lumen-arrival.jpg') center center/cover no-repeat}
+.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(95deg,rgba(15,12,9,.82) 0%,rgba(15,12,9,.6) 26%,rgba(15,12,9,.24) 46%,rgba(15,12,9,0) 66%)}
+.hero-inner{position:relative;z-index:2;color:var(--paper);max-width:540px;padding:60px 0}
+.hero h1{font-size:clamp(2.6rem,6vw,4.6rem);color:var(--paper);margin:22px 0 0}
+.hero h1 em{font-style:italic;color:var(--copper-soft)}
+.hero p{font-size:1.12rem;color:var(--paper2);max-width:480px;margin:24px 0 36px;font-weight:300}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--mark);font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted-lt);display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scroll::after{content:"";width:1px;height:34px;background:linear-gradient(var(--copper-soft),transparent)}
+@media(max-height:820px){.hero-scroll{display:none}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* trust strip */
+.trust{background:var(--ink);color:var(--paper);padding:34px 0}
+.trust .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:30px}
+.trust-item{display:flex;gap:13px;align-items:flex-start}
+.trust-item svg{width:24px;height:24px;flex-shrink:0;stroke:var(--copper-soft);fill:none;stroke-width:1.4;margin-top:2px}
+.trust-item h4{font-family:var(--body);font-weight:600;font-size:.92rem;color:var(--paper);margin-bottom:2px}
+.trust-item p{font-size:.78rem;color:var(--muted-lt);line-height:1.45}
+
+/* section base */
+section{position:relative}
+.sec-pad{padding:104px 0}
+.sec-head{max-width:680px}
+.sec-head h2{font-size:clamp(2rem,4vw,3rem);margin:16px 0 0}
+.sec-head h2 em{font-style:italic;color:var(--copper)}
+.sec-head p{color:var(--muted);font-size:1.04rem;margin-top:18px;max-width:560px}
+
+/* difference */
+.diff{background:var(--paper)}
+.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;margin-top:54px}
+.diff-photo{border-radius:4px;overflow:hidden;box-shadow:var(--shadow);position:relative}
+.diff-photo img{width:100%;height:100%;object-fit:cover}
+.diff-cards{display:flex;flex-direction:column;gap:18px}
+.cmp{border-radius:4px;padding:26px 28px;border:1px solid var(--line)}
+.cmp.hospital{background:var(--white)}
+.cmp.lumen{background:var(--charcoal);border-color:var(--charcoal)}
+.cmp h3{font-family:var(--mark);font-weight:400;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:16px}
+.cmp.hospital h3{color:var(--muted)}.cmp.lumen h3{color:var(--copper-soft)}
+.cmp ul{list-style:none}
+.cmp li{display:flex;gap:11px;align-items:flex-start;font-size:.9rem;padding:7px 0}
+.cmp.hospital li{color:var(--ink)}.cmp.lumen li{color:var(--paper2)}
+.cmp li b{font-family:var(--mark);font-weight:500;font-size:1rem;line-height:1.3;flex-shrink:0}
+.cmp.hospital li b{color:var(--muted-lt)}.cmp.lumen li b{color:var(--copper)}
+
+/* library */
+.lib{background:var(--charcoal);color:var(--paper)}
+.lib .sec-head h2{color:var(--paper)}.lib .sec-head p{color:var(--muted-lt)}
+.lib-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:42px 0 34px}
+.lib-tab{font-family:var(--mark);font-weight:400;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;padding:9px 18px;border-radius:30px;border:1px solid var(--line-dk);background:transparent;color:var(--muted-lt);cursor:pointer;transition:.2s}
+.lib-tab:hover{border-color:var(--copper);color:var(--paper)}
+.lib-tab.active{background:var(--copper);border-color:var(--copper);color:#fff}
+.lib-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.proc{background:var(--charcoal2);border:1px solid var(--line-dk);border-radius:4px;overflow:hidden;transition:border-color .2s}
+.proc:hover{border-color:var(--copper-deep)}
+.proc-head{padding:24px 26px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.proc-head .ttl{flex:1}
+.proc-cat{font-family:var(--mark);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--copper)}
+.proc h3{font-family:var(--display);font-size:1.42rem;color:var(--paper);margin:7px 0 6px;line-height:1.15}
+.proc .abbr{font-size:.82rem;color:var(--muted-lt)}
+.proc-toggle{width:30px;height:30px;border-radius:50%;border:1px solid var(--line-dk);flex-shrink:0;position:relative;transition:.25s}
+.proc-toggle::before,.proc-toggle::after{content:"";position:absolute;background:var(--copper-soft);top:50%;left:50%;transition:.25s}
+.proc-toggle::before{width:12px;height:1.6px;transform:translate(-50%,-50%)}
+.proc-toggle::after{width:1.6px;height:12px;transform:translate(-50%,-50%)}
+.proc.open .proc-toggle{background:var(--copper);border-color:var(--copper)}
+.proc.open .proc-toggle::before,.proc.open .proc-toggle::after{background:#fff}
+.proc.open .proc-toggle::after{transform:translate(-50%,-50%) scaleY(0)}
+.proc-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.proc-body-inner{padding:0 26px 26px}
+.proc-row{padding:14px 0;border-top:1px solid var(--line-dk)}
+.proc-row .lbl{font-family:var(--mark);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:5px}
+.proc-row p{font-size:.9rem;color:var(--paper2);line-height:1.6}
+.proc-isyou{margin-top:14px;background:rgba(184,122,71,.12);border-left:2px solid var(--copper);padding:13px 16px;border-radius:0 3px 3px 0}
+.proc-isyou span{font-family:var(--mark);font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--copper-soft);display:block;margin-bottom:4px}
+.proc-isyou p{font-size:.9rem;color:var(--paper);font-style:italic;font-family:var(--display)}
+.lib-note{margin-top:28px;font-size:.8rem;color:var(--muted-lt);text-align:center}
+
+/* steps */
+.steps{background:var(--paper2)}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:54px}
+.step{position:relative}
+.step .num{font-family:var(--display);font-size:2.6rem;color:var(--copper);line-height:1;font-style:italic}
+.step h3{font-size:1.2rem;margin:14px 0 8px}
+.step p{font-size:.88rem;color:var(--muted);line-height:1.6}
+.step::after{content:"";position:absolute;top:18px;right:-12px;width:24px;height:1px;background:var(--line)}
+.step:last-child::after{display:none}
+
+/* about */
+.about{background:var(--paper)}
+.about-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}
+.about-photo{border-radius:4px;overflow:hidden;box-shadow:var(--shadow)}
+.about-photo img{width:100%}
+.about-txt h2{font-size:clamp(1.9rem,3.4vw,2.7rem);margin:14px 0 0}
+.about-txt p{color:var(--muted);margin-top:18px;font-size:1.02rem}
+.about-sig{margin-top:26px;display:flex;align-items:center;gap:16px}
+.about-av{width:66px;height:66px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--copper-soft);box-shadow:0 6px 18px rgba(30,21,12,.18)}
+.about-sig .nm{font-family:var(--display);font-size:1.2rem;font-style:italic;color:var(--ink)}
+.about-sig .rl{font-size:.8rem;color:var(--muted);font-family:var(--mark);letter-spacing:.08em}
+
+/* testimonials */
+.tst{background:var(--ink);color:var(--paper)}
+.tst .sec-head h2{color:var(--paper)}
+.tst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
+.tst-card{background:var(--charcoal);border:1px solid var(--line-dk);border-radius:4px;padding:30px 28px}
+.tst-card .q{font-family:var(--display);font-size:1.16rem;font-style:italic;color:var(--paper);line-height:1.45}
+.tst-card .who{display:flex;align-items:center;gap:13px;margin-top:22px}
+.tst-card .av{width:42px;height:42px;border-radius:50%;background:var(--copper);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mark);font-weight:500;font-size:.9rem;flex-shrink:0}
+.tst-card .who b{font-family:var(--body);font-weight:600;font-size:.86rem;color:var(--paper);display:block}
+.tst-card .who span{font-size:.74rem;color:var(--copper-soft);font-family:var(--mark);letter-spacing:.12em;text-transform:uppercase}
+
+/* cost */
+.cost{background:var(--copper);color:#fff;text-align:center}
+.cost .wrap{max-width:760px}
+.cost h2{font-size:clamp(1.8rem,3.4vw,2.5rem);color:#fff}
+.cost p{margin-top:18px;font-size:1.05rem;color:#fbf2e9;font-weight:300}
+
+/* contact */
+.contact{background:var(--charcoal);color:var(--paper)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.contact-info .sec-head h2{color:var(--paper)}
+.contact-info .sec-head p{color:var(--muted-lt)}
+.cinfo{margin-top:34px;display:flex;flex-direction:column;gap:20px}
+.cinfo .ci{display:flex;gap:14px;align-items:flex-start}
+.cinfo .ci svg{width:20px;height:20px;stroke:var(--copper);fill:none;stroke-width:1.5;flex-shrink:0;margin-top:3px}
+.cinfo .ci .lbl{font-family:var(--mark);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--copper-soft)}
+.cinfo .ci p{font-size:.94rem;color:var(--paper2)}
+.form{background:var(--charcoal2);border:1px solid var(--line-dk);border-radius:4px;padding:34px}
+.form .fld{margin-bottom:18px}
+.form label{font-family:var(--mark);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--copper-soft);display:block;margin-bottom:7px}
+.form input,.form select,.form textarea{width:100%;background:var(--ink);border:1px solid var(--line-dk);border-radius:2px;padding:12px 14px;color:var(--paper);font-family:var(--body);font-size:.92rem}
+.form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--copper)}
+.form .btn-primary{width:100%;justify-content:center;margin-top:6px}
+.form-note{font-size:.72rem;color:var(--muted);text-align:center;margin-top:14px}
+
+/* footer */
+footer{background:var(--ink);color:var(--muted-lt);padding:64px 0 34px}
+.foot-top{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex-wrap:wrap;padding-bottom:36px;border-bottom:1px solid var(--line-dk)}
+.foot-links{display:flex;gap:30px;flex-wrap:wrap}
+.foot-links a{font-size:.84rem;text-decoration:none;color:var(--muted-lt);transition:color .18s}
+.foot-links a:hover{color:var(--copper-soft)}
+.foot-bottom{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:26px;font-size:.74rem;color:var(--muted)}
+.foot-bottom a{color:var(--copper-soft);text-decoration:none}
+.disclaimer{max-width:760px;margin-top:14px;font-size:.72rem;color:#5f574c;line-height:1.6}
+
+@media(max-width:920px){
+  .diff-grid,.about-grid,.contact-grid{grid-template-columns:1fr;gap:40px}
+  .trust .wrap{grid-template-columns:repeat(2,1fr);gap:24px}
+  .steps-grid{grid-template-columns:repeat(2,1fr)}
+  .tst-grid{grid-template-columns:1fr}
+  .step::after{display:none}
+}
+@media(max-width:760px){
+  .wrap{padding:0 22px}
+  .nav-links{position:fixed;top:112px;right:0;left:0;background:var(--paper);flex-direction:column;align-items:flex-start;gap:0;padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease;border-bottom:1px solid var(--line)}
+  .nav-links.open{max-height:420px;padding:14px 22px 22px}
+  .nav-links a{width:100%;padding:13px 0;border-bottom:1px solid var(--line)}
+  .nav-links .btn-primary{margin-top:14px;width:100%;justify-content:center}
+  .hamburger{display:flex}
+  .utility-badges span:nth-child(2),.utility-badges span:nth-child(3){display:none}
+  .lib-grid{grid-template-columns:1fr}
+  .sec-pad{padding:74px 0}
+  .hero-cta .btn{flex:1;justify-content:center}
+  .hero-bg::after{background:linear-gradient(180deg,rgba(15,12,9,.5) 0%,rgba(15,12,9,.78) 100%)}
+}
+@media(max-width:480px){
+  .trust .wrap,.steps-grid{grid-template-columns:1fr}
+  .wrap{padding:0 18px}
+  .hero h1{font-size:clamp(2.1rem,8.5vw,2.9rem)}
+  .hero p{font-size:1rem}
+  .sec-pad{padding:60px 0}
+  .lib-tab{font-size:.72rem;padding:8px 14px}
+}
+</style>
+</head>
+<body>
+<section class="lib sec-pad" id="procedures">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Procedure library</span>
+      <h2>Find the treatment <em>behind your symptoms.</em></h2>
+      <p>Browse the minimally invasive options we perform in-office. Filter by area, then open any procedure to see what it treats, how it works, and what recovery looks like.</p>
+    </div>
+    <div class="lib-tabs" id="libTabs"></div>
+    <div class="lib-grid" id="libGrid"></div>
+    <p class="lib-note">Every patient is different. The notes here are educational, not a diagnosis. Talk to a physician about what is right for you.</p>
+  </div>
+</section>
+<script>
+const PROCS=[
+ {name:"PAD Treatment",abbr:"Peripheral Artery Disease",cat:"Circulation",
+  treats:"Leg pain or cramping when you walk, cold or numb feet, and sores that will not heal, caused by narrowed arteries in the legs.",
+  how:"Through a pinhole access point, your physician uses live imaging to reopen the narrowed artery with a tiny balloon, a small stent, or a device that clears plaque, restoring blood flow.",
+  recovery:"Same-day discharge. Most patients are up and walking within hours and ease back into activity quickly.",
+  you:"Your legs cramp after a block or two, or a sore on your foot just will not heal."},
+ {name:"Prostate Artery Embolization",abbr:"PAE for enlarged prostate",cat:"Men's Health",
+  treats:"An enlarged prostate (BPH): waking through the night to urinate, a weak stream, urgency, and never feeling fully empty.",
+  how:"Tiny particles are placed through a catheter to reduce blood flow to part of the prostate, so it shrinks and eases pressure on the urinary tract. No tissue is removed.",
+  recovery:"Outpatient, with no general anesthesia and usually no long-term catheter. Sexual function is typically preserved.",
+  you:"You are up two or three times a night and tired of planning your day around the nearest bathroom."},
+ {name:"Varicocele Embolization",abbr:"For scrotal veins and fertility",cat:"Men's Health",
+  treats:"Enlarged veins in the scrotum that cause a dull ache, heaviness, or concerns during a fertility evaluation.",
+  how:"The faulty vein is gently closed off through a small catheter, so blood reroutes to healthy veins. There is no incision.",
+  recovery:"Same-day with light sedation. Most men are back to their routine within a day or two.",
+  you:"An ache that builds by evening, or you are working through a fertility evaluation as a couple."},
+ {name:"Uterine Fibroid Embolization",abbr:"UFE, a hysterectomy alternative",cat:"Women's Health",
+  treats:"Fibroids that cause heavy periods, pelvic pressure, bloating, or the constant urge to urinate.",
+  how:"Tiny beads are placed through a catheter to cut blood flow to the fibroids so they shrink. Your uterus is preserved, with no hysterectomy.",
+  recovery:"Outpatient. Most women return to normal activity within one to two weeks. Results vary by person.",
+  you:"Your periods run your calendar, and you have been told a hysterectomy is the only answer."},
+ {name:"Ovarian Vein Embolization",abbr:"For pelvic congestion syndrome",cat:"Women's Health",
+  treats:"Chronic pelvic pain, heaviness, or aching that gets worse the longer you stand, caused by varicose veins in the pelvis.",
+  how:"The faulty pelvic veins are closed through a small catheter so blood reroutes to healthy veins.",
+  recovery:"Same-day with minimal downtime for most patients.",
+  you:"A deep pelvic ache that builds through the day, and no one has ever explained why."},
+ {name:"Genicular Artery Embolization",abbr:"GAE for knee osteoarthritis",cat:"Joint & Spine",
+  treats:"Knee osteoarthritis pain that has not responded to physical therapy or injections, for patients not ready for joint replacement.",
+  how:"Tiny particles reduce blood flow to the inflamed lining of the knee, calming the pain at its source. No incision and no implants.",
+  recovery:"Outpatient. Many patients notice gradual relief over the following weeks. Results vary by person.",
+  you:"Your knee aches on the stairs and at night, and you are not ready for a replacement."},
+ {name:"Kyphoplasty",abbr:"For spinal compression fractures",cat:"Joint & Spine",
+  treats:"Sudden, severe back pain from a spinal compression fracture, often related to osteoporosis.",
+  how:"Through a small needle, a balloon restores height to the collapsed vertebra and bone cement stabilizes the fracture.",
+  recovery:"Outpatient. Many patients feel meaningful relief soon after. Results vary by person.",
+  you:"A sharp mid-back pain that started after a minor movement and simply will not settle."},
+ {name:"Dialysis Access Maintenance",abbr:"Keeping fistulas and grafts flowing",cat:"Dialysis Access",
+  treats:"A dialysis fistula or graft that is narrowing, clotting, or no longer flowing the way it should.",
+  how:"Live imaging guides a catheter to reopen the narrowed access with a small balloon, or to clear a clot, so dialysis can stay on schedule.",
+  recovery:"Same-day, designed to get you back to your dialysis routine with as little disruption as possible.",
+  you:"Your access has felt sluggish, or your dialysis run times have started to change."}
+];
+const CATS=["All","Circulation","Men's Health","Women's Health","Joint & Spine","Dialysis Access"];
+const tabsEl=document.getElementById('libTabs'),gridEl=document.getElementById('libGrid');
+let active="All";
+function renderTabs(){
+  tabsEl.innerHTML=CATS.map(c=>`<button class="lib-tab${c===active?' active':''}" data-c="${c}">${c}</button>`).join('');
+}
+function renderGrid(){
+  const list=PROCS.filter(p=>active==="All"||p.cat===active);
+  gridEl.innerHTML=list.map((p,i)=>`
+   <div class="proc" data-i="${i}">
+     <div class="proc-head">
+       <div class="ttl"><span class="proc-cat">${p.cat}</span><h3>${p.name}</h3><span class="abbr">${p.abbr}</span></div>
+       <div class="proc-toggle"></div>
+     </div>
+     <div class="proc-body"><div class="proc-body-inner">
+       <div class="proc-row"><div class="lbl">What it treats</div><p>${p.treats}</p></div>
+       <div class="proc-row"><div class="lbl">How it works</div><p>${p.how}</p></div>
+       <div class="proc-row"><div class="lbl">Recovery</div><p>${p.recovery}</p></div>
+       <div class="proc-isyou"><span>Is this you?</span><p>"${p.you}"</p></div>
+     </div></div>
+   </div>`).join('');
+}
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('.lib-tab');if(!b)return;active=b.dataset.c;renderTabs();renderGrid();});
+gridEl.addEventListener('click',e=>{
+  const h=e.target.closest('.proc-head');if(!h)return;
+  const card=h.parentElement,body=card.querySelector('.proc-body');
+  const open=card.classList.toggle('open');
+  body.style.maxHeight=open?body.scrollHeight+'px':0;
+});
+renderTabs();renderGrid();
+
+// reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
