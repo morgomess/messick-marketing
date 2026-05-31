@@ -426,7 +426,7 @@
     .web-dot { width: 10px; height: 10px; border-radius: 50%; background: #cfcbc4; }
     .web-url { margin-left: 10px; font-family: var(--font-body); font-size: .72rem; color: var(--gray); }
     .web-preview { position: relative; width: 100%; aspect-ratio: 16/10; overflow: hidden; background: #fff; }
-    .web-preview iframe { position: absolute; top: 0; left: 0; width: 320%; height: 320%; border: 0; transform: scale(.3125); transform-origin: 0 0; pointer-events: none; }
+    .web-preview iframe { position: absolute; top: 0; left: 0; width: 200%; height: 200%; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; }
     .web-meta { padding: 1.5rem 1.7rem; }
     .web-type { font-family: var(--font-body); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
     .web-meta h3 { font-family: var(--font-editorial); font-size: 1.5rem; color: var(--black); margin: .4rem 0 .5rem; line-height: 1.2; }
@@ -434,13 +434,13 @@
     .web-cta { font-family: var(--font-body); font-size: .8rem; font-weight: 600; color: var(--blue); letter-spacing: .02em; }
     @media(max-width:760px){ .web-grid { grid-template-columns: 1fr; } .web-section { padding: 70px 24px; } }
     .tools-section { background: var(--white); padding: 100px 40px; }
-    .tool-embeds { max-width: 1040px; margin: 3rem auto 0; display: flex; flex-direction: column; gap: 2.5rem; }
+    .tool-embeds { max-width: 1080px; margin: 3rem auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     .tool-embed { background: #fff; border: 1px solid #ded9d2; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.06); }
     .tool-embed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 18px; background: #f1efea; border-bottom: 1px solid var(--gray-light); }
     .tool-embed-head .te-title { font-family: var(--font-editorial); font-size: 1.05rem; color: var(--black); }
     .tool-embed-head .te-type { font-family: var(--font-body); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
-    .tool-frame { width: 100%; border: 0; display: block; height: 640px; transition: height .2s ease; }
-    @media(max-width:760px){ .tools-section { padding: 70px 24px; } .tool-embed-head .te-type { display: none; } }
+    .tool-frame { width: 100%; border: 0; display: block; height: 560px; background: #fff; }
+    @media(max-width:760px){ .tools-section { padding: 70px 24px; } .tool-embed-head .te-type { display: none; } .tool-embeds { grid-template-columns: 1fr; } .tool-frame { height: 520px; } }
     .blog-section .section-header {
       text-align: center;
       margin-bottom: 60px;
@@ -1104,6 +1104,20 @@
   </div>
   <div class="blog-grid">
 
+    <a class="blog-card" href="https://www.linkedin.com/feed/update/urn:li:activity:7466142266563162112" target="_blank" rel="noopener">
+      <div class="blog-card-top">
+        <div class="blog-card-client">Thought Leadership</div>
+        <div class="blog-card-title">Featured thought leadership on LinkedIn</div>
+      </div>
+      <div class="blog-card-body">
+        <p class="blog-card-excerpt">A LinkedIn post sharing perspective on healthcare content and patient-first marketing. Tap to read on LinkedIn.</p>
+        <div class="blog-card-footer">
+          <span class="blog-card-date">linkedin.com</span>
+          <span class="blog-card-arrow">&#8599;</span>
+        </div>
+      </div>
+    </a>
+
     <a class="blog-card" href="https://eccomedical.com/bringing-providers-together-inside-ecco-medicals-education-dinners/" target="_blank" rel="noopener">
       <div class="blog-card-top">
         <div class="blog-card-client">ECCO Medical</div>
@@ -1283,19 +1297,19 @@
   <div class="tool-embeds">
     <div class="tool-embed">
       <div class="tool-embed-head"><span class="te-title">Procedure Library</span><span class="te-type">Interventional Radiology</span></div>
-      <iframe class="tool-frame" src="/websites/tools/lumen-library.html" title="Interactive procedure library" loading="lazy" scrolling="no"></iframe>
+      <iframe class="tool-frame" src="/websites/tools/lumen-library.html" title="Interactive procedure library" loading="lazy"></iframe>
     </div>
     <div class="tool-embed">
       <div class="tool-embed-head"><span class="te-title">Symptom Checker Walkthrough</span><span class="te-type">Vascular &amp; Vein</span></div>
-      <iframe class="tool-frame" src="/websites/tools/meridian-symptom-checker.html" title="Interactive symptom checker walkthrough" loading="lazy" scrolling="no"></iframe>
+      <iframe class="tool-frame" src="/websites/tools/meridian-symptom-checker.html" title="Interactive symptom checker walkthrough" loading="lazy"></iframe>
     </div>
     <div class="tool-embed">
       <div class="tool-embed-head"><span class="te-title">Procedure Explainer</span><span class="te-type">Vascular &amp; Vein</span></div>
-      <iframe class="tool-frame" src="/websites/tools/meridian-procedure-explainer.html" title="Animated procedure explainer" loading="lazy" scrolling="no"></iframe>
+      <iframe class="tool-frame" src="/websites/tools/meridian-procedure-explainer.html" title="Animated procedure explainer" loading="lazy"></iframe>
     </div>
     <div class="tool-embed">
       <div class="tool-embed-head"><span class="te-title">Therapist Fit Quiz</span><span class="te-type">Mental Health</span></div>
-      <iframe class="tool-frame" src="/websites/tools/sarah-quiz.html" title="Interactive therapist fit quiz" loading="lazy" scrolling="no"></iframe>
+      <iframe class="tool-frame" src="/websites/tools/sarah-quiz.html" title="Interactive therapist fit quiz" loading="lazy"></iframe>
     </div>
   </div>
 </section>
@@ -1356,29 +1370,5 @@
 })();
 </script>
 
-<script>
-(function(){
-  function fit(f){
-    try{
-      var doc=f.contentWindow.document;
-      var h=Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
-      if(h>0){ f.style.height=h+'px'; }
-    }catch(e){ f.style.height='700px'; f.setAttribute('scrolling','yes'); }
-  }
-  function attach(f){
-    var win; try{ win=f.contentWindow; var doc=win.document; }catch(e){ f.style.height='700px'; f.setAttribute('scrolling','yes'); return; }
-    fit(f);
-    try{
-      if(win.ResizeObserver){ new win.ResizeObserver(function(){ fit(f); }).observe(doc.body); }
-      doc.addEventListener('click', function(){ setTimeout(function(){ fit(f); }, 350); });
-    }catch(e){}
-  }
-  document.querySelectorAll('.tool-frame').forEach(function(f){
-    f.addEventListener('load', function(){ attach(f); });
-    try{ if(f.contentDocument && f.contentDocument.readyState==='complete'){ attach(f); } }catch(e){}
-  });
-  window.addEventListener('resize', function(){ document.querySelectorAll('.tool-frame').forEach(fit); });
-})();
-</script>
 </body>
 </html>
