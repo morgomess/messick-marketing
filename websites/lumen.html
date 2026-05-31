@@ -66,6 +66,10 @@ header{position:sticky;top:0;z-index:300;background:rgba(245,240,232,.92);backdr
 .hero-scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--mark);font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted-lt);display:flex;flex-direction:column;align-items:center;gap:8px}
 .hero-scroll::after{content:"";width:1px;height:34px;background:linear-gradient(var(--copper-soft),transparent)}
 @media(max-height:820px){.hero-scroll{display:none}}
+/* desktop hero: anchor text into the dark left zone instead of drifting to center on wide screens */
+@media(min-width:761px){
+  .hero .wrap{max-width:none;margin:0;padding-left:max(32px,min(calc((100vw - 1180px)/2 + 32px),160px));padding-right:32px}
+}
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
