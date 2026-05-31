@@ -60,7 +60,10 @@ header{position:sticky;top:0;z-index:300;background:rgba(250,247,242,.9);backdro
 /* hero */
 .hero{position:relative;min-height:86vh;display:flex;align-items:center;background:linear-gradient(120deg,#fbf6f1 0%,#f3eaf2 48%,#efe4f0 100%);overflow:hidden}
 .hero-art{position:absolute;inset:0;z-index:1;pointer-events:none}
-.hero-inner{position:relative;z-index:3;max-width:600px;padding:70px 0}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center}
+.hero-inner{position:relative;z-index:3;max-width:560px;padding:84px 0}
+.hero-photo{position:relative;z-index:3;border-radius:24px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:4/5}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .hero h1{font-size:clamp(3rem,7.4vw,5.6rem);margin:20px 0 0;letter-spacing:-.015em}
 .hero h1 em{font-style:italic;color:var(--mauve)}
 .hero p{font-size:1.14rem;color:var(--plum-soft);max-width:480px;margin:24px 0 36px;font-weight:400}
@@ -121,10 +124,13 @@ section{position:relative}
 
 /* difference */
 .diff{background:linear-gradient(160deg,#f4ebf3,#faf3f5)}
-.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:56px}
-.val{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:34px 30px;text-align:left}
-.val .num{font-family:var(--display);font-style:italic;font-size:2.6rem;color:var(--blush);line-height:1;display:block;margin-bottom:14px}
-.val h3{font-size:1.55rem;margin-bottom:10px}
+.diff-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:50px;align-items:center;margin-top:56px}
+.diff-photo{border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+.diff-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.diff-vals{display:flex;flex-direction:column;gap:18px}
+.val{display:flex;gap:18px;align-items:flex-start;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:24px 26px;text-align:left}
+.val .num{font-family:var(--display);font-style:italic;font-size:2.2rem;color:var(--blush);line-height:1;flex:0 0 auto}
+.val h3{font-size:1.4rem;margin-bottom:6px}
 .val p{font-size:.94rem;color:var(--muted);line-height:1.6}
 
 /* gallery / photo direction */
@@ -171,6 +177,8 @@ section{position:relative}
 /* book */
 .book{background:radial-gradient(120% 90% at 50% 100%,#f1e7f2 0%,var(--ivory) 62%)}
 .book .sec-head{text-align:center;margin:0 auto}
+.book-banner{margin:46px auto 0;max-width:1000px;border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
+.book-banner img{width:100%;display:block}
 .loc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;max-width:760px;margin:48px auto 0}
 .loc{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:30px 32px;box-shadow:var(--shadow-sm)}
 .loc h3{font-size:1.45rem;margin-bottom:12px}
@@ -189,7 +197,8 @@ footer{background:var(--plum);color:var(--lav);padding:64px 0 36px}
 .disclaimer{font-size:.7rem;color:rgba(185,166,219,.7);margin-top:22px;line-height:1.55;max-width:880px}
 
 @media(max-width:980px){
-  .svc-grid,.diff-grid,.prov-grid,.tmon-grid{grid-template-columns:repeat(2,1fr)}
+  .svc-grid,.prov-grid,.tmon-grid{grid-template-columns:repeat(2,1fr)}
+  .diff-grid{grid-template-columns:1fr;gap:34px}
   .steps{grid-template-columns:repeat(2,1fr)}
   .gal-grid{grid-template-columns:repeat(2,1fr)}
   .trust .wrap{grid-template-columns:repeat(2,1fr);gap:24px}
@@ -200,7 +209,10 @@ footer{background:var(--plum);color:var(--lav);padding:64px 0 36px}
   .nav-links a{padding:15px 32px;width:100%;font-size:1rem}
   .nav-links a.btn{margin:10px 32px;width:auto;justify-content:center}
   .hamburger{display:flex}
-  .hero-inner{padding:54px 0}
+  .hero{min-height:auto}
+  .hero .wrap{grid-template-columns:1fr;gap:30px}
+  .hero-inner{padding:54px 0 6px}
+  .hero-photo{max-height:480px}
   .phase-panel{flex-direction:column;padding:28px 24px}
   .access .wrap{grid-template-columns:1fr;gap:24px}
   .loc-grid{grid-template-columns:1fr}
@@ -276,6 +288,7 @@ footer{background:var(--plum);color:var(--lav);padding:64px 0 36px}
         <a href="#book" class="btn btn-ghost">Book a visit</a>
       </div>
     </div>
+    <div class="hero-photo"><img src="assets/lunabloom-reception.jpg" alt="A patient checking in with a smiling receptionist at the Luna Bloom Women's Health front desk"></div>
   </div>
   <div class="hero-scroll">Scroll</div>
 </section>
@@ -399,48 +412,20 @@ footer{background:var(--plum);color:var(--lav);padding:64px 0 36px}
       <p>Women's health is too often rushed and dismissed. We built Luna Bloom on the opposite idea: care that listens first.</p>
     </div>
     <div class="diff-grid">
-      <div class="val reveal">
-        <span class="num">01</span>
-        <h3>Heard</h3>
-        <p>Longer visits and real conversations. We listen to your whole story before we ever reach for a chart, so nothing about you gets overlooked.</p>
-      </div>
-      <div class="val reveal">
-        <span class="num">02</span>
-        <h3>Respected</h3>
-        <p>Your questions are never silly and your concerns are never too small. You leave understanding your body and your options, on your terms.</p>
-      </div>
-      <div class="val reveal">
-        <span class="num">03</span>
-        <h3>Supported</h3>
-        <p>One team that knows you across every stage, in a calm space designed to feel less like a clinic and more like care that is truly yours.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- GALLERY / photo direction -->
-<section class="gallery sec-pad">
-  <div class="wrap">
-    <div class="sec-head center reveal">
-      <span class="eyebrow">Inside Luna Bloom</span>
-      <h2>A space designed <em>around you.</em></h2>
-    </div>
-    <div class="gal-grid reveal">
-      <div class="gal">
-        <svg class="gal-art" viewBox="0 0 120 160" preserveAspectRatio="none" aria-hidden="true"><rect width="120" height="160" fill="#6b4a78"/><circle cx="34" cy="40" r="44" fill="#a97aae" opacity=".55"/><ellipse cx="62" cy="62" rx="14" ry="34" fill="#f2c7cf" opacity=".5" transform="rotate(20 62 62)"/></svg>
-        <h4>Compassionate consultation</h4><p>Empathetic, patient-centered care.</p>
-      </div>
-      <div class="gal">
-        <svg class="gal-art" viewBox="0 0 120 160" preserveAspectRatio="none" aria-hidden="true"><rect width="120" height="160" fill="#4B2E59"/><circle cx="80" cy="60" r="40" fill="#b9a6db" opacity=".5"/><circle cx="40" cy="100" r="30" fill="#f2c7cf" opacity=".45"/></svg>
-        <h4>Community &amp; inclusivity</h4><p>All women. Every story. Welcome here.</p>
-      </div>
-      <div class="gal">
-        <svg class="gal-art" viewBox="0 0 120 160" preserveAspectRatio="none" aria-hidden="true"><rect width="120" height="160" fill="#8a6a96"/><ellipse cx="60" cy="120" rx="56" ry="40" fill="#f3eaf2" opacity=".5"/><circle cx="60" cy="48" r="26" fill="#f2c7cf" opacity=".55"/></svg>
-        <h4>Calm, comforting environment</h4><p>Thoughtful spaces designed for you.</p>
-      </div>
-      <div class="gal">
-        <svg class="gal-art" viewBox="0 0 120 160" preserveAspectRatio="none" aria-hidden="true"><rect width="120" height="160" fill="#5a3a68"/><circle cx="46" cy="70" r="42" fill="#a97aae" opacity=".5"/><ellipse cx="78" cy="96" rx="16" ry="38" fill="#b9a6db" opacity=".5" transform="rotate(-18 78 96)"/></svg>
-        <h4>Supportive guidance</h4><p>Clear answers. Support every step.</p>
+      <div class="diff-photo reveal"><img src="assets/lunabloom-consult.jpg" alt="A Luna Bloom physician listening closely to a young patient during a consultation" loading="lazy"></div>
+      <div class="diff-vals reveal">
+        <div class="val">
+          <span class="num">01</span>
+          <div><h3>Heard</h3><p>Longer visits and real conversations. We listen to your whole story before we ever reach for a chart, so nothing about you gets overlooked.</p></div>
+        </div>
+        <div class="val">
+          <span class="num">02</span>
+          <div><h3>Respected</h3><p>Your questions are never silly and your concerns are never too small. You leave understanding your body and your options, on your terms.</p></div>
+        </div>
+        <div class="val">
+          <span class="num">03</span>
+          <div><h3>Supported</h3><p>One team that knows you across every stage, in a calm space designed to feel less like a clinic and more like care that is truly yours.</p></div>
+        </div>
       </div>
     </div>
   </div>
@@ -538,6 +523,7 @@ footer{background:var(--plum);color:var(--lav);padding:64px 0 36px}
       <h2>Ready when <em>you are.</em></h2>
       <p>Whatever season you're in, we would be honored to care for you.</p>
     </div>
+    <div class="book-banner reveal"><img src="assets/lunabloom-exterior.jpg" alt="The Luna Bloom Women's Health building at dusk, with a monument sign reading Expert care, every stage, every woman" loading="lazy"></div>
     <div class="loc-grid reveal">
       <div class="loc">
         <h3>Savannah</h3>
