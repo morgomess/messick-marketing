@@ -56,15 +56,16 @@ header{position:sticky;top:0;z-index:300;background:rgba(245,240,232,.92);backdr
 
 /* hero */
 .hero{position:relative;min-height:88vh;display:flex;align-items:center;background:var(--charcoal)}
-.hero-bg{position:absolute;inset:0;background:url('assets/lumen-arrival.jpg') center right/cover no-repeat;opacity:.96}
-.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(15,12,9,.92) 0%,rgba(20,16,11,.74) 38%,rgba(20,16,11,.12) 64%,rgba(20,16,11,0) 100%)}
-.hero-inner{position:relative;z-index:2;color:var(--paper);max-width:640px;padding:60px 0}
+.hero-bg{position:absolute;inset:0;background:url('assets/lumen-arrival.jpg') center center/cover no-repeat}
+.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(95deg,rgba(15,12,9,.82) 0%,rgba(15,12,9,.6) 26%,rgba(15,12,9,.24) 46%,rgba(15,12,9,0) 66%)}
+.hero-inner{position:relative;z-index:2;color:var(--paper);max-width:540px;padding:60px 0}
 .hero h1{font-size:clamp(2.6rem,6vw,4.6rem);color:var(--paper);margin:22px 0 0}
 .hero h1 em{font-style:italic;color:var(--copper-soft)}
 .hero p{font-size:1.12rem;color:var(--paper2);max-width:480px;margin:24px 0 36px;font-weight:300}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
 .hero-scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--mark);font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted-lt);display:flex;flex-direction:column;align-items:center;gap:8px}
 .hero-scroll::after{content:"";width:1px;height:34px;background:linear-gradient(var(--copper-soft),transparent)}
+@media(max-height:820px){.hero-scroll{display:none}}
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
@@ -220,6 +221,7 @@ footer{background:var(--ink);color:var(--muted-lt);padding:64px 0 34px}
   .lib-grid{grid-template-columns:1fr}
   .sec-pad{padding:74px 0}
   .hero-cta .btn{flex:1;justify-content:center}
+  .hero-bg::after{background:linear-gradient(180deg,rgba(15,12,9,.5) 0%,rgba(15,12,9,.78) 100%)}
 }
 @media(max-width:480px){
   .trust .wrap,.steps-grid{grid-template-columns:1fr}
