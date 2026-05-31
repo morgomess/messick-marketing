@@ -207,24 +207,22 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      justify-content: center;
     }
     .cs-visual-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
       gap: 4px;
-      flex: 1;
       background: #1a1a1a;
       padding: 4px;
     }
     .cs-visual-grid img,
     .cs-visual-grid video {
       width: 100%;
-      height: 100%;
+      aspect-ratio: 4 / 5;
       object-fit: cover;
       display: block;
       border-radius: 2px;
-      min-height: 0;
     }
     .cs-client-badge {
       position: absolute;
