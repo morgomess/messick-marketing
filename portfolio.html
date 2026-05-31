@@ -495,6 +495,11 @@
       font-weight: 500;
       color: var(--white);
       line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(1.05rem * 1.35 * 3);
     }
     .blog-card-body {
       padding: 20px 24px 24px;
@@ -508,6 +513,11 @@
       line-height: 1.65;
       flex: 1;
       margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: calc(0.85rem * 1.65 * 3);
     }
     .blog-card-footer {
       display: flex;
@@ -1107,10 +1117,10 @@
     <a class="blog-card" href="https://www.linkedin.com/feed/update/urn:li:activity:7466142266563162112" target="_blank" rel="noopener">
       <div class="blog-card-top">
         <div class="blog-card-client">Thought Leadership</div>
-        <div class="blog-card-title">Featured thought leadership on LinkedIn</div>
+        <div class="blog-card-title">The wrist pain patients have been told to "just manage" - there may be a better answer</div>
       </div>
       <div class="blog-card-body">
-        <p class="blog-card-excerpt">A LinkedIn post sharing perspective on healthcare content and patient-first marketing. Tap to read on LinkedIn.</p>
+        <p class="blog-card-excerpt">New research in CVIR Endovascular found transarterial embolization gave meaningful pain relief to 75% of chronic wrist pain patients who had failed conservative care - a look at where minimally invasive MSK medicine is heading.</p>
         <div class="blog-card-footer">
           <span class="blog-card-date">linkedin.com</span>
           <span class="blog-card-arrow">&#8599;</span>
