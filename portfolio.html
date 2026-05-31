@@ -209,8 +209,10 @@
       flex-direction: column;
     }
     .cs-visual-grid {
-      columns: 2;
-      column-gap: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 4px;
       flex: 1;
       background: #1a1a1a;
       padding: 4px;
@@ -218,12 +220,11 @@
     .cs-visual-grid img,
     .cs-visual-grid video {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
-      margin-bottom: 4px;
       border-radius: 2px;
-      break-inside: avoid;
-      -webkit-column-break-inside: avoid;
+      min-height: 0;
     }
     .cs-client-badge {
       position: absolute;
@@ -695,7 +696,7 @@
   <div class="case-study">
     <div class="cs-visual">
       <div class="cs-visual-grid">
-        <video src="/portfolio-assets/ecco-gae-explainer.mp4" muted loop playsinline preload="none"></video>
+        <video src="/portfolio-assets/ecco-gae-explainer.mp4" poster="/portfolio-assets/ecco-gae-explainer-poster.jpg" muted loop playsinline preload="none"></video>
         <img src="/portfolio-assets/ecco-joint-embolization.png" alt="ECCO Medical - Joint Embolization Infographic" loading="lazy" />
         <img src="/portfolio-assets/ecco-fibroids-prostate.png" alt="ECCO Medical - Fibroids or Enlarged Prostate" loading="lazy" />
         <img src="/portfolio-assets/ecco-testimonial.jpg" alt="ECCO Medical - Patient Testimonial Erik M" loading="lazy" />
@@ -743,7 +744,7 @@
   <div class="case-study reverse">
     <div class="cs-visual">
       <div class="cs-visual-grid">
-        <video src="/portfolio-assets/jvi-knee-testimonial.mp4" muted loop playsinline preload="none"></video>
+        <video src="/portfolio-assets/jvi-knee-testimonial.mp4" poster="/portfolio-assets/jvi-knee-testimonial-poster.jpg" muted loop playsinline preload="none"></video>
         <img src="/portfolio-assets/jvi-hip-oa.png" alt="JVI - Hip Osteoarthritis TAME" loading="lazy" />
         <img src="/portfolio-assets/jvi-msk-trials.png" alt="JVI - Active MSK Clinical Trials" loading="lazy" />
         <img src="/portfolio-assets/jvi-knee-pain.png" alt="JVI - 3 Things Every Knee Pain Patient Should Know" loading="lazy" />
@@ -791,7 +792,7 @@
   <div class="case-study">
     <div class="cs-visual">
       <div class="cs-visual-grid">
-        <video src="/portfolio-assets/tvi-legs-back.mp4" muted loop playsinline preload="none"></video>
+        <video src="/portfolio-assets/tvi-legs-back.mp4" poster="/portfolio-assets/tvi-legs-back-poster.jpg" muted loop playsinline preload="none"></video>
         <img src="/portfolio-assets/tvi-hysterectomy.png" alt="TVI - You Don't Need a Hysterectomy" loading="lazy" />
         <img src="/portfolio-assets/tvi-faq-vein.png" alt="TVI - FAQ Is Vein Treatment Painful" loading="lazy" />
         <img src="/portfolio-assets/tvi-testimonial.png" alt="TVI - Patient Testimonial" loading="lazy" />
@@ -852,69 +853,6 @@
       </div>
     </div>
     <div class="sample-card">
-      <video src="/portfolio-assets/braintalk-reel.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Brain Talk Foundation</span>
-        <span class="sample-title">Brain Talk Day - Event Recap</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/vip-embolization-explainer.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Vascular &amp; Interventional Partners</span>
-        <span class="sample-title">Embolization Explainer - Short-Form Video</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/aspire-back-pain.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Aspire Therapy</span>
-        <span class="sample-title">Back Pain - Short Form Video</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/blackhills-pfe-explainer.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Black Hills Heart &amp; Vascular</span>
-        <span class="sample-title">PFE for Chronic Heel Pain - Explainer</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/kelli-speaking-reel.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Brain Talk Foundation</span>
-        <span class="sample-title">Dr. Kelli - Speaking Reel</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/dcc-clinic-reel.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Desert Cardiovascular Consultants</span>
-        <span class="sample-title">Inside the Cath Lab - Short-Form Video</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/ecco-gae-explainer.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">ECCO Medical</span>
-        <span class="sample-title">GAE for Knee Pain - Dr. Kovaleski</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/denver-stress-quiz.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">My Denver Therapy</span>
-        <span class="sample-title">Stress &amp; Mental Health - Quiz Reel</span>
-      </div>
-    </div>
-    <div class="sample-card">
-      <video src="/portfolio-assets/vip-brand-reel.mp4" muted loop playsinline preload="none"></video>
-      <div class="sample-overlay">
-        <span class="sample-client">Vascular &amp; Interventional Partners</span>
-        <span class="sample-title">Brand Reel - Meet the Team</span>
-      </div>
-    </div>
-    <div class="sample-card">
       <img src="/portfolio-assets/blackhills-heart-failure-risk.png" alt="Black Hills Heart and Vascular - Are You At Risk For Heart Failure" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
@@ -929,6 +867,13 @@
       </div>
     </div>
     <div class="sample-card">
+      <video src="/portfolio-assets/braintalk-reel.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Brain Talk Foundation</span>
+        <span class="sample-title">Brain Talk Day - Event Recap</span>
+      </div>
+    </div>
+    <div class="sample-card">
       <img src="/portfolio-assets/blackhills-good-hands.png" alt="Black Hills Heart and Vascular - Your Heart Is In Good Hands" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
@@ -940,6 +885,13 @@
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Therapy That Fits Your Busy Schedule</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/vip-embolization-explainer.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Vascular &amp; Interventional Partners</span>
+        <span class="sample-title">Embolization Explainer - Short-Form Video</span>
       </div>
     </div>
     <div class="sample-card">
@@ -964,6 +916,13 @@
       </div>
     </div>
     <div class="sample-card">
+      <video src="/portfolio-assets/aspire-back-pain.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Aspire Therapy</span>
+        <span class="sample-title">Back Pain - Short Form Video</span>
+      </div>
+    </div>
+    <div class="sample-card">
       <img src="/portfolio-assets/svv-fibroid-relief.png" alt="Sound Vascular - Fibroid Relief Without Surgery" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
@@ -975,6 +934,13 @@
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">World-Class Heart &amp; Vascular Care</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/blackhills-pfe-explainer.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Black Hills Heart &amp; Vascular</span>
+        <span class="sample-title">PFE for Chronic Heel Pain - Explainer</span>
       </div>
     </div>
     <div class="sample-card">
@@ -999,6 +965,13 @@
       </div>
     </div>
     <div class="sample-card">
+      <video src="/portfolio-assets/kelli-speaking-reel.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Brain Talk Foundation</span>
+        <span class="sample-title">Dr. Kelli - Speaking Reel</span>
+      </div>
+    </div>
+    <div class="sample-card">
       <img src="/portfolio-assets/svv-pelvic-pressure.png" alt="Sound Vascular - Pelvic Pressure" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
@@ -1013,6 +986,13 @@
       </div>
     </div>
     <div class="sample-card">
+      <video src="/portfolio-assets/dcc-clinic-reel.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Desert Cardiovascular Consultants</span>
+        <span class="sample-title">Inside the Cath Lab - Short-Form Video</span>
+      </div>
+    </div>
+    <div class="sample-card">
       <img src="/portfolio-assets/braintalk-new-here.jpg" alt="Brain Talk - New Here Meet Dr. Kelli" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Brain Talk Foundation</span>
@@ -1024,6 +1004,13 @@
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">Early PAD Detection - ABI Test</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/ecco-gae-explainer.mp4" poster="/portfolio-assets/ecco-gae-explainer-poster.jpg" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">ECCO Medical</span>
+        <span class="sample-title">GAE for Knee Pain - Dr. Kovaleski</span>
       </div>
     </div>
     <div class="sample-card">
@@ -1048,6 +1035,13 @@
       </div>
     </div>
     <div class="sample-card">
+      <video src="/portfolio-assets/denver-stress-quiz.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">My Denver Therapy</span>
+        <span class="sample-title">Stress &amp; Mental Health - Quiz Reel</span>
+      </div>
+    </div>
+    <div class="sample-card">
       <img src="/portfolio-assets/dcc-testimonial-donald.png" alt="Desert Cardiovascular - Patient Testimonial Donald O" loading="lazy" />
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
@@ -1059,6 +1053,13 @@
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Ketamine-Assisted Psychotherapy - Carousel</span>
+      </div>
+    </div>
+    <div class="sample-card">
+      <video src="/portfolio-assets/vip-brand-reel.mp4" muted loop playsinline preload="none"></video>
+      <div class="sample-overlay">
+        <span class="sample-client">Vascular &amp; Interventional Partners</span>
+        <span class="sample-title">Brand Reel - Meet the Team</span>
       </div>
     </div>
     <div class="sample-card">
@@ -1315,8 +1316,10 @@
       });
     }, { rootMargin: '150px 0px', threshold: 0.1 });
     grid.querySelectorAll('video').forEach(function(v){ io.observe(v); });
+    document.querySelectorAll('.cs-visual-grid video').forEach(function(v){ io.observe(v); });
   } else {
     grid.querySelectorAll('video').forEach(function(v){ v.setAttribute('autoplay',''); });
+    document.querySelectorAll('.cs-visual-grid video').forEach(function(v){ v.setAttribute('autoplay',''); });
   }
 })();
 </script>
