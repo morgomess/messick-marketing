@@ -434,9 +434,13 @@
     .web-cta { font-family: var(--font-body); font-size: .8rem; font-weight: 600; color: var(--blue); letter-spacing: .02em; }
     @media(max-width:760px){ .web-grid { grid-template-columns: 1fr; } .web-section { padding: 70px 24px; } }
     .tools-section { background: var(--white); padding: 100px 40px; }
-    .tools-section .web-card { background: #fff; border-color: #ded9d2; }
-    .tools-section .web-cta { color: var(--blue-light); }
-    @media(max-width:760px){ .tools-section { padding: 70px 24px; } }
+    .tool-embeds { max-width: 1040px; margin: 3rem auto 0; display: flex; flex-direction: column; gap: 2.5rem; }
+    .tool-embed { background: #fff; border: 1px solid #ded9d2; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.06); }
+    .tool-embed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 18px; background: #f1efea; border-bottom: 1px solid var(--gray-light); }
+    .tool-embed-head .te-title { font-family: var(--font-editorial); font-size: 1.05rem; color: var(--black); }
+    .tool-embed-head .te-type { font-family: var(--font-body); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
+    .tool-frame { width: 100%; border: 0; display: block; height: 640px; transition: height .2s ease; }
+    @media(max-width:760px){ .tools-section { padding: 70px 24px; } .tool-embed-head .te-type { display: none; } }
     .blog-section .section-header {
       text-align: center;
       margin-bottom: 60px;
@@ -1274,49 +1278,25 @@
   <div class="section-header">
     <span class="section-label" style="color:var(--blue-light)">Interactive Tools</span>
     <h2>Customized Patient Education Tools</h2>
-    <p>On-brand interactive tools built into each practice's site to turn confused visitors into booked patients - a filterable procedure library, a guided symptom checker, an animated procedure explainer, and a fit quiz - each customized to the practice and the way its patients actually search.</p>
+    <p>On-brand interactive tools built into each practice's site to turn confused visitors into booked patients - a filterable procedure library, a guided symptom checker, an animated procedure explainer, and a fit quiz, each customized to the practice and the way its patients actually search. Try them right here.</p>
   </div>
-  <div class="web-grid">
-    <a class="web-card" href="/websites/tools/lumen-library.html" target="_blank" rel="noopener">
-      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">procedure library</span></div>
-      <div class="web-preview"><iframe src="/websites/tools/lumen-library.html" loading="lazy" title="Interactive procedure library tool" scrolling="no"></iframe></div>
-      <div class="web-meta">
-        <span class="web-type">Interventional Radiology</span>
-        <h3>Procedure Library</h3>
-        <p>A filterable, expandable library that helps patients find the minimally invasive option behind their symptoms - what it treats, how it works, and what recovery looks like.</p>
-        <span class="web-cta">Try the tool &#x2192;</span>
-      </div>
-    </a>
-    <a class="web-card" href="/websites/tools/meridian-symptom-checker.html" target="_blank" rel="noopener">
-      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">symptom checker</span></div>
-      <div class="web-preview"><iframe src="/websites/tools/meridian-symptom-checker.html" loading="lazy" title="Interactive symptom checker walkthrough" scrolling="no"></iframe></div>
-      <div class="web-meta">
-        <span class="web-type">Vascular &amp; Vein</span>
-        <h3>Symptom Checker Walkthrough</h3>
-        <p>A guided, three-step walkthrough that asks patients about their symptoms and points them toward the right care - and whether the practice can help.</p>
-        <span class="web-cta">Try the tool &#x2192;</span>
-      </div>
-    </a>
-    <a class="web-card" href="/websites/tools/meridian-procedure-explainer.html" target="_blank" rel="noopener">
-      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">procedure explainer</span></div>
-      <div class="web-preview"><iframe src="/websites/tools/meridian-procedure-explainer.html" loading="lazy" title="Animated procedure explainer tool" scrolling="no"></iframe></div>
-      <div class="web-meta">
-        <span class="web-type">Vascular &amp; Vein</span>
-        <h3>Procedure Explainer</h3>
-        <p>Animated, step-by-step walkthroughs that show patients exactly what happens during each procedure - UFE, PAE, and vein ablation - from catheter to recovery.</p>
-        <span class="web-cta">Try the tool &#x2192;</span>
-      </div>
-    </a>
-    <a class="web-card" href="/websites/tools/sarah-quiz.html" target="_blank" rel="noopener">
-      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">fit quiz</span></div>
-      <div class="web-preview"><iframe src="/websites/tools/sarah-quiz.html" loading="lazy" title="Interactive therapist fit quiz" scrolling="no"></iframe></div>
-      <div class="web-meta">
-        <span class="web-type">Mental Health</span>
-        <h3>Therapist Fit Quiz</h3>
-        <p>Four quick questions that give visitors a warm, personalized result at the end - built to turn quiet browsers into booked consultations.</p>
-        <span class="web-cta">Try the tool &#x2192;</span>
-      </div>
-    </a>
+  <div class="tool-embeds">
+    <div class="tool-embed">
+      <div class="tool-embed-head"><span class="te-title">Procedure Library</span><span class="te-type">Interventional Radiology</span></div>
+      <iframe class="tool-frame" src="/websites/tools/lumen-library.html" title="Interactive procedure library" loading="lazy" scrolling="no"></iframe>
+    </div>
+    <div class="tool-embed">
+      <div class="tool-embed-head"><span class="te-title">Symptom Checker Walkthrough</span><span class="te-type">Vascular &amp; Vein</span></div>
+      <iframe class="tool-frame" src="/websites/tools/meridian-symptom-checker.html" title="Interactive symptom checker walkthrough" loading="lazy" scrolling="no"></iframe>
+    </div>
+    <div class="tool-embed">
+      <div class="tool-embed-head"><span class="te-title">Procedure Explainer</span><span class="te-type">Vascular &amp; Vein</span></div>
+      <iframe class="tool-frame" src="/websites/tools/meridian-procedure-explainer.html" title="Animated procedure explainer" loading="lazy" scrolling="no"></iframe>
+    </div>
+    <div class="tool-embed">
+      <div class="tool-embed-head"><span class="te-title">Therapist Fit Quiz</span><span class="te-type">Mental Health</span></div>
+      <iframe class="tool-frame" src="/websites/tools/sarah-quiz.html" title="Interactive therapist fit quiz" loading="lazy" scrolling="no"></iframe>
+    </div>
   </div>
 </section>
 
@@ -1376,5 +1356,29 @@
 })();
 </script>
 
+<script>
+(function(){
+  function fit(f){
+    try{
+      var doc=f.contentWindow.document;
+      var h=Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+      if(h>0){ f.style.height=h+'px'; }
+    }catch(e){ f.style.height='700px'; f.setAttribute('scrolling','yes'); }
+  }
+  function attach(f){
+    var win; try{ win=f.contentWindow; var doc=win.document; }catch(e){ f.style.height='700px'; f.setAttribute('scrolling','yes'); return; }
+    fit(f);
+    try{
+      if(win.ResizeObserver){ new win.ResizeObserver(function(){ fit(f); }).observe(doc.body); }
+      doc.addEventListener('click', function(){ setTimeout(function(){ fit(f); }, 350); });
+    }catch(e){}
+  }
+  document.querySelectorAll('.tool-frame').forEach(function(f){
+    f.addEventListener('load', function(){ attach(f); });
+    try{ if(f.contentDocument && f.contentDocument.readyState==='complete'){ attach(f); } }catch(e){}
+  });
+  window.addEventListener('resize', function(){ document.querySelectorAll('.tool-frame').forEach(fit); });
+})();
+</script>
 </body>
 </html>
