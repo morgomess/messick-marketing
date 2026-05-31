@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Through Every Phase - Patient Education Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --plum:#4B2E59;--plum-soft:#6b4a78;--lav:#B9A6DB;--mauve:#A97AAE;--blush:#F2C7CF;--blush-soft:#FBF1F4;
+  --ivory:#FAF7F2;--line:#ece1ee;--muted:#7a6f7c;
+  --display:'Cormorant Garamond',Georgia,serif;--body:'Manrope',system-ui,sans-serif;
+}
+html,body{height:100%}
+body{font-family:var(--body);background:radial-gradient(120% 80% at 50% 0%,#f1e7f2 0%,var(--ivory) 58%);color:#2b2b2b;-webkit-font-smoothing:antialiased;padding:22px 20px 26px;display:flex;flex-direction:column;line-height:1.55}
+.head{text-align:center;margin-bottom:6px}
+.eyebrow{font-size:.62rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--mauve)}
+.head h1{font-family:var(--display);font-weight:500;font-size:1.7rem;color:var(--plum);line-height:1.05;margin:6px 0 4px}
+.head h1 em{font-style:italic;color:var(--mauve)}
+.head p{font-size:.82rem;color:var(--muted);max-width:430px;margin:0 auto}
+.arc{display:flex;gap:4px;justify-content:center;align-items:flex-start;overflow-x:auto;padding:16px 2px 4px;scrollbar-width:thin}
+.moon-btn{flex:0 0 auto;width:92px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0;font-family:var(--body)}
+.moon-wrap{width:54px;height:54px;border-radius:50%;transition:box-shadow .25s,transform .25s}
+.moon-btn:hover .moon-wrap{transform:scale(1.08)}
+.moon-btn.on .moon-wrap{box-shadow:0 0 0 3px var(--blush),0 0 0 4.5px rgba(169,122,174,.35)}
+.moon-label{font-size:.7rem;line-height:1.2;color:var(--muted);text-align:center;max-width:84px}
+.moon-btn.on .moon-label{color:var(--plum);font-weight:600}
+.panel{flex:1;margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;box-shadow:0 12px 34px rgba(75,46,89,.07);overflow:auto}
+.p-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.p-moon{width:50px;height:50px;flex:0 0 auto}
+.p-stage{font-family:var(--display);font-weight:500;font-size:1.55rem;color:var(--plum);line-height:1.05}
+.p-season{font-family:var(--display);font-style:italic;font-size:1.02rem;color:var(--plum-soft)}
+.p-label{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mauve);font-weight:600;margin:0 0 9px}
+.p-pills{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
+.p-pill{font-size:.78rem;color:var(--plum);background:#f6edf6;border:1px solid rgba(169,122,174,.4);border-radius:30px;padding:6px 13px;font-weight:500}
+.p-note{font-family:var(--display);font-style:italic;font-size:1.1rem;color:var(--plum);background:var(--blush-soft);border:1px solid rgba(242,199,207,.7);border-radius:13px;padding:13px 16px;line-height:1.4}
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+  <linearGradient id="moonGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b4a78"/><stop offset="1" stop-color="#a97aae"/></linearGradient>
+</defs></svg>
+
+<div class="head">
+  <div class="eyebrow">Care through every phase</div>
+  <h1>Wherever you are, <em>we're here for it.</em></h1>
+  <p>Tap your season of life to see what's happening and how we support you through it.</p>
+</div>
+
+<div class="arc" id="arc">
+  <button class="moon-btn on" data-i="0" aria-label="Teens and first visits" style="margin-top:14px"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path d="M 32 6 A 26 26 0 0 0 32 58 A 16.64 26 0 0 1 32 6 Z" fill="#EDE3EF"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">Teens &amp; first visits</span></button>
+  <button class="moon-btn" data-i="1" aria-label="Reproductive years" style="margin-top:5px"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path d="M 32 6 A 26 26 0 0 0 32 58 A 4.16 26 0 0 1 32 6 Z" fill="#EDE3EF"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">Reproductive years</span></button>
+  <button class="moon-btn" data-i="2" aria-label="Pregnancy and postpartum" style="margin-top:0"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">Pregnancy &amp; postpartum</span></button>
+  <button class="moon-btn" data-i="3" aria-label="Perimenopause" style="margin-top:5px"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 11.44 26 0 0 0 32 6 Z" fill="#EDE3EF"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">Perimenopause</span></button>
+  <button class="moon-btn" data-i="4" aria-label="Menopause" style="margin-top:14px"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 1.04 26 0 0 1 32 6 Z" fill="#EDE3EF"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">Menopause</span></button>
+  <button class="moon-btn" data-i="5" aria-label="Sixty-five plus and wellness" style="margin-top:22px"><span class="moon-wrap"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 15.6 26 0 0 1 32 6 Z" fill="#EDE3EF"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg></span><span class="moon-label">65+ &amp; wellness</span></button>
+</div>
+
+<div class="panel" id="panel"></div>
+
+<script>
+const LB=[
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path d="M 32 6 A 26 26 0 0 0 32 58 A 16.64 26 0 0 1 32 6 Z" fill="#EDE3EF"/>',
+stage:'Teens & first visits',season:'First periods, first questions, first visits.',
+pills:['First gynecology visit','Period & cycle guidance','HPV vaccine','Confidential care','Wellness education'],
+note:'Your first visit sets the tone. We keep it private, calm, and judgment free.'},
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path d="M 32 6 A 26 26 0 0 0 32 58 A 4.16 26 0 0 1 32 6 Z" fill="#EDE3EF"/>',
+stage:'Reproductive years',season:'Steady care for your everyday health and your plans.',
+pills:['Annual well-woman exam','Birth control options','Pap & cervical screening','STI testing','Fertility questions'],
+note:'Whatever this season looks like for you, we meet you right where you are.'},
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/>',
+stage:'Pregnancy & postpartum',season:'Support before, during, and after baby.',
+pills:['Pregnancy planning','Prenatal care','Postpartum visits','Lactation support','Mood check-ins'],
+note:'You are cared for at every step, and so is your baby.'},
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 11.44 26 0 0 0 32 6 Z" fill="#EDE3EF"/>',
+stage:'Perimenopause',season:'The shift begins. Changing cycles, sleep, and mood.',
+pills:['Hormone evaluation','Symptom relief','Sleep & mood support','Bone health screening'],
+note:'These changes are normal. You do not have to figure them out alone.'},
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 1.04 26 0 0 1 32 6 Z" fill="#EDE3EF"/>',
+stage:'Menopause',season:'A new chapter, with care made for it.',
+pills:['Hormone therapy options','Hot flash relief','Bone density','Heart health','Intimate health'],
+note:'Menopause is not the end of feeling like yourself. We help you thrive.'},
+{m:'<circle cx="32" cy="32" r="26" fill="url(#moonGrad)"/><path transform="translate(64,0) scale(-1,1)" d="M 32 6 A 26 26 0 0 0 32 58 A 15.6 26 0 0 1 32 6 Z" fill="#EDE3EF"/>',
+stage:'65+ & wellness',season:'Lifelong care that keeps you strong and well.',
+pills:['Ongoing well-woman care','Bone & heart health','Pelvic floor health','Cancer screenings'],
+note:'Every stage still matters here. So do you.'}
+];
+function render(i){
+  const d=LB[i];
+  document.getElementById('panel').innerHTML=
+  '<div class="p-top"><svg class="p-moon" viewBox="0 0 64 64" aria-hidden="true">'+d.m+'<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(75,46,89,.18)" stroke-width="1"/></svg>'+
+  '<div><div class="p-stage">'+d.stage+'</div><div class="p-season">'+d.season+'</div></div></div>'+
+  '<p class="p-label">What we focus on</p><div class="p-pills">'+d.pills.map(p=>'<span class="p-pill">'+p+'</span>').join('')+'</div>'+
+  '<div class="p-note">'+d.note+'</div>';
+}
+function selectStage(i){
+  document.querySelectorAll('.moon-btn').forEach(b=>b.classList.toggle('on',+b.dataset.i===i));
+  render(i);
+}
+document.querySelectorAll('.moon-btn').forEach(b=>b.addEventListener('click',()=>selectStage(+b.dataset.i)));
+render(0);
+</script>
+</body>
+</html>
