@@ -15,6 +15,7 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--f);background:var(--white);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
 
 /* ── HEADER ── */
 header{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
@@ -316,11 +317,18 @@ footer{background:var(--ink);padding:60px 48px 32px}
   footer{padding:48px 20px 24px}.footer-grid{grid-template-columns:1fr 1fr;gap:32px}
   .f-bottom{flex-direction:column;align-items:flex-start}
 }
+@media(max-width:700px){
+  .hero-inner{padding:44px 20px 36px}
+  .symptom-sec,.conditions,.procedures,.providers,.testimonials{padding:48px 18px}
+  .why-l,.why-r{padding:48px 18px}
+  .cta-sec{padding:56px 18px}
+}
 @media(max-width:500px){
   .footer-grid{grid-template-columns:1fr}
   .hero-stats{grid-template-columns:1fr}
   .hstat{border-right:none !important;border-top:1px solid rgba(255,255,255,.07) !important}
   .hstat:first-child{border-top:none !important}
+  .hero h1{font-size:clamp(30px,8.5vw,40px)}
 }
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
 .reveal.in{opacity:1;transform:none}
@@ -451,7 +459,7 @@ footer{background:var(--ink);padding:60px 48px 32px}
         <div class="sc-q">How long has the wound been there?</div>
         <div class="sc-hint">Non-healing wounds are often a circulation issue.</div>
         <div class="sc-options">
-          <button class="sc-opt" onclick="scNext(2,'wound-short')"><div class="sc-opt-icon">📅</div><div><div class="sc-opt-label">2–6 weeks</div><div class="sc-opt-sub">Started recently, not improving</div></div></button>
+          <button class="sc-opt" onclick="scNext(2,'wound-short')"><div class="sc-opt-icon">📅</div><div><div class="sc-opt-label">2-6 weeks</div><div class="sc-opt-sub">Started recently, not improving</div></div></button>
           <button class="sc-opt" onclick="scNext(2,'wound-long')"><div class="sc-opt-icon">⏳</div><div><div class="sc-opt-label">More than 6 weeks</div><div class="sc-opt-sub">Tried treatments, keeps coming back</div></div></button>
         </div>
       </div>
@@ -514,10 +522,10 @@ footer{background:var(--ink);padding:60px 48px 32px}
       <h3>Uterine Fibroid Embolization</h3>
       <p>UFE cuts off the blood supply to fibroids using tiny particles injected through a catheter. No incision larger than a pinhole. No hysterectomy. Fibroids shrink over weeks, and symptoms improve dramatically for most women.</p>
       <div class="proc-timeline">
-        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>30–90 min procedure.</strong> Catheter inserted at wrist or groin. Particles delivered to fibroid blood supply under imaging guidance. You're awake with sedation.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Day 1–3</div><div class="proc-tl-text"><strong>Cramping and fatigue</strong> are normal as fibroids begin to lose blood supply. Most patients manage at home with prescribed medication.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>30-90 min procedure.</strong> Catheter inserted at wrist or groin. Particles delivered to fibroid blood supply under imaging guidance. You're awake with sedation.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-3</div><div class="proc-tl-text"><strong>Cramping and fatigue</strong> are normal as fibroids begin to lose blood supply. Most patients manage at home with prescribed medication.</div></div>
         <div class="proc-tl-item"><div class="proc-tl-day">Week 2</div><div class="proc-tl-text"><strong>Most women return to work.</strong> Symptoms - heavy periods, pelvic pressure - begin to noticeably improve.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Fibroids have shrunk significantly</strong> (typically 40–60%). Follow-up imaging confirms results. Most patients report major quality-of-life improvement.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Fibroids have shrunk significantly</strong> (typically 40-60%). Follow-up imaging confirms results. Most patients report major quality-of-life improvement.</div></div>
       </div>
     </div>
     <div class="proc-visual">
@@ -572,10 +580,10 @@ footer{background:var(--ink);padding:60px 48px 32px}
       <h3>Prostate Artery Embolization</h3>
       <p>PAE reduces an enlarged prostate by cutting off part of its blood supply with microscopic particles. The result: a smaller prostate, dramatically better urinary flow, and no hospital stay. Sexual function is preserved.</p>
       <div class="proc-timeline">
-        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>2–3 hour procedure.</strong> Catheter inserted at wrist. Particles delivered to prostate arteries under live imaging. Light sedation, no general anesthesia.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Day 1–5</div><div class="proc-tl-text"><strong>Mild urinary symptoms and fatigue.</strong> Temporary urgency or discomfort is normal. Most patients go home same day or next morning.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Week 2–3</div><div class="proc-tl-text"><strong>Urinary flow begins improving.</strong> Nighttime trips decrease. Patients report noticeably better sleep within the first month.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Prostate has reduced in volume</strong> by 20–40%. Symptom scores improve by 60–80% in most patients. Follow-up confirms results.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>2-3 hour procedure.</strong> Catheter inserted at wrist. Particles delivered to prostate arteries under live imaging. Light sedation, no general anesthesia.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-5</div><div class="proc-tl-text"><strong>Mild urinary symptoms and fatigue.</strong> Temporary urgency or discomfort is normal. Most patients go home same day or next morning.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Week 2-3</div><div class="proc-tl-text"><strong>Urinary flow begins improving.</strong> Nighttime trips decrease. Patients report noticeably better sleep within the first month.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 3</div><div class="proc-tl-text"><strong>Prostate has reduced in volume</strong> by 20-40%. Symptom scores improve by 60-80% in most patients. Follow-up confirms results.</div></div>
       </div>
     </div>
     <div class="proc-visual">
@@ -628,10 +636,10 @@ footer{background:var(--ink);padding:60px 48px 32px}
       <h3>Vein Ablation</h3>
       <p>Endovenous ablation uses laser or radiofrequency energy to close damaged veins from the inside. The treated vein collapses and is absorbed. Blood reroutes through healthy veins. Most patients walk out the same day.</p>
       <div class="proc-timeline">
-        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>45–60 min procedure.</strong> A thin wire inserted through a tiny nick in the skin. Heat applied along the damaged vein under ultrasound guidance. Local anesthesia only.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Day 1–3</div><div class="proc-tl-text"><strong>Wear compression stockings.</strong> Mild bruising and tenderness along the treated vein is normal. Walking is encouraged immediately.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Week 1–2</div><div class="proc-tl-text"><strong>Return to all normal activities.</strong> The treated vein begins to be absorbed by the body. Aching and heaviness improve quickly.</div></div>
-        <div class="proc-tl-item"><div class="proc-tl-day">Month 1–3</div><div class="proc-tl-text"><strong>Vein is fully absorbed.</strong> Skin appearance improves. Follow-up ultrasound confirms closure. 95%+ success rate at 5 years.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day of</div><div class="proc-tl-text"><strong>45-60 min procedure.</strong> A thin wire inserted through a tiny nick in the skin. Heat applied along the damaged vein under ultrasound guidance. Local anesthesia only.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Day 1-3</div><div class="proc-tl-text"><strong>Wear compression stockings.</strong> Mild bruising and tenderness along the treated vein is normal. Walking is encouraged immediately.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Week 1-2</div><div class="proc-tl-text"><strong>Return to all normal activities.</strong> The treated vein begins to be absorbed by the body. Aching and heaviness improve quickly.</div></div>
+        <div class="proc-tl-item"><div class="proc-tl-day">Month 1-3</div><div class="proc-tl-text"><strong>Vein is fully absorbed.</strong> Skin appearance improves. Follow-up ultrasound confirms closure. 95%+ success rate at 5 years.</div></div>
       </div>
     </div>
     <div class="proc-visual">

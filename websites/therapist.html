@@ -33,6 +33,8 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  img { max-width: 100%; height: auto; display: block; }
+
   /* ── HEADER ─────────────────────────────────── */
   header {
     background: var(--moss);
@@ -1249,6 +1251,12 @@
   @media (max-width: 480px) {
     .steps-row { grid-template-columns: 1fr; }
     .header-top .status-badge span { display: none; }
+    #hero { padding: 48px 18px 48px; }
+    .hero-h1 { font-size: clamp(30px, 9vw, 40px); }
+    .hero-photo { max-width: 320px; }
+    #is-this-you, #about, #specialties, #expect, #quiz-section, #testimonials, #faq, #calculator, #booking { padding: 56px 18px; }
+    .expect-photo { max-height: 220px; }
+    .logo-name { font-size: 21px; }
   }
 </style>
 </head>
