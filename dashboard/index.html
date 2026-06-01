@@ -1862,7 +1862,7 @@ Return JSON exactly like:
     const tasks = loadTasks('todo');
     tasks.push({
       id:           uid(),
-      text:         parsed.text || text,
+      text:         (parsed.text || text).replace(/^./, c => c.toUpperCase()),
       brand:        parsed.brand || 'messick',
       priority:     parsed.priority || 'medium',
       due:          parsed.due || null,
