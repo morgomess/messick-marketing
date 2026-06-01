@@ -818,6 +818,73 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .subtask-add-btn:hover { background: var(--blue-light); }
 .subtask-count { font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; }
 
+
+/* ── QUICK ADD BAR ── */
+.quick-add-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 22px;
+  background: var(--surface);
+  border: 2px solid var(--blue);
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(58,107,138,0.13);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.quick-add-bar:focus-within {
+  box-shadow: 0 6px 32px rgba(58,107,138,0.22);
+  border-color: var(--blue-light);
+}
+.quick-add-icon {
+  padding: 0 14px 0 16px;
+  font-size: 1.2rem;
+  color: var(--blue);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.quick-add-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 15px 10px 15px 0;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.97rem;
+  color: var(--black);
+  outline: none;
+  min-width: 0;
+}
+.quick-add-input::placeholder { color: var(--text-muted); font-weight: 400; }
+.quick-add-btn {
+  flex-shrink: 0;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 0 22px;
+  height: 52px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quick-add-btn:hover { background: var(--blue-light); }
+.quick-add-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.quick-add-status {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'Jost', sans-serif;
+}
+.quick-add-status.success { color: #34d399; }
+.quick-add-status.error   { color: #f87171; }
+
 /* ── BEACH DECORATIONS ── */
 .beach-deco { display: none; }
 </style>
@@ -864,6 +931,22 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
     <div class="main-col">
 
       <div id="tasks-view">
+        <div class="quick-add-bar" id="quick-add-bar">
+          <span class="quick-add-icon">✦</span>
+          <input
+            type="text"
+            class="quick-add-input"
+            id="quick-add-input"
+            placeholder="Add a task... &quot;Email OEIS re: June content&quot; or &quot;JVI blog post on GAE, due Friday, high&quot;"
+            onkeydown="if(event.key==='Enter')quickAddTask()"
+            autocomplete="off"
+          >
+          <span class="quick-add-status" id="quick-add-status"></span>
+          <button class="quick-add-btn" id="quick-add-btn" onclick="quickAddTask()">
+            <span>↵</span> Add
+          </button>
+        </div>
+
         <div class="focus-section">
           <div class="focus-header">
             <div class="focus-header-left">
@@ -1697,6 +1780,115 @@ function deleteTask(type, i) {
   tasks.splice(i, 1);
   saveTasks(type, tasks);
   renderAll();
+}
+
+
+/* ══════════════════════════════════════
+   QUICK ADD — AI TASK PARSER
+══════════════════════════════════════ */
+async function quickAddTask() {
+  const input = document.getElementById('quick-add-input');
+  const btn   = document.getElementById('quick-add-btn');
+  const status = document.getElementById('quick-add-status');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  btn.disabled = true;
+  status.className = 'quick-add-status';
+  status.textContent = '⏳ Thinking...';
+
+  // Build client list for context
+  const clients = loadClients().map(c => ({ id: c.id, name: c.name }));
+  const today = todayStr();
+
+  const systemPrompt = `You are a task parser for a marketing agency dashboard. Given a plain-English task description, extract structured data and return ONLY valid JSON with no markdown or explanation.
+
+Known brands/values:
+- "messick" = Messick Marketing agency tasks
+- "virtueasy" = Virtueasy digital products brand
+- "oeis" = OEIS (Outpatient Endovascular and Interventional Society)
+- "other" = personal or miscellaneous
+- "client:<id>" = a specific client (see client list below)
+
+Known clients: ${JSON.stringify(clients)}
+
+Known client name hints (map keywords to client IDs):
+- ECCO, ecco medical → match client named ECCO
+- JVI → match client named JVI
+- TVI, texas vascular → match client named TVI
+- SVV, sound vascular → match client named SVV
+- Aspire, aspire therapy → match client named Aspire
+- Dr. Kelli, brain talk → match client named Dr. Kelli
+- Desert, desert cardiovascular → match client named Desert
+- BTTCF, bethetransformational → match client named BTTCF
+- OBL → match client named OBL
+
+Priority values: "critical", "high", "medium", "low", "none"
+Priority hints: urgent/asap/critical → critical, important/high → high, no modifier → medium, low/someday → low
+
+Due date: today is ${today}. Parse relative terms:
+- "today" → ${today}
+- "tomorrow" → next day
+- "this Friday/Monday/etc" → nearest upcoming weekday
+- "end of week" → nearest Friday
+- "next week" → 7 days from today
+- specific dates → YYYY-MM-DD format
+- no date mentioned → null
+
+Return JSON exactly like:
+{
+  "text": "cleaned task description without date/priority qualifiers",
+  "brand": "messick|virtueasy|oeis|other|client:<id>",
+  "priority": "critical|high|medium|low|none",
+  "due": "YYYY-MM-DD or null"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    const data = await resp.json();
+    const raw  = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    const tasks = loadTasks('todo');
+    tasks.push({
+      id:           uid(),
+      text:         parsed.text || text,
+      brand:        parsed.brand || 'messick',
+      priority:     parsed.priority || 'medium',
+      due:          parsed.due || null,
+      recur:        'none',
+      done:         false,
+      addedAt:      Date.now(),
+      subtasks:     [],
+      recurLastGen: todayStr(),
+    });
+    saveTasks('todo', tasks);
+    renderAll();
+
+    input.value = '';
+    status.className = 'quick-add-status success';
+    status.textContent = '✓ Added';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+
+  } catch(e) {
+    status.className = 'quick-add-status error';
+    status.textContent = '✗ Error — try again';
+    console.error('Quick add error:', e);
+  }
+
+  btn.disabled = false;
+  input.focus();
 }
 
 function addTask(type) {
