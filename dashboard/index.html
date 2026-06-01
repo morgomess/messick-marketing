@@ -502,6 +502,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .brand-other     { background: rgba(160,140,100,0.13); color: #c4a97a; }
 .brand-daily     { background: rgba(52,211,153,0.12); color: #34d399; }
 .brand-client    { background: rgba(130,100,170,0.13); color: #8060aa; }
+.brand-oeis      { background: rgba(58,107,138,0.15); color: #3a6b8a; }
 
 .priority-pill {
   display: inline-block; font-size: 0.7rem; font-weight: 700;
@@ -895,6 +896,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
               <option value="virtueasy">Virtueasy</option>
               <option value="other">Other</option>
               <option value="daily">Daily</option>
+              <option value="oeis">OEIS</option>
             </select>
           </div>
           <div class="filter-group">
@@ -944,6 +946,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
             <select id="brand-input-todo">
               <option value="messick">Messick Marketing</option>
               <option value="virtueasy">Virtueasy</option>
+              <option value="oeis">OEIS</option>
               <option value="other">Other</option>
             </select>
             <span class="form-label">Priority</span>
@@ -1615,6 +1618,7 @@ function openTaskEdit(div, type, i, t) {
           <option value="messick"${t.brand==='messick'?' selected':''}>Messick Marketing</option>
           <option value="virtueasy"${t.brand==='virtueasy'?' selected':''}>Virtueasy</option>
           <option value="other"${t.brand==='other'?' selected':''}>Other</option>
+          <option value="oeis"${t.brand==='oeis'?' selected':''}>OEIS</option>
           ${(()=>{ const cs=loadClients().slice().sort((a,b)=>a.name.localeCompare(b.name)); return cs.length?'<optgroup label="Clients">'+cs.map(c=>`<option value="client:${c.id}"${t.brand==='client:'+c.id?' selected':''}>${c.name}</option>`).join('')+'</optgroup>':''; })()}
         </select>
         <span class="edit-label">Priority</span>
@@ -1945,7 +1949,7 @@ function pickerSpin() {
 
     // Meta tags
     const priColors   = { critical:['rgba(248,113,113,0.2)','#f87171'], high:['rgba(251,146,60,0.2)','#fb923c'], medium:['rgba(96,165,250,0.2)','#60a5fa'], low:['rgba(52,211,153,0.2)','#34d399'] };
-    const brandColors = { messick:['rgba(90,154,184,0.2)','#7ab8d4'], virtueasy:['rgba(240,62,138,0.2)','#f472b6'], other:['rgba(160,140,100,0.2)','#c4a97a'], daily:['rgba(52,211,153,0.2)','#34d399'] };
+    const brandColors = { messick:['rgba(90,154,184,0.2)','#7ab8d4'], virtueasy:['rgba(240,62,138,0.2)','#f472b6'], oeis:['rgba(58,107,138,0.2)','#3a6b8a'], other:['rgba(160,140,100,0.2)','#c4a97a'], daily:['rgba(52,211,153,0.2)','#34d399'] };
     const pri   = pickerResult.task.priority || 'none';
     const brand = pickerResult.task.brand    || 'daily';
     const [pbg,pfg] = priColors[pri]   || [];
@@ -2239,6 +2243,7 @@ function getBrandLabel(brand) {
   if (brand === 'virtueasy') return 'Virtueasy';
   if (brand === 'other') return 'Other';
   if (brand === 'daily') return 'Daily';
+  if (brand === 'oeis') return 'OEIS';
   if (brand.startsWith('client:')) {
     const c = loadClients().find(c => c.id === brand.slice(7));
     return c ? c.name : 'Client';
@@ -2250,6 +2255,7 @@ function getBrandClass(brand) {
   if (brand === 'virtueasy') return 'brand-virtueasy';
   if (brand === 'other') return 'brand-other';
   if (brand === 'daily') return 'brand-daily';
+  if (brand === 'oeis') return 'brand-oeis';
   if (brand.startsWith('client:')) return 'brand-client';
   return 'brand-other';
 }
