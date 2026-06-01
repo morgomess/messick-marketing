@@ -1845,19 +1845,17 @@ Return JSON exactly like:
 
   try {
     const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
-    const resp = await fetch(WORKER, {
+    const resp = await fetch(`${WORKER}/claude`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: text }]
+        prompt: systemPrompt + '\n\nTask to parse: ' + text
       })
     });
 
     const data = await resp.json();
-    const raw  = data.content?.[0]?.text || '';
+    if (!resp.ok) throw new Error(data.error || 'Worker error');
+    const raw  = data.text || '';
     const clean = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
 
