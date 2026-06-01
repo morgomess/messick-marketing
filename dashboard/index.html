@@ -1844,7 +1844,8 @@ Return JSON exactly like:
 }`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+    const resp = await fetch(WORKER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
