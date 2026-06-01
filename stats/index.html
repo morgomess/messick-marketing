@@ -92,6 +92,7 @@
         .conf-plat-yt { border-left: 4px solid #FF0000; }
         .conf-plat-fb { border-left: 4px solid #1877F2; }
         .conf-plat-li { border-left: 4px solid #0A66C2; }
+        .conf-plat-x  { border-left: 4px solid #000000; }
         .global-auto-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; padding: 0.5rem 1.25rem 1rem; }
         .global-auto-tile { background: white; border-radius: 8px; padding: 0.6rem; text-align: center; }
         .global-auto-tile .gval { font-size: 1.2rem; font-weight: 600; font-family: 'Cormorant Garamond', serif; }
@@ -149,9 +150,10 @@ const PLATFORM_FIELDS = {
     TikTok:    ['followers','followersGained','followersLost','videoViews','impressions','likes','comments','shares','postsPublished','engRate','avgDailyReach','avgWatchTime'],
     YouTube:   ['followers','followersGained','followersLost','videoViews','impressions','watchTime','likes','comments','shares','dislikes','postsPublished','engRate'],
     Facebook:  ['followers','followersGained','followersLost','reach','impressions','likes','comments','shares','clicks','postsPublished','reelsPublished','engRate','avgDailyReach'],
-    LinkedIn:  ['followers','followersGained','followersLost','impressions','likes','comments','shares','clicks','postsPublished','engRate']
+    LinkedIn:  ['followers','followersGained','followersLost','impressions','likes','comments','shares','clicks','postsPublished','engRate'],
+    X:         ['followers','followersGained','followersLost','impressions','likes','comments','shares','bookmarks','postsPublished','engRate']
 };
-const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li' };
+const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li', X:'x' };
 const FIELD_LABELS = {
     followers:'Followers', followersGained:'Gained', followersLost:'Lost',
     reach:'Reach', impressions:'Impressions', videoViews:'Video Views',
