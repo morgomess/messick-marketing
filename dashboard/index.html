@@ -887,7 +887,125 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
 /* ── BEACH DECORATIONS ── */
 .beach-deco { display: none; }
+
+/* ════════════════════════════════════════════
+   BRAIN — dark mind-map view
+════════════════════════════════════════════ */
+.layout.brain-active { grid-template-columns: 1fr; }
+.layout.brain-active .side-col { display: none; }
+.layout.brain-active .main-col { padding: 0; border-right: none; background: #0b1620; }
+
+#brain-view { display: none; }
+.layout.brain-active #brain-view { display: flex; }
+#brain-view { height: calc(100vh - 58px); width: 100%; }
+
+.brain-canvas-wrap {
+  position: relative; flex: 1; min-width: 0;
+  background: #0b1620;
+  background-image: radial-gradient(circle at 1px 1px, rgba(90,154,184,0.08) 1px, transparent 0);
+  background-size: 26px 26px;
+  overflow: hidden; cursor: grab; user-select: none;
+}
+.brain-canvas-wrap.grabbing { cursor: grabbing; }
+#brain-canvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+#brain-lines { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+
+.bnode {
+  position: absolute; border-radius: 8px; padding: 7px 14px; font-family: 'Jost', sans-serif;
+  font-weight: 500; cursor: move; white-space: nowrap; border: 1px solid; z-index: 10;
+  transition: transform .12s, box-shadow .12s, border-color .12s; letter-spacing: .01em;
+}
+.bnode:hover { transform: translateY(-1px); z-index: 30; }
+.bnode.root { font-size: 15px; font-weight: 600; padding: 11px 22px; border-radius: 10px; z-index: 20; letter-spacing: .02em; }
+.bnode.client { font-size: 12.5px; padding: 7px 15px; }
+.bnode.service { font-size: 11px; padding: 5px 12px; border-radius: 7px; }
+.bnode.task { font-size: 10px; padding: 4px 10px; border-radius: 6px; font-weight: 400; }
+.bnode.mm-root { background: linear-gradient(135deg,#3a6b8a,#5a9ab8); border-color: #7ab4d0; color: #fff; }
+.bnode.mm-root:hover { box-shadow: 0 0 0 1px #7ab4d0, 0 6px 22px rgba(90,154,184,.4); }
+.bnode.mm-client { background: #15303f; border-color: #3a6b8a; color: #cfe6f2; }
+.bnode.mm-client:hover { border-color: #5a9ab8; box-shadow: 0 4px 18px rgba(58,107,138,.45); }
+.bnode.mm-service { background: #10242f; border-color: #2a4f64; color: #9fc6db; }
+.bnode.mm-service:hover { border-color: #3a6b8a; box-shadow: 0 3px 12px rgba(58,107,138,.35); }
+.bnode.mm-task { background: #0d1c25; border-color: #1f3d4d; color: #7fa8bd; }
+.bnode.mm-task:hover { border-color: #2a5570; box-shadow: 0 2px 8px rgba(58,107,138,.3); }
+.bnode.ve-root { background: linear-gradient(135deg,#a8235f,#d4317a); border-color: #e85ba0; color: #fff; }
+.bnode.ve-root:hover { box-shadow: 0 0 0 1px #e85ba0, 0 6px 22px rgba(212,49,122,.4); }
+.bnode.ve-client { background: #3a0e22; border-color: #d4317a; color: #f7cfe1; }
+.bnode.ve-client:hover { border-color: #e85ba0; box-shadow: 0 4px 18px rgba(212,49,122,.45); }
+.bnode.ve-service { background: #2c0a1a; border-color: #8a2050; color: #e3a3c4; }
+.bnode.ve-service:hover { border-color: #d4317a; box-shadow: 0 3px 12px rgba(212,49,122,.35); }
+.bnode.ve-task { background: #220714; border-color: #5a1535; color: #cd8aac; }
+.bnode.ve-task:hover { border-color: #8a2050; box-shadow: 0 2px 8px rgba(212,49,122,.3); }
+.bnode.done { opacity: .45; text-decoration: line-through; }
+
+.brain-toolbar { position: absolute; top: 14px; left: 14px; display: flex; gap: 6px; z-index: 100; flex-wrap: wrap; }
+.btb { background: rgba(20,40,52,.85); backdrop-filter: blur(8px); border: 1px solid #2a4f64; border-radius: 8px;
+  padding: 6px 12px; font-size: 11px; font-weight: 500; cursor: pointer; color: #cfe6f2; display: flex;
+  align-items: center; gap: 5px; font-family: 'Jost', sans-serif; transition: all .15s; }
+.btb:hover { background: rgba(58,107,138,.4); border-color: #5a9ab8; }
+.btb.ve { color: #f7cfe1; border-color: #8a2050; }
+.btb.ve:hover { background: rgba(212,49,122,.3); border-color: #e85ba0; }
+.btb.magic { background: linear-gradient(135deg,#a8235f,#d4317a); border-color: #e85ba0; color: #fff; }
+.btb.magic:hover { box-shadow: 0 4px 18px rgba(212,49,122,.5); }
+.brain-zoom { position: absolute; bottom: 14px; right: 14px; display: flex; gap: 5px; z-index: 100; }
+.bz { background: rgba(20,40,52,.85); backdrop-filter: blur(8px); border: 1px solid #2a4f64; border-radius: 7px;
+  width: 30px; height: 30px; cursor: pointer; font-size: 17px; display: flex; align-items: center;
+  justify-content: center; color: #cfe6f2; transition: all .15s; }
+.bz:hover { background: rgba(58,107,138,.4); border-color: #5a9ab8; }
+.brain-legend { position: absolute; bottom: 14px; left: 14px; display: flex; gap: 14px; z-index: 100; align-items: center; }
+.bleg { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #6b8a9c; }
+.bleg-dot { width: 9px; height: 9px; border-radius: 3px; }
+
+.bctx { position: fixed; background: #13262f; border: 1px solid #2a4f64; border-radius: 10px; padding: 5px;
+  z-index: 2000; display: none; min-width: 150px; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.bctx.show { display: block; }
+.bctx-item { padding: 8px 12px; font-size: 12px; cursor: pointer; border-radius: 6px; color: #cfe6f2;
+  display: flex; align-items: center; gap: 8px; font-family: 'Jost', sans-serif; }
+.bctx-item:hover { background: rgba(58,107,138,.35); }
+.bctx-item.danger { color: #e8889c; }
+.bctx-item.danger:hover { background: rgba(168,35,67,.3); }
+.bedit-input { position: absolute; background: #13262f; border: 1.5px solid #5a9ab8; border-radius: 7px;
+  padding: 6px 11px; font-size: 12px; font-family: 'Jost', sans-serif; outline: none; z-index: 300;
+  min-width: 90px; color: #fff; }
+
+/* BRAIN RIGHT RAIL */
+.brain-rail { width: 300px; flex-shrink: 0; background: #0e1d27; border-left: 1px solid #1f2d38;
+  display: flex; flex-direction: column; overflow-y: auto; }
+.brain-rail::-webkit-scrollbar { width: 5px; }
+.brain-rail::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
+.rail-sec { padding: 16px 18px; border-bottom: 1px solid #1f2d38; }
+.rail-title { font-size: 13px; font-weight: 600; color: #cfe6f2; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.rail-title .script { font-family: 'Dancing Script', cursive; font-size: 19px; color: #5a9ab8; font-weight: 700; }
+.rail-title .right { margin-left: auto; }
+
+.sched-row { display: flex; gap: 10px; padding: 7px 0; align-items: flex-start; }
+.sched-time { font-size: 10.5px; color: #5a9ab8; font-weight: 500; min-width: 62px; padding-top: 1px; }
+.sched-label { font-size: 12px; color: #acc8d8; line-height: 1.4; }
+.sched-label.brk { color: #6b8a9c; font-style: italic; }
+.cal-connect { width: 100%; background: rgba(58,107,138,.25); border: 1px solid #3a6b8a; border-radius: 8px;
+  padding: 9px; font-size: 11.5px; font-weight: 500; cursor: pointer; color: #cfe6f2; font-family: 'Jost', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 7px; transition: all .15s; }
+.cal-connect:hover { background: rgba(58,107,138,.45); border-color: #5a9ab8; }
+.cal-status { font-size: 9.5px; color: #4a6575; margin-top: 8px; text-align: center; }
+
+.brail-note { background: #13262f; border: 1px solid #1f3d4d; border-radius: 9px; padding: 10px 12px;
+  margin-bottom: 9px; transition: border-color .15s; position: relative; }
+.brail-note:hover { border-color: #3a6b8a; }
+.brail-note .bn-tag { font-size: 9px; color: #5a9ab8; text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 5px; font-weight: 600; }
+.brail-note .bn-text { font-size: 12px; color: #acc8d8; line-height: 1.55; outline: none; }
+.brail-note .bn-del { position: absolute; top: 8px; right: 9px; font-size: 12px; color: #4a6575; cursor: pointer; opacity: 0; }
+.brail-note:hover .bn-del { opacity: 1; }
+.brail-note .bn-del:hover { color: #e8889c; }
+.brail-noteadd { width: 100%; background: #0b1620; border: 1px solid #2a4f64; border-radius: 8px; padding: 9px 11px;
+  font-size: 12px; font-family: 'Jost', sans-serif; color: #cfe6f2; outline: none; resize: none; height: 50px; }
+.brail-noteadd::placeholder { color: #5a7585; }
+.brail-noteadd:focus { border-color: #5a9ab8; }
+
+/* dark header when brain active */
+.layout.brain-active ~ * { }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
 
@@ -917,7 +1035,8 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
         <span id="today-date"></span>
       </div>
       <div class="header-tabs">
-        <button class="tab-btn active" id="tab-tasks" onclick="switchTab('tasks')"><span class="tab-icon">☰</span> Tasks</button>
+        <button class="tab-btn active" id="tab-brain" onclick="switchTab('brain')"><span class="tab-icon">🧠</span> Brain</button>
+        <button class="tab-btn" id="tab-tasks" onclick="switchTab('tasks')"><span class="tab-icon">☰</span> Tasks</button>
         <button class="tab-btn" id="tab-clients" onclick="switchTab('clients')"><span class="tab-icon">👥</span> Clients</button>
       </div>
     </div>
@@ -929,6 +1048,49 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
   <div class="layout">
     <div class="main-col">
+
+      <div id="brain-view">
+        <div class="brain-canvas-wrap" id="brain-canvas-wrap">
+          <div id="brain-canvas"><svg id="brain-lines" width="4000" height="3000"></svg></div>
+          <div class="brain-toolbar">
+            <button class="btb magic" onclick="openPicker()">✦ Pick for Me</button>
+            <button class="btb" onclick="brainAddRoot('mm')">+ MM</button>
+            <button class="btb ve" onclick="brainAddRoot('ve')">+ VE</button>
+            <button class="btb" onclick="brainAutoLayout()">arrange</button>
+            <button class="btb" onclick="brainFit()">fit</button>
+          </div>
+          <div class="brain-zoom">
+            <button class="bz" onclick="brainZoom(0.15)">+</button>
+            <button class="bz" onclick="brainZoom(-0.15)">−</button>
+          </div>
+          <div class="brain-legend">
+            <div class="bleg"><div class="bleg-dot" style="background:#5a9ab8"></div>Messick</div>
+            <div class="bleg"><div class="bleg-dot" style="background:#d4317a"></div>Virtueasy</div>
+            <div class="bleg" style="color:#4a6575">right-click to edit · drag to move</div>
+          </div>
+        </div>
+
+        <div class="brain-rail">
+          <div class="rail-sec">
+            <div class="rail-title"><span class="script">Today</span><span class="right" style="font-size:10px;color:#4a6575;font-weight:400" id="brain-date"></span></div>
+            <div id="schedule-list">
+              <div class="sched-row"><span class="sched-time">8:30 AM</span><span class="sched-label">Morning work block</span></div>
+              <div class="sched-row"><span class="sched-time">11:30 AM</span><span class="sched-label brk">Break · dogs + lunch</span></div>
+              <div class="sched-row"><span class="sched-time">12:30 PM</span><span class="sched-label">Afternoon work block</span></div>
+              <div class="sched-row"><span class="sched-time">3:30 PM</span><span class="sched-label brk">Wrap up</span></div>
+            </div>
+            <div style="margin-top:12px">
+              <button class="cal-connect" id="cal-connect-btn" onclick="connectCalendar()"><i class="ti ti-calendar"></i> Connect Google Calendar</button>
+              <div class="cal-status" id="cal-status"></div>
+            </div>
+          </div>
+          <div class="rail-sec" style="flex:1">
+            <div class="rail-title"><span class="script">Notes</span></div>
+            <div id="brain-notes-list"></div>
+            <textarea class="brail-noteadd" id="brain-note-add" placeholder="Jot a note… (Enter to save)"></textarea>
+          </div>
+        </div>
+      </div>
 
       <div id="tasks-view">
         <div class="quick-add-bar" id="quick-add-bar">
@@ -2502,9 +2664,12 @@ const DEFAULT_SERVICES = [
 function switchTab(tab) {
   document.getElementById('tasks-view').style.display = tab === 'tasks' ? 'block' : 'none';
   document.getElementById('clients-view').style.display = tab === 'clients' ? 'block' : 'none';
+  document.getElementById('tab-brain').classList.toggle('active', tab === 'brain');
   document.getElementById('tab-tasks').classList.toggle('active', tab === 'tasks');
   document.getElementById('tab-clients').classList.toggle('active', tab === 'clients');
+  document.querySelector('.layout').classList.toggle('brain-active', tab === 'brain');
   if (tab === 'clients') renderClients();
+  if (tab === 'brain') brainEnter();
 }
 
 function loadClients() { return JSON.parse(localStorage.getItem('mm_clients') || '[]'); }
@@ -2749,9 +2914,12 @@ async function init() {
     const el = e.target.closest('[data-copy]');
     if (el) copyText(el.dataset.copy, el);
   });
+  switchTab('brain');
+  loadCalendar();
 }
 
 window.onload = () => {
+  handleCalOAuthReturn();
   if (localStorage.getItem('mm_auth') === '1') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -2759,6 +2927,247 @@ window.onload = () => {
   }
 };
 
+
+/* ════════════════════════════════════════════
+   BRAIN — mind-map engine
+════════════════════════════════════════════ */
+const BRAIN_KEY = 'mm_brain';
+const HGAP = 58, VGAP = 46;
+let brainNodes = [];
+let brainMap = {};
+const bEl = {};
+let bScale = 1, bPanX = 0, bPanY = 0, bPanning = false, bPanStart = {x:0,y:0};
+let bActiveCtx = null, bIdCounter = 1000, brainBooted = false;
+
+const BRAIN_SEED = [
+  {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
+    {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
+      {id:'ecco-s1',label:'Social IG/FB/TikTok/LI/YT',type:'mm-service',parent:'ecco'},
+      {id:'ecco-s2',label:'Blog 1x/mo',type:'mm-service',parent:'ecco'},
+      {id:'ecco-s3',label:'Comment mod',type:'mm-service',parent:'ecco'},
+    {id:'jvi',label:'JVI',type:'mm-client',parent:'mm-root'},
+      {id:'jvi-s1',label:'Social all platforms',type:'mm-service',parent:'jvi'},
+      {id:'jvi-s2',label:'GAE content series',type:'mm-service',parent:'jvi'},
+        {id:'jvi-t1',label:'SIR stmt \u2014 Dr. Ahmed',type:'mm-task',parent:'jvi-s2'},
+        {id:'jvi-t2',label:'Bonus posts w/ Rida',type:'mm-task',parent:'jvi-s2'},
+    {id:'oeis',label:'OEIS',type:'mm-client',parent:'mm-root'},
+      {id:'oeis-s1',label:'LI/X/FB/IG/YT',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s2',label:'YouTube 4x/mo',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s3',label:'LI thought leadership',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s4',label:'Monthly report',type:'mm-service',parent:'oeis'},
+    {id:'tvi',label:'Texas Vascular Institute',type:'mm-client',parent:'mm-root'},
+      {id:'tvi-s1',label:'IG/FB/TikTok/LI',type:'mm-service',parent:'tvi'},
+      {id:'tvi-s2',label:'Blog 1x/mo',type:'mm-service',parent:'tvi'},
+    {id:'kelli',label:'Dr. Kelli / Brain Talk',type:'mm-client',parent:'mm-root'},
+      {id:'kelli-s1',label:'Social all platforms',type:'mm-service',parent:'kelli'},
+      {id:'kelli-s2',label:'Podcast 1x/mo',type:'mm-service',parent:'kelli'},
+    {id:'svv',label:'Sound Vascular & Vein',type:'mm-client',parent:'mm-root'},
+      {id:'svv-s1',label:'IG/FB/LI/YT',type:'mm-service',parent:'svv'},
+      {id:'svv-s2',label:'Blog 1x/mo',type:'mm-service',parent:'svv'},
+    {id:'desert',label:'Desert Cardiovascular',type:'mm-client',parent:'mm-root'},
+      {id:'desert-s1',label:'IG/FB/TikTok/LI/YT',type:'mm-service',parent:'desert'},
+    {id:'aspire',label:'Aspire Therapy',type:'mm-client',parent:'mm-root'},
+      {id:'aspire-s1',label:'Blog + GBP mgmt',type:'mm-service',parent:'aspire'},
+  {id:'ve-root',label:'Virtueasy',type:'ve-root',parent:null},
+    {id:'kit',label:'VA Starter Kit \u2014 $27',type:'ve-client',parent:'ve-root'},
+      {id:'kit-s1',label:'MailerLite automations',type:'ve-service',parent:'kit'},
+        {id:'kit-t1',label:'Improve CTR',type:'ve-task',parent:'kit-s1'},
+      {id:'kit-s2',label:'Social content',type:'ve-service',parent:'kit'},
+        {id:'kit-t2',label:'VA reply chat bank',type:'ve-task',parent:'kit-s2'},
+      {id:'kit-s3',label:'virtueasy site',type:'ve-service',parent:'kit'},
+        {id:'kit-t3',label:'Affiliate page',type:'ve-task',parent:'kit-s3'},
+        {id:'kit-t4',label:'Blog content',type:'ve-task',parent:'kit-s3'},
+    {id:'mmsite',label:'Messick Site / Tools',type:'ve-client',parent:'ve-root'},
+      {id:'mms-s1',label:'Portfolio page',type:'ve-service',parent:'mmsite'},
+        {id:'mms-t1',label:'Black Hills + VIP',type:'ve-task',parent:'mms-s1'},
+        {id:'mms-t2',label:'Mobile UX fix',type:'ve-task',parent:'mms-s1'},
+        {id:'mms-t3',label:'TVI 4:5 crop fix',type:'ve-task',parent:'mms-s1'},
+      {id:'mms-s2',label:'YouTube optimizer',type:'ve-service',parent:'mmsite'},
+        {id:'mms-t4',label:'Exit Cloud Testing',type:'ve-task',parent:'mms-s2'},
+    {id:'obl',label:'OBL Marketing',type:'ve-client',parent:'ve-root'},
+      {id:'obl-s1',label:'Lite (pro bono)',type:'ve-service',parent:'obl'},
+    {id:'bttcf',label:'BTTCF',type:'ve-client',parent:'ve-root'},
+      {id:'bttcf-s1',label:'Blog 4x/mo',type:'ve-service',parent:'bttcf'},
+];
+
+function brainLoad() {
+  const raw = localStorage.getItem(BRAIN_KEY);
+  if (raw) { try { brainNodes = JSON.parse(raw); } catch(e) { brainNodes = null; } }
+  if (!brainNodes || !brainNodes.length) {
+    brainNodes = BRAIN_SEED.map(n => ({...n, x:0, y:0}));
+  }
+  brainMap = {};
+  brainNodes.forEach(n => brainMap[n.id] = n);
+}
+function brainSave() {
+  localStorage.setItem(BRAIN_KEY, JSON.stringify(brainNodes));
+  scheduleSave();
+}
+function bnw(n){ const e=bEl[n.id]; return e?e.offsetWidth:(n.label.length*7+30); }
+function bnh(n){ const e=bEl[n.id]; return e?e.offsetHeight:30; }
+function bSubW(id){ const ch=brainNodes.filter(n=>n.parent===id); if(!ch.length) return bnw(brainMap[id]);
+  const t=ch.reduce((s,c)=>s+bSubW(c.id),0)+(ch.length-1)*HGAP; return Math.max(bnw(brainMap[id]),t); }
+function bLayout(id,x,y){ const n=brainMap[id]; if(!n) return; const ch=brainNodes.filter(c=>c.parent===id);
+  n.x=x; n.y=y; if(!ch.length) return; const tot=ch.reduce((s,c)=>s+bSubW(c.id),0)+(ch.length-1)*HGAP;
+  let cx=x+bnw(n)/2-tot/2; const cy=y+bnh(n)+VGAP;
+  ch.forEach(c=>{ const sw=bSubW(c.id); bLayout(c.id,cx+sw/2-bnw(c)/2,cy); cx+=sw+HGAP; }); }
+function bBounds(id){ const n=brainMap[id]; let b={minX:n.x,maxX:n.x+bnw(n),minY:n.y,maxY:n.y+bnh(n)};
+  brainNodes.filter(c=>c.parent===id).forEach(c=>{ const cb=bBounds(c.id);
+    b.minX=Math.min(b.minX,cb.minX); b.maxX=Math.max(b.maxX,cb.maxX);
+    b.minY=Math.min(b.minY,cb.minY); b.maxY=Math.max(b.maxY,cb.maxY); }); return b; }
+function brainAutoLayout(){ bLayout('mm-root',80,70); const mb=bBounds('mm-root');
+  bLayout('ve-root',mb.maxX+140,70); bApplyPos(); bDrawLines(); brainSave(); }
+function bApplyPos(){ brainNodes.forEach(n=>{ const e=bEl[n.id]; if(e){ e.style.left=n.x+'px'; e.style.top=n.y+'px'; } }); }
+
+function bCls(t){ return 'bnode '+({'mm-root':'root mm-root','mm-client':'client mm-client','mm-service':'service mm-service','mm-task':'task mm-task','ve-root':'root ve-root','ve-client':'client ve-client','ve-service':'service ve-service','ve-task':'task ve-task'}[t]||'task mm-task'); }
+
+function bRender(n){
+  const el=document.createElement('div'); el.className=bCls(n.type)+(n.done?' done':'');
+  el.textContent=n.label; el.style.left=n.x+'px'; el.style.top=n.y+'px'; el.dataset.id=n.id;
+  document.getElementById('brain-canvas').appendChild(el); bEl[n.id]=el; bDrag(el,n);
+  el.addEventListener('contextmenu',e=>{ e.preventDefault(); e.stopPropagation(); bActiveCtx=n;
+    const m=document.getElementById('brain-ctx'); m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px'; m.classList.add('show'); });
+  return el;
+}
+function bDrawLines(){
+  const svg=document.getElementById('brain-lines'); svg.innerHTML='';
+  brainNodes.forEach(n=>{ if(!n.parent||!brainMap[n.parent]) return; const p=brainMap[n.parent];
+    const pe=bEl[p.id], ne=bEl[n.id]; if(!pe||!ne) return;
+    const px=p.x+pe.offsetWidth/2, py=p.y+pe.offsetHeight, cx=n.x+ne.offsetWidth/2, cy=n.y;
+    const ve=n.type.indexOf('ve')===0||p.type.indexOf('ve')===0; const color=ve?'#d4317a':'#5a9ab8';
+    const op=n.type.indexOf('task')>-1?0.3:n.type.indexOf('service')>-1?0.45:0.65;
+    const sw=n.type.indexOf('task')>-1?1:n.type.indexOf('service')>-1?1.3:2;
+    const mid=(py+cy)/2, r=6, dir=cx>px?1:-1, far=Math.abs(cx-px)>r;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${px},${py} L${px},${mid-r} Q${px},${mid} ${px+(far?dir*r:0)},${mid} L${cx-(far?dir*r:0)},${mid} Q${cx},${mid} ${cx},${mid+r} L${cx},${cy}`);
+    path.setAttribute('stroke',color); path.setAttribute('stroke-width',sw); path.setAttribute('fill','none');
+    path.setAttribute('opacity',op); path.setAttribute('stroke-linecap','round'); svg.appendChild(path); });
+}
+function bDrag(el,n){ let sx,sy,snx,sny,moved;
+  el.addEventListener('mousedown',e=>{ if(e.button!==0) return; e.stopPropagation();
+    sx=e.clientX; sy=e.clientY; snx=n.x; sny=n.y; moved=false;
+    function mv(e){ const dx=(e.clientX-sx)/bScale, dy=(e.clientY-sy)/bScale; if(Math.abs(dx)>2||Math.abs(dy)>2) moved=true;
+      n.x=snx+dx; n.y=sny+dy; el.style.left=n.x+'px'; el.style.top=n.y+'px'; bDrawLines(); }
+    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); if(moved) brainSave(); }
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up); }); }
+
+function bTf(){ document.getElementById('brain-canvas').style.transform=`translate(${bPanX}px,${bPanY}px) scale(${bScale})`; }
+function brainZoom(d){ bScale=Math.max(0.2,Math.min(2.5,bScale+d)); bTf(); }
+function brainFit(){ bScale=0.62; bPanX=10; bPanY=14; bTf(); }
+
+function bCtxEdit(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
+  const el=bEl[bActiveCtx.id], n=bActiveCtx;
+  const inp=document.createElement('input'); inp.className='bedit-input'; inp.value=n.label;
+  inp.style.left=n.x+'px'; inp.style.top=n.y+'px'; inp.style.width=Math.max(90,el.offsetWidth)+'px';
+  document.getElementById('brain-canvas').appendChild(inp); inp.focus(); inp.select();
+  function done(){ n.label=inp.value||n.label; el.textContent=n.label; inp.remove(); bDrawLines(); brainSave(); }
+  inp.addEventListener('blur',done); inp.addEventListener('keydown',e=>{ if(e.key==='Enter')done(); if(e.key==='Escape')inp.remove(); }); }
+function bCtxAddChild(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
+  const ve=bActiveCtx.type.indexOf('ve')===0;
+  const m={'mm-root':'mm-client','mm-client':'mm-service','mm-service':'mm-task','mm-task':'mm-task','ve-root':'ve-client','ve-client':'ve-service','ve-service':'ve-task','ve-task':'ve-task'};
+  const nn={id:'b'+bIdCounter++,label:'new node',type:m[bActiveCtx.type]||(ve?'ve-task':'mm-task'),x:bActiveCtx.x,y:bActiveCtx.y+80,parent:bActiveCtx.id,done:false};
+  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bDrawLines(); bActiveCtx=nn; brainSave(); setTimeout(bCtxEdit,50); }
+function bCtxDone(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
+  bActiveCtx.done=!bActiveCtx.done; bEl[bActiveCtx.id].classList.toggle('done',bActiveCtx.done); brainSave(); }
+function bCtxNote(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
+  brainAddNote(bActiveCtx.label,'', true); }
+function bCtxDelete(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
+  const id=bActiveCtx.id; if(id==='mm-root'||id==='ve-root') return;
+  const toDel=[]; (function collect(x){ toDel.push(x); brainNodes.filter(n=>n.parent===x).forEach(c=>collect(c.id)); })(id);
+  toDel.forEach(d=>{ bEl[d]?.remove(); delete bEl[d]; delete brainMap[d]; });
+  brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); bActiveCtx=null; bDrawLines(); brainSave(); }
+function brainAddRoot(b){ const r=brainMap[b+'-root']; if(!r) return;
+  const nn={id:'b'+bIdCounter++,label:'new node',type:b+'-client',x:r.x+80,y:r.y+90,parent:r.id,done:false};
+  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bDrawLines(); bActiveCtx=nn; brainSave(); setTimeout(bCtxEdit,50); }
+
+/* ── Brain notes ── */
+const BNOTES_KEY = 'mm_brain_notes';
+function loadBNotes(){ try { return JSON.parse(localStorage.getItem(BNOTES_KEY)||'[]'); } catch(e){ return []; } }
+function saveBNotes(a){ localStorage.setItem(BNOTES_KEY,JSON.stringify(a)); scheduleSave(); }
+function renderBNotes(){
+  const list=document.getElementById('brain-notes-list'); if(!list) return;
+  const notes=loadBNotes(); list.innerHTML='';
+  notes.forEach((nt,i)=>{ const c=document.createElement('div'); c.className='brail-note';
+    c.innerHTML=`<span class="bn-del" data-i="${i}">\u2715</span>${nt.tag?`<div class="bn-tag">${nt.tag}</div>`:''}<div class="bn-text" contenteditable="true" data-i="${i}"></div>`;
+    c.querySelector('.bn-text').textContent=nt.text||'';
+    list.appendChild(c); });
+  list.querySelectorAll('.bn-del').forEach(d=>d.addEventListener('click',()=>{ const n=loadBNotes(); n.splice(+d.dataset.i,1); saveBNotes(n); renderBNotes(); }));
+  list.querySelectorAll('.bn-text').forEach(t=>t.addEventListener('blur',()=>{ const n=loadBNotes(); if(n[+t.dataset.i]){ n[+t.dataset.i].text=t.textContent; saveBNotes(n); } }));
+}
+function brainAddNote(tag,text,focus){ const n=loadBNotes(); n.unshift({tag:tag||'',text:text||''}); saveBNotes(n); renderBNotes();
+  if(focus){ const first=document.querySelector('#brain-notes-list .bn-text'); if(first){ first.focus();
+    const rng=document.createRange(); rng.selectNodeContents(first); const s=window.getSelection(); s.removeAllRanges(); s.addRange(rng); } } }
+
+/* ── Brain boot ── */
+function brainEnter(){
+  if(brainBooted){ bDrawLines(); return; }
+  brainBooted=true;
+  brainLoad();
+  brainNodes.forEach(bRender);
+  renderBNotes();
+  const d=new Date(); document.getElementById('brain-date').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const seeded = brainNodes.every(n=>n.x===0&&n.y===0);
+  setTimeout(()=>{ if(seeded) brainAutoLayout(); else { bApplyPos(); bDrawLines(); } brainFit(); },60);
+
+  const wrap=document.getElementById('brain-canvas-wrap');
+  wrap.addEventListener('mousedown',e=>{ if(e.button!==0) return; bPanning=true; bPanStart={x:e.clientX-bPanX,y:e.clientY-bPanY}; wrap.classList.add('grabbing'); });
+  document.addEventListener('mousemove',e=>{ if(!bPanning) return; bPanX=e.clientX-bPanStart.x; bPanY=e.clientY-bPanStart.y; bTf(); });
+  document.addEventListener('mouseup',()=>{ bPanning=false; wrap.classList.remove('grabbing'); });
+  document.addEventListener('click',()=>document.getElementById('brain-ctx').classList.remove('show'));
+  wrap.addEventListener('wheel',e=>{ e.preventDefault(); bScale=Math.max(0.2,Math.min(2.5,bScale+(e.deltaY>0?-0.08:0.08))); bTf(); },{passive:false});
+
+  const add=document.getElementById('brain-note-add');
+  add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
+}
+
+/* ════════════════════════════════════════════
+   GOOGLE CALENDAR — reuse YouTube OAuth client
+════════════════════════════════════════════ */
+const GCAL_CLIENT_ID = '244861493495-2om8jgma6s97t3eommu54e1ovktddrt4.apps.googleusercontent.com';
+function connectCalendar(){
+  const p=new URLSearchParams({
+    client_id: GCAL_CLIENT_ID,
+    redirect_uri: 'https://messickmarketing.com/dashboard',
+    response_type: 'token',
+    scope: 'https://www.googleapis.com/auth/calendar.readonly',
+    state: 'cal_connect'
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
+}
+function handleCalOAuthReturn(){
+  const hash=window.location.hash; if(!hash.includes('access_token=')) return;
+  const p=new URLSearchParams(hash.slice(1)); const token=p.get('access_token'); const state=p.get('state');
+  if(state!=='cal_connect') return;
+  history.replaceState(null,'',window.location.pathname);
+  sessionStorage.setItem('mm_cal_token',token); localStorage.setItem('mm_cal_connected','1');
+}
+async function loadCalendar(){
+  const token=sessionStorage.getItem('mm_cal_token');
+  const btn=document.getElementById('cal-connect-btn'); const status=document.getElementById('cal-status');
+  if(!token){ if(localStorage.getItem('mm_cal_connected')==='1'){ status.textContent='Session expired \u2014 reconnect to refresh'; } return; }
+  try {
+    const now=new Date(); const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0);
+    const end=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59);
+    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime&access_token=${token}`;
+    const res=await fetch(url); if(!res.ok) throw new Error('cal fetch failed'); const data=await res.json();
+    const list=document.getElementById('schedule-list'); const events=data.items||[];
+    if(!events.length){ list.innerHTML='<div class="sched-row"><span class="sched-label brk">No events today</span></div>'; }
+    else { list.innerHTML=events.map(ev=>{
+      const s=ev.start.dateTime?new Date(ev.start.dateTime):null;
+      const time=s?s.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'All day';
+      return `<div class="sched-row"><span class="sched-time">${time}</span><span class="sched-label">${(ev.summary||'(no title)').replace(/</g,'&lt;')}</span></div>`;
+    }).join(''); }
+    btn.innerHTML='<i class="ti ti-refresh"></i> Refresh calendar';
+    status.textContent='Synced with Google Calendar';
+  } catch(e){ status.textContent='Could not load calendar \u2014 reconnect'; sessionStorage.removeItem('mm_cal_token'); }
+}
 </script>
+<div class="bctx" id="brain-ctx">
+  <div class="bctx-item" onclick="bCtxEdit()"><i class="ti ti-pencil"></i>Edit label</div>
+  <div class="bctx-item" onclick="bCtxAddChild()"><i class="ti ti-git-branch"></i>Add child</div>
+  <div class="bctx-item" onclick="bCtxDone()"><i class="ti ti-check"></i>Toggle done</div>
+  <div class="bctx-item" onclick="bCtxNote()"><i class="ti ti-note"></i>Add note</div>
+  <div class="bctx-item danger" onclick="bCtxDelete()"><i class="ti ti-trash"></i>Delete</div>
+</div>
 </body>
 </html>
