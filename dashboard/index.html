@@ -3015,8 +3015,21 @@ function bBounds(id){ const n=brainMap[id]; let b={minX:n.x,maxX:n.x+bnw(n),minY
   brainNodes.filter(c=>c.parent===id).forEach(c=>{ const cb=bBounds(c.id);
     b.minX=Math.min(b.minX,cb.minX); b.maxX=Math.max(b.maxX,cb.maxX);
     b.minY=Math.min(b.minY,cb.minY); b.maxY=Math.max(b.maxY,cb.maxY); }); return b; }
-function brainAutoLayout(){ bLayout('mm-root',80,70); const mb=bBounds('mm-root');
-  bLayout('ve-root',mb.maxX+140,70); bApplyPos(); bDrawLines(); brainSave(); }
+function brainVLayout(rootId, baseX, topY){
+  const INDENT=26, ROWH=40; let row=0;
+  (function place(id,depth){ const n=brainMap[id]; if(!n) return;
+    n.x=baseX+depth*INDENT; n.y=topY+row*ROWH; row++;
+    brainNodes.filter(c=>c.parent===id).forEach(c=>place(c.id,depth+1)); })(rootId);
+  let maxX=baseX;
+  (function mx(id){ const n=brainMap[id]; const e=bEl[n.id]; const w=e?e.offsetWidth:(n.label.length*7+30);
+    maxX=Math.max(maxX,n.x+w); brainNodes.filter(c=>c.parent===id).forEach(c=>mx(c.id)); })(rootId);
+  return maxX;
+}
+function brainAutoLayout(){
+  const mmRight=brainVLayout('mm-root',60,70);
+  brainVLayout('ve-root',mmRight+90,70);
+  bApplyPos(); bDrawLines(); brainSave();
+}
 function bApplyPos(){ brainNodes.forEach(n=>{ const e=bEl[n.id]; if(e){ e.style.left=n.x+'px'; e.style.top=n.y+'px'; } }); }
 
 function bCls(t){ return 'bnode '+({'mm-root':'root mm-root','mm-client':'client mm-client','mm-service':'service mm-service','mm-task':'task mm-task','ve-root':'root ve-root','ve-client':'client ve-client','ve-service':'service ve-service','ve-task':'task ve-task'}[t]||'task mm-task'); }
@@ -3033,13 +3046,13 @@ function bDrawLines(){
   const svg=document.getElementById('brain-lines'); svg.innerHTML='';
   brainNodes.forEach(n=>{ if(!n.parent||!brainMap[n.parent]) return; const p=brainMap[n.parent];
     const pe=bEl[p.id], ne=bEl[n.id]; if(!pe||!ne) return;
-    const px=p.x+pe.offsetWidth/2, py=p.y+pe.offsetHeight, cx=n.x+ne.offsetWidth/2, cy=n.y;
     const ve=n.type.indexOf('ve')===0||p.type.indexOf('ve')===0; const color=ve?'#d4317a':'#5a9ab8';
-    const op=n.type.indexOf('task')>-1?0.3:n.type.indexOf('service')>-1?0.45:0.65;
-    const sw=n.type.indexOf('task')>-1?1:n.type.indexOf('service')>-1?1.3:2;
-    const mid=(py+cy)/2, r=6, dir=cx>px?1:-1, far=Math.abs(cx-px)>r;
+    const op=n.type.indexOf('task')>-1?0.4:n.type.indexOf('service')>-1?0.55:0.75;
+    const sw=n.type.indexOf('task')>-1?1.2:n.type.indexOf('service')>-1?1.5:2;
+    const spineX=p.x+14, py=p.y+pe.offsetHeight, cyMid=n.y+ne.offsetHeight/2, cx=n.x, r=5;
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${px},${py} L${px},${mid-r} Q${px},${mid} ${px+(far?dir*r:0)},${mid} L${cx-(far?dir*r:0)},${mid} Q${cx},${mid} ${cx},${mid+r} L${cx},${cy}`);
+    const turn=Math.min(r, Math.max(0,(cyMid-py)));
+    path.setAttribute('d',`M${spineX},${py} L${spineX},${cyMid-turn} Q${spineX},${cyMid} ${spineX+r},${cyMid} L${cx},${cyMid}`);
     path.setAttribute('stroke',color); path.setAttribute('stroke-width',sw); path.setAttribute('fill','none');
     path.setAttribute('opacity',op); path.setAttribute('stroke-linecap','round'); svg.appendChild(path); });
 }
@@ -3053,7 +3066,18 @@ function bDrag(el,n){ let sx,sy,snx,sny,moved;
 
 function bTf(){ document.getElementById('brain-canvas').style.transform=`translate(${bPanX}px,${bPanY}px) scale(${bScale})`; }
 function brainZoom(d){ bScale=Math.max(0.2,Math.min(2.5,bScale+d)); bTf(); }
-function brainFit(){ bScale=0.62; bPanX=10; bPanY=14; bTf(); }
+function brainFit(){
+  const wrap=document.getElementById('brain-canvas-wrap'); if(!wrap) return;
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9,any=false;
+  brainNodes.forEach(n=>{ const e=bEl[n.id]; if(!e) return; any=true;
+    minX=Math.min(minX,n.x); minY=Math.min(minY,n.y);
+    maxX=Math.max(maxX,n.x+e.offsetWidth); maxY=Math.max(maxY,n.y+e.offsetHeight); });
+  if(!any){ bScale=0.7; bPanX=20; bPanY=20; bTf(); return; }
+  const cw=maxX-minX+60, ch=maxY-minY+60;
+  bScale=Math.max(0.25,Math.min(1.1,Math.min(W/cw,H/ch)));
+  bPanX=24-minX*bScale; bPanY=20-minY*bScale; bTf();
+}
 
 function bCtxEdit(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
   const el=bEl[bActiveCtx.id], n=bActiveCtx;
@@ -3106,8 +3130,10 @@ function brainEnter(){
   brainNodes.forEach(bRender);
   renderBNotes();
   const d=new Date(); document.getElementById('brain-date').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const seeded = brainNodes.every(n=>n.x===0&&n.y===0);
-  setTimeout(()=>{ if(seeded) brainAutoLayout(); else { bApplyPos(); bDrawLines(); } brainFit(); },60);
+  const LV='3';
+  const needLayout = brainNodes.every(n=>n.x===0&&n.y===0) || localStorage.getItem('mm_brain_lv')!==LV;
+  setTimeout(()=>{ if(needLayout){ brainAutoLayout(); localStorage.setItem('mm_brain_lv',LV); }
+    else { bApplyPos(); bDrawLines(); } brainFit(); },60);
 
   const wrap=document.getElementById('brain-canvas-wrap');
   wrap.addEventListener('mousedown',e=>{ if(e.button!==0) return; bPanning=true; bPanStart={x:e.clientX-bPanX,y:e.clientY-bPanY}; wrap.classList.add('grabbing'); });
