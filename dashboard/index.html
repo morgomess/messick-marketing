@@ -2951,62 +2951,48 @@ const bEl = {};
 let bScale = 1, bPanX = 0, bPanY = 0, bPanning = false, bPanStart = {x:0,y:0};
 let bActiveCtx = null, bIdCounter = 1000, brainBooted = false;
 
+const BRAIN_SEED_V = '2';
 const BRAIN_SEED = [
   {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
     {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
-      {id:'ecco-s1',label:'Social IG/FB/TikTok/LI/YT',type:'mm-service',parent:'ecco'},
-      {id:'ecco-s2',label:'Blog 1x/mo',type:'mm-service',parent:'ecco'},
-      {id:'ecco-s3',label:'Comment mod',type:'mm-service',parent:'ecco'},
+      {id:'ecco-s1',label:'Social media',type:'mm-service',parent:'ecco'},
+      {id:'ecco-s2',label:'Blog',type:'mm-service',parent:'ecco'},
     {id:'jvi',label:'JVI',type:'mm-client',parent:'mm-root'},
-      {id:'jvi-s1',label:'Social all platforms',type:'mm-service',parent:'jvi'},
-      {id:'jvi-s2',label:'GAE content series',type:'mm-service',parent:'jvi'},
-        {id:'jvi-t1',label:'SIR stmt \u2014 Dr. Ahmed',type:'mm-task',parent:'jvi-s2'},
-        {id:'jvi-t2',label:'Bonus posts w/ Rida',type:'mm-task',parent:'jvi-s2'},
+      {id:'jvi-s1',label:'Social media',type:'mm-service',parent:'jvi'},
     {id:'oeis',label:'OEIS',type:'mm-client',parent:'mm-root'},
-      {id:'oeis-s1',label:'LI/X/FB/IG/YT',type:'mm-service',parent:'oeis'},
-      {id:'oeis-s2',label:'YouTube 4x/mo',type:'mm-service',parent:'oeis'},
-      {id:'oeis-s3',label:'LI thought leadership',type:'mm-service',parent:'oeis'},
-      {id:'oeis-s4',label:'Monthly report',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s1',label:'Social media',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s2',label:'YouTube',type:'mm-service',parent:'oeis'},
+      {id:'oeis-s3',label:'Monthly report',type:'mm-service',parent:'oeis'},
     {id:'tvi',label:'Texas Vascular Institute',type:'mm-client',parent:'mm-root'},
-      {id:'tvi-s1',label:'IG/FB/TikTok/LI',type:'mm-service',parent:'tvi'},
-      {id:'tvi-s2',label:'Blog 1x/mo',type:'mm-service',parent:'tvi'},
+      {id:'tvi-s1',label:'Social media',type:'mm-service',parent:'tvi'},
+      {id:'tvi-s2',label:'Blog',type:'mm-service',parent:'tvi'},
     {id:'kelli',label:'Dr. Kelli / Brain Talk',type:'mm-client',parent:'mm-root'},
-      {id:'kelli-s1',label:'Social all platforms',type:'mm-service',parent:'kelli'},
-      {id:'kelli-s2',label:'Podcast 1x/mo',type:'mm-service',parent:'kelli'},
+      {id:'kelli-s1',label:'Social media',type:'mm-service',parent:'kelli'},
+      {id:'kelli-s2',label:'Podcast',type:'mm-service',parent:'kelli'},
     {id:'svv',label:'Sound Vascular & Vein',type:'mm-client',parent:'mm-root'},
-      {id:'svv-s1',label:'IG/FB/LI/YT',type:'mm-service',parent:'svv'},
-      {id:'svv-s2',label:'Blog 1x/mo',type:'mm-service',parent:'svv'},
+      {id:'svv-s1',label:'Social media',type:'mm-service',parent:'svv'},
+      {id:'svv-s2',label:'Blog',type:'mm-service',parent:'svv'},
     {id:'desert',label:'Desert Cardiovascular',type:'mm-client',parent:'mm-root'},
-      {id:'desert-s1',label:'IG/FB/TikTok/LI/YT',type:'mm-service',parent:'desert'},
+      {id:'desert-s1',label:'Social media',type:'mm-service',parent:'desert'},
     {id:'aspire',label:'Aspire Therapy',type:'mm-client',parent:'mm-root'},
-      {id:'aspire-s1',label:'Blog + GBP mgmt',type:'mm-service',parent:'aspire'},
+      {id:'aspire-s1',label:'Blog + GBP',type:'mm-service',parent:'aspire'},
   {id:'ve-root',label:'Virtueasy',type:'ve-root',parent:null},
-    {id:'kit',label:'VA Starter Kit \u2014 $27',type:'ve-client',parent:'ve-root'},
-      {id:'kit-s1',label:'MailerLite automations',type:'ve-service',parent:'kit'},
-        {id:'kit-t1',label:'Improve CTR',type:'ve-task',parent:'kit-s1'},
-      {id:'kit-s2',label:'Social content',type:'ve-service',parent:'kit'},
-        {id:'kit-t2',label:'VA reply chat bank',type:'ve-task',parent:'kit-s2'},
-      {id:'kit-s3',label:'virtueasy site',type:'ve-service',parent:'kit'},
-        {id:'kit-t3',label:'Affiliate page',type:'ve-task',parent:'kit-s3'},
-        {id:'kit-t4',label:'Blog content',type:'ve-task',parent:'kit-s3'},
+    {id:'kit',label:'VA Starter Kit',type:'ve-client',parent:'ve-root'},
     {id:'mmsite',label:'Messick Site / Tools',type:'ve-client',parent:'ve-root'},
       {id:'mms-s1',label:'Portfolio page',type:'ve-service',parent:'mmsite'},
-        {id:'mms-t1',label:'Black Hills + VIP',type:'ve-task',parent:'mms-s1'},
-        {id:'mms-t2',label:'Mobile UX fix',type:'ve-task',parent:'mms-s1'},
-        {id:'mms-t3',label:'TVI 4:5 crop fix',type:'ve-task',parent:'mms-s1'},
       {id:'mms-s2',label:'YouTube optimizer',type:'ve-service',parent:'mmsite'},
-        {id:'mms-t4',label:'Exit Cloud Testing',type:'ve-task',parent:'mms-s2'},
     {id:'obl',label:'OBL Marketing',type:'ve-client',parent:'ve-root'},
-      {id:'obl-s1',label:'Lite (pro bono)',type:'ve-service',parent:'obl'},
     {id:'bttcf',label:'BTTCF',type:'ve-client',parent:'ve-root'},
-      {id:'bttcf-s1',label:'Blog 4x/mo',type:'ve-service',parent:'bttcf'},
 ];
 
 function brainLoad() {
   const raw = localStorage.getItem(BRAIN_KEY);
   if (raw) { try { brainNodes = JSON.parse(raw); } catch(e) { brainNodes = null; } }
-  if (!brainNodes || !brainNodes.length) {
+  const reseed = localStorage.getItem('mm_brain_seedv') !== BRAIN_SEED_V;
+  if (!brainNodes || !brainNodes.length || reseed) {
     brainNodes = BRAIN_SEED.map(n => ({...n, x:0, y:0}));
+    localStorage.setItem('mm_brain_seedv', BRAIN_SEED_V);
+    localStorage.removeItem('mm_brain_lv');
   }
   brainMap = {};
   brainNodes.forEach(n => brainMap[n.id] = n);
