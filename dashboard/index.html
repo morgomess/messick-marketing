@@ -1136,6 +1136,44 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .recur-row select { background: #0b1620; border: 1px solid #2a4f64; border-radius: 8px; padding: 7px 10px; font-family: 'Jost', sans-serif; font-size: 13px; color: #cfe6f2; outline: none; }
 .recur-row select:focus { border-color: #5a9ab8; }
 .recur-hint { font-size: 11px; color: #6b8a9c; font-style: italic; flex: 1; min-width: 160px; }
+
+.ol-title { font-size: 16px; font-weight: 500; color: #cfe6f2; letter-spacing: .02em; }
+.ol-main { flex: 1; display: flex; gap: 0; overflow: hidden; }
+.ol-left { flex: 1; min-width: 0; overflow-y: auto; padding: 4px 22px 24px; }
+.ol-left::-webkit-scrollbar { width: 6px; } .ol-left::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
+.ol-detail { width: 360px; flex-shrink: 0; border-left: 1px solid #1f2d38; background: #0e1d27; overflow-y: auto; padding: 18px 20px; }
+.ol-detail::-webkit-scrollbar { width: 6px; } .ol-detail::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
+.ol-tree { margin-bottom: 14px; }
+.ol-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px 9px 0; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: background .12s; }
+.ol-row:hover { background: rgba(58,107,138,.16); }
+.ol-row.sel { background: rgba(58,107,138,.28); border-color: #3a6b8a; }
+.ol-row.ve:hover { background: rgba(212,49,122,.14); }
+.ol-row.ve.sel { background: rgba(212,49,122,.26); border-color: #d4317a; }
+.ol-chev { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #6b8a9c; flex-shrink: 0; transition: transform .15s; font-size: 14px; }
+.ol-chev.open { transform: rotate(90deg); }
+.ol-chev.empty { visibility: hidden; }
+.ol-label { font-size: 15px; color: #e6f1f8; font-weight: 500; }
+.ol-row.root .ol-label { font-size: 16px; font-weight: 600; }
+.ol-row.mm.root .ol-label { color: #7ab4d0; } .ol-row.ve.root .ol-label { color: #e85ba0; }
+.ol-label-input { font-size: 15px; background: #0b1620; border: 1px solid #5a9ab8; border-radius: 6px; color: #fff; padding: 4px 8px; font-family: 'Jost', sans-serif; outline: none; }
+.ol-status { font-size: 9px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; cursor: pointer; border: none; font-family: 'Jost', sans-serif; }
+.ol-roll { display: flex; gap: 4px; }
+.ol-roll .ru { font-size: 9px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
+.ol-tcount { font-size: 10px; background: rgba(90,154,184,.2); color: #9fc6db; border-radius: 10px; padding: 1px 8px; font-weight: 600; }
+.ol-recur { color: #5a9ab8; font-size: 13px; display: flex; }
+.ol-add { margin-left: auto; width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #6b8a9c; opacity: 0; transition: all .12s; flex-shrink: 0; }
+.ol-row:hover .ol-add { opacity: 1; }
+.ol-add:hover { background: rgba(90,154,184,.3); color: #fff; }
+.ol-addroot { margin: 6px 8px 0 0; background: transparent; border: 1px dashed #2a4f64; border-radius: 9px; padding: 8px 14px; color: #6b8a9c; font-family: 'Jost', sans-serif; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.ol-addroot:hover { border-color: #5a9ab8; color: #cfe6f2; }
+.ol-addroot.ve:hover { border-color: #e85ba0; color: #f7cfe1; }
+.ol-detail-empty { color: #4a6575; font-size: 13px; text-align: center; padding: 40px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.ol-detail-empty i { font-size: 26px; opacity: .5; }
+.ol-dhead { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #1f2d38; margin-bottom: 16px; }
+.ol-dtitle { font-size: 19px; font-weight: 600; color: #fff; flex: 1; }
+.ol-ddel { background: none; border: none; color: #4a6575; cursor: pointer; font-size: 15px; padding: 4px; display: flex; }
+.ol-ddel:hover { color: #e8889c; }
+.d-sec { margin-bottom: 20px; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -1184,10 +1222,18 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
       <div id="brain-view">
         <div class="drill-wrap">
           <div class="drill-top">
-            <nav class="bcrumb" id="bcrumb"></nav>
+            <div class="ol-title">All work</div>
             <button class="btb magic" onclick="openPicker()">✦ Pick for Me</button>
           </div>
-          <div class="drill-body in" id="drill-body"></div>
+          <div class="ol-main">
+            <div class="ol-left">
+              <div id="today-mount"></div>
+              <div class="ol-tree" id="ol-tree"></div>
+              <button class="ol-addroot" onclick="addRootChild('mm')"><i class="ti ti-plus"></i> Messick client</button>
+              <button class="ol-addroot ve" onclick="addRootChild('ve')"><i class="ti ti-plus"></i> Virtueasy project</button>
+            </div>
+            <div class="ol-detail" id="ol-detail"></div>
+          </div>
         </div>
 
         <button class="notes-tab" id="notes-tab" onclick="toggleNotes(true)"><i class="ti ti-note"></i><span>Notes</span></button>
@@ -3208,107 +3254,124 @@ function renderBreadcrumb(){
     c.onclick=()=>{ drillId=n.id; renderDrill(true); }; bc.appendChild(c); }); }
 }
 
-function renderDrill(animate){
-  renderBreadcrumb();
-  const body=document.getElementById('drill-body'); if(!body) return;
-  body.innerHTML='';
-  if(animate){ body.classList.remove('in'); void body.offsetWidth; body.classList.add('in'); }
+let selectedId = null;
+const expanded = new Set();
+function ensureDefaultExpand(){ brainNodes.filter(n=>n.parent===null).forEach(r=>expanded.add(r.id)); }
+function expandPath(id){ let cur=brainMap[id]; while(cur){ expanded.add(cur.id); cur=cur.parent?brainMap[cur.parent]:null; } }
+function toggleExpand(id){ if(expanded.has(id)) expanded.delete(id); else expanded.add(id); renderTree(); }
+function selectNode(id){ selectedId=id; expandPath(id); renderTree(); renderDetail(); }
+function jumpToNode(id){ selectNode(id); }
 
-  if(drillId===null){
-    body.appendChild(buildTodayStrip());
-    const grid=document.createElement('div'); grid.className='drill-grid';
-    brainNodes.filter(n=>n.parent===null).forEach(n=>grid.appendChild(makeTile(n)));
-    body.appendChild(grid);
-    return;
-  }
-
-  const node=brainMap[drillId]; if(!node){ drillId=null; return renderDrill(false); }
-  const isRootLevel = node.type.indexOf('root')>-1;
-
-  // pinned header
-  const head=document.createElement('div'); head.className='node-head '+brandOf(node);
-  let headStatus='';
-  if(!isRootLevel){ const st=STATUS_META[nodeStatus(node)];
-    headStatus='<button class="node-head-status '+st.cls+'" data-act="hstatus">'+st.label+'</button>'; }
-  head.innerHTML='<div class="node-head-title">'+bEsc(node.label)+'</div>'+headStatus;
-  if(!isRootLevel){ head.querySelector('[data-act="hstatus"]').addEventListener('click',()=>{ cycleNodeStatus(drillId); renderDrill(false); }); }
-  body.appendChild(head);
-
-  // sub-projects
-  const kids=brainNodes.filter(n=>n.parent===drillId);
-  const subSec=document.createElement('div'); subSec.className='node-sec';
-  subSec.innerHTML='<div class="sec-label">'+(isRootLevel?'Clients & projects':'Sub-projects')+'</div>';
-  const grid=document.createElement('div'); grid.className='drill-grid';
-  kids.forEach(n=>grid.appendChild(makeTile(n)));
-  const add=document.createElement('div'); add.className='tile tile-add';
-  add.innerHTML='<i class="ti ti-plus"></i><span>Add</span>';
-  add.addEventListener('click',tileAddChild); grid.appendChild(add);
-  subSec.appendChild(grid); body.appendChild(subSec);
-
-  if(!isRootLevel){
-    // recurring + template
-    const rSec=document.createElement('div'); rSec.className='node-sec recur-sec';
-    rSec.innerHTML='<div class="sec-label">Auto-generate</div>';
-    const rRow=document.createElement('div'); rRow.className='recur-row';
-    const cur=node.recur||'none', tpl=node.template||'none';
-    rRow.innerHTML='<label>Repeats</label>'+
-      '<select class="recur-sel"><option value="none">Never</option><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select>'+
-      '<label>Template</label>'+
-      '<select class="tpl-sel">'+Object.keys(TEMPLATE_LABELS).map(k=>'<option value="'+k+'">'+TEMPLATE_LABELS[k]+'</option>').join('')+'</select>'+
-      '<span class="recur-hint"></span>';
-    rSec.appendChild(rRow); body.appendChild(rSec);
-    const rsel=rRow.querySelector('.recur-sel'), tsel=rRow.querySelector('.tpl-sel'), hint=rRow.querySelector('.recur-hint');
-    rsel.value=cur; tsel.value=tpl;
-    const updHint=()=>{ hint.textContent = rsel.value==='none' ? '' : ('New '+(rsel.value==='weekly'?'week':'month')+' auto-creates a sub-project'+(tsel.value!=='none'?' with the '+TEMPLATE_LABELS[tsel.value]+' checklist':'')); };
-    updHint();
-    rsel.addEventListener('change',()=>{ node.recur=rsel.value; if(node.recur==='none') delete node.recurLast; brainSave(); updHint(); autoSpin(); renderDrill(false); });
-    tsel.addEventListener('change',()=>{ node.template=tsel.value; brainSave(); updHint(); });
-
-    // notes
-    const nSec=document.createElement('div'); nSec.className='node-sec';
-    nSec.innerHTML='<div class="sec-label">Notes</div>';
-    const ta=document.createElement('textarea'); ta.className='node-notes';
-    ta.placeholder='Notes for '+node.label+'…';
-    const nn=loadNodeNotes(); ta.value=nn[drillId]||'';
-    let nt=null; ta.addEventListener('input',()=>{ clearTimeout(nt); nt=setTimeout(()=>{ const m=loadNodeNotes(); m[drillId]=ta.value; saveNodeNotes(m); },500); });
-    nSec.appendChild(ta); body.appendChild(nSec);
-
-    // tasks
-    const tSec=document.createElement('div'); tSec.className='node-sec';
-    tSec.innerHTML='<div class="sec-label">Tasks</div>';
-    const list=document.createElement('div'); list.className='task-list'; tSec.appendChild(list);
-    const row=document.createElement('div'); row.className='task-add-row';
-    row.innerHTML='<input class="task-add-input" placeholder="Add a task…"><input type="date" class="task-add-due"><select class="task-add-pri"><option value="none">Priority</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select><button class="task-add-btn">Add</button>';
-    tSec.appendChild(row); body.appendChild(tSec);
-    const inp=row.querySelector('.task-add-input'), due=row.querySelector('.task-add-due'), pri=row.querySelector('.task-add-pri');
-    const doAdd=()=>{ if(!inp.value.trim()) return; addNodeTask(drillId,inp.value.trim(),due.value,pri.value); inp.value=''; due.value=''; pri.value='none'; renderNodeTasks(list); renderAll(); };
-    row.querySelector('.task-add-btn').addEventListener('click',doAdd);
-    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') doAdd(); });
-    renderNodeTasks(list);
-  }
+function renderDrill(){
+  const tm=document.getElementById('today-mount'); if(tm){ tm.innerHTML=''; tm.appendChild(buildTodayStrip()); }
+  renderTree(); renderDetail();
+}
+function renderTree(){
+  const tree=document.getElementById('ol-tree'); if(!tree) return; tree.innerHTML='';
+  brainNodes.filter(n=>n.parent===null).forEach(r=>renderRow(r,0,tree));
+}
+function renderRow(node,depth,container){
+  const hasCh=hasKids(node.id); const open=expanded.has(node.id); const isRoot=node.type.indexOf('root')>-1;
+  const row=document.createElement('div'); row.className='ol-row '+brandOf(node)+(selectedId===node.id?' sel':'')+(isRoot?' root':'');
+  row.style.paddingLeft=(10+depth*22)+'px';
+  const chev = hasCh ? '<span class="ol-chev'+(open?' open':'')+'" data-a="chev"><i class="ti ti-chevron-right"></i></span>' : '<span class="ol-chev empty"></span>';
+  let st=''; if(!isRoot){ const m=STATUS_META[nodeStatus(node)]; st='<span class="ol-status '+m.cls+'" data-a="status">'+m.label+'</span>'; }
+  let rub=''; if(hasCh){ const ru=rollup(node.id);
+    if(ru.blocked||ru.doing){ rub='<span class="ol-roll">'+(ru.blocked?'<span class="ru ru-block">'+ru.blocked+'</span>':'')+(ru.doing?'<span class="ru ru-doing">'+ru.doing+'</span>':'')+'</span>'; } }
+  const openTasks=tasksForNode(node.id).filter(t=>!t.done).length;
+  const tcount = openTasks?'<span class="ol-tcount">'+openTasks+'</span>':'';
+  const recurBadge = (node.recur&&node.recur!=='none') ? '<span class="ol-recur" title="auto-generates '+node.recur+'"><i class="ti ti-repeat"></i></span>' : '';
+  row.innerHTML=chev+'<span class="ol-label" data-id="'+node.id+'">'+bEsc(node.label)+'</span>'+recurBadge+st+rub+tcount+
+    '<span class="ol-add" data-a="add" title="Add sub-project"><i class="ti ti-plus"></i></span>';
+  const chevEl=row.querySelector('[data-a="chev"]'); if(chevEl) chevEl.addEventListener('click',e=>{ e.stopPropagation(); toggleExpand(node.id); });
+  row.addEventListener('click',e=>{ if(e.target.closest('[data-a]')||e.target.closest('.ol-label-input')) return; selectNode(node.id); });
+  const lbl=row.querySelector('.ol-label');
+  lbl.addEventListener('dblclick',e=>{ e.stopPropagation(); startRename(node,row); });
+  const stEl=row.querySelector('[data-a="status"]'); if(stEl) stEl.addEventListener('click',e=>{ e.stopPropagation(); cycleNodeStatus(node.id); renderTree(); if(selectedId===node.id) renderDetail(); });
+  row.querySelector('[data-a="add"]').addEventListener('click',e=>{ e.stopPropagation(); addChildTo(node.id); });
+  container.appendChild(row);
+  if(hasCh&&open){ brainNodes.filter(n=>n.parent===node.id).forEach(c=>renderRow(c,depth+1,container)); }
+}
+function addChildTo(parentId){
+  const parent=brainMap[parentId];
+  const nn={ id:'b'+bIdCounter++, label:'New', type:childTypeFor(parent), parent:parentId, status:'todo', done:false, x:0, y:0 };
+  brainNodes.push(nn); brainMap[nn.id]=nn; brainSave(); expanded.add(parentId); selectedId=nn.id;
+  renderTree(); renderDetail();
+  setTimeout(()=>{ const lbl=document.querySelector('.ol-label[data-id="'+nn.id+'"]'); if(lbl) startRename(nn, lbl.closest('.ol-row')); },20);
+}
+function addRootChild(brand){
+  const root=brainMap[brand+'-root']; if(!root) return; addChildTo(root.id);
 }
 
-function renderNodeTasks(list){
-  const tasks=tasksForNode(drillId); list.innerHTML='';
+function renderDetail(){
+  const d=document.getElementById('ol-detail'); if(!d) return;
+  if(selectedId===null || !brainMap[selectedId]){ d.innerHTML='<div class="ol-detail-empty"><i class="ti ti-click"></i><p>Select anything on the left to see its notes and tasks.</p></div>'; return; }
+  const node=brainMap[selectedId]; const isRoot=node.type.indexOf('root')>-1;
+  d.innerHTML='';
+  const head=document.createElement('div'); head.className='ol-dhead '+brandOf(node);
+  let hs=''; if(!isRoot){ const m=STATUS_META[nodeStatus(node)]; hs='<button class="ol-status '+m.cls+'" data-a="hstatus">'+m.label+'</button>'; }
+  head.innerHTML='<div class="ol-dtitle">'+bEsc(node.label)+'</div>'+hs+
+    (isRoot?'':'<button class="ol-ddel" data-a="del" title="Delete"><i class="ti ti-trash"></i></button>');
+  d.appendChild(head);
+  if(!isRoot){
+    head.querySelector('[data-a="hstatus"]').addEventListener('click',()=>{ cycleNodeStatus(selectedId); renderTree(); renderDetail(); });
+    head.querySelector('[data-a="del"]').addEventListener('click',()=>{ const pid=node.parent; tileDelete(selectedId); selectedId=pid; renderDetail(); });
+  }
+  if(isRoot){ const e=document.createElement('div'); e.className='ol-detail-empty'; e.innerHTML='<p>Top-level brand. Pick a client or project to manage work.</p>'; d.appendChild(e); return; }
+
+  // recurring + template
+  const rSec=document.createElement('div'); rSec.className='d-sec';
+  rSec.innerHTML='<div class="sec-label">Auto-generate</div>';
+  const rRow=document.createElement('div'); rRow.className='recur-row';
+  rRow.innerHTML='<label>Repeats</label><select class="recur-sel"><option value="none">Never</option><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select>'+
+    '<label>Template</label><select class="tpl-sel">'+Object.keys(TEMPLATE_LABELS).map(k=>'<option value="'+k+'">'+TEMPLATE_LABELS[k]+'</option>').join('')+'</select>';
+  rSec.appendChild(rRow); d.appendChild(rSec);
+  const rsel=rRow.querySelector('.recur-sel'), tsel=rRow.querySelector('.tpl-sel');
+  rsel.value=node.recur||'none'; tsel.value=node.template||'none';
+  rsel.addEventListener('change',()=>{ node.recur=rsel.value; if(node.recur==='none') delete node.recurLast; brainSave(); autoSpin(); renderTree(); renderDetail(); });
+  tsel.addEventListener('change',()=>{ node.template=tsel.value; brainSave(); });
+
+  // notes
+  const nSec=document.createElement('div'); nSec.className='d-sec';
+  nSec.innerHTML='<div class="sec-label">Notes</div>';
+  const ta=document.createElement('textarea'); ta.className='node-notes'; ta.placeholder='Notes for '+node.label+'…';
+  const nn=loadNodeNotes(); ta.value=nn[selectedId]||'';
+  let nt=null; ta.addEventListener('input',()=>{ clearTimeout(nt); nt=setTimeout(()=>{ const m=loadNodeNotes(); m[selectedId]=ta.value; saveNodeNotes(m); },500); });
+  nSec.appendChild(ta); d.appendChild(nSec);
+
+  // tasks
+  const tSec=document.createElement('div'); tSec.className='d-sec';
+  tSec.innerHTML='<div class="sec-label">Tasks</div>';
+  const list=document.createElement('div'); list.className='task-list'; tSec.appendChild(list);
+  const row=document.createElement('div'); row.className='task-add-row';
+  row.innerHTML='<input class="task-add-input" placeholder="Add a task…"><input type="date" class="task-add-due"><select class="task-add-pri"><option value="none">Priority</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select><button class="task-add-btn">Add</button>';
+  tSec.appendChild(row); d.appendChild(tSec);
+  const inp=row.querySelector('.task-add-input'), due=row.querySelector('.task-add-due'), pri=row.querySelector('.task-add-pri');
+  const doAdd=()=>{ if(!inp.value.trim()) return; addNodeTask(selectedId,inp.value.trim(),due.value,pri.value); inp.value=''; due.value=''; pri.value='none'; renderNodeTasks(list,selectedId); renderTree(); renderAll(); };
+  row.querySelector('.task-add-btn').addEventListener('click',doAdd);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') doAdd(); });
+  renderNodeTasks(list,selectedId);
+}
+
+function renderNodeTasks(list,nodeId){
+  const tasks=tasksForNode(nodeId); list.innerHTML='';
   if(!tasks.length){ list.innerHTML='<div class="task-empty">No tasks yet — add one below.</div>'; return; }
   tasks.forEach(t=>{
     const st=STATUS_META[taskStatus(t)];
-    const row=document.createElement('div'); row.className='task-row'+(t.done?' done':'');
+    const r=document.createElement('div'); r.className='task-row'+(t.done?' done':'');
     const due=t.due?('<span class="task-due '+duePillClass(dueStatus(t.due))+'">'+fmtDate(t.due)+'</span>'):'';
     const pri=(t.priority&&t.priority!=='none')?('<span class="task-pri pri-'+t.priority+'">'+t.priority+'</span>'):'';
-    row.innerHTML='<button class="task-check'+(t.done?' on':'')+'" data-a="check"><i class="ti ti-check"></i></button>'+
+    r.innerHTML='<button class="task-check'+(t.done?' on':'')+'" data-a="check"><i class="ti ti-check"></i></button>'+
       '<span class="task-text">'+bEsc(t.text)+'</span>'+
       '<button class="task-status '+st.cls+'" data-a="status">'+st.label+'</button>'+pri+due+
       '<button class="task-del" data-a="del"><i class="ti ti-x"></i></button>';
-    row.querySelector('[data-a="check"]').addEventListener('click',()=>{ toggleNodeTask(t.id); renderNodeTasks(list); renderAll(); });
-    row.querySelector('[data-a="status"]').addEventListener('click',()=>{ cycleTaskStatus(t.id); renderNodeTasks(list); renderAll(); });
-    row.querySelector('[data-a="del"]').addEventListener('click',()=>{ delNodeTask(t.id); renderNodeTasks(list); renderAll(); });
-    list.appendChild(row);
+    r.querySelector('[data-a="check"]').addEventListener('click',()=>{ toggleNodeTask(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
+    r.querySelector('[data-a="status"]').addEventListener('click',()=>{ cycleTaskStatus(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
+    r.querySelector('[data-a="del"]').addEventListener('click',()=>{ delNodeTask(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
+    list.appendChild(r);
   });
 }
-
 function nodePathLabel(id){ const p=pathTo(id); return p.length>1 ? p[p.length-2].label : ''; }
-function jumpToNode(nodeId){ drillId=nodeId; renderDrill(true); }
 function buildTodayStrip(){
   const all=loadTasks('todo').filter(t=>!t.done && t.nodeId);
   const overdue=all.filter(t=>dueStatus(t.due)==='overdue');
@@ -3323,7 +3386,7 @@ function buildTodayStrip(){
     else items.slice(0,6).forEach(t=>{ const node=brainMap[t.nodeId];
       const row=document.createElement('div'); row.className='today-item';
       row.innerHTML='<span class="today-task">'+bEsc(t.text)+'</span><span class="today-ctx">'+bEsc(node?node.label:'')+'</span>';
-      row.addEventListener('click',()=>jumpToNode(t.nodeId)); ul.appendChild(row); });
+      row.addEventListener('click',()=>selectNode(t.nodeId)); ul.appendChild(row); });
     c.appendChild(ul); return c;
   }
   wrap.appendChild(col('Overdue',overdue,'t-over'));
@@ -3331,47 +3394,20 @@ function buildTodayStrip(){
   wrap.appendChild(col('Blocked',blocked,'t-block'));
   return wrap;
 }
-function makeTile(n){
-  const cc=brainNodes.filter(c=>c.parent===n.id).length;
-  const openTasks=tasksForNode(n.id).filter(t=>!t.done).length;
-  const brand=brandOf(n); const isRoot=n.type.indexOf('root')>-1;
-  const t=document.createElement('div'); t.className='tile '+brand+(isRoot?' tile-root':'');
-  let sticker=''; if(!isRoot){ const st=STATUS_META[nodeStatus(n)]; sticker='<span class="tile-status '+st.cls+'" data-act="status">'+st.label+'</span>'; }
-  let foot;
-  if(cc){ const ru=rollup(n.id); const bits=[];
-    if(ru.blocked) bits.push('<span class="ru ru-block">'+ru.blocked+' blocked</span>');
-    if(ru.doing) bits.push('<span class="ru ru-doing">'+ru.doing+' in progress</span>');
-    foot='<span class="tile-count">'+cc+' '+kidWord(n)+'</span>'+(bits.length?'<span class="tile-roll">'+bits.join('')+'</span>':'');
-  } else { foot = openTasks?('<span class="tile-count">'+openTasks+' tasks</span>'):'<span class="tile-empty">open '+String.fromCharCode(8250)+'</span>'; }
-  t.innerHTML=sticker+
-    '<div class="tile-actions"><button class="ta" data-act="edit" title="Rename"><i class="ti ti-pencil"></i></button>'+
-    (isRoot?'':'<button class="ta" data-act="del" title="Delete"><i class="ti ti-trash"></i></button>')+'</div>'+
-    '<div class="tile-label" data-id="'+n.id+'">'+bEsc(n.label)+'</div>'+
-    '<div class="tile-foot">'+foot+'</div>';
-  let clickT=null;
-  t.addEventListener('click',e=>{ if(e.target.closest('.ta')||e.target.closest('.tile-status')||e.target.closest('.tile-label-input')) return;
-    clearTimeout(clickT); clickT=setTimeout(()=>{ drillTo(n.id); },230); });
-  t.addEventListener('dblclick',e=>{ if(e.target.closest('.ta')||e.target.closest('.tile-status')) return; clearTimeout(clickT);
-    if(isLeaf(n.id)) drillTo(n.id); else startRename(n,t); });
-  t.querySelector('[data-act="edit"]').addEventListener('click',e=>{ e.stopPropagation(); startRename(n,t); });
-  const del=t.querySelector('[data-act="del"]'); if(del) del.addEventListener('click',e=>{ e.stopPropagation(); tileDelete(n.id); });
-  const stk=t.querySelector('.tile-status'); if(stk) stk.addEventListener('click',e=>{ e.stopPropagation(); cycleNodeStatus(n.id); renderDrill(false); });
-  return t;
-}
 
-function startRename(n,tileEl){
-  const labelEl=tileEl.querySelector('.tile-label'); if(!labelEl) return;
-  const inp=document.createElement('input'); inp.className='tile-label-input'; inp.value=n.label;
+function startRename(n,rowEl){
+  const labelEl=rowEl.querySelector('.ol-label')||rowEl.querySelector('.tile-label'); if(!labelEl) return;
+  const inp=document.createElement('input'); inp.className='ol-label-input'; inp.value=n.label;
   labelEl.replaceWith(inp); inp.focus(); inp.select();
-  const commit=()=>{ n.label=inp.value.trim()||n.label; brainSave(); renderDrill(false); };
+  const commit=()=>{ n.label=inp.value.trim()||n.label; brainSave(); renderDrill(); };
   inp.addEventListener('blur',commit);
-  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); commit(); } if(ev.key==='Escape'){ renderDrill(false); } });
+  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); commit(); } if(ev.key==='Escape'){ renderDrill(); } });
   inp.addEventListener('click',ev=>ev.stopPropagation());
   inp.addEventListener('dblclick',ev=>ev.stopPropagation());
 }
 function renameById(id){
-  const lbl=document.querySelector('.tile-label[data-id="'+id+'"]'); if(!lbl) return;
-  startRename(brainMap[id], lbl.closest('.tile'));
+  const lbl=document.querySelector('.ol-label[data-id="'+id+'"]'); if(!lbl) return;
+  startRename(brainMap[id], lbl.closest('.ol-row'));
 }
 function tileAddChild(){
   if(drillId===null) return; const parent=brainMap[drillId];
@@ -3383,7 +3419,7 @@ function tileDelete(id){
   if(id==='mm-root'||id==='ve-root') return;
   const toDel=[]; (function collect(x){ toDel.push(x); brainNodes.filter(n=>n.parent===x).forEach(c=>collect(c.id)); })(id);
   brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); delete brainMap[id];
-  brainSave(); renderDrill(false);
+  brainSave(); renderTree();
 }
 
 /* ── Brain notes ── */
@@ -3417,8 +3453,9 @@ function brainEnter(){
   brainBooted=true;
   brainLoad();
   autoSpin();
+  ensureDefaultExpand();
   renderBNotes();
-  renderDrill(false);
+  renderDrill();
   const add=document.getElementById('brain-note-add');
   if(add) add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
   if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
