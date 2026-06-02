@@ -1111,6 +1111,31 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .st-doing { background: rgba(239,159,39,.22); color: #efb45f; }
 .st-blocked { background: rgba(226,75,74,.22); color: #f0918f; }
 .st-done { background: rgba(29,158,117,.28); color: #6fe0b8; }
+
+.today-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+.today-col { background: #0e1d27; border: 1px solid #1f3d4d; border-radius: 12px; padding: 13px 15px; }
+.today-col.t-over { border-color: rgba(226,75,74,.5); }
+.today-col.t-today { border-color: rgba(90,154,184,.5); }
+.today-col.t-block { border-color: rgba(239,159,39,.45); }
+.today-col-head { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #9fc6db; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.today-n { background: rgba(90,154,184,.2); color: #cfe6f2; border-radius: 12px; padding: 1px 8px; font-size: 11px; }
+.t-over .today-n { background: rgba(226,75,74,.25); color: #f0918f; }
+.t-block .today-n { background: rgba(239,159,39,.25); color: #efb45f; }
+.today-items { display: flex; flex-direction: column; gap: 6px; }
+.today-empty { font-size: 12px; color: #4a6575; font-style: italic; }
+.today-item { display: flex; flex-direction: column; gap: 1px; padding: 6px 9px; border-radius: 8px; cursor: pointer; background: #13262f; }
+.today-item:hover { background: rgba(58,107,138,.3); }
+.today-task { font-size: 13px; color: #cfe6f2; }
+.today-ctx { font-size: 10px; color: #6b8a9c; }
+.tile-roll { display: flex; gap: 5px; justify-content: center; margin-top: 5px; flex-wrap: wrap; }
+.ru { font-size: 9px; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
+.ru-block { background: rgba(226,75,74,.2); color: #f0918f; }
+.ru-doing { background: rgba(239,159,39,.2); color: #efb45f; }
+.recur-sec .recur-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #0e1d27; border: 1px solid #1f3d4d; border-radius: 12px; padding: 12px 14px; }
+.recur-row label { font-size: 12px; color: #9fc6db; }
+.recur-row select { background: #0b1620; border: 1px solid #2a4f64; border-radius: 8px; padding: 7px 10px; font-family: 'Jost', sans-serif; font-size: 13px; color: #cfe6f2; outline: none; }
+.recur-row select:focus { border-color: #5a9ab8; }
+.recur-hint { font-size: 11px; color: #6b8a9c; font-style: italic; flex: 1; min-width: 160px; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -3123,6 +3148,55 @@ function delNodeTask(tid){ saveTasks('todo', loadTasks('todo').filter(x=>x.id!==
 function nodeStatus(n){ return n.status || 'todo'; }
 function cycleNodeStatus(id){ const n=brainMap[id]; n.status=nextStatus(nodeStatus(n)); n.done=(n.status==='done'); brainSave(); }
 
+/* recurring deliverables + templates */
+const TEMPLATES = {
+  none:    [],
+  blog:    ['Outline','Draft','Featured image','Internal review','Schedule','Publish'],
+  reel:    ['Script / hook','Source or film clips','Edit','Caption + cover','Schedule'],
+  podcast: ['Record','Edit audio','Show notes','Publish','Promo clips'],
+  youtube: ['Brief / script','Record','Edit','Thumbnail','Title + description','Publish'],
+  report:  ['Pull analytics','Write insights','Recommendations','Send to client'],
+  social:  ['Plan content calendar','Create posts','Schedule','Engagement / comments']
+};
+const TEMPLATE_LABELS = { none:'No template', blog:'Blog', reel:'Reel / short', podcast:'Podcast', youtube:'YouTube video', report:'Monthly report', social:'Social batch' };
+function monthKey(d){ d=d||new Date(); return d.getFullYear()+'-'+d.getMonth(); }
+function monthLabel(d){ d=d||new Date(); return d.toLocaleDateString('en-US',{month:'long'})+' '+d.getFullYear(); }
+function weekKey(d){ d=d||new Date(); const o=new Date(d); o.setDate(o.getDate()-o.getDay()); return o.getFullYear()+'-w'+o.getMonth()+'-'+o.getDate(); }
+function weekLabel(d){ d=d||new Date(); const o=new Date(d); o.setDate(o.getDate()-o.getDay());
+  return 'Week of '+o.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function autoSpin(){
+  let changed=false; const today=new Date();
+  brainNodes.slice().forEach(node=>{
+    const r=node.recur; if(!r||r==='none') return;
+    const key = r==='weekly' ? weekKey(today) : monthKey(today);
+    if(node.recurLast===key) return;
+    const label = r==='weekly' ? weekLabel(today) : monthLabel(today);
+    if(!brainNodes.some(n=>n.parent===node.id && n.label===label)){
+      const child={ id:'b'+bIdCounter++, label:label, type:childTypeFor(node), parent:node.id, status:'todo', done:false, x:0, y:0 };
+      brainNodes.push(child); brainMap[child.id]=child;
+      const tpl=TEMPLATES[node.template||'none']||[];
+      if(tpl.length){ const tasks=loadTasks('todo');
+        tpl.forEach(label2=>tasks.push({ id:uid(), text:label2, brand:brandOf(node)==='ve'?'virtueasy':'messick', nodeId:child.id, priority:'none', due:null, recur:'none', status:'todo', done:false, addedAt:Date.now(), subtasks:[], recurLastGen:todayStr() }));
+        saveTasks('todo',tasks); }
+    }
+    node.recurLast=key; changed=true;
+  });
+  if(changed) brainSave();
+}
+
+/* status rollup across descendants (sub-projects + their tasks) */
+function rollup(id){
+  const counts={ todo:0, doing:0, blocked:0, done:0, tasksOpen:0 };
+  (function walk(x){
+    brainNodes.filter(n=>n.parent===x).forEach(n=>{
+      const s=n.status||'todo'; if(counts[s]!==undefined) counts[s]++;
+      tasksForNode(n.id).forEach(t=>{ if(!t.done) counts.tasksOpen++; });
+      walk(n.id);
+    });
+  })(id);
+  return counts;
+}
+
 function drillTo(id){ drillId=id; renderDrill(true); }
 function renderBreadcrumb(){
   const bc=document.getElementById('bcrumb'); if(!bc) return; bc.innerHTML='';
@@ -3141,6 +3215,7 @@ function renderDrill(animate){
   if(animate){ body.classList.remove('in'); void body.offsetWidth; body.classList.add('in'); }
 
   if(drillId===null){
+    body.appendChild(buildTodayStrip());
     const grid=document.createElement('div'); grid.className='drill-grid';
     brainNodes.filter(n=>n.parent===null).forEach(n=>grid.appendChild(makeTile(n)));
     body.appendChild(grid);
@@ -3171,6 +3246,24 @@ function renderDrill(animate){
   subSec.appendChild(grid); body.appendChild(subSec);
 
   if(!isRootLevel){
+    // recurring + template
+    const rSec=document.createElement('div'); rSec.className='node-sec recur-sec';
+    rSec.innerHTML='<div class="sec-label">Auto-generate</div>';
+    const rRow=document.createElement('div'); rRow.className='recur-row';
+    const cur=node.recur||'none', tpl=node.template||'none';
+    rRow.innerHTML='<label>Repeats</label>'+
+      '<select class="recur-sel"><option value="none">Never</option><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select>'+
+      '<label>Template</label>'+
+      '<select class="tpl-sel">'+Object.keys(TEMPLATE_LABELS).map(k=>'<option value="'+k+'">'+TEMPLATE_LABELS[k]+'</option>').join('')+'</select>'+
+      '<span class="recur-hint"></span>';
+    rSec.appendChild(rRow); body.appendChild(rSec);
+    const rsel=rRow.querySelector('.recur-sel'), tsel=rRow.querySelector('.tpl-sel'), hint=rRow.querySelector('.recur-hint');
+    rsel.value=cur; tsel.value=tpl;
+    const updHint=()=>{ hint.textContent = rsel.value==='none' ? '' : ('New '+(rsel.value==='weekly'?'week':'month')+' auto-creates a sub-project'+(tsel.value!=='none'?' with the '+TEMPLATE_LABELS[tsel.value]+' checklist':'')); };
+    updHint();
+    rsel.addEventListener('change',()=>{ node.recur=rsel.value; if(node.recur==='none') delete node.recurLast; brainSave(); updHint(); autoSpin(); renderDrill(false); });
+    tsel.addEventListener('change',()=>{ node.template=tsel.value; brainSave(); updHint(); });
+
     // notes
     const nSec=document.createElement('div'); nSec.className='node-sec';
     nSec.innerHTML='<div class="sec-label">Notes</div>';
@@ -3214,14 +3307,42 @@ function renderNodeTasks(list){
   });
 }
 
+function nodePathLabel(id){ const p=pathTo(id); return p.length>1 ? p[p.length-2].label : ''; }
+function jumpToNode(nodeId){ drillId=nodeId; renderDrill(true); }
+function buildTodayStrip(){
+  const all=loadTasks('todo').filter(t=>!t.done && t.nodeId);
+  const overdue=all.filter(t=>dueStatus(t.due)==='overdue');
+  const today=all.filter(t=>dueStatus(t.due)==='due-today');
+  const blocked=all.filter(t=>(t.status||'')==='blocked');
+  const wrap=document.createElement('div'); wrap.className='today-strip';
+  function col(title,items,cls){
+    const c=document.createElement('div'); c.className='today-col '+cls;
+    c.innerHTML='<div class="today-col-head">'+title+' <span class="today-n">'+items.length+'</span></div>';
+    const ul=document.createElement('div'); ul.className='today-items';
+    if(!items.length){ ul.innerHTML='<div class="today-empty">Nothing here</div>'; }
+    else items.slice(0,6).forEach(t=>{ const node=brainMap[t.nodeId];
+      const row=document.createElement('div'); row.className='today-item';
+      row.innerHTML='<span class="today-task">'+bEsc(t.text)+'</span><span class="today-ctx">'+bEsc(node?node.label:'')+'</span>';
+      row.addEventListener('click',()=>jumpToNode(t.nodeId)); ul.appendChild(row); });
+    c.appendChild(ul); return c;
+  }
+  wrap.appendChild(col('Overdue',overdue,'t-over'));
+  wrap.appendChild(col('Due today',today,'t-today'));
+  wrap.appendChild(col('Blocked',blocked,'t-block'));
+  return wrap;
+}
 function makeTile(n){
   const cc=brainNodes.filter(c=>c.parent===n.id).length;
   const openTasks=tasksForNode(n.id).filter(t=>!t.done).length;
   const brand=brandOf(n); const isRoot=n.type.indexOf('root')>-1;
   const t=document.createElement('div'); t.className='tile '+brand+(isRoot?' tile-root':'');
   let sticker=''; if(!isRoot){ const st=STATUS_META[nodeStatus(n)]; sticker='<span class="tile-status '+st.cls+'" data-act="status">'+st.label+'</span>'; }
-  const foot = cc ? ('<span class="tile-count">'+cc+' '+kidWord(n)+'</span>')
-                  : (openTasks?('<span class="tile-count">'+openTasks+' tasks</span>'):'<span class="tile-empty">open '+String.fromCharCode(8250)+'</span>');
+  let foot;
+  if(cc){ const ru=rollup(n.id); const bits=[];
+    if(ru.blocked) bits.push('<span class="ru ru-block">'+ru.blocked+' blocked</span>');
+    if(ru.doing) bits.push('<span class="ru ru-doing">'+ru.doing+' in progress</span>');
+    foot='<span class="tile-count">'+cc+' '+kidWord(n)+'</span>'+(bits.length?'<span class="tile-roll">'+bits.join('')+'</span>':'');
+  } else { foot = openTasks?('<span class="tile-count">'+openTasks+' tasks</span>'):'<span class="tile-empty">open '+String.fromCharCode(8250)+'</span>'; }
   t.innerHTML=sticker+
     '<div class="tile-actions"><button class="ta" data-act="edit" title="Rename"><i class="ti ti-pencil"></i></button>'+
     (isRoot?'':'<button class="ta" data-act="del" title="Delete"><i class="ti ti-trash"></i></button>')+'</div>'+
@@ -3295,6 +3416,7 @@ function brainEnter(){
   if(brainBooted){ renderDrill(false); return; }
   brainBooted=true;
   brainLoad();
+  autoSpin();
   renderBNotes();
   renderDrill(false);
   const add=document.getElementById('brain-note-add');
