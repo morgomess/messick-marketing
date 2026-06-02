@@ -1025,6 +1025,48 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .notes-pop-body::-webkit-scrollbar { width: 5px; }
 .notes-pop-body::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
 .notes-pop-foot { padding: 12px 16px; border-top: 1px solid #1f2d38; }
+
+#brain-view { position: relative; }
+.drill-wrap { height: 100%; width: 100%; display: flex; flex-direction: column; }
+.drill-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 28px 14px; }
+.bcrumb { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-family: 'Jost', sans-serif; }
+.crumb { font-size: 15px; color: #9fc6db; cursor: pointer; padding: 5px 10px; border-radius: 8px; display: flex; align-items: center; gap: 6px; transition: all .15s; }
+.crumb i { font-size: 16px; }
+.crumb:hover { background: rgba(58,107,138,.25); color: #fff; }
+.crumb:last-child { color: #fff; font-weight: 500; }
+.crumb-sep { color: #3a5366; font-size: 16px; }
+.drill-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; padding: 8px 28px 32px; align-content: start; }
+.drill-grid::-webkit-scrollbar { width: 6px; }
+.drill-grid::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
+.drill-grid.in .tile { animation: tilein .3s cubic-bezier(.34,1.3,.5,1) backwards; }
+@keyframes tilein { from { opacity: 0; transform: translateY(14px) scale(.95); } to { opacity: 1; transform: none; } }
+.tile { position: relative; aspect-ratio: 1 / 1; border-radius: 18px; border: 1px solid; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  padding: 20px; transition: transform .14s, box-shadow .14s, border-color .14s; overflow: hidden; }
+.tile:hover { transform: translateY(-4px); }
+.tile-label { font-size: 19px; font-weight: 600; line-height: 1.25; letter-spacing: .01em; }
+.tile-foot { position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; }
+.tile-count { font-size: 11px; padding: 4px 11px; border-radius: 20px; font-weight: 500; letter-spacing: .02em; }
+.tile-empty { font-size: 11px; opacity: .55; letter-spacing: .03em; }
+.tile.mm { background: #15303f; border-color: #3a6b8a; color: #cfe6f2; }
+.tile.mm:hover { border-color: #5a9ab8; box-shadow: 0 12px 34px rgba(58,107,138,.4); }
+.tile.mm .tile-count { background: rgba(90,154,184,.2); color: #9fc6db; }
+.tile.ve { background: #3a0e22; border-color: #d4317a; color: #f7cfe1; }
+.tile.ve:hover { border-color: #e85ba0; box-shadow: 0 12px 34px rgba(212,49,122,.4); }
+.tile.ve .tile-count { background: rgba(212,49,122,.22); color: #e3a3c4; }
+.tile.tile-root.mm { background: linear-gradient(140deg,#2a5570,#3a6b8a 70%,#5a9ab8); border-color: #7ab4d0; color: #fff; }
+.tile.tile-root.ve { background: linear-gradient(140deg,#7a1845,#d4317a 75%,#e85ba0); border-color: #e85ba0; color: #fff; }
+.tile.tile-root .tile-label { font-size: 23px; font-weight: 700; }
+.tile.done .tile-label { text-decoration: line-through; opacity: .5; }
+.tile-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; opacity: 0; transition: opacity .14s; }
+.tile:hover .tile-actions { opacity: 1; }
+.ta { width: 27px; height: 27px; border-radius: 8px; border: none; background: rgba(0,0,0,.28); color: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.ta:hover { background: rgba(0,0,0,.5); }
+.tile-add { background: transparent; border: 1.5px dashed #2a4f64; color: #6b8a9c; gap: 8px; }
+.tile-add i { font-size: 28px; }
+.tile-add span { font-size: 14px; letter-spacing: .03em; }
+.tile-add:hover { border-color: #5a9ab8; color: #cfe6f2; transform: translateY(-4px); }
+.tile-label-input { font-size: 18px; font-weight: 600; text-align: center; background: rgba(0,0,0,.35); border: 1px solid currentColor; border-radius: 9px; color: #fff; padding: 7px 10px; width: 92%; outline: none; font-family: 'Jost', sans-serif; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -1071,37 +1113,25 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
     <div class="main-col">
 
       <div id="brain-view">
-        <div class="brain-canvas-wrap" id="brain-canvas-wrap">
-          <div id="brain-canvas"><svg id="brain-lines" width="4000" height="3000"></svg></div>
-          <div class="brain-toolbar">
+        <div class="drill-wrap">
+          <div class="drill-top">
+            <nav class="bcrumb" id="bcrumb"></nav>
             <button class="btb magic" onclick="openPicker()">✦ Pick for Me</button>
-            <button class="btb" onclick="brainAddRoot('mm')">+ MM</button>
-            <button class="btb ve" onclick="brainAddRoot('ve')">+ VE</button>
-            <button class="btb" onclick="brainAutoLayout()">arrange</button>
-            <button class="btb" onclick="brainFit()">fit</button>
           </div>
-          <div class="brain-zoom">
-            <button class="bz" onclick="brainZoom(0.15)">+</button>
-            <button class="bz" onclick="brainZoom(-0.15)">−</button>
-          </div>
-          <div class="brain-legend">
-            <div class="bleg"><div class="bleg-dot" style="background:#5a9ab8"></div>Messick</div>
-            <div class="bleg"><div class="bleg-dot" style="background:#d4317a"></div>Virtueasy</div>
-            <div class="bleg" style="color:#4a6575">right-click to edit · drag to move</div>
-          </div>
+          <div class="drill-grid in" id="drill-grid"></div>
+        </div>
 
-          <button class="notes-tab" id="notes-tab" onclick="toggleNotes(true)"><i class="ti ti-note"></i><span>Notes</span></button>
-          <div class="notes-pop" id="notes-pop">
-            <div class="notes-pop-head">
-              <span class="script">Notes</span>
-              <button class="notes-close" onclick="toggleNotes(false)" aria-label="Collapse notes"><i class="ti ti-chevron-right"></i></button>
-            </div>
-            <div class="notes-pop-body">
-              <div id="brain-notes-list"></div>
-            </div>
-            <div class="notes-pop-foot">
-              <textarea class="brail-noteadd" id="brain-note-add" placeholder="Jot a note… (Enter to save)"></textarea>
-            </div>
+        <button class="notes-tab" id="notes-tab" onclick="toggleNotes(true)"><i class="ti ti-note"></i><span>Notes</span></button>
+        <div class="notes-pop" id="notes-pop">
+          <div class="notes-pop-head">
+            <span class="script">Notes</span>
+            <button class="notes-close" onclick="toggleNotes(false)" aria-label="Collapse notes"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <div class="notes-pop-body">
+            <div id="brain-notes-list"></div>
+          </div>
+          <div class="notes-pop-foot">
+            <textarea class="brail-noteadd" id="brain-note-add" placeholder="Jot a note… (Enter to save)"></textarea>
           </div>
         </div>
       </div>
@@ -3003,95 +3033,84 @@ function brainSave() {
 }
 function bnw(n){ const e=bEl[n.id]; return e?e.offsetWidth:(n.label.length*7+30); }
 function bnh(n){ const e=bEl[n.id]; return e?e.offsetHeight:30; }
-function bSubW(id){ const ch=brainNodes.filter(n=>n.parent===id); if(!ch.length) return bnw(brainMap[id]);
-  const t=ch.reduce((s,c)=>s+bSubW(c.id),0)+(ch.length-1)*HGAP; return Math.max(bnw(brainMap[id]),t); }
-function bLayout(id,x,y){ const n=brainMap[id]; if(!n) return; const ch=brainNodes.filter(c=>c.parent===id);
-  n.x=x; n.y=y; if(!ch.length) return; const tot=ch.reduce((s,c)=>s+bSubW(c.id),0)+(ch.length-1)*HGAP;
-  let cx=x+bnw(n)/2-tot/2; const cy=y+bnh(n)+VGAP;
-  ch.forEach(c=>{ const sw=bSubW(c.id); bLayout(c.id,cx+sw/2-bnw(c)/2,cy); cx+=sw+HGAP; }); }
-function bBounds(id){ const n=brainMap[id]; let b={minX:n.x,maxX:n.x+bnw(n),minY:n.y,maxY:n.y+bnh(n)};
-  brainNodes.filter(c=>c.parent===id).forEach(c=>{ const cb=bBounds(c.id);
-    b.minX=Math.min(b.minX,cb.minX); b.maxX=Math.max(b.maxX,cb.maxX);
-    b.minY=Math.min(b.minY,cb.minY); b.maxY=Math.max(b.maxY,cb.maxY); }); return b; }
-function brainAutoLayout(){
-  bLayout('mm-root',60,50);
-  const mb=bBounds('mm-root');
-  bLayout('ve-root',mb.maxX+130,50);
-  bApplyPos(); bDrawLines(); brainSave();
+let drillId = null;
+let editingId = null;
+function brandOf(n){ return n.type.indexOf('ve')===0 ? 've' : 'mm'; }
+function childTypeFor(n){
+  const m={'mm-root':'mm-client','mm-client':'mm-service','mm-service':'mm-task','mm-task':'mm-task',
+           've-root':'ve-client','ve-client':'ve-service','ve-service':'ve-task','ve-task':'ve-task'};
+  return m[n.type] || (brandOf(n)==='ve'?'ve-task':'mm-task');
 }
-function bApplyPos(){ brainNodes.forEach(n=>{ const e=bEl[n.id]; if(e){ e.style.left=n.x+'px'; e.style.top=n.y+'px'; } }); }
+function kidWord(n){ return {'mm-root':'clients','mm-client':'services','mm-service':'tasks','mm-task':'items',
+  've-root':'projects','ve-client':'items','ve-service':'tasks','ve-task':'items'}[n.type] || 'items'; }
+function bEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function pathTo(id){ const out=[]; let cur=brainMap[id]; while(cur){ out.unshift(cur); cur=cur.parent?brainMap[cur.parent]:null; } return out; }
+function drillTo(id){ drillId=id; renderDrill(true); }
 
-function bCls(t){ return 'bnode '+({'mm-root':'root mm-root','mm-client':'client mm-client','mm-service':'service mm-service','mm-task':'task mm-task','ve-root':'root ve-root','ve-client':'client ve-client','ve-service':'service ve-service','ve-task':'task ve-task'}[t]||'task mm-task'); }
-
-function bRender(n){
-  const el=document.createElement('div'); el.className=bCls(n.type)+(n.done?' done':'');
-  el.textContent=n.label; el.style.left=n.x+'px'; el.style.top=n.y+'px'; el.dataset.id=n.id;
-  document.getElementById('brain-canvas').appendChild(el); bEl[n.id]=el; bDrag(el,n);
-  el.addEventListener('contextmenu',e=>{ e.preventDefault(); e.stopPropagation(); bActiveCtx=n;
-    const m=document.getElementById('brain-ctx'); m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px'; m.classList.add('show'); });
-  return el;
+function renderBreadcrumb(){
+  const bc=document.getElementById('bcrumb'); if(!bc) return; bc.innerHTML='';
+  const home=document.createElement('span'); home.className='crumb'; home.innerHTML='<i class="ti ti-home"></i>';
+  home.onclick=()=>{ drillId=null; renderDrill(true); }; bc.appendChild(home);
+  if(drillId){ pathTo(drillId).forEach(n=>{
+    const sep=document.createElement('span'); sep.className='crumb-sep'; sep.textContent='›'; bc.appendChild(sep);
+    const c=document.createElement('span'); c.className='crumb'; c.textContent=n.label;
+    c.onclick=()=>{ drillId=n.id; renderDrill(true); }; bc.appendChild(c); }); }
 }
-function bDrawLines(){
-  const svg=document.getElementById('brain-lines'); svg.innerHTML='';
-  brainNodes.forEach(n=>{ if(!n.parent||!brainMap[n.parent]) return; const p=brainMap[n.parent];
-    const pe=bEl[p.id], ne=bEl[n.id]; if(!pe||!ne) return;
-    const ve=n.type.indexOf('ve')===0||p.type.indexOf('ve')===0; const color=ve?'#d4317a':'#5a9ab8';
-    const op=n.type.indexOf('task')>-1?0.45:n.type.indexOf('service')>-1?0.6:0.8;
-    const sw=n.type.indexOf('task')>-1?1.2:n.type.indexOf('service')>-1?1.5:2;
-    const px=p.x+pe.offsetWidth/2, py=p.y+pe.offsetHeight, cx=n.x+ne.offsetWidth/2, cy=n.y;
-    const mid=(py+cy)/2;
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${px},${py} L${px},${mid} L${cx},${mid} L${cx},${cy}`);
-    path.setAttribute('stroke',color); path.setAttribute('stroke-width',sw); path.setAttribute('fill','none');
-    path.setAttribute('opacity',op); svg.appendChild(path); });
+function renderDrill(animate){
+  renderBreadcrumb();
+  const grid=document.getElementById('drill-grid'); if(!grid) return;
+  const kids = drillId===null ? brainNodes.filter(n=>n.parent===null)
+                              : brainNodes.filter(n=>n.parent===drillId);
+  grid.innerHTML='';
+  if(animate){ grid.classList.remove('in'); void grid.offsetWidth; grid.classList.add('in'); }
+  kids.forEach(n=>{
+    const cc = brainNodes.filter(c=>c.parent===n.id).length;
+    const brand=brandOf(n); const isRoot=n.type.indexOf('root')>-1;
+    const t=document.createElement('div');
+    t.className='tile '+brand+(isRoot?' tile-root':'')+(n.done?' done':'');
+    const labelHtml = (n.id===editingId)
+      ? '<input class="tile-label-input" value="'+bEsc(n.label)+'">'
+      : '<div class="tile-label">'+bEsc(n.label)+'</div>';
+    const footHtml = cc ? '<span class="tile-count">'+cc+' '+kidWord(n)+'</span>'
+                        : '<span class="tile-empty">open '+String.fromCharCode(8250)+'</span>';
+    t.innerHTML =
+      '<div class="tile-actions">'+
+        '<button class="ta" data-act="done" title="Done"><i class="ti ti-check"></i></button>'+
+        '<button class="ta" data-act="edit" title="Rename"><i class="ti ti-pencil"></i></button>'+
+        (isRoot?'':'<button class="ta" data-act="del" title="Delete"><i class="ti ti-trash"></i></button>')+
+      '</div>'+labelHtml+'<div class="tile-foot">'+footHtml+'</div>';
+    t.addEventListener('click',e=>{ if(e.target.closest('.ta')||e.target.closest('.tile-label-input')) return; drillTo(n.id); });
+    t.querySelector('[data-act="edit"]').addEventListener('click',e=>{ e.stopPropagation(); tileEdit(n.id); });
+    t.querySelector('[data-act="done"]').addEventListener('click',e=>{ e.stopPropagation(); n.done=!n.done; brainSave(); renderDrill(false); });
+    const del=t.querySelector('[data-act="del"]'); if(del) del.addEventListener('click',e=>{ e.stopPropagation(); tileDelete(n.id); });
+    if(n.id===editingId){
+      const inp=t.querySelector('.tile-label-input');
+      const commit=()=>{ n.label=inp.value.trim()||n.label; editingId=null; brainSave(); renderDrill(false); };
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); commit(); } if(ev.key==='Escape'){ editingId=null; renderDrill(false); } });
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+    }
+    grid.appendChild(t);
+  });
+  if(drillId!==null){
+    const add=document.createElement('div'); add.className='tile tile-add';
+    add.innerHTML='<i class="ti ti-plus"></i><span>Add</span>';
+    add.addEventListener('click',tileAddChild); grid.appendChild(add);
+  }
 }
-function bDrag(el,n){ let sx,sy,snx,sny,moved;
-  el.addEventListener('mousedown',e=>{ if(e.button!==0) return; e.stopPropagation();
-    sx=e.clientX; sy=e.clientY; snx=n.x; sny=n.y; moved=false;
-    function mv(e){ const dx=(e.clientX-sx)/bScale, dy=(e.clientY-sy)/bScale; if(Math.abs(dx)>2||Math.abs(dy)>2) moved=true;
-      n.x=snx+dx; n.y=sny+dy; el.style.left=n.x+'px'; el.style.top=n.y+'px'; bDrawLines(); }
-    function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); if(moved) brainSave(); }
-    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up); }); }
-
-function bTf(){ document.getElementById('brain-canvas').style.transform=`translate(${bPanX}px,${bPanY}px) scale(${bScale})`; }
-function brainZoom(d){ bScale=Math.max(0.2,Math.min(2.5,bScale+d)); bTf(); }
-function brainFit(){
-  const wrap=document.getElementById('brain-canvas-wrap'); if(!wrap) return;
-  const W=wrap.clientWidth, H=wrap.clientHeight;
-  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9,any=false;
-  brainNodes.forEach(n=>{ const e=bEl[n.id]; if(!e) return; any=true;
-    minX=Math.min(minX,n.x); minY=Math.min(minY,n.y);
-    maxX=Math.max(maxX,n.x+e.offsetWidth); maxY=Math.max(maxY,n.y+e.offsetHeight); });
-  if(!any){ bScale=0.7; bPanX=20; bPanY=20; bTf(); return; }
-  const cw=maxX-minX+60, ch=maxY-minY+60;
-  bScale=Math.max(0.25,Math.min(1.1,Math.min(W/cw,H/ch)));
-  bPanX=24-minX*bScale; bPanY=20-minY*bScale; bTf();
+function tileEdit(id){ editingId=id; renderDrill(false);
+  setTimeout(()=>{ const inp=document.querySelector('.tile-label-input'); if(inp){ inp.focus(); inp.select(); } },20); }
+function tileAddChild(){
+  if(drillId===null) return; const parent=brainMap[drillId];
+  const nn={id:'b'+bIdCounter++,label:'New',type:childTypeFor(parent),parent:parent.id,done:false,x:0,y:0};
+  brainNodes.push(nn); brainMap[nn.id]=nn; brainSave(); tileEdit(nn.id);
 }
-
-function bCtxEdit(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
-  const el=bEl[bActiveCtx.id], n=bActiveCtx;
-  const inp=document.createElement('input'); inp.className='bedit-input'; inp.value=n.label;
-  inp.style.left=n.x+'px'; inp.style.top=n.y+'px'; inp.style.width=Math.max(90,el.offsetWidth)+'px';
-  document.getElementById('brain-canvas').appendChild(inp); inp.focus(); inp.select();
-  function done(){ n.label=inp.value||n.label; el.textContent=n.label; inp.remove(); brainAutoLayout(); }
-  inp.addEventListener('blur',done); inp.addEventListener('keydown',e=>{ if(e.key==='Enter')done(); if(e.key==='Escape')inp.remove(); }); }
-function bCtxAddChild(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
-  const ve=bActiveCtx.type.indexOf('ve')===0;
-  const m={'mm-root':'mm-client','mm-client':'mm-service','mm-service':'mm-task','mm-task':'mm-task','ve-root':'ve-client','ve-client':'ve-service','ve-service':'ve-task','ve-task':'ve-task'};
-  const nn={id:'b'+bIdCounter++,label:'new node',type:m[bActiveCtx.type]||(ve?'ve-task':'mm-task'),x:bActiveCtx.x,y:bActiveCtx.y+80,parent:bActiveCtx.id,done:false};
-  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bActiveCtx=nn; brainAutoLayout(); setTimeout(bCtxEdit,60); }
-function bCtxDone(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
-  bActiveCtx.done=!bActiveCtx.done; bEl[bActiveCtx.id].classList.toggle('done',bActiveCtx.done); brainSave(); }
-function bCtxNote(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
-  brainAddNote(bActiveCtx.label,'', true); }
-function bCtxDelete(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
-  const id=bActiveCtx.id; if(id==='mm-root'||id==='ve-root') return;
+function tileDelete(id){
+  if(id==='mm-root'||id==='ve-root') return;
   const toDel=[]; (function collect(x){ toDel.push(x); brainNodes.filter(n=>n.parent===x).forEach(c=>collect(c.id)); })(id);
-  toDel.forEach(d=>{ bEl[d]?.remove(); delete bEl[d]; delete brainMap[d]; });
-  brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); bActiveCtx=null; brainAutoLayout(); }
-function brainAddRoot(b){ const r=brainMap[b+'-root']; if(!r) return;
-  const nn={id:'b'+bIdCounter++,label:'new node',type:b+'-client',x:r.x+80,y:r.y+90,parent:r.id,done:false};
-  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bActiveCtx=nn; brainAutoLayout(); setTimeout(bCtxEdit,60); }
+  brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); delete brainMap[id];
+  brainSave(); renderDrill(false);
+}
 
 /* ── Brain notes ── */
 const BNOTES_KEY = 'mm_brain_notes';
@@ -3120,35 +3139,16 @@ function toggleNotes(open){
 
 /* ── Brain boot ── */
 function brainEnter(){
-  if(brainBooted){ bDrawLines(); return; }
+  if(brainBooted){ renderDrill(false); return; }
   brainBooted=true;
   brainLoad();
-  brainNodes.forEach(bRender);
   renderBNotes();
-  const LV='5';
-  const needLayout = brainNodes.every(n=>n.x===0&&n.y===0) || localStorage.getItem('mm_brain_lv')!==LV;
-  setTimeout(()=>{ if(needLayout){ brainAutoLayout(); localStorage.setItem('mm_brain_lv',LV); }
-    else { bApplyPos(); bDrawLines(); } brainFit(); },60);
-
-  const wrap=document.getElementById('brain-canvas-wrap');
-  wrap.addEventListener('mousedown',e=>{ if(e.button!==0) return; bPanning=true; bPanStart={x:e.clientX-bPanX,y:e.clientY-bPanY}; wrap.classList.add('grabbing'); });
-  document.addEventListener('mousemove',e=>{ if(!bPanning) return; bPanX=e.clientX-bPanStart.x; bPanY=e.clientY-bPanStart.y; bTf(); });
-  document.addEventListener('mouseup',()=>{ bPanning=false; wrap.classList.remove('grabbing'); });
-  document.addEventListener('click',()=>document.getElementById('brain-ctx').classList.remove('show'));
-  wrap.addEventListener('wheel',e=>{ e.preventDefault(); bScale=Math.max(0.2,Math.min(2.5,bScale+(e.deltaY>0?-0.08:0.08))); bTf(); },{passive:false});
-
+  renderDrill(false);
   const add=document.getElementById('brain-note-add');
-  add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
+  if(add) add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
   if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
 }
 
 </script>
-<div class="bctx" id="brain-ctx">
-  <div class="bctx-item" onclick="bCtxEdit()"><i class="ti ti-pencil"></i>Edit label</div>
-  <div class="bctx-item" onclick="bCtxAddChild()"><i class="ti ti-git-branch"></i>Add child</div>
-  <div class="bctx-item" onclick="bCtxDone()"><i class="ti ti-check"></i>Toggle done</div>
-  <div class="bctx-item" onclick="bCtxNote()"><i class="ti ti-note"></i>Add note</div>
-  <div class="bctx-item danger" onclick="bCtxDelete()"><i class="ti ti-trash"></i>Delete</div>
-</div>
 </body>
 </html>
