@@ -1004,6 +1004,27 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
 /* dark header when brain active */
 .layout.brain-active ~ * { }
+
+.notes-tab { position: absolute; right: 0; top: 50%; transform: translateY(-50%); z-index: 110;
+  background: #13262f; border: 1px solid #2a4f64; border-right: none; border-radius: 10px 0 0 10px;
+  color: #cfe6f2; cursor: pointer; padding: 14px 8px; display: flex; flex-direction: column; align-items: center;
+  gap: 7px; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: .04em; transition: all .15s; }
+.notes-tab span { writing-mode: vertical-rl; }
+.notes-tab i { font-size: 15px; }
+.notes-tab:hover { background: rgba(58,107,138,.4); border-color: #5a9ab8; padding-right: 12px; }
+.notes-tab.hidden { display: none; }
+.notes-pop { position: absolute; right: 0; top: 0; height: 100%; width: 320px; background: #0e1d27;
+  border-left: 1px solid #1f2d38; z-index: 120; display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .22s cubic-bezier(.4,0,.2,1); box-shadow: -8px 0 30px rgba(0,0,0,.4); }
+.notes-pop.open { transform: translateX(0); }
+.notes-pop-head { padding: 16px 18px; border-bottom: 1px solid #1f2d38; display: flex; align-items: center; justify-content: space-between; }
+.notes-pop-head .script { font-family: 'Dancing Script', cursive; font-size: 21px; color: #5a9ab8; font-weight: 700; }
+.notes-close { background: none; border: none; color: #6b8a9c; cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; display: flex; }
+.notes-close:hover { background: rgba(58,107,138,.3); color: #cfe6f2; }
+.notes-pop-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.notes-pop-body::-webkit-scrollbar { width: 5px; }
+.notes-pop-body::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
+.notes-pop-foot { padding: 12px 16px; border-top: 1px solid #1f2d38; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -1068,26 +1089,19 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
             <div class="bleg"><div class="bleg-dot" style="background:#d4317a"></div>Virtueasy</div>
             <div class="bleg" style="color:#4a6575">right-click to edit · drag to move</div>
           </div>
-        </div>
 
-        <div class="brain-rail">
-          <div class="rail-sec">
-            <div class="rail-title"><span class="script">Today</span><span class="right" style="font-size:10px;color:#4a6575;font-weight:400" id="brain-date"></span></div>
-            <div id="schedule-list">
-              <div class="sched-row"><span class="sched-time">8:30 AM</span><span class="sched-label">Morning work block</span></div>
-              <div class="sched-row"><span class="sched-time">11:30 AM</span><span class="sched-label brk">Break · dogs + lunch</span></div>
-              <div class="sched-row"><span class="sched-time">12:30 PM</span><span class="sched-label">Afternoon work block</span></div>
-              <div class="sched-row"><span class="sched-time">3:30 PM</span><span class="sched-label brk">Wrap up</span></div>
+          <button class="notes-tab" id="notes-tab" onclick="toggleNotes(true)"><i class="ti ti-note"></i><span>Notes</span></button>
+          <div class="notes-pop" id="notes-pop">
+            <div class="notes-pop-head">
+              <span class="script">Notes</span>
+              <button class="notes-close" onclick="toggleNotes(false)" aria-label="Collapse notes"><i class="ti ti-chevron-right"></i></button>
             </div>
-            <div style="margin-top:12px">
-              <button class="cal-connect" id="cal-connect-btn" onclick="connectCalendar()"><i class="ti ti-calendar"></i> Connect Google Calendar</button>
-              <div class="cal-status" id="cal-status"></div>
+            <div class="notes-pop-body">
+              <div id="brain-notes-list"></div>
             </div>
-          </div>
-          <div class="rail-sec" style="flex:1">
-            <div class="rail-title"><span class="script">Notes</span></div>
-            <div id="brain-notes-list"></div>
-            <textarea class="brail-noteadd" id="brain-note-add" placeholder="Jot a note… (Enter to save)"></textarea>
+            <div class="notes-pop-foot">
+              <textarea class="brail-noteadd" id="brain-note-add" placeholder="Jot a note… (Enter to save)"></textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -2915,11 +2929,9 @@ async function init() {
     if (el) copyText(el.dataset.copy, el);
   });
   switchTab('brain');
-  loadCalendar();
 }
 
 window.onload = () => {
-  handleCalOAuthReturn();
   if (localStorage.getItem('mm_auth') === '1') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -2932,7 +2944,7 @@ window.onload = () => {
    BRAIN — mind-map engine
 ════════════════════════════════════════════ */
 const BRAIN_KEY = 'mm_brain';
-const HGAP = 58, VGAP = 46;
+const HGAP = 40, VGAP = 72;
 let brainNodes = [];
 let brainMap = {};
 const bEl = {};
@@ -3015,19 +3027,10 @@ function bBounds(id){ const n=brainMap[id]; let b={minX:n.x,maxX:n.x+bnw(n),minY
   brainNodes.filter(c=>c.parent===id).forEach(c=>{ const cb=bBounds(c.id);
     b.minX=Math.min(b.minX,cb.minX); b.maxX=Math.max(b.maxX,cb.maxX);
     b.minY=Math.min(b.minY,cb.minY); b.maxY=Math.max(b.maxY,cb.maxY); }); return b; }
-function brainVLayout(rootId, baseX, topY){
-  const INDENT=26, ROWH=40; let row=0;
-  (function place(id,depth){ const n=brainMap[id]; if(!n) return;
-    n.x=baseX+depth*INDENT; n.y=topY+row*ROWH; row++;
-    brainNodes.filter(c=>c.parent===id).forEach(c=>place(c.id,depth+1)); })(rootId);
-  let maxX=baseX;
-  (function mx(id){ const n=brainMap[id]; const e=bEl[n.id]; const w=e?e.offsetWidth:(n.label.length*7+30);
-    maxX=Math.max(maxX,n.x+w); brainNodes.filter(c=>c.parent===id).forEach(c=>mx(c.id)); })(rootId);
-  return maxX;
-}
 function brainAutoLayout(){
-  const mmRight=brainVLayout('mm-root',60,70);
-  brainVLayout('ve-root',mmRight+90,70);
+  bLayout('mm-root',60,50);
+  const mb=bBounds('mm-root');
+  bLayout('ve-root',mb.maxX+130,50);
   bApplyPos(); bDrawLines(); brainSave();
 }
 function bApplyPos(){ brainNodes.forEach(n=>{ const e=bEl[n.id]; if(e){ e.style.left=n.x+'px'; e.style.top=n.y+'px'; } }); }
@@ -3047,14 +3050,14 @@ function bDrawLines(){
   brainNodes.forEach(n=>{ if(!n.parent||!brainMap[n.parent]) return; const p=brainMap[n.parent];
     const pe=bEl[p.id], ne=bEl[n.id]; if(!pe||!ne) return;
     const ve=n.type.indexOf('ve')===0||p.type.indexOf('ve')===0; const color=ve?'#d4317a':'#5a9ab8';
-    const op=n.type.indexOf('task')>-1?0.4:n.type.indexOf('service')>-1?0.55:0.75;
+    const op=n.type.indexOf('task')>-1?0.45:n.type.indexOf('service')>-1?0.6:0.8;
     const sw=n.type.indexOf('task')>-1?1.2:n.type.indexOf('service')>-1?1.5:2;
-    const spineX=p.x+14, py=p.y+pe.offsetHeight, cyMid=n.y+ne.offsetHeight/2, cx=n.x, r=5;
+    const px=p.x+pe.offsetWidth/2, py=p.y+pe.offsetHeight, cx=n.x+ne.offsetWidth/2, cy=n.y;
+    const mid=(py+cy)/2;
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    const turn=Math.min(r, Math.max(0,(cyMid-py)));
-    path.setAttribute('d',`M${spineX},${py} L${spineX},${cyMid-turn} Q${spineX},${cyMid} ${spineX+r},${cyMid} L${cx},${cyMid}`);
+    path.setAttribute('d',`M${px},${py} L${px},${mid} L${cx},${mid} L${cx},${cy}`);
     path.setAttribute('stroke',color); path.setAttribute('stroke-width',sw); path.setAttribute('fill','none');
-    path.setAttribute('opacity',op); path.setAttribute('stroke-linecap','round'); svg.appendChild(path); });
+    path.setAttribute('opacity',op); svg.appendChild(path); });
 }
 function bDrag(el,n){ let sx,sy,snx,sny,moved;
   el.addEventListener('mousedown',e=>{ if(e.button!==0) return; e.stopPropagation();
@@ -3122,6 +3125,13 @@ function brainAddNote(tag,text,focus){ const n=loadBNotes(); n.unshift({tag:tag|
   if(focus){ const first=document.querySelector('#brain-notes-list .bn-text'); if(first){ first.focus();
     const rng=document.createRange(); rng.selectNodeContents(first); const s=window.getSelection(); s.removeAllRanges(); s.addRange(rng); } } }
 
+
+function toggleNotes(open){
+  const pop=document.getElementById('notes-pop'); const tab=document.getElementById('notes-tab');
+  pop.classList.toggle('open',open); tab.classList.toggle('hidden',open);
+  localStorage.setItem('mm_notes_open', open?'1':'0');
+}
+
 /* ── Brain boot ── */
 function brainEnter(){
   if(brainBooted){ bDrawLines(); return; }
@@ -3129,8 +3139,7 @@ function brainEnter(){
   brainLoad();
   brainNodes.forEach(bRender);
   renderBNotes();
-  const d=new Date(); document.getElementById('brain-date').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const LV='3';
+  const LV='5';
   const needLayout = brainNodes.every(n=>n.x===0&&n.y===0) || localStorage.getItem('mm_brain_lv')!==LV;
   setTimeout(()=>{ if(needLayout){ brainAutoLayout(); localStorage.setItem('mm_brain_lv',LV); }
     else { bApplyPos(); bDrawLines(); } brainFit(); },60);
@@ -3144,49 +3153,9 @@ function brainEnter(){
 
   const add=document.getElementById('brain-note-add');
   add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
+  if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
 }
 
-/* ════════════════════════════════════════════
-   GOOGLE CALENDAR — reuse YouTube OAuth client
-════════════════════════════════════════════ */
-const GCAL_CLIENT_ID = '244861493495-2om8jgma6s97t3eommu54e1ovktddrt4.apps.googleusercontent.com';
-function connectCalendar(){
-  const p=new URLSearchParams({
-    client_id: GCAL_CLIENT_ID,
-    redirect_uri: 'https://messickmarketing.com/dashboard',
-    response_type: 'token',
-    scope: 'https://www.googleapis.com/auth/calendar.readonly',
-    state: 'cal_connect'
-  });
-  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
-}
-function handleCalOAuthReturn(){
-  const hash=window.location.hash; if(!hash.includes('access_token=')) return;
-  const p=new URLSearchParams(hash.slice(1)); const token=p.get('access_token'); const state=p.get('state');
-  if(state!=='cal_connect') return;
-  history.replaceState(null,'',window.location.pathname);
-  sessionStorage.setItem('mm_cal_token',token); localStorage.setItem('mm_cal_connected','1');
-}
-async function loadCalendar(){
-  const token=sessionStorage.getItem('mm_cal_token');
-  const btn=document.getElementById('cal-connect-btn'); const status=document.getElementById('cal-status');
-  if(!token){ if(localStorage.getItem('mm_cal_connected')==='1'){ status.textContent='Session expired \u2014 reconnect to refresh'; } return; }
-  try {
-    const now=new Date(); const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0);
-    const end=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59);
-    const url=`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime&access_token=${token}`;
-    const res=await fetch(url); if(!res.ok) throw new Error('cal fetch failed'); const data=await res.json();
-    const list=document.getElementById('schedule-list'); const events=data.items||[];
-    if(!events.length){ list.innerHTML='<div class="sched-row"><span class="sched-label brk">No events today</span></div>'; }
-    else { list.innerHTML=events.map(ev=>{
-      const s=ev.start.dateTime?new Date(ev.start.dateTime):null;
-      const time=s?s.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'All day';
-      return `<div class="sched-row"><span class="sched-time">${time}</span><span class="sched-label">${(ev.summary||'(no title)').replace(/</g,'&lt;')}</span></div>`;
-    }).join(''); }
-    btn.innerHTML='<i class="ti ti-refresh"></i> Refresh calendar';
-    status.textContent='Synced with Google Calendar';
-  } catch(e){ status.textContent='Could not load calendar \u2014 reconnect'; sessionStorage.removeItem('mm_cal_token'); }
-}
 </script>
 <div class="bctx" id="brain-ctx">
   <div class="bctx-item" onclick="bCtxEdit()"><i class="ti ti-pencil"></i>Edit label</div>
