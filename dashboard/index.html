@@ -3073,13 +3073,13 @@ function bCtxEdit(){ if(!bActiveCtx) return; document.getElementById('brain-ctx'
   const inp=document.createElement('input'); inp.className='bedit-input'; inp.value=n.label;
   inp.style.left=n.x+'px'; inp.style.top=n.y+'px'; inp.style.width=Math.max(90,el.offsetWidth)+'px';
   document.getElementById('brain-canvas').appendChild(inp); inp.focus(); inp.select();
-  function done(){ n.label=inp.value||n.label; el.textContent=n.label; inp.remove(); bDrawLines(); brainSave(); }
+  function done(){ n.label=inp.value||n.label; el.textContent=n.label; inp.remove(); brainAutoLayout(); }
   inp.addEventListener('blur',done); inp.addEventListener('keydown',e=>{ if(e.key==='Enter')done(); if(e.key==='Escape')inp.remove(); }); }
 function bCtxAddChild(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
   const ve=bActiveCtx.type.indexOf('ve')===0;
   const m={'mm-root':'mm-client','mm-client':'mm-service','mm-service':'mm-task','mm-task':'mm-task','ve-root':'ve-client','ve-client':'ve-service','ve-service':'ve-task','ve-task':'ve-task'};
   const nn={id:'b'+bIdCounter++,label:'new node',type:m[bActiveCtx.type]||(ve?'ve-task':'mm-task'),x:bActiveCtx.x,y:bActiveCtx.y+80,parent:bActiveCtx.id,done:false};
-  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bDrawLines(); bActiveCtx=nn; brainSave(); setTimeout(bCtxEdit,50); }
+  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bActiveCtx=nn; brainAutoLayout(); setTimeout(bCtxEdit,60); }
 function bCtxDone(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
   bActiveCtx.done=!bActiveCtx.done; bEl[bActiveCtx.id].classList.toggle('done',bActiveCtx.done); brainSave(); }
 function bCtxNote(){ if(!bActiveCtx) return; document.getElementById('brain-ctx').classList.remove('show');
@@ -3088,10 +3088,10 @@ function bCtxDelete(){ if(!bActiveCtx) return; document.getElementById('brain-ct
   const id=bActiveCtx.id; if(id==='mm-root'||id==='ve-root') return;
   const toDel=[]; (function collect(x){ toDel.push(x); brainNodes.filter(n=>n.parent===x).forEach(c=>collect(c.id)); })(id);
   toDel.forEach(d=>{ bEl[d]?.remove(); delete bEl[d]; delete brainMap[d]; });
-  brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); bActiveCtx=null; bDrawLines(); brainSave(); }
+  brainNodes=brainNodes.filter(n=>toDel.indexOf(n.id)===-1); bActiveCtx=null; brainAutoLayout(); }
 function brainAddRoot(b){ const r=brainMap[b+'-root']; if(!r) return;
   const nn={id:'b'+bIdCounter++,label:'new node',type:b+'-client',x:r.x+80,y:r.y+90,parent:r.id,done:false};
-  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bDrawLines(); bActiveCtx=nn; brainSave(); setTimeout(bCtxEdit,50); }
+  brainNodes.push(nn); brainMap[nn.id]=nn; bRender(nn); bActiveCtx=nn; brainAutoLayout(); setTimeout(bCtxEdit,60); }
 
 /* ── Brain notes ── */
 const BNOTES_KEY = 'mm_brain_notes';
