@@ -1145,6 +1145,13 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .ol-left::-webkit-scrollbar { width: 6px; } .ol-left::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
 .ol-detail { width: 360px; flex-shrink: 0; border-left: 1px solid #1f2d38; background: #0e1d27; overflow-y: auto; padding: 18px 20px; }
 .ol-detail:empty { display: none; }
+/* The detail panel is a narrow 360px rail, so let its task rows wrap instead of
+   crushing the label to one word per line or overflowing the add-task controls. */
+.ol-detail .task-row { flex-wrap: wrap; row-gap: 6px; }
+.ol-detail .task-text { min-width: 0; word-break: break-word; }
+.ol-detail .task-add-row { flex-wrap: wrap; row-gap: 8px; }
+.ol-detail .task-add-input { flex: 1 1 100%; }
+.ol-detail .task-add-due, .ol-detail .task-add-pri { flex: 1 1 auto; }
 .ol-detail::-webkit-scrollbar { width: 6px; } .ol-detail::-webkit-scrollbar-thumb { background: #2a4f64; border-radius: 3px; }
 .ol-tree { margin-bottom: 14px; }
 .ol-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px 9px 0; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: background .12s; }
@@ -1317,7 +1324,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
 
 /* ── Radial Mindmap ── */
-.rn-layout { flex-direction:column !important; overflow:hidden; flex:1; height:0; }
+.rn-layout { flex-direction:row !important; overflow:hidden; flex:1; height:0; }
 .rn-left { flex:1; display:flex; flex-direction:column; min-height:0; overflow:visible; }
 .rn-topbar { display:flex; align-items:center; gap:14px; padding:10px 24px 0; flex-shrink:0; }
 .rn-brand-toggle { display:flex; gap:3px; background:#0a1520; border:1px solid #1e3a50; border-radius:20px; padding:3px; }
