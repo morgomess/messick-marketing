@@ -1186,6 +1186,50 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .ai-status.thinking { color: #9fc6db; }
 .ai-status.success { color: #6fe0b8; }
 .ai-status.error { color: #f0918f; }
+
+/* command-center base */
+#brain-view { background: radial-gradient(1200px 600px at 70% -10%, rgba(58,107,138,.10), transparent 60%), radial-gradient(900px 500px at 0% 110%, rgba(212,49,122,.07), transparent 55%), #0a1219; }
+#brain-view::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background-image: linear-gradient(rgba(90,154,184,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(90,154,184,.045) 1px, transparent 1px);
+  background-size: 32px 32px; }
+.ol-left, .ol-detail, .drill-top { position: relative; z-index: 1; }
+
+/* rows as HUD panels, larger type, quiet glow */
+.ol-row { gap: 10px; padding: 12px 14px 12px 6px; border-radius: 12px; border: 1px solid transparent; position: relative; }
+.ol-row::before { content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:3px; background:transparent; transition: background .18s, box-shadow .18s; }
+.ol-row:hover { background: rgba(58,107,138,.12); }
+.ol-row:hover::before { background:#3a6b8a; box-shadow:0 0 10px rgba(90,154,184,.7); }
+.ol-row.ve:hover::before { background:#d4317a; box-shadow:0 0 10px rgba(232,91,160,.7); }
+.ol-row.sel { background: rgba(58,107,138,.2); border-color: rgba(90,154,184,.4); box-shadow: 0 0 22px rgba(58,107,138,.25) inset; }
+.ol-row.sel::before { background:#5a9ab8; box-shadow:0 0 12px rgba(90,154,184,.9); }
+.ol-row.ve.sel { background: rgba(212,49,122,.18); border-color: rgba(232,91,160,.4); box-shadow: 0 0 22px rgba(212,49,122,.22) inset; }
+.ol-row.ve.sel::before { background:#e85ba0; box-shadow:0 0 12px rgba(232,91,160,.9); }
+.ol-label { font-size: 16px; }
+.ol-row.root .ol-label { font-size: 18px; letter-spacing:.01em; }
+.ol-ring { flex-shrink:0; }
+
+/* status chips: icon + label */
+.status-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; letter-spacing:.03em; padding:4px 10px 4px 8px; border-radius:20px; cursor:pointer; border:1px solid transparent; font-family:'Jost',sans-serif; transition: box-shadow .15s, transform .1s; }
+.status-chip i { font-size:13px; }
+.status-chip:hover { transform: translateY(-1px); }
+.status-chip.st-todo { background: rgba(120,140,150,.18); color:#aac2cf; border-color: rgba(120,140,150,.3); }
+.status-chip.st-doing { background: rgba(90,154,184,.18); color:#85c3e0; border-color: rgba(90,154,184,.4); box-shadow:0 0 12px rgba(90,154,184,.25); }
+.status-chip.st-blocked { background: rgba(239,159,39,.16); color:#efb45f; border-color: rgba(239,159,39,.4); }
+.status-chip.st-done { background: rgba(29,158,117,.2); color:#6fe0b8; border-color: rgba(29,158,117,.45); box-shadow:0 0 12px rgba(29,158,117,.3); }
+
+/* task rows larger + calmer */
+.task-text { font-size: 14.5px; }
+.task-row { padding: 10px 13px; border-radius: 11px; }
+
+/* detail header chip spacing */
+.ol-dhead .status-chip { margin-left: auto; }
+
+/* praise toast */
+#praise-toast { position: fixed; left: 50%; bottom: 38px; translate: -50% 30px; opacity: 0; pointer-events: none; z-index: 10000;
+  background: linear-gradient(135deg,#15303f,#1a3f58); border:1px solid #5a9ab8; color:#eafaf3; font-family:'Jost',sans-serif; font-size:15px; font-weight:600;
+  padding: 13px 26px; border-radius: 30px; box-shadow: 0 10px 40px rgba(90,154,184,.4); transition: opacity .25s, translate .25s; }
+#praise-toast.show { opacity: 1; translate: -50% 0; }
+#praise-toast.big { font-size: 18px; padding: 16px 34px; background: linear-gradient(135deg,#1d9e75,#15303f); border-color:#6fe0b8; box-shadow:0 12px 50px rgba(29,158,117,.5); }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -3169,11 +3213,25 @@ function bnh(n){ const e=bEl[n.id]; return e?e.offsetHeight:30; }
 let drillId = null;
 const STATUSES = ['todo','doing','blocked','done'];
 const STATUS_META = {
-  todo:    { label:'To do',        cls:'st-todo' },
-  doing:   { label:'In progress',  cls:'st-doing' },
-  blocked: { label:'Blocked',      cls:'st-blocked' },
-  done:    { label:'Done',         cls:'st-done' }
+  todo:    { label:'To do',        cls:'st-todo',    icon:'ti-circle' },
+  doing:   { label:'In progress',  cls:'st-doing',   icon:'ti-progress' },
+  blocked: { label:'Pending',      cls:'st-blocked', icon:'ti-clock-hour-4' },
+  done:    { label:'Done',         cls:'st-done',    icon:'ti-circle-check-filled' }
 };
+function statusChip(key, attr){ const m=STATUS_META[key]||STATUS_META.todo;
+  return '<button class="status-chip '+m.cls+'" data-a="'+attr+'"><i class="ti '+m.icon+'"></i><span>'+m.label+'</span></button>'; }
+function nodeProgress(id){ let done=0,total=0; (function walk(x){ tasksForNode(x).forEach(t=>{ total++; if(t.done) done++; });
+  brainNodes.filter(n=>n.parent===x).forEach(c=>walk(c.id)); })(id); return { done:done, total:total, pct: total?Math.round(done/total*100):0 }; }
+function ringSVG(pct, brand){ const r=7, c=2*Math.PI*r, off=c*(1-pct/100);
+  const col = pct>=100 ? '#6fe0b8' : (brand==='ve'?'#e85ba0':'#5a9ab8');
+  return '<svg class="ol-ring" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="#23404f" stroke-width="2.2"/><circle cx="10" cy="10" r="7" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 10 10)"/>'+(pct>=100?'<text x="10" y="13.5" text-anchor="middle" font-size="9" fill="#6fe0b8">✓</text>':'')+'</svg>'; }
+const PRAISE = ['Crushed it.','That\'s money.','Look at you go.','Another one down.','Empire\'s growing.','Certified powerhouse.','Cha-ching.','Flawless execution.','You\'re unstoppable.','Boss move.'];
+function showPraise(msg, big){
+  let toast=document.getElementById('praise-toast');
+  if(!toast){ toast=document.createElement('div'); toast.id='praise-toast'; document.body.appendChild(toast); }
+  toast.textContent=msg; toast.className=big?'show big':'show';
+  clearTimeout(window.__praiseT); window.__praiseT=setTimeout(()=>{ toast.className=''; },2200);
+}
 function nextStatus(s){ const i=STATUSES.indexOf(s); return STATUSES[(i+1)%STATUSES.length]; }
 function brandOf(n){ return n.type.indexOf('ve')===0 ? 've' : 'mm'; }
 function childTypeFor(n){
@@ -3293,13 +3351,14 @@ function renderRow(node,depth,container){
   const row=document.createElement('div'); row.className='ol-row '+brandOf(node)+(selectedId===node.id?' sel':'')+(isRoot?' root':'');
   row.style.paddingLeft=(10+depth*22)+'px';
   const chev = hasCh ? '<span class="ol-chev'+(open?' open':'')+'" data-a="chev"><i class="ti ti-chevron-right"></i></span>' : '<span class="ol-chev empty"></span>';
-  let st=''; if(!isRoot){ const m=STATUS_META[nodeStatus(node)]; st='<span class="ol-status '+m.cls+'" data-a="status">'+m.label+'</span>'; }
+  let st=''; if(!isRoot){ st=statusChip(nodeStatus(node),'status'); }
   let rub=''; if(hasCh){ const ru=rollup(node.id);
     if(ru.blocked||ru.doing){ rub='<span class="ol-roll">'+(ru.blocked?'<span class="ru ru-block">'+ru.blocked+'</span>':'')+(ru.doing?'<span class="ru ru-doing">'+ru.doing+'</span>':'')+'</span>'; } }
   const openTasks=tasksForNode(node.id).filter(t=>!t.done).length;
   const tcount = openTasks?'<span class="ol-tcount">'+openTasks+'</span>':'';
   const recurBadge = (node.recur&&node.recur!=='none') ? '<span class="ol-recur" title="auto-generates '+node.recur+'"><i class="ti ti-repeat"></i></span>' : '';
-  row.innerHTML=chev+'<span class="ol-label" data-id="'+node.id+'">'+bEsc(node.label)+'</span>'+recurBadge+st+rub+tcount+
+  const prog=nodeProgress(node.id); const ringHtml = prog.total? ringSVG(prog.pct, brandOf(node)) : '';
+  row.innerHTML=chev+ringHtml+'<span class="ol-label" data-id="'+node.id+'">'+bEsc(node.label)+'</span>'+recurBadge+st+rub+tcount+
     '<span class="ol-add" data-a="add" title="Add sub-project"><i class="ti ti-plus"></i></span>';
   const chevEl=row.querySelector('[data-a="chev"]'); if(chevEl) chevEl.addEventListener('click',e=>{ e.stopPropagation(); toggleExpand(node.id); });
   row.addEventListener('click',e=>{ if(e.target.closest('[data-a]')||e.target.closest('.ol-label-input')) return; selectNode(node.id); });
@@ -3327,7 +3386,7 @@ function renderDetail(){
   const node=brainMap[selectedId]; const isRoot=node.type.indexOf('root')>-1;
   d.innerHTML='';
   const head=document.createElement('div'); head.className='ol-dhead '+brandOf(node);
-  let hs=''; if(!isRoot){ const m=STATUS_META[nodeStatus(node)]; hs='<button class="ol-status '+m.cls+'" data-a="hstatus">'+m.label+'</button>'; }
+  let hs=''; if(!isRoot){ hs=statusChip(nodeStatus(node),'hstatus'); }
   head.innerHTML='<div class="ol-dtitle">'+bEsc(node.label)+'</div>'+hs+
     (isRoot?'':'<button class="ol-ddel" data-a="del" title="Delete"><i class="ti ti-trash"></i></button>');
   d.appendChild(head);
@@ -3381,9 +3440,9 @@ function renderNodeTasks(list,nodeId){
     const pri=(t.priority&&t.priority!=='none')?('<span class="task-pri pri-'+t.priority+'">'+t.priority+'</span>'):'';
     r.innerHTML='<button class="task-check'+(t.done?' on':'')+'" data-a="check"><i class="ti ti-check"></i></button>'+
       '<span class="task-text">'+bEsc(t.text)+'</span>'+
-      '<button class="task-status '+st.cls+'" data-a="status">'+st.label+'</button>'+pri+due+
+      statusChip(taskStatus(t),'status')+pri+due+
       '<button class="task-del" data-a="del"><i class="ti ti-x"></i></button>';
-    r.querySelector('[data-a="check"]').addEventListener('click',()=>{ toggleNodeTask(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
+    r.querySelector('[data-a="check"]').addEventListener('click',()=>{ const wasDone=t.done; toggleNodeTask(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); if(!wasDone){ fireConfetti(); const pr=nodeProgress(nodeId); if(pr.total&&pr.done===pr.total){ showPraise('Project complete! '+PRAISE[Math.floor(Math.random()*PRAISE.length)],true); } else { showPraise(PRAISE[Math.floor(Math.random()*PRAISE.length)]); } } });
     r.querySelector('[data-a="status"]').addEventListener('click',()=>{ cycleTaskStatus(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
     r.querySelector('[data-a="del"]').addEventListener('click',()=>{ delNodeTask(t.id); renderNodeTasks(list,nodeId); renderTree(); renderAll(); });
     list.appendChild(r);
@@ -3453,7 +3512,7 @@ function buildTodayStrip(){
   }
   wrap.appendChild(col('Overdue',overdue,'t-over'));
   wrap.appendChild(col('Due today',today,'t-today'));
-  wrap.appendChild(col('Blocked',blocked,'t-block'));
+  wrap.appendChild(col('Pending',blocked,'t-block'));
   return wrap;
 }
 
