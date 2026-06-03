@@ -1278,6 +1278,147 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 #wheel-rot{transform-origin:110px 110px}
 .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:20px solid #ffd56b;filter:drop-shadow(0 0 6px rgba(255,213,107,0.9));z-index:3}
 .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#0e1d27;border:2.5px solid #5a9ab8;display:flex;align-items:center;justify-content:center;color:#5a9ab8;font-size:15px;z-index:2}
+
+/* ══════════════════════════════════════
+   RADIAL MINDMAP
+══════════════════════════════════════ */
+let radialBrand = 'mm';
+let radialFocus = null; // null = root, string = node id
+
+function radialChildren(parentId) {
+  return brainNodes.filter(n => n.parent === parentId);
+}
+
+function radialFindUp(id) {
+  // Find what the parent brand root is for back navigation
+  const node = brainMap[id]; if(!node) return null;
+  return node.parent; // parent of current focus = where back goes
+}
+
+function radialSetBrand(brand) {
+  radialBrand = brand;
+  radialFocus = null;
+  document.getElementById('radial-mm-btn').classList.toggle('rn-brand-active', brand==='mm');
+  document.getElementById('radial-ve-btn').classList.toggle('rn-brand-active', brand==='ve');
+  renderRadial();
+}
+
+function radialDrillIn(nodeId) {
+  const kids = radialChildren(nodeId);
+  if (!kids.length) { selectNode(nodeId); return; }
+  radialFocus = nodeId;
+  renderRadial();
+}
+
+function radialBack() {
+  if (!radialFocus) return;
+  const node = brainMap[radialFocus];
+  // Go up: if parent is the brand root, focus = null
+  const parentId = node ? node.parent : null;
+  const brandRoot = radialBrand + '-root';
+  radialFocus = (parentId === brandRoot || !parentId) ? null : parentId;
+  renderRadial();
+}
+
+function renderRadial() {
+  const svg = document.getElementById('rn-svg'); if (!svg) return;
+  brainLoad();
+
+  const rootId = radialFocus || (radialBrand + '-root');
+  const root = brainMap[rootId];
+  const children = root ? radialChildren(rootId) : [];
+
+  const isMM = radialBrand === 'mm';
+  const hFill   = isMM ? '#1e3a50' : '#2a0a1a';
+  const hStroke = isMM ? '#5a9ab8' : '#d4317a';
+  const nFill   = isMM ? '#0e1d27' : '#140612';
+  const nStrBase= isMM ? '#2a5570' : '#6a1540';
+  const nStrHot = isMM ? '#5a9ab8' : '#d4317a';
+  const nTxt    = isMM ? '#c8dce8' : '#f0b8cc';
+  const lColor  = isMM ? '#1a3348' : '#3a0820';
+  const accent  = isMM ? '#5a9ab8' : '#d4317a';
+
+  // Dynamic radius based on child count
+  const n = children.length;
+  const R = n <= 4 ? 160 : n <= 7 ? 195 : n <= 10 ? 220 : 240;
+  const CX = 400, CY = 265;
+
+  const trunc = (s, max) => s.length > max ? s.slice(0, max-1) + '…' : s;
+
+  let out = '';
+
+  if (!root || !n) {
+    out = `<text x="400" y="265" text-anchor="middle" dominant-baseline="middle" fill="#4a7a9a" font-size="13" font-family="Jost,sans-serif">No nodes yet. Use the AI bar above to add work.</text>`;
+  } else {
+    // Spoke lines (behind nodes)
+    children.forEach((c, i) => {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      const x = CX + R * Math.cos(angle);
+      const y = CY + R * Math.sin(angle);
+      const ex = CX + 62 * Math.cos(angle);
+      const ey = CY + 62 * Math.sin(angle);
+      out += `<line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${lColor}" stroke-width="1.3" opacity="0.9"/>`;
+    });
+
+    // Nodes
+    children.forEach((c, i) => {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      const x = CX + R * Math.cos(angle);
+      const y = CY + R * Math.sin(angle);
+      const hasCh = radialChildren(c.id).length > 0;
+      const tasks = tasksForNode(c.id).filter(t => !t.done);
+      const nw = 120, nh = hasCh ? 42 : 36;
+      const nx = (x - nw/2).toFixed(1), ny = (y - nh/2).toFixed(1);
+      const st = nodeStatus(c);
+      const stClr = {todo:'#3a6b8a',doing:'#5a9ab8',blocked:'#fb923c',done:'#34d399'}[st]||'#3a6b8a';
+
+      out += `<g class="rn-node" onclick="radialDrillIn('${c.id}')">`;
+      out += `<rect x="${nx}" y="${ny}" width="${nw}" height="${nh}" rx="10" fill="${nFill}" stroke="${hasCh ? nStrHot : nStrBase}" stroke-width="${hasCh ? '1.4' : '0.9'}"/>`;
+
+      // Status dot
+      out += `<circle cx="${(parseFloat(nx)+10).toFixed(1)}" cy="${(y).toFixed(1)}" r="3" fill="${stClr}" opacity="0.85"/>`;
+
+      const labelY = hasCh ? (y - 6).toFixed(1) : y.toFixed(1);
+      out += `<text x="${x.toFixed(1)}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="${nTxt}" font-size="10.5" font-family="Jost,sans-serif" font-weight="500">${bEsc(trunc(c.label, 16))}</text>`;
+
+      if (hasCh) {
+        const kc = radialChildren(c.id).length;
+        out += `<text x="${x.toFixed(1)}" y="${(y + 10).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${accent}" font-size="8.5" font-family="Jost,sans-serif">${kc} ›</text>`;
+      }
+
+      // Task badge
+      if (tasks.length) {
+        const bx = (parseFloat(nx) + nw - 6).toFixed(1);
+        const by = (y - nh/2 + 6).toFixed(1);
+        out += `<circle cx="${bx}" cy="${by}" r="8" fill="${isMM ? '#d4317a' : '#3a6b8a'}"/>`;
+        out += `<text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="8" font-family="Jost,sans-serif" font-weight="700">${tasks.length}</text>`;
+      }
+      out += '</g>';
+    });
+
+    // Center hub
+    out += `<circle cx="${CX}" cy="${CY}" r="62" fill="${hFill}" stroke="${hStroke}" stroke-width="1.8"/>`;
+    const hubLabel = trunc(radialFocus ? (root.label || '') : (isMM ? 'Messick' : 'Virtueasy'), 13);
+    const hubSub   = radialFocus ? `${n} service${n!==1?'s':''}` : `${n} client${n!==1?'s':''}`;
+    out += `<text x="${CX}" y="${CY - 9}" text-anchor="middle" dominant-baseline="middle" fill="#e6f1f8" font-size="13" font-family="Cormorant Garamond,serif" font-weight="500">${bEsc(hubLabel)}</text>`;
+    out += `<text x="${CX}" y="${CY + 10}" text-anchor="middle" dominant-baseline="middle" fill="${hStroke}" font-size="9" font-family="Jost,sans-serif">${hubSub}</text>`;
+
+    // Back button
+    if (radialFocus) {
+      out += `<g class="rn-node" onclick="radialBack()">
+        <rect x="16" y="14" width="70" height="26" rx="13" fill="${nFill}" stroke="${nStrBase}" stroke-width="1"/>
+        <text x="51" y="27" text-anchor="middle" dominant-baseline="middle" fill="${nTxt}" font-size="11" font-family="Jost,sans-serif">‹ Back</text>
+      </g>`;
+    }
+  }
+
+  svg.innerHTML = out;
+
+  // Breadcrumb
+  const bc = document.getElementById('rn-breadcrumb');
+  if (bc) bc.textContent = radialFocus && root ? ((isMM ? 'Messick' : 'Virtueasy') + ' › ' + root.label) : '';
+}
+
 /* Empire Game */
 #empire-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(5,8,12,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center}
 #empire-overlay.open{display:flex}
@@ -1305,6 +1446,28 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .empire-buy-btn{padding:6px 13px;background:#1e3a50;border:1px solid #2a5570;border-radius:20px;color:#7ab8d4;font-family:'Jost',sans-serif;font-size:0.67rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .empire-buy-btn:hover:not(:disabled){background:#2a5570;color:#fff}
 .empire-buy-btn:disabled{opacity:0.28;cursor:not-allowed}
+
+
+/* ── Radial Mindmap ── */
+.rn-layout { flex-direction:column !important; overflow:hidden; }
+.rn-left { flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.rn-topbar { display:flex; align-items:center; gap:14px; padding:10px 24px 0; flex-shrink:0; }
+.rn-brand-toggle { display:flex; gap:3px; background:#0a1520; border:1px solid #1e3a50; border-radius:20px; padding:3px; }
+.rn-brand-btn { padding:5px 18px; border:none; border-radius:16px; background:transparent; color:#4a7a9a; font-family:'Jost',sans-serif; font-size:0.73rem; font-weight:700; letter-spacing:0.07em; cursor:pointer; transition:all 0.18s; }
+.rn-brand-active { background:#1e3a50 !important; color:#e6f1f8 !important; box-shadow:0 0 12px rgba(90,154,184,0.2); }
+.rn-breadcrumb { font-size:0.68rem; color:#4a7a9a; letter-spacing:0.06em; font-family:'Jost',sans-serif; }
+.rn-ai-row { display:flex; align-items:center; gap:8px; padding:8px 24px 2px; flex-shrink:0; }
+.rn-ai-row .ai-bar-ic { flex-shrink:0; color:#5a9ab8; font-size:1rem; }
+.rn-ai-row .ai-bar-input { flex:1; background:#0e1d27; border:1px solid #1e3a50; border-radius:8px; color:#c8dce8; font-family:'Jost',sans-serif; font-size:0.8rem; padding:7px 12px; outline:none; }
+.rn-ai-row .ai-bar-input:focus { border-color:#3a6b8a; }
+.rn-ai-row .ai-bar-btn { padding:7px 14px; background:#1e3a50; border:1px solid #2a5570; border-radius:8px; color:#7ab8d4; font-family:'Jost',sans-serif; font-size:0.75rem; font-weight:700; cursor:pointer; flex-shrink:0; }
+.rn-ai-row .ai-bar-btn:hover { background:#2a5570; color:#fff; }
+.rn-canvas-wrap { flex:1; min-height:0; overflow:hidden; position:relative; }
+.rn-svg { width:100%; height:100%; display:block; }
+.rn-node { cursor:pointer; }
+.rn-node rect,.rn-node circle { transition:stroke 0.12s,filter 0.12s; }
+.rn-node:hover rect { filter:brightness(1.25); }
+.rn-node:hover circle { filter:brightness(1.2); }
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -1360,18 +1523,25 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
               <button class="btb magic" onclick="openPicker()">✦ Pick for Me</button>
             </div>
           </div>
-          <div class="ol-main">
-            <div class="ol-left">
-              <div class="ai-bar">
+          <div class="ol-main rn-layout">
+            <div class="rn-left">
+              <div class="rn-topbar">
+                <div class="rn-brand-toggle">
+                  <button id="radial-mm-btn" class="rn-brand-btn rn-brand-active" onclick="radialSetBrand('mm')">Messick</button>
+                  <button id="radial-ve-btn" class="rn-brand-btn" onclick="radialSetBrand('ve')">Virtueasy</button>
+                </div>
+                <div id="rn-breadcrumb" class="rn-breadcrumb"></div>
+              </div>
+              <div class="rn-ai-row">
                 <i class="ti ti-sparkles ai-bar-ic"></i>
                 <input id="ai-capture-input" class="ai-bar-input" placeholder="Brain-dump and I'll file it &mdash; e.g. &lsquo;JVI June blog draft due Friday, high; email Aspire about tri-folds&rsquo;">
                 <button id="ai-capture-btn" class="ai-bar-btn" onclick="aiOrganize()">Organize</button>
               </div>
-              <div id="ai-capture-status" class="ai-status"></div>
+              <div id="ai-capture-status" class="ai-status" style="padding:0 20px 4px"></div>
               <div id="today-mount"></div>
-              <div class="ol-tree" id="ol-tree"></div>
-              <button class="ol-addroot" onclick="addRootChild('mm')"><i class="ti ti-plus"></i> Messick client</button>
-              <button class="ol-addroot ve" onclick="addRootChild('ve')"><i class="ti ti-plus"></i> Virtueasy project</button>
+              <div class="rn-canvas-wrap">
+                <svg id="rn-svg" class="rn-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
             </div>
             <div class="ol-detail" id="ol-detail"></div>
           </div>
@@ -3693,18 +3863,18 @@ function toggleNotes(open){
 
 /* ── Brain boot ── */
 function brainEnter(){
-  if(brainBooted){ renderDrill(false); return; }
-  brainBooted=true;
-  brainLoad();
-  autoSpin();
-  ensureDefaultExpand();
-  renderBNotes();
-  renderDrill();
-  const add=document.getElementById('brain-note-add');
-  if(add) add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
-  if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
-  const ai=document.getElementById('ai-capture-input');
-  if(ai) ai.addEventListener('keydown',e=>{ if(e.key==='Enter') aiOrganize(); });
+  if(!brainBooted){
+    brainBooted=true;
+    brainLoad();
+    autoSpin();
+    renderBNotes();
+    const add=document.getElementById('brain-note-add');
+    if(add) add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
+    if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
+    const ai=document.getElementById('ai-capture-input');
+    if(ai) ai.addEventListener('keydown',e=>{ if(e.key==='Enter') aiOrganize(); });
+  }
+  renderRadial();
 }
 
 
