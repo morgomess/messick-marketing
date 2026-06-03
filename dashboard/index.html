@@ -1183,6 +1183,8 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .ol-dtitle { font-size: 19px; font-weight: 600; color: #fff; flex: 1; }
 .ol-ddel { background: none; border: none; color: #4a6575; cursor: pointer; font-size: 15px; padding: 4px; display: flex; }
 .ol-ddel:hover { color: #e8889c; }
+.ol-dclose { background: none; border: none; color: #4a6575; cursor: pointer; font-size: 16px; padding: 4px; display: flex; }
+.ol-dclose:hover { color: #cfe6f2; }
 .d-sec { margin-bottom: 20px; }
 
 .ai-bar { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, rgba(58,107,138,.18), rgba(212,49,122,.12)); border: 1px solid #2a4f64; border-radius: 14px; padding: 10px 12px; margin: 6px 8px 4px 0; }
@@ -3803,6 +3805,11 @@ function addRootChild(brand){
   const root=brainMap[brand+'-root']; if(!root) return; addChildTo(root.id);
 }
 
+function closeDetailPanel(){
+  selectedId=null;
+  const d=document.getElementById('ol-detail'); if(d) d.innerHTML='';
+  if(radialBoardId) renderClientBoard();
+}
 function renderDetail(){
   const d=document.getElementById('ol-detail'); if(!d) return;
   if(selectedId===null || !brainMap[selectedId]){ d.innerHTML='<div class="ol-detail-empty"><i class="ti ti-click"></i><p>Select anything on the left to see its notes and tasks.</p></div>'; return; }
@@ -3811,8 +3818,10 @@ function renderDetail(){
   const head=document.createElement('div'); head.className='ol-dhead '+brandOf(node);
   let hs=''; if(!isRoot){ hs=statusChip(nodeStatus(node),'hstatus'); }
   head.innerHTML='<div class="ol-dtitle">'+bEsc(node.label)+'</div>'+hs+
-    (isRoot?'':'<button class="ol-ddel" data-a="del" title="Delete"><i class="ti ti-trash"></i></button>');
+    (isRoot?'':'<button class="ol-ddel" data-a="del" title="Delete"><i class="ti ti-trash"></i></button>')+
+    '<button class="ol-dclose" data-a="close" title="Close panel"><i class="ti ti-x"></i></button>';
   d.appendChild(head);
+  head.querySelector('[data-a="close"]').addEventListener('click',closeDetailPanel);
   if(!isRoot){
     head.querySelector('[data-a="hstatus"]').addEventListener('click',()=>{ cycleNodeStatus(selectedId); renderTree(); renderDetail(); });
     head.querySelector('[data-a="del"]').addEventListener('click',()=>{ const pid=node.parent; tileDelete(selectedId); selectedId=pid; renderDetail(); });
