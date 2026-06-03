@@ -114,7 +114,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
 /* LAYOUT */
 .layout { display: grid; grid-template-columns: 1fr 300px; min-height: calc(100vh - 58px); }
-.main-col { padding: 24px 28px; border-right: 1px solid var(--border); background: var(--bg); }
+.main-col { padding: 24px 28px; border-right: 1px solid var(--border); background: var(--bg); min-width: 0; }
 .side-col { padding: 24px 22px; background: #ffffff; overflow-y: auto; border-left: 1px solid var(--border); }
 
 /* TODAY FOCUS */
@@ -520,7 +520,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .due-overdue  { background: rgba(248,113,113,0.14); color: var(--p-critical); }
 .due-today    { background: rgba(251,146,60,0.14);  color: var(--p-high); }
 .due-week     { background: rgba(250,204,21,0.12);  color: #facc15; }
-.due-future   { background: rgba(148,163,184,0.10); color: #94a3b8; }
+.due-future   { background: rgba(148,163,184,0.08); color: #7a8fa0; }
 
 .recur-icon { font-size: 0.75rem; color: var(--text-light); cursor: default; }
 
@@ -738,6 +738,8 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
   .priority-pill { font-size: 0.63rem; padding: 2px 6px; }
   .due-pill, .day-pill { font-size: 0.63rem; padding: 2px 7px; }
   .task-check { width: 22px; height: 22px; flex-shrink: 0; }
+  .task-name-cell { min-width: 120px; white-space: normal; }
+  .task-main-text { white-space: normal; word-break: break-word; }
 
   /* SECTION DIVIDER */
   .divider { margin: 18px 0; }
@@ -1090,7 +1092,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .task-row.done .task-text { text-decoration: line-through; }
 .task-check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #3a6b8a; background: transparent; color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
 .task-check.on { background: #1d9e75; border-color: #1d9e75; color: #fff; }
-.task-text { flex: 1; font-size: 14px; color: #cfe6f2; }
+.task-text { flex: 1; min-width: 0; font-size: 14px; color: #cfe6f2; word-break: break-word; }
 .task-pri { font-size: 10px; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
 .pri-critical { background: rgba(226,75,74,.2); color: #f0918f; }
 .pri-high { background: rgba(239,159,39,.2); color: #efb45f; }
@@ -1482,7 +1484,7 @@ function renderRadial() {
     <p>Operations Dashboard</p>
   </div>
   <div class="login-card">
-    <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button onclick="doLogin()">Enter Dashboard</button>
     <span id="login-error">Incorrect password. Try again.</span>
   </div>
@@ -1647,7 +1649,7 @@ function renderRadial() {
           </div>
           <div class="filter-search">
             <span class="filter-search-icon">🔍</span>
-            <input type="text" id="task-search" placeholder="Search tasks..." oninput="renderAll()">
+            <input type="text" id="task-search" placeholder="Search tasks..." oninput="debouncedSearch()">
           </div>
           <button class="add-task-toolbar-btn" onclick="toggleAddForm('todo')">+ Add Task</button>
         </div>
@@ -2114,10 +2116,13 @@ function saveTodoTasks(tasks) { saveTasks('todo', tasks); }
 ══════════════════════════════════════ */
 function dueStatus(due) {
   if (!due) return null;
-  const today = todayStr();
-  if (due < today) return 'overdue';
-  if (due === today) return 'due-today';
-  const diff = (new Date(due) - new Date(today)) / 86400000;
+  // Normalize both dates to local midnight before comparing so month
+  // boundaries and DST shifts can't throw off the day math.
+  const d = new Date(due + 'T00:00:00'); d.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (d < today) return 'overdue';
+  if (d.getTime() === today.getTime()) return 'due-today';
+  const diff = Math.round((d - today) / 86400000);
   return diff <= 7 ? 'due-week' : 'future';
 }
 function duePillClass(s) {
@@ -2163,6 +2168,14 @@ function clearFilters() {
   ['filter-brand','filter-priority','filter-status'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('sort-by').value = 'priority';
   renderAll();
+}
+
+// Debounce search input so we re-render once the user pauses typing instead
+// of rebuilding the whole task list (and both dropdowns) on every keystroke.
+let searchDebounceTimer = null;
+function debouncedSearch() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(renderAll, 200);
 }
 
 function applyFiltersAndSort(tasks, f) {
@@ -2253,7 +2266,7 @@ function buildTaskEl(type, t, i) {
   let dueHtml = '';
   if (ds === 'overdue') dueHtml = `<span class="due-pill due-overdue">Overdue &bull; ${fmtDate(t.due)}</span>`;
   else if (ds === 'due-today') dueHtml = `<span class="due-pill due-today">Today</span>`;
-  else if (t.due) dueHtml = `<span class="due-pill due-future" style="background:rgba(148,163,184,0.08);color:#7a8fa0;">${fmtDate(t.due)}</span>`;
+  else if (t.due) dueHtml = `<span class="due-pill due-future">${fmtDate(t.due)}</span>`;
 
   // Priority text
   const priLabel = pri === 'none' ? '' : pri.charAt(0).toUpperCase() + pri.slice(1);
@@ -2563,15 +2576,19 @@ function addTask(type) {
   });
   saveTasks(t, tasks);
   input.value = '';
-  document.getElementById(`due-input-${t}`).value = '';
+  document.getElementById(`due-input-${t}`).value = todayStr();
   document.getElementById(`priority-input-${t}`).value = 'none';
   document.getElementById(`recur-input-${t}`).value = 'none';
+  document.getElementById(`brand-input-${t}`).value = 'messick';
+  input.focus();
   renderAll();
 }
 
 function toggleAddForm(type) {
   const form = document.getElementById(`add-form-${type}`);
   if (form.classList.toggle('open')) {
+      const dueEl = document.getElementById(`due-input-${type}`);
+      if (dueEl && !dueEl.value) dueEl.value = todayStr();
       if (document.getElementById(`task-input-${type}`)) document.getElementById(`task-input-${type}`).focus();
       if (type === 'client') document.getElementById('client-name').focus();
   }
@@ -3109,7 +3126,7 @@ function populateBrandDropdowns() {
     sel.innerHTML = `<option value="messick">Messick Marketing</option>
       <option value="virtueasy">Virtueasy</option>
       <option value="other">Other</option>${clientOptHtml}`;
-    if (cur) sel.value = cur;
+    if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
   });
   const f = document.getElementById('filter-brand');
   if (f) {
@@ -3121,7 +3138,10 @@ function populateBrandDropdowns() {
       <option value="other">Other</option>
       <option value="daily">Daily</option>
       ${clients.length ? '<optgroup label="Clients">' + clientFilterOpts + '</optgroup>' : ''}`;
-    if (cur) f.value = cur;
+    // Re-apply the prior selection only if it still exists; otherwise fall
+    // back to "All" so the dropdown can't show a stale or deleted client.
+    if (cur && [...f.options].some(o => o.value === cur)) f.value = cur;
+    else if (cur) f.value = '';
   }
 }
 
@@ -3206,12 +3226,14 @@ function addClient() {
   document.getElementById('custom-service-text').style.display = 'none';
   initServicesChecklist();
   
+  populateBrandDropdowns();
   renderClients();
 }
 
 function deleteClient(id) {
   if (!confirm("Remove this client?")) return;
   saveClients(loadClients().filter(c => c.id !== id));
+  populateBrandDropdowns();
   renderClients();
 }
 
@@ -3402,13 +3424,21 @@ async function init() {
   switchTab('brain');
 }
 
-window.onload = () => {
+function bootstrap() {
   if (localStorage.getItem('mm_auth') === '1') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     init();
   }
-};
+}
+// Fire once the DOM is parsed (more reliable than window.onload, which waits
+// on every image/font and can leave the dashboard un-initialized on a hard
+// refresh). Falls back to an immediate run if the document is already ready.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrap);
+} else {
+  bootstrap();
+}
 
 
 /* ════════════════════════════════════════════
