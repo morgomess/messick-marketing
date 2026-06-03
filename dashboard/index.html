@@ -1314,6 +1314,12 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 @keyframes empPop{0%{transform:scale(1)}50%{transform:scale(0.92)}100%{transform:scale(1)}}
 .empire-offline{background:#152a38;border:1px solid #1e3a50;border-radius:10px;padding:9px 14px;margin:0 24px 10px;font-size:0.72rem;color:#7ab8d4;text-align:center;display:none}
 .empire-assets{flex:1;overflow-y:auto;padding:12px 24px 20px}
+.empire-tabs{display:flex;gap:6px;padding:12px 24px 0}
+.emp-tab{flex:1;padding:8px 0;background:#0b1620;border:1px solid #1e3a50;border-radius:9px;color:#7ab8d4;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.04em;cursor:pointer}
+.emp-tab.active{background:#1e3a50;color:#fff;border-color:#2a5570}
+.empire-spend-head{font-size:0.7rem;color:#5a9ab8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;padding:2px 0 12px;text-align:center}
+.empire-asset.owned-lux{opacity:0.55}
+.empire-buy-btn.owned{background:#143a2a;border-color:#1d6e4a;color:#6fe0b8;opacity:1;cursor:default}
 .empire-asset{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #1a2f40}
 .empire-asset:last-child{border-bottom:none}
 .empire-asset-ic{width:36px;height:36px;border-radius:10px;background:#152a38;border:1px solid #1e3a50;display:flex;align-items:center;justify-content:center;color:#5a9ab8;font-size:1rem;flex-shrink:0}
@@ -1779,7 +1785,12 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
       <button class="empire-hustle-btn" id="empire-hustle-btn" onclick="empireHustle()">&#9889; Hustle</button>
     </div>
     <div class="empire-offline" id="empire-offline"></div>
+    <div class="empire-tabs">
+      <button id="emp-tab-build" class="emp-tab active" onclick="empireSetTab('build')">Build</button>
+      <button id="emp-tab-spend" class="emp-tab" onclick="empireSetTab('spend')">Spend</button>
+    </div>
     <div class="empire-assets" id="empire-assets"></div>
+    <div class="empire-assets" id="empire-spend" style="display:none"></div>
   </div>
 </div>
 
@@ -4027,16 +4038,34 @@ const EMPIRE_ASSETS_DEF=[
   {id:'brand', name:'Launch a Brand', icon:'ti-rocket',    base:140000,  income:1100 },
   {id:'agency',name:'Acquire Agency', icon:'ti-crown',     base:1500000, income:8000 },
 ];
+const EMPIRE_LUXURIES=[
+  {id:'desk',     name:'Dream Standing Desk',       icon:'ti-armchair',           cost:500,          blurb:'For the home office.'},
+  {id:'espresso', name:'Pro Espresso Machine',      icon:'ti-coffee',             cost:2500,         blurb:'No more drip coffee.'},
+  {id:'dogbeds',  name:'Designer Dog Beds',         icon:'ti-dog',                cost:6000,         blurb:'The pups deserve it.'},
+  {id:'studio',   name:'Full Podcast Studio Kit',   icon:'ti-microphone-2',       cost:15000,        blurb:'Cameras, lights, the works.'},
+  {id:'gym',      name:'Home Gym Buildout',         icon:'ti-barbell',            cost:35000,        blurb:'Skip the commute.'},
+  {id:'reno',     name:'Office Reno',               icon:'ti-home-cog',           cost:90000,        blurb:'Glass walls, the dream.'},
+  {id:'ev',       name:'New EV in the Driveway',    icon:'ti-car',                cost:130000,       blurb:'Fully loaded.'},
+  {id:'beach',    name:'Beach House',               icon:'ti-beach',              cost:850000,       blurb:'Coast-adjacent.'},
+  {id:'chef',     name:'Private Chef (1 yr)',       icon:'ti-tools-kitchen-2',    cost:2000000,      blurb:'Dinner is handled.'},
+  {id:'yacht',    name:'A Modest Yacht',            icon:'ti-sailboat',           cost:12000000,     blurb:'Modest, sure.'},
+  {id:'jet',      name:'Private Jet',               icon:'ti-plane',              cost:60000000,     blurb:'No more layovers.'},
+  {id:'island',   name:'Private Island',            icon:'ti-map-pin',            cost:400000000,    blurb:'Your own zip code.'},
+  {id:'space',    name:'Trip to Space',             icon:'ti-planet',             cost:3000000000,   blurb:'Why not.'},
+  {id:'sportsteam',name:'Buy a Sports Team',        icon:'ti-ball-football',      cost:30000000000,  blurb:'Owner-box energy.'},
+  {id:'tower',    name:'Name a Tower After Yourself',icon:'ti-building-skyscraper',cost:250000000000, blurb:'Messick Tower.'},
+];
 const EMPIRE_RANKS=[[0,'Freelancer'],[1000,'Solo Operator'],[10000,'Agency Owner'],
   [100000,'Power Player'],[1000000,'Mogul'],[10000000,'Empire Builder'],[1e8,'Tycoon']];
 let empireState=null,empireTick=null;
 function empireLoad(){try{empireState=JSON.parse(localStorage.getItem('mm_empire'))||null;}catch(e){}
-  if(!empireState)empireState={cash:0,totalEarned:0,perClick:1,owned:{},lastSeen:Date.now()};}
+  if(!empireState)empireState={cash:0,totalEarned:0,perClick:1,owned:{},lastSeen:Date.now()};
+  if(!empireState.luxuries)empireState.luxuries={};}
 function empireSave(){try{localStorage.setItem('mm_empire',JSON.stringify(empireState));}catch(e){}}
 function empirePerSec(){return EMPIRE_ASSETS_DEF.reduce((s,a)=>s+(empireState.owned[a.id]||0)*a.income,0);}
 function empireCost(a){return Math.ceil(a.base*Math.pow(1.15,empireState.owned[a.id]||0));}
 function empireRank(){for(let i=EMPIRE_RANKS.length-1;i>=0;i--)if(empireState.totalEarned>=EMPIRE_RANKS[i][0])return EMPIRE_RANKS[i][1];return 'Freelancer';}
-function empireFormat(n){if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.floor(n);}
+function empireFormat(n){if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.floor(n);}
 function empireRender(){
   document.getElementById('empire-cash').textContent=empireFormat(empireState.cash);
   document.getElementById('empire-rate').textContent=empireFormat(empirePerSec())+' / sec';
@@ -4045,6 +4074,7 @@ function empireRender(){
     const owned=empireState.owned[a.id]||0,cost=empireCost(a),ok=empireState.cash>=cost;
     return `<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ${a.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${a.name}${owned?' <span style="color:#5a9ab8">x'+owned+'</span>':''}</div><div class="empire-asset-sub">+${empireFormat(a.income)}/sec each</div></div><button class="empire-buy-btn" onclick="empireBuy('${a.id}')" ${ok?'':'disabled'}>${empireFormat(cost)}</button></div>`;
   }).join('');
+  renderEmpireSpend();
 }
 function empireHustle(){
   empireState.cash+=empireState.perClick;empireState.totalEarned+=empireState.perClick;
@@ -4058,6 +4088,38 @@ function empireBuy(id){
   empireState.cash-=cost;empireState.owned[id]=(empireState.owned[id]||0)+1;
   empireRender();empireSave();
 }
+let empireTab='build';
+function empireSetTab(t){
+  empireTab=t;
+  const a=document.getElementById('empire-assets'), s=document.getElementById('empire-spend');
+  if(a) a.style.display=(t==='build'?'block':'none');
+  if(s) s.style.display=(t==='spend'?'block':'none');
+  const tb=document.getElementById('emp-tab-build'), ts=document.getElementById('emp-tab-spend');
+  if(tb) tb.classList.toggle('active', t==='build');
+  if(ts) ts.classList.toggle('active', t==='spend');
+}
+function renderEmpireSpend(){
+  const host=document.getElementById('empire-spend'); if(!host) return;
+  const ownedCount=EMPIRE_LUXURIES.filter(l=>empireState.luxuries[l.id]).length;
+  let html='<div class="empire-spend-head">'+ownedCount+' / '+EMPIRE_LUXURIES.length+' treasures unlocked</div>';
+  html+=EMPIRE_LUXURIES.map(l=>{
+    const owned=!!empireState.luxuries[l.id], ok=empireState.cash>=l.cost;
+    const btn=owned
+      ? '<button class="empire-buy-btn owned" disabled><i class="ti ti-check"></i> Owned</button>'
+      : '<button class="empire-buy-btn" onclick="empireBuyLux(\''+l.id+'\')" '+(ok?'':'disabled')+'>'+empireFormat(l.cost)+'</button>';
+    return '<div class="empire-asset'+(owned?' owned-lux':'')+'"><div class="empire-asset-ic"><i class="ti '+l.icon+'"></i></div><div class="empire-asset-info"><div class="empire-asset-name">'+l.name+'</div><div class="empire-asset-sub">'+l.blurb+'</div></div>'+btn+'</div>';
+  }).join('');
+  host.innerHTML=html;
+}
+function empireBuyLux(id){
+  const x=EMPIRE_LUXURIES.find(l=>l.id===id); if(!x) return;
+  if(empireState.luxuries[id]) return;
+  if(empireState.cash<x.cost) return;
+  empireState.cash-=x.cost; empireState.luxuries[id]=1;
+  if(typeof fireConfetti==='function') fireConfetti();
+  if(typeof showPraise==='function') showPraise('Unlocked: '+x.name+'!');
+  empireRender(); empireSave();
+}
 function openEmpire(){
   empireLoad();
   const elapsed=(Date.now()-(empireState.lastSeen||Date.now()))/1000,offEarn=elapsed*empirePerSec();
@@ -4069,7 +4131,7 @@ function openEmpire(){
   }
   empireState.lastSeen=Date.now();
   document.getElementById('empire-overlay').classList.add('open');
-  empireRender();clearInterval(empireTick);
+  empireRender();empireSetTab(empireTab);clearInterval(empireTick);
   empireTick=setInterval(()=>{const ps=empirePerSec();if(ps>0){empireState.cash+=ps/5;empireState.totalEarned+=ps/5;empireRender();}},200);
 }
 function closeEmpire(){
