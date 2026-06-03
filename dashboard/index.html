@@ -114,7 +114,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
 /* LAYOUT */
 .layout { display: grid; grid-template-columns: 1fr 300px; min-height: calc(100vh - 58px); }
-.main-col { padding: 24px 28px; border-right: 1px solid var(--border); background: var(--bg); min-width: 0; }
+.main-col { padding: 24px 28px; border-right: 1px solid var(--border); background: var(--bg); }
 .side-col { padding: 24px 22px; background: #ffffff; overflow-y: auto; border-left: 1px solid var(--border); }
 
 /* TODAY FOCUS */
@@ -697,7 +697,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 
   /* LAYOUT */
   .layout { grid-template-columns: 1fr; }
-  .main-col { padding: 14px 16px; border-right: none; }
+  .main-col { padding: 14px 16px; border-right: none; min-width: 0; }
   .side-col { padding: 14px 16px; border-left: none; border-top: 1px solid var(--border); }
 
   /* FOCUS SECTION */
@@ -1092,7 +1092,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .task-row.done .task-text { text-decoration: line-through; }
 .task-check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #3a6b8a; background: transparent; color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
 .task-check.on { background: #1d9e75; border-color: #1d9e75; color: #fff; }
-.task-text { flex: 1; min-width: 0; font-size: 14px; color: #cfe6f2; word-break: break-word; }
+.task-text { flex: 1; font-size: 14px; color: #cfe6f2; }
 .task-pri { font-size: 10px; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
 .pri-critical { background: rgba(226,75,74,.2); color: #f0918f; }
 .pri-high { background: rgba(239,159,39,.2); color: #efb45f; }
