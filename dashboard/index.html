@@ -1449,8 +1449,8 @@ function renderRadial() {
 
 
 /* ── Radial Mindmap ── */
-.rn-layout { flex-direction:column !important; overflow:hidden; }
-.rn-left { flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.rn-layout { flex-direction:column !important; overflow:hidden; flex:1; height:0; }
+.rn-left { flex:1; display:flex; flex-direction:column; min-height:0; overflow:visible; }
 .rn-topbar { display:flex; align-items:center; gap:14px; padding:10px 24px 0; flex-shrink:0; }
 .rn-brand-toggle { display:flex; gap:3px; background:#0a1520; border:1px solid #1e3a50; border-radius:20px; padding:3px; }
 .rn-brand-btn { padding:5px 18px; border:none; border-radius:16px; background:transparent; color:#4a7a9a; font-family:'Jost',sans-serif; font-size:0.73rem; font-weight:700; letter-spacing:0.07em; cursor:pointer; transition:all 0.18s; }
@@ -1462,8 +1462,8 @@ function renderRadial() {
 .rn-ai-row .ai-bar-input:focus { border-color:#3a6b8a; }
 .rn-ai-row .ai-bar-btn { padding:7px 14px; background:#1e3a50; border:1px solid #2a5570; border-radius:8px; color:#7ab8d4; font-family:'Jost',sans-serif; font-size:0.75rem; font-weight:700; cursor:pointer; flex-shrink:0; }
 .rn-ai-row .ai-bar-btn:hover { background:#2a5570; color:#fff; }
-.rn-canvas-wrap { flex:1; min-height:0; overflow:hidden; position:relative; }
-.rn-svg { width:100%; height:100%; display:block; }
+.rn-canvas-wrap { flex:1; min-height:420px; overflow:hidden; position:relative; }
+.rn-svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
 .rn-node { cursor:pointer; }
 .rn-node rect,.rn-node circle { transition:stroke 0.12s,filter 0.12s; }
 .rn-node:hover rect { filter:brightness(1.25); }
