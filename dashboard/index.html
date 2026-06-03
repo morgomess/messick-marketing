@@ -1873,6 +1873,7 @@ function renderClientBoard() {
   renderCardGroup(node.id, grid);
   grid.appendChild(addCard(node.id));
   host.appendChild(grid);
+  renderTodayStrip();
 }
 function addClientFromRadial() {
   const rootId = radialBrand + '-root';
@@ -1995,6 +1996,7 @@ function renderRadial() {
   // Breadcrumb
   const bc = document.getElementById('rn-breadcrumb');
   if (bc) bc.textContent = radialFocus && root ? ((isMM ? 'Messick' : 'Virtueasy') + ' › ' + root.label) : '';
+  renderTodayStrip();
 }
 
 
@@ -3914,10 +3916,11 @@ async function aiOrganize(){
   }
   btn.disabled=false; input.focus();
 }
+function renderTodayStrip(){ const tm=document.getElementById('today-mount'); if(tm){ tm.innerHTML=''; tm.appendChild(buildTodayStrip()); } }
 function buildTodayStrip(){
   const all=loadTasks('todo').filter(t=>!t.done && t.nodeId);
-  const overdue=all.filter(t=>dueStatus(t.due)==='overdue');
-  const today=all.filter(t=>dueStatus(t.due)==='due-today');
+  const due=all.filter(t=>{ const s=dueStatus(t.due); return s==='overdue'||s==='due-today'; });
+  const doing=all.filter(t=>(t.status||'')==='doing');
   const blocked=all.filter(t=>(t.status||'')==='blocked');
   const wrap=document.createElement('div'); wrap.className='today-strip';
   function col(title,items,cls){
@@ -3931,8 +3934,8 @@ function buildTodayStrip(){
       row.addEventListener('click',()=>selectNode(t.nodeId)); ul.appendChild(row); });
     c.appendChild(ul); return c;
   }
-  wrap.appendChild(col('Overdue',overdue,'t-over'));
-  wrap.appendChild(col('Due today',today,'t-today'));
+  wrap.appendChild(col('Due',due,'t-over'));
+  wrap.appendChild(col('In progress',doing,'t-today'));
   wrap.appendChild(col('Pending',blocked,'t-block'));
   return wrap;
 }
