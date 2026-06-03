@@ -1148,7 +1148,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 /* The detail panel is a narrow 360px rail, so let its task rows wrap instead of
    crushing the label to one word per line or overflowing the add-task controls. */
 .ol-detail .task-row { flex-wrap: wrap; row-gap: 6px; }
-.ol-detail .task-text { min-width: 0; word-break: break-word; }
+.ol-detail .task-text { flex: 1 1 calc(100% - 36px); min-width: 0; overflow-wrap: anywhere; }
 .ol-detail .task-add-row { flex-wrap: wrap; row-gap: 8px; }
 .ol-detail .task-add-input { flex: 1 1 100%; }
 .ol-detail .task-add-due, .ol-detail .task-add-pri { flex: 1 1 auto; }
@@ -1339,6 +1339,19 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .rn-ai-row .ai-bar-btn:hover { background:#2a5570; color:#fff; }
 .rn-canvas-wrap { flex:1; min-height:420px; overflow:hidden; position:relative; }
 .rn-svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.rn-board { position:absolute; inset:0; overflow-y:auto; padding:18px 24px 32px; display:none; }
+.rn-canvas-wrap.board-mode .rn-svg { display:none; }
+.rn-canvas-wrap.board-mode #rn-board { display:block; }
+.rn-board-head { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.rn-board-back { background:#0e1d27; border:1px solid #2a4f64; color:#9fc6db; border-radius:9px; padding:7px 12px; font-family:'Jost',sans-serif; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.rn-board-back:hover { background:#16323f; }
+.rn-board-title-input { flex:1; min-width:0; background:transparent; border:1px solid transparent; border-radius:8px; color:#e6f1f8; font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:600; padding:4px 10px; outline:none; }
+.rn-board-title-input:hover { border-color:#1f3d4d; }
+.rn-board-title-input:focus { border-color:#5a9ab8; background:#0b1620; }
+.rn-board-del { background:none; border:none; color:#4a6575; cursor:pointer; font-size:1rem; padding:4px 8px; flex-shrink:0; }
+.rn-board-del:hover { color:#e8889c; }
+.rn-add-client { background:#13283a; border:1px solid #2a5570; color:#7ab8d4; border-radius:16px; padding:5px 13px; font-family:'Jost',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.04em; cursor:pointer; margin-left:8px; display:inline-flex; align-items:center; gap:4px; }
+.rn-add-client:hover { background:#1c3d52; color:#fff; }
 .rn-node { cursor:pointer; }
 .rn-node rect,.rn-node circle { transition:stroke 0.12s,filter 0.12s; }
 .rn-node:hover rect { filter:brightness(1.25); }
@@ -1405,6 +1418,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
                   <button id="radial-mm-btn" class="rn-brand-btn rn-brand-active" onclick="radialSetBrand('mm')">Messick</button>
                   <button id="radial-ve-btn" class="rn-brand-btn" onclick="radialSetBrand('ve')">Virtueasy</button>
                 </div>
+                <button class="rn-add-client" onclick="addClientFromRadial()"><i class="ti ti-plus"></i> Client</button>
                 <div id="rn-breadcrumb" class="rn-breadcrumb"></div>
               </div>
               <div class="rn-ai-row">
@@ -1416,6 +1430,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
               <div id="today-mount"></div>
               <div class="rn-canvas-wrap">
                 <svg id="rn-svg" class="rn-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet"></svg>
+                <div id="rn-board" class="rn-board"></div>
               </div>
             </div>
             <div class="ol-detail" id="ol-detail"></div>
@@ -1806,16 +1821,65 @@ function radialFindUp(id) {
 function radialSetBrand(brand) {
   radialBrand = brand;
   radialFocus = null;
+  radialBoardId = null;
   document.getElementById('radial-mm-btn').classList.toggle('rn-brand-active', brand==='mm');
   document.getElementById('radial-ve-btn').classList.toggle('rn-brand-active', brand==='ve');
-  renderRadial();
+  renderRadialView();
 }
 
+let radialBoardId = null;
 function radialDrillIn(nodeId) {
-  const kids = radialChildren(nodeId);
-  if (!kids.length) { selectNode(nodeId); return; }
-  radialFocus = nodeId;
-  renderRadial();
+  // Clicking any client opens its full board (services / projects / tasks in one view).
+  openClientBoard(nodeId);
+}
+function renderRadialView() {
+  const wrap = document.querySelector('.rn-canvas-wrap');
+  if (radialBoardId && brainMap[radialBoardId]) {
+    if (wrap) wrap.classList.add('board-mode');
+    renderClientBoard();
+  } else {
+    radialBoardId = null;
+    if (wrap) wrap.classList.remove('board-mode');
+    renderRadial();
+  }
+}
+function openClientBoard(id) {
+  radialBoardId = id; selectedId = null;
+  const d = document.getElementById('ol-detail'); if (d) d.innerHTML = '';
+  renderRadialView();
+}
+function closeClientBoard() {
+  radialBoardId = null; selectedId = null;
+  const d = document.getElementById('ol-detail'); if (d) d.innerHTML = '';
+  renderRadialView();
+}
+function renderClientBoard() {
+  const host = document.getElementById('rn-board'); if (!host) return;
+  const node = brainMap[radialBoardId];
+  if (!node) { closeClientBoard(); return; }
+  host.innerHTML = '';
+  const head = document.createElement('div'); head.className = 'rn-board-head';
+  const back = document.createElement('button'); back.className = 'rn-board-back';
+  back.innerHTML = '<i class="ti ti-arrow-left"></i> All clients';
+  back.addEventListener('click', closeClientBoard);
+  const title = document.createElement('input'); title.className = 'rn-board-title-input'; title.value = node.label;
+  title.addEventListener('change', () => { node.label = title.value.trim() || node.label; brainSave(); });
+  const del = document.createElement('button'); del.className = 'rn-board-del'; del.title = 'Delete';
+  del.innerHTML = '<i class="ti ti-trash"></i>';
+  del.addEventListener('click', () => { if (confirm('Delete "' + node.label + '" and everything under it?')) { tileDelete(node.id); closeClientBoard(); } });
+  head.appendChild(back); head.appendChild(title); head.appendChild(del);
+  host.appendChild(head);
+  const grid = document.createElement('div'); grid.className = 'card-grid root-grid';
+  renderCardGroup(node.id, grid);
+  grid.appendChild(addCard(node.id));
+  host.appendChild(grid);
+}
+function addClientFromRadial() {
+  const rootId = radialBrand + '-root';
+  const root = brainMap[rootId]; if (!root) return;
+  const nn = { id: 'b' + bIdCounter++, label: 'New client', type: childTypeFor(root), parent: rootId, status: 'todo', done: false, x: 0, y: 0 };
+  brainNodes.push(nn); brainMap[nn.id] = nn; brainSave();
+  openClientBoard(nn.id);
 }
 
 function radialBack() {
@@ -3649,6 +3713,7 @@ function renderDrill(){
   renderTree(); renderDetail();
 }
 function renderTree(){
+  if(radialBoardId){ renderClientBoard(); return; }
   const tree=document.getElementById('ol-tree'); if(!tree) return; tree.innerHTML='';
   const grid=document.createElement('div'); grid.className='card-grid root-grid';
   renderCardGroup(null,grid); tree.appendChild(grid);
@@ -3916,7 +3981,7 @@ function brainEnter(){
     const ai=document.getElementById('ai-capture-input');
     if(ai) ai.addEventListener('keydown',e=>{ if(e.key==='Enter') aiOrganize(); });
   }
-  renderRadial();
+  renderRadialView();
 }
 
 
