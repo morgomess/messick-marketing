@@ -1230,6 +1230,47 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
   padding: 13px 26px; border-radius: 30px; box-shadow: 0 10px 40px rgba(90,154,184,.4); transition: opacity .25s, translate .25s; }
 #praise-toast.show { opacity: 1; translate: -50% 0; }
 #praise-toast.big { font-size: 18px; padding: 16px 34px; background: linear-gradient(135deg,#1d9e75,#15303f); border-color:#6fe0b8; box-shadow:0 12px 50px rgba(29,158,117,.5); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.root-grid { padding: 4px 0 8px; }
+.card-tray { grid-column: 1 / -1; margin: 2px 0 6px; padding: 14px; border-radius: 16px; background: rgba(90,154,184,.06); border: 1px solid #1b3442; border-left: 3px solid #3a6b8a; animation: trayin .26s ease; }
+.card-tray.ve { border-left-color: #d4317a; background: rgba(212,49,122,.06); }
+@keyframes trayin { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.card { position: relative; min-height: 132px; border-radius: 16px; border: 1px solid; cursor: pointer; padding: 14px 15px 12px; display: flex; flex-direction: column; transition: transform .15s, box-shadow .18s, border-color .18s; overflow: hidden; }
+.card:hover { transform: translateY(-3px); }
+.card.mm { background: #142b39; border-color: #2a4f64; color: #e6f1f8; }
+.card.mm:hover { border-color: #5a9ab8; box-shadow: 0 10px 30px rgba(58,107,138,.4); }
+.card.mm.sel { border-color: #5a9ab8; box-shadow: 0 0 0 1px #5a9ab8, 0 8px 28px rgba(58,107,138,.45); }
+.card.ve { background: #320c1e; border-color: #6a1a3f; color: #f7cfe1; }
+.card.ve:hover { border-color: #e85ba0; box-shadow: 0 10px 30px rgba(212,49,122,.4); }
+.card.ve.sel { border-color: #e85ba0; box-shadow: 0 0 0 1px #e85ba0, 0 8px 28px rgba(212,49,122,.45); }
+.card.root { min-height: 150px; }
+.card.root.mm { background: linear-gradient(150deg,#1e4258,#3a6b8a 80%,#5a9ab8); border-color: #7ab4d0; color: #fff; }
+.card.root.ve { background: linear-gradient(150deg,#5a1232,#d4317a 80%,#e85ba0); border-color: #e85ba0; color: #fff; }
+.card-statuswrap { margin-bottom: 8px; }
+.card-body { flex: 1; display: flex; align-items: center; gap: 10px; }
+.card-ring { flex-shrink: 0; }
+.card-label { font-size: 17px; font-weight: 600; line-height: 1.25; }
+.card.root .card-label { font-size: 20px; font-weight: 700; }
+.card-recur { color: #7ab4d0; font-size: 13px; }
+.card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.card-footbits { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card-count { font-size: 11px; opacity: .75; }
+.card-empty { font-size: 11px; opacity: .5; letter-spacing: .03em; }
+.card-foot .ru { font-size: 9px; padding: 1px 7px; border-radius: 10px; font-weight: 700; }
+.card-chev { color: currentColor; opacity: .4; font-size: 16px; display: flex; transition: transform .2s, opacity .15s; }
+.card:hover .card-chev { opacity: .8; }
+.card-chev.open { transform: rotate(180deg); }
+.card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; opacity: 0; transition: opacity .14s; z-index: 3; }
+.card:hover .card-actions { opacity: 1; }
+.ca { width: 26px; height: 26px; border-radius: 8px; border: none; background: rgba(0,0,0,.3); color: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.ca:hover { background: rgba(0,0,0,.55); }
+.card-label-input { font-size: 17px; font-weight: 600; background: rgba(0,0,0,.4); border: 1px solid currentColor; border-radius: 8px; color: #fff; padding: 5px 9px; width: 92%; outline: none; font-family: 'Jost', sans-serif; }
+.card.card-add { min-height: 132px; background: transparent; border: 1.5px dashed #2a4f64; color: #6b8a9c; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; }
+.card.card-add i { font-size: 24px; }
+.card.card-add span { font-size: 14px; }
+.card.card-add:hover { border-color: #5a9ab8; color: #cfe6f2; transform: translateY(-3px); }
+.card-statuswrap .status-chip { cursor: pointer; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -3344,37 +3385,66 @@ function renderDrill(){
 }
 function renderTree(){
   const tree=document.getElementById('ol-tree'); if(!tree) return; tree.innerHTML='';
-  brainNodes.filter(n=>n.parent===null).forEach(r=>renderRow(r,0,tree));
+  const grid=document.createElement('div'); grid.className='card-grid root-grid';
+  renderCardGroup(null,grid); tree.appendChild(grid);
 }
-function renderRow(node,depth,container){
+function renderCardGroup(parentId,gridEl){
+  brainNodes.filter(n=>n.parent===parentId).forEach(n=>{
+    gridEl.appendChild(makeCard(n));
+    if(expanded.has(n.id)){
+      const tray=document.createElement('div'); tray.className='card-tray '+brandOf(n);
+      const sub=document.createElement('div'); sub.className='card-grid';
+      renderCardGroup(n.id,sub);
+      sub.appendChild(addCard(n.id));
+      tray.appendChild(sub); gridEl.appendChild(tray);
+    }
+  });
+}
+function makeCard(node){
   const hasCh=hasKids(node.id); const open=expanded.has(node.id); const isRoot=node.type.indexOf('root')>-1;
-  const row=document.createElement('div'); row.className='ol-row '+brandOf(node)+(selectedId===node.id?' sel':'')+(isRoot?' root':'');
-  row.style.paddingLeft=(10+depth*22)+'px';
-  const chev = hasCh ? '<span class="ol-chev'+(open?' open':'')+'" data-a="chev"><i class="ti ti-chevron-right"></i></span>' : '<span class="ol-chev empty"></span>';
-  let st=''; if(!isRoot){ st=statusChip(nodeStatus(node),'status'); }
-  let rub=''; if(hasCh){ const ru=rollup(node.id);
-    if(ru.blocked||ru.doing){ rub='<span class="ol-roll">'+(ru.blocked?'<span class="ru ru-block">'+ru.blocked+'</span>':'')+(ru.doing?'<span class="ru ru-doing">'+ru.doing+'</span>':'')+'</span>'; } }
-  const openTasks=tasksForNode(node.id).filter(t=>!t.done).length;
-  const tcount = openTasks?'<span class="ol-tcount">'+openTasks+'</span>':'';
-  const recurBadge = (node.recur&&node.recur!=='none') ? '<span class="ol-recur" title="auto-generates '+node.recur+'"><i class="ti ti-repeat"></i></span>' : '';
-  const prog=nodeProgress(node.id); const ringHtml = prog.total? ringSVG(prog.pct, brandOf(node)) : '';
-  row.innerHTML=chev+ringHtml+'<span class="ol-label" data-id="'+node.id+'">'+bEsc(node.label)+'</span>'+recurBadge+st+rub+tcount+
-    '<span class="ol-add" data-a="add" title="Add sub-project"><i class="ti ti-plus"></i></span>';
-  const chevEl=row.querySelector('[data-a="chev"]'); if(chevEl) chevEl.addEventListener('click',e=>{ e.stopPropagation(); toggleExpand(node.id); });
-  row.addEventListener('click',e=>{ if(e.target.closest('[data-a]')||e.target.closest('.ol-label-input')) return; selectNode(node.id); });
-  const lbl=row.querySelector('.ol-label');
-  lbl.addEventListener('dblclick',e=>{ e.stopPropagation(); startRename(node,row); });
-  const stEl=row.querySelector('[data-a="status"]'); if(stEl) stEl.addEventListener('click',e=>{ e.stopPropagation(); cycleNodeStatus(node.id); renderTree(); if(selectedId===node.id) renderDetail(); });
-  row.querySelector('[data-a="add"]').addEventListener('click',e=>{ e.stopPropagation(); addChildTo(node.id); });
-  container.appendChild(row);
-  if(hasCh&&open){ brainNodes.filter(n=>n.parent===node.id).forEach(c=>renderRow(c,depth+1,container)); }
+  const brand=brandOf(node);
+  const card=document.createElement('div');
+  card.className='card '+brand+(isRoot?' root':'')+(selectedId===node.id?' sel':'')+(open?' open':'');
+  const prog=nodeProgress(node.id); const ring = prog.total? ringSVG(prog.pct,brand) : '';
+  const st = isRoot? '' : statusChip(nodeStatus(node),'status');
+  const recurBadge = (node.recur&&node.recur!=='none') ? '<span class="card-recur" title="auto-generates '+node.recur+'"><i class="ti ti-repeat"></i></span>' : '';
+  let footBits='';
+  if(hasCh){ const cc=brainNodes.filter(c=>c.parent===node.id).length; const ru=rollup(node.id);
+    footBits='<span class="card-count">'+cc+' '+kidWord(node)+'</span>';
+    if(ru.blocked) footBits+='<span class="ru ru-block">'+ru.blocked+'</span>';
+    if(ru.doing) footBits+='<span class="ru ru-doing">'+ru.doing+'</span>';
+  } else { const ot=tasksForNode(node.id).filter(t=>!t.done).length;
+    footBits = ot? '<span class="card-count">'+ot+' open task'+(ot===1?'':'s')+'</span>' : '<span class="card-empty">open</span>'; }
+  const chev = '<span class="card-chev'+(open?' open':'')+'"><i class="ti ti-chevron-down"></i></span>';
+  card.innerHTML=
+    '<div class="card-actions"><button class="ca" data-a="edit" title="Rename"><i class="ti ti-pencil"></i></button>'+
+      (isRoot?'':'<button class="ca" data-a="del" title="Delete"><i class="ti ti-trash"></i></button>')+'</div>'+
+    (st?'<div class="card-statuswrap">'+st+'</div>':'')+
+    '<div class="card-body">'+(ring?'<div class="card-ring">'+ring+'</div>':'')+
+      '<div class="card-label" data-id="'+node.id+'">'+bEsc(node.label)+'</div>'+recurBadge+'</div>'+
+    '<div class="card-foot"><span class="card-footbits">'+footBits+'</span>'+chev+'</div>';
+  card.addEventListener('click',e=>{ if(e.target.closest('[data-a]')||e.target.closest('.card-label-input')) return;
+    selectedId=node.id; if(expanded.has(node.id)) expanded.delete(node.id); else expanded.add(node.id);
+    renderTree(); renderDetail(); });
+  const lbl=card.querySelector('.card-label');
+  lbl.addEventListener('dblclick',e=>{ e.stopPropagation(); startRename(node,card); });
+  card.querySelector('[data-a="edit"]').addEventListener('click',e=>{ e.stopPropagation(); startRename(node,card); });
+  const del=card.querySelector('[data-a="del"]'); if(del) del.addEventListener('click',e=>{ e.stopPropagation(); const pid=node.parent; tileDelete(node.id); if(selectedId===node.id) selectedId=pid; renderTree(); renderDetail(); });
+  const stEl=card.querySelector('[data-a="status"]'); if(stEl) stEl.addEventListener('click',e=>{ e.stopPropagation(); cycleNodeStatus(node.id); renderTree(); if(selectedId===node.id) renderDetail(); });
+  return card;
+}
+function addCard(parentId){
+  const c=document.createElement('div'); c.className='card card-add';
+  c.innerHTML='<i class="ti ti-plus"></i><span>Add</span>';
+  c.addEventListener('click',()=>addChildTo(parentId));
+  return c;
 }
 function addChildTo(parentId){
   const parent=brainMap[parentId];
   const nn={ id:'b'+bIdCounter++, label:'New', type:childTypeFor(parent), parent:parentId, status:'todo', done:false, x:0, y:0 };
   brainNodes.push(nn); brainMap[nn.id]=nn; brainSave(); expanded.add(parentId); selectedId=nn.id;
   renderTree(); renderDetail();
-  setTimeout(()=>{ const lbl=document.querySelector('.ol-label[data-id="'+nn.id+'"]'); if(lbl) startRename(nn, lbl.closest('.ol-row')); },20);
+  setTimeout(()=>{ const lbl=document.querySelector('.card-label[data-id="'+nn.id+'"]'); if(lbl) startRename(nn, lbl.closest('.card')); },20);
 }
 function addRootChild(brand){
   const root=brainMap[brand+'-root']; if(!root) return; addChildTo(root.id);
@@ -3517,8 +3587,8 @@ function buildTodayStrip(){
 }
 
 function startRename(n,rowEl){
-  const labelEl=rowEl.querySelector('.ol-label')||rowEl.querySelector('.tile-label'); if(!labelEl) return;
-  const inp=document.createElement('input'); inp.className='ol-label-input'; inp.value=n.label;
+  const labelEl=rowEl.querySelector('.card-label')||rowEl.querySelector('.ol-label')||rowEl.querySelector('.tile-label'); if(!labelEl) return;
+  const inp=document.createElement('input'); inp.className='card-label-input'; inp.value=n.label;
   labelEl.replaceWith(inp); inp.focus(); inp.select();
   const commit=()=>{ n.label=inp.value.trim()||n.label; brainSave(); renderDrill(); };
   inp.addEventListener('blur',commit);
