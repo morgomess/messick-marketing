@@ -1174,6 +1174,18 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .ol-ddel { background: none; border: none; color: #4a6575; cursor: pointer; font-size: 15px; padding: 4px; display: flex; }
 .ol-ddel:hover { color: #e8889c; }
 .d-sec { margin-bottom: 20px; }
+
+.ai-bar { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, rgba(58,107,138,.18), rgba(212,49,122,.12)); border: 1px solid #2a4f64; border-radius: 14px; padding: 10px 12px; margin: 6px 8px 4px 0; }
+.ai-bar-ic { color: #5a9ab8; font-size: 18px; flex-shrink: 0; }
+.ai-bar-input { flex: 1; background: transparent; border: none; outline: none; font-family: 'Jost', sans-serif; font-size: 14px; color: #e6f1f8; }
+.ai-bar-input::placeholder { color: #5a7585; }
+.ai-bar-btn { background: linear-gradient(135deg,#3a6b8a,#5a9ab8); border: none; border-radius: 9px; padding: 9px 18px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; flex-shrink: 0; transition: box-shadow .15s; }
+.ai-bar-btn:hover { box-shadow: 0 4px 16px rgba(90,154,184,.5); }
+.ai-bar-btn:disabled { opacity: .6; cursor: default; }
+.ai-status { font-size: 12px; padding: 0 8px 8px 4px; min-height: 14px; }
+.ai-status.thinking { color: #9fc6db; }
+.ai-status.success { color: #6fe0b8; }
+.ai-status.error { color: #f0918f; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -1227,6 +1239,12 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
           </div>
           <div class="ol-main">
             <div class="ol-left">
+              <div class="ai-bar">
+                <i class="ti ti-sparkles ai-bar-ic"></i>
+                <input id="ai-capture-input" class="ai-bar-input" placeholder="Brain-dump and I'll file it &mdash; e.g. &lsquo;JVI June blog draft due Friday, high; email Aspire about tri-folds&rsquo;">
+                <button id="ai-capture-btn" class="ai-bar-btn" onclick="aiOrganize()">Organize</button>
+              </div>
+              <div id="ai-capture-status" class="ai-status"></div>
               <div id="today-mount"></div>
               <div class="ol-tree" id="ol-tree"></div>
               <button class="ol-addroot" onclick="addRootChild('mm')"><i class="ti ti-plus"></i> Messick client</button>
@@ -3372,6 +3390,50 @@ function renderNodeTasks(list,nodeId){
   });
 }
 function nodePathLabel(id){ const p=pathTo(id); return p.length>1 ? p[p.length-2].label : ''; }
+const AI_WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+async function aiOrganize(){
+  const input=document.getElementById('ai-capture-input');
+  const btn=document.getElementById('ai-capture-btn');
+  const status=document.getElementById('ai-capture-status');
+  const text=input.value.trim(); if(!text) return;
+  btn.disabled=true; status.className='ai-status thinking'; status.textContent='Thinking…';
+  const nodeList = brainNodes.filter(n=>n.type.indexOf('root')===-1)
+    .map(n=>({ id:n.id, path:pathTo(n.id).map(p=>p.label).join(' › '), brand:brandOf(n)==='ve'?'Virtueasy':'Messick' }));
+  const today=todayStr();
+  const sys='You are an executive assistant for a marketing agency dashboard. Turn the user brain-dump into one or more structured tasks and file each under the single best-matching node from the project tree. Return ONLY a JSON array, no markdown, no commentary.\n'+
+    'Each item: {"text": cleaned task text (no date/priority words), "nodeId": the best matching node id (choose the MOST specific match; if only a client matches, use that client node; if nothing matches well, use the closest client; never invent ids), "priority": "critical|high|medium|low|none", "due": "YYYY-MM-DD or null"}.\n'+
+    'Today is '+today+'. Parse relative dates: today='+today+', tomorrow=next day, this Friday=nearest upcoming Friday, end of week=nearest Friday, next week=+7 days. No date = null. Priority hints: urgent/asap=critical, important=high, none mentioned=medium, someday/low=low.\n'+
+    'Project tree (nodeId — path):\n'+nodeList.map(n=>n.id+' — '+n.path).join('\n');
+  try {
+    const resp=await fetch(AI_WORKER+'/claude',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt: sys+'\n\nBrain-dump:\n'+text }) });
+    const data=await resp.json(); if(!resp.ok) throw new Error(data.error||'Worker error');
+    let parsed=JSON.parse((data.text||'').replace(/```json|```/g,'').trim());
+    if(!Array.isArray(parsed)) parsed=[parsed];
+    const tasks=loadTasks('todo'); let filed=0; let lastNode=null; const touched=new Set();
+    parsed.forEach(p=>{
+      let nid=p.nodeId; if(!brainMap[nid]){ nid = selectedId && brainMap[selectedId] ? selectedId : null; }
+      if(!nid) return;
+      const n=brainMap[nid];
+      tasks.push({ id:uid(), text:(p.text||'').replace(/^./,c=>c.toUpperCase()), brand:brandOf(n)==='ve'?'virtueasy':'messick',
+        nodeId:nid, priority:p.priority||'medium', due:p.due||null, recur:'none', status:'todo', done:false,
+        addedAt:Date.now(), subtasks:[], recurLastGen:todayStr() });
+      filed++; lastNode=nid; touched.add(nid);
+    });
+    saveTasks('todo',tasks);
+    touched.forEach(id=>expandPath(id));
+    if(lastNode){ selectedId=lastNode; }
+    renderTree(); renderDetail(); renderAll();
+    input.value='';
+    status.className='ai-status success';
+    status.textContent='✓ Filed '+filed+' task'+(filed===1?'':'s')+(lastNode?' under '+brainMap[lastNode].label:'');
+    if(filed) fireConfetti();
+    setTimeout(()=>{ status.textContent=''; status.className='ai-status'; },4000);
+  } catch(e){
+    status.className='ai-status error'; status.textContent='Could not organize — try rephrasing'; console.error('AI organize',e);
+  }
+  btn.disabled=false; input.focus();
+}
 function buildTodayStrip(){
   const all=loadTasks('todo').filter(t=>!t.done && t.nodeId);
   const overdue=all.filter(t=>dueStatus(t.due)==='overdue');
@@ -3459,6 +3521,8 @@ function brainEnter(){
   const add=document.getElementById('brain-note-add');
   if(add) add.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(add.value.trim()){ brainAddNote('',add.value.trim()); add.value=''; } } });
   if(localStorage.getItem('mm_notes_open')==='1') toggleNotes(true);
+  const ai=document.getElementById('ai-capture-input');
+  if(ai) ai.addEventListener('keydown',e=>{ if(e.key==='Enter') aiOrganize(); });
 }
 
 </script>
