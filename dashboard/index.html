@@ -475,7 +475,7 @@ function toggleTask(type,idx){
   const tasks=loadTasks(t); if(!tasks[idx])return;
   const was=tasks[idx].done; tasks[idx].done=!tasks[idx].done;
   saveTasks(t,tasks);
-  if(!was&&typeof showPraise==='function')showPraise('');
+  if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();}
 }
 
 function deleteTask(type,idx){
@@ -862,7 +862,7 @@ function toggleFocusDone(slot){
   const p=pins[slot]; if(!p)return;
   const tasks=loadTasks(p.type);
   const task=tasks.find(t=>t.id===p.id);
-  if(task){task.done=!task.done;saveTasks(p.type,tasks);}
+  if(task){const wasDone=task.done;task.done=!task.done;saveTasks(p.type,tasks);if(!wasDone)fireConfetti();}
   renderAll();
 }
 
@@ -1419,3 +1419,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+
