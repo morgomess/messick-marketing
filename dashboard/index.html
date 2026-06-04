@@ -3711,6 +3711,12 @@ function brainLoad() {
   }
   brainMap = {};
   brainNodes.forEach(n => brainMap[n.id] = n);
+  // Seed the id counter above any existing 'b<n>' id so newly added nodes
+  // can never reuse an id (which would make them inherit another node's
+  // tasks and notes, since both key off node id).
+  let _maxBid = 1000;
+  brainNodes.forEach(n => { const m = /^b(\d+)$/.exec(n.id); if (m) _maxBid = Math.max(_maxBid, +m[1]); });
+  bIdCounter = _maxBid + 1;
   migrateBrainCategories();
 }
 function migrateBrainCategories(){
