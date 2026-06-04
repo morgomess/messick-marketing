@@ -5,14 +5,14 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Morgan's Dashboard | Messick Marketing</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Dancing+Script:wght@600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#f5f4f2; --surface:#ffffff; --black:#1a1a1a; --blue:#3a6b8a; --blue-lt:#5a9ab8;
+  --bg:#faf8f5; --surface:#ffffff; --black:#111111; --blue:#3a6b8a; --blue-lt:#5a9ab8;
   --blue-pale:rgba(58,107,138,0.09); --ve:#d4317a; --ve-pale:rgba(212,49,122,0.09);
   --personal:#5e7a4a; --personal-pale:rgba(94,122,74,0.09);
-  --border:rgba(0,0,0,0.09); --border-s:rgba(0,0,0,0.15);
-  --muted:#6b7e8a; --light:#98aab6;
+  --border:rgba(0,0,0,0.1); --border-s:rgba(0,0,0,0.18);
+  --muted:#6b7e8a; --light:#98aab6; --surface-2:#f0ede8;
   --crit:#c0392b; --hi:#d35400; --med:#2980b9; --lo:#27ae60; --teal:#20a99a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -37,50 +37,55 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--black);heigh
 #app{display:none;flex-direction:column;height:100vh}
 
 /* ── HEADER ── */
-header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-.h-left{display:flex;align-items:center;gap:16px}
-.h-logo{display:flex;align-items:center;gap:10px}
-.h-logo h1{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:var(--black)}
-.h-date{font-size:0.78rem;color:var(--muted);padding-left:16px;border-left:1px solid var(--border)}
+header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.h-left{display:flex;align-items:center;gap:20px}
+.h-logo{display:flex;align-items:center;gap:12px}
+.h-logo h1{font-family:'Dancing Script',cursive;font-size:1.6rem;font-weight:700;color:#ffffff;letter-spacing:0.01em}
+.h-date{font-size:0.76rem;color:rgba(255,255,255,0.45);padding-left:18px;border-left:1px solid rgba(255,255,255,0.15)}
+/* Header tabs */
+.h-tabs{display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:18px;border-left:1px solid rgba(255,255,255,0.12)}
+.h-tab{background:none;border:none;color:rgba(255,255,255,0.45);font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px;cursor:pointer;transition:all 0.2s;border-radius:3px;border:1px solid transparent}
+.h-tab:hover{color:rgba(255,255,255,0.8)}
+.h-tab.active{color:#ffffff;background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
 .h-right{display:flex;align-items:center;gap:8px}
-#completion-stat{font-size:0.72rem;font-weight:600;color:var(--blue);background:var(--blue-pale);padding:5px 12px;border-radius:20px;border:1px solid rgba(58,107,138,0.15);transition:all 0.3s}
-#completion-stat.all-done{background:rgba(39,174,96,0.10);color:var(--lo);border-color:rgba(39,174,96,0.25)}
-.h-btn{display:flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;padding:5px 11px;cursor:pointer;transition:all 0.2s;border-radius:4px}
-.h-btn:hover{border-color:var(--blue);color:var(--blue)}
-.h-btn.empire:hover{border-color:#5a9ab8;color:#5a9ab8}
+#completion-stat{font-size:0.72rem;font-weight:600;color:#7ab8d4;background:rgba(58,107,138,0.25);padding:5px 12px;border-radius:20px;border:1px solid rgba(90,154,184,0.3);transition:all 0.3s}
+#completion-stat.all-done{background:rgba(39,174,96,0.2);color:#6fe0b8;border-color:rgba(111,224,184,0.3)}
+.h-btn{display:flex;align-items:center;gap:5px;background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;padding:5px 12px;cursor:pointer;transition:all 0.2s;border-radius:4px}
+.h-btn:hover{border-color:var(--blue-lt);color:#fff}
+.h-btn.empire:hover{border-color:#7ab8d4;color:#7ab8d4}
 .h-btn.spin{background:var(--teal);border-color:var(--teal);color:#fff}
 .h-btn.spin:hover{background:#1a9089}
 
 /* ── FOCUS SECTION ── */
-#focus-section{background:linear-gradient(160deg,rgba(184,216,232,0.5) 0%,rgba(200,228,238,0.4) 40%,rgba(212,207,168,0.3) 80%,rgba(200,184,130,0.35) 100%);padding:14px 24px 16px;border-bottom:1px solid rgba(58,107,138,0.12);flex-shrink:0}
+#focus-section{background:#1a2a38;padding:14px 24px 16px;border-bottom:2px solid #0d1e2a;flex-shrink:0}
 .focus-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .focus-title-row{display:flex;align-items:center;gap:8px}
-.focus-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--black)}
-.focus-sub{font-size:0.68rem;color:var(--muted)}
-.pick-btn{display:flex;align-items:center;gap:6px;background:var(--teal);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:7px 14px;cursor:pointer;border-radius:4px;box-shadow:0 2px 8px rgba(32,169,154,0.3)}
+.focus-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#e6f1f8}
+.focus-sub{font-size:0.68rem;color:rgba(230,241,248,0.45)}
+.pick-btn{display:flex;align-items:center;gap:6px;background:var(--teal);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:7px 14px;cursor:pointer;border-radius:4px;box-shadow:0 2px 8px rgba(32,169,154,0.35)}
 .pick-btn:hover{background:#1a9089}
 .focus-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.focus-slot{display:flex;flex-direction:column;padding:12px 14px;background:rgba(255,255,255,0.78);border:1px solid rgba(255,255,255,0.9);border-radius:6px;min-height:70px;box-shadow:0 2px 6px rgba(0,0,0,0.05);position:relative;transition:all 0.15s}
-.focus-slot.filled{background:#fff;border-color:rgba(58,107,138,0.2)}
-.focus-slot:hover{box-shadow:0 4px 14px rgba(0,0,0,0.08)}
-.focus-slot.slot-done{opacity:0.45}
+.focus-slot{display:flex;flex-direction:column;padding:12px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:6px;min-height:70px;position:relative;transition:all 0.15s}
+.focus-slot.filled{background:rgba(255,255,255,0.1);border-color:rgba(90,154,184,0.4)}
+.focus-slot:hover{background:rgba(255,255,255,0.12)}
+.focus-slot.slot-done{opacity:0.4}
 .focus-slot.slot-done .fs-text{text-decoration:line-through}
 .fs-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
-.fs-num{width:22px;height:22px;border-radius:50%;background:rgba(58,107,138,0.12);color:var(--blue);font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fs-num{width:22px;height:22px;border-radius:50%;background:rgba(58,107,138,0.3);color:#7ab8d4;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .focus-slot.filled .fs-num{background:var(--blue);color:#fff}
 .fs-actions{display:flex;gap:2px}
-.fs-text{font-size:0.8rem;color:var(--light);flex:1;font-style:italic;line-height:1.4}
-.focus-slot.filled .fs-text{color:var(--black);font-style:normal}
+.fs-text{font-size:0.8rem;color:rgba(230,241,248,0.35);flex:1;font-style:italic;line-height:1.4}
+.focus-slot.filled .fs-text{color:#e6f1f8;font-style:normal}
 .fs-bot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
-.fs-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:var(--blue-pale);color:var(--blue)}
-.fs-pill.ve{background:var(--ve-pale);color:var(--ve)}
-.fs-check{width:16px;height:16px;border:1.5px solid rgba(58,107,138,0.3);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all 0.15s}
-.fs-check:hover{border-color:var(--blue)}
+.fs-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:rgba(58,107,138,0.3);color:#7ab8d4}
+.fs-pill.ve{background:rgba(212,49,122,0.25);color:#f472b6}
+.fs-check{width:16px;height:16px;border:1.5px solid rgba(90,154,184,0.35);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all 0.15s}
+.fs-check:hover{border-color:#5a9ab8}
 .fs-check.chk{background:var(--blue-lt);border-color:var(--blue-lt)}
 .fs-check.chk::after{content:'✓';color:#fff;font-size:8px;font-weight:bold}
-.fs-remove{background:none;border:none;color:rgba(58,107,138,0.3);font-size:1rem;cursor:pointer;padding:1px 3px;line-height:1;transition:color 0.15s}
-.fs-remove:hover{color:#c0392b}
-.focus-hint{font-size:0.62rem;color:var(--light);margin-top:8px;text-align:center;font-style:italic}
+.fs-remove{background:none;border:none;color:rgba(90,154,184,0.3);font-size:1rem;cursor:pointer;padding:1px 3px;line-height:1;transition:color 0.15s}
+.fs-remove:hover{color:#f87171}
+.focus-hint{font-size:0.62rem;color:rgba(230,241,248,0.3);margin-top:8px;text-align:center;font-style:italic}
 
 /* ── QUICK ADD BAR ── */
 #quick-add-bar{display:flex;align-items:center;gap:10px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -151,6 +156,47 @@ header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;heig
 .col-add-input:focus{border-color:var(--blue)}
 .col-add-folder{background:none;border:none;font-family:'Jost',sans-serif;font-size:0.7rem;color:var(--muted);cursor:pointer;padding:2px 0;text-align:left;transition:color 0.15s}
 .col-add-folder:hover{color:var(--blue)}
+
+#clients-view{display:none;flex:1;overflow-y:auto;padding:24px}
+.clients-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.clients-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--black)}
+.add-btn{background:var(--blue);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:8px 18px;cursor:pointer;transition:all 0.2s;border-radius:3px}
+.add-btn:hover{background:var(--blue-lt)}
+/* Add client form */
+.client-add-form{background:#fff;border:1px solid var(--border);padding:20px;margin-bottom:20px;display:none;flex-direction:column;gap:12px;border-left:3px solid var(--blue)}
+.client-add-form.open{display:flex}
+.form-row{display:flex;gap:10px;flex-wrap:wrap}
+.form-row input{flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);background:var(--surface-2);font-family:'Jost',sans-serif;font-size:0.82rem;outline:none;color:var(--black);transition:border-color 0.2s;border-radius:3px}
+.form-row input:focus{border-color:var(--blue)}
+.form-label{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.services-checklist{display:flex;flex-direction:column;gap:6px;background:var(--surface-2);padding:12px;border:1px solid var(--border);max-height:180px;overflow-y:auto;border-radius:3px}
+.service-opt{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--black);cursor:pointer}
+.service-opt input{cursor:pointer;accent-color:var(--blue)}
+.custom-service-input{display:none;padding:8px 12px;border:1px solid var(--border);background:var(--surface-2);color:var(--black);font-family:'Jost',sans-serif;font-size:0.82rem;outline:none;border-radius:3px;width:100%}
+.form-btns{display:flex;gap:10px}
+.save-btn{background:var(--blue);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:9px 20px;cursor:pointer;transition:all 0.2s;border-radius:3px}
+.save-btn:hover{background:var(--blue-lt)}
+.cancel-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all 0.2s;border-radius:3px}
+.cancel-btn:hover{border-color:var(--blue);color:var(--blue)}
+/* Client cards */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.client-card{background:#fff;border:1px solid var(--border);padding:18px;border-left:4px solid var(--blue);box-shadow:0 1px 4px rgba(58,107,138,0.07);transition:box-shadow 0.2s;border-radius:0 3px 3px 0}
+.client-card:hover{box-shadow:0 3px 12px rgba(58,107,138,0.12)}
+.client-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.client-name{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:var(--blue);line-height:1.1}
+.client-industry{font-size:0.63rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);padding:3px 8px;border-radius:12px;margin-top:5px;display:inline-block;border:1px solid var(--border)}
+.client-actions{display:flex;gap:6px}
+.client-del{background:none;border:none;color:var(--light);cursor:pointer;font-size:1.1rem;padding:2px 5px;line-height:1;transition:color 0.15s}
+.client-del:hover{color:var(--crit)}
+.client-details{display:flex;flex-direction:column;gap:6px;margin:10px 0;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px}
+.detail-row{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--black)}
+.copy-icon{cursor:pointer;color:var(--light);font-size:0.85rem;transition:color 0.15s;flex-shrink:0;user-select:none}
+.copy-icon:hover{color:var(--blue)}
+.client-services{margin-top:10px}
+.client-services-title{font-size:0.63rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.services-tags{display:flex;flex-wrap:wrap;gap:6px}
+.service-tag{background:var(--blue-pale);color:var(--blue);font-size:0.7rem;padding:4px 10px;border-radius:4px;font-weight:500;border:1px solid rgba(58,107,138,0.15)}
+.empty-state{padding:40px;text-align:center;color:var(--light);font-size:0.88rem;font-style:italic}
 
 /* ── PICKER MODAL ── */
 @keyframes picker-pop{0%{transform:scale(0.7) translateY(40px);opacity:0}70%{transform:scale(1.04);opacity:1}100%{transform:scale(1)}}
@@ -232,9 +278,13 @@ header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;heig
   <header>
     <div class="h-left">
       <div class="h-logo">
-        <h1>Morgan's Dashboard</h1>
+        <h1>Messick Marketing</h1>
       </div>
       <span class="h-date" id="today-date"></span>
+      <div class="h-tabs">
+        <button class="h-tab active" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
+        <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
+      </div>
     </div>
     <div class="h-right">
       <span id="completion-stat">↻ <span id="stat-text">0 of 0 done</span></span>
@@ -266,6 +316,37 @@ header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;heig
   </div>
 
   <div id="col-view"></div>
+
+  <div id="clients-view">
+    <div class="clients-header">
+      <div class="clients-title">Client Directory</div>
+      <button class="add-btn" onclick="toggleClientForm()">+ Add Client</button>
+    </div>
+
+    <div class="client-add-form" id="add-form-client">
+      <div class="form-row">
+        <input type="text" id="client-name" placeholder="Client Name *">
+        <input type="text" id="client-industry" placeholder="Industry / Niche">
+      </div>
+      <div class="form-row">
+        <input type="text" id="client-phone" placeholder="Phone Number">
+        <input type="text" id="client-email" placeholder="Email Address">
+        <input type="text" id="client-address" placeholder="Physical Address" style="flex:2">
+      </div>
+      <div class="form-row">
+        <input type="text" id="client-website" placeholder="Website URL">
+      </div>
+      <span class="form-label">Services Provided</span>
+      <div class="services-checklist" id="client-services-list"></div>
+      <input type="text" id="custom-service-text" class="custom-service-input" placeholder="Enter custom service...">
+      <div class="form-btns">
+        <button class="save-btn" onclick="addClient()">Save Client</button>
+        <button class="cancel-btn" onclick="toggleClientForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="clients-grid" id="clients-list"></div>
+  </div>
 </div>
 
 <!-- Picker -->
@@ -1036,6 +1117,143 @@ function showPraise(msg){
 }
 
 /* ═══════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════ */
+function switchMainTab(tab){
+  const isClients=tab==='clients';
+  document.getElementById('focus-section').style.display=isClients?'none':'block';
+  document.getElementById('quick-add-bar').style.display=isClients?'none':'flex';
+  document.getElementById('col-view').style.display=isClients?'none':'flex';
+  document.getElementById('clients-view').style.display=isClients?'block':'none';
+  document.getElementById('tab-brain').classList.toggle('active',!isClients);
+  document.getElementById('tab-clients').classList.toggle('active',isClients);
+  if(isClients){renderClients();}
+}
+
+/* ═══════════════════════════════════════════
+   CLIENT DIRECTORY
+═══════════════════════════════════════════ */
+const DEFAULT_SERVICES=[
+  'Social Media Management (Lite/Lite+)',
+  'Social Media Management (Basic)',
+  'Social Media Management (Growth)',
+  'Blog Posts/Copywriting',
+  'Website Design/Development',
+  'Graphic Design',
+  'Video Editing',
+  'Podcast Production',
+];
+
+function loadClients(){return JSON.parse(localStorage.getItem('mm_clients')||'[]')}
+function saveClients(c){localStorage.setItem('mm_clients',JSON.stringify(c));scheduleSave();}
+
+function toggleClientForm(){
+  const form=document.getElementById('add-form-client');
+  form.classList.toggle('open');
+  if(form.classList.contains('open'))document.getElementById('client-name').focus();
+}
+
+function initServicesChecklist(){
+  const container=document.getElementById('client-services-list');
+  if(!container)return;
+  container.innerHTML='';
+  DEFAULT_SERVICES.forEach(srv=>{
+    container.innerHTML+=`<label class="service-opt"><input type="checkbox" value="${bEsc(srv)}" class="srv-check"> ${bEsc(srv)}</label>`;
+  });
+  container.innerHTML+=`<label class="service-opt"><input type="checkbox" value="Other" id="check-other" onchange="toggleCustomService()"> Other (Specify)</label>`;
+}
+
+function toggleCustomService(){
+  const checked=document.getElementById('check-other').checked;
+  document.getElementById('custom-service-text').style.display=checked?'block':'none';
+}
+
+function addClient(){
+  const name=document.getElementById('client-name').value.trim();
+  if(!name){alert('Client name is required!');return;}
+  let services=Array.from(document.querySelectorAll('.srv-check:checked')).map(cb=>cb.value);
+  if(document.getElementById('check-other').checked){
+    const custom=document.getElementById('custom-service-text').value.trim();
+    if(custom)services.push(custom);
+  }
+  const clients=loadClients();
+  clients.push({id:uid(),name,
+    industry:document.getElementById('client-industry').value.trim(),
+    phone:document.getElementById('client-phone').value.trim(),
+    email:document.getElementById('client-email').value.trim(),
+    address:document.getElementById('client-address').value.trim(),
+    website:document.getElementById('client-website').value.trim(),
+    services});
+  saveClients(clients);
+  toggleClientForm();
+  ['name','industry','phone','email','address','website'].forEach(id=>{
+    const el=document.getElementById('client-'+id);if(el)el.value='';
+  });
+  document.getElementById('custom-service-text').value='';
+  document.getElementById('custom-service-text').style.display='none';
+  initServicesChecklist();
+  renderClients();
+}
+
+function deleteClient(id){
+  if(!confirm('Remove this client?'))return;
+  saveClients(loadClients().filter(c=>c.id!==id));
+  renderClients();
+}
+
+function copyText(text,el){
+  if(!text)return;
+  const feedback=()=>{
+    if(!el)return;
+    const orig=el.textContent;el.textContent='✓';el.style.color='var(--lo)';
+    setTimeout(()=>{el.textContent=orig;el.style.color='';},1200);
+  };
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(feedback).catch(()=>legacyCopy(text,feedback));
+  } else {legacyCopy(text,feedback);}
+}
+function legacyCopy(text,cb){
+  const ta=document.createElement('textarea');ta.value=text;
+  ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');if(cb)cb();}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function renderClients(){
+  const list=document.getElementById('clients-list');
+  if(!list)return;
+  const clients=loadClients().slice().sort((a,b)=>a.name.localeCompare(b.name));
+  if(clients.length===0){list.innerHTML='<div class="empty-state">No clients added yet. Click + Add Client to get started.</div>';return;}
+  list.innerHTML='';
+  clients.forEach(c=>{
+    const ea=v=>String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    const srvHtml=c.services.map(s=>`<span class="service-tag">${bEsc(s)}</span>`).join('');
+    let contactHtml='';
+    if(c.phone)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.phone)}',this)" title="Copy">📋</span> <strong>Phone:</strong> ${bEsc(c.phone)}</div>`;
+    if(c.email)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.email)}',this)" title="Copy">📋</span> <strong>Email:</strong> ${bEsc(c.email)}</div>`;
+    if(c.address)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.address)}',this)" title="Copy">📋</span> <strong>Address:</strong> ${bEsc(c.address)}</div>`;
+    if(c.website)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.website)}',this)" title="Copy">📋</span> <strong>Website:</strong> <a href="${ea(c.website)}" target="_blank" style="color:var(--blue)">${bEsc(c.website)}</a></div>`;
+    const card=document.createElement('div');
+    card.className='client-card';
+    card.innerHTML=`
+      <div class="client-header">
+        <div>
+          <div class="client-name">${bEsc(c.name)}</div>
+          ${c.industry?`<div class="client-industry">${bEsc(c.industry)}</div>`:''}
+        </div>
+        <div class="client-actions">
+          <button class="client-del" onclick="deleteClient('${c.id}')" title="Delete client">×</button>
+        </div>
+      </div>
+      ${contactHtml?`<div class="client-details">${contactHtml}</div>`:''}
+      ${c.services.length>0?`<div class="client-services"><div class="client-services-title">Services</div><div class="services-tags">${srvHtml}</div></div>`:''}
+    `;
+    list.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════
    EMPIRE GAME
 ═══════════════════════════════════════════ */
 const EMPIRE_ASSETS_DEF=[
@@ -1171,6 +1389,7 @@ function renderAll(){
 function init(){
   brainLoad();
   setDate();
+  initServicesChecklist();
   renderColumns();
   // Migrate existing tasks to have IDs
   const tasks=loadTodoTasks();let changed=false;
