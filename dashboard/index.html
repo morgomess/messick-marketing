@@ -1426,7 +1426,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
                   <button id="radial-mm-btn" class="rn-brand-btn rn-brand-active" onclick="radialSetBrand('mm')">Messick</button>
                   <button id="radial-ve-btn" class="rn-brand-btn" onclick="radialSetBrand('ve')">Virtueasy</button>
                 </div>
-                <button class="rn-add-client" onclick="addClientFromRadial()"><i class="ti ti-plus"></i> Client</button>
+                <button class="rn-add-client" onclick="addClientFromRadial()"><i class="ti ti-plus"></i> Category</button>
                 <div id="rn-breadcrumb" class="rn-breadcrumb"></div>
               </div>
               <div class="rn-ai-row">
@@ -1891,7 +1891,7 @@ function renderClientBoard() {
 function addClientFromRadial() {
   const rootId = radialBrand + '-root';
   const root = brainMap[rootId]; if (!root) return;
-  const nn = { id: 'b' + bIdCounter++, label: 'New client', type: childTypeFor(root), parent: rootId, status: 'todo', done: false, x: 0, y: 0 };
+  const nn = { id: 'b' + bIdCounter++, label: 'New', type: childTypeFor(root), parent: rootId, status: 'todo', done: false, x: 0, y: 0 };
   brainNodes.push(nn); brainMap[nn.id] = nn; brainSave();
   openClientBoard(nn.id);
 }
@@ -3594,6 +3594,30 @@ function brainLoad() {
   }
   brainMap = {};
   brainNodes.forEach(n => brainMap[n.id] = n);
+  migrateBrainCategories();
+}
+function migrateBrainCategories(){
+  if(localStorage.getItem('mm_brain_cats')==='1') return;
+  const root = brainMap['mm-root']; if(!root) return;
+  const cats = [
+    {id:'mm-cat-finance', label:'Finance'},
+    {id:'mm-cat-team',    label:'Team'},
+    {id:'mm-cat-clients', label:'Clients'},
+    {id:'mm-cat-misc',    label:'Misc'},
+    {id:'mm-cat-website', label:'Website / Marketing'},
+  ];
+  cats.forEach(ct=>{
+    if(!brainMap[ct.id]){
+      const n={id:ct.id,label:ct.label,type:'mm-client',parent:'mm-root',status:'todo',done:false,x:0,y:0};
+      brainNodes.push(n); brainMap[n.id]=n;
+    }
+  });
+  const catIds = cats.map(x=>x.id);
+  brainNodes.forEach(n=>{
+    if(n.parent==='mm-root' && catIds.indexOf(n.id)===-1){ n.parent='mm-cat-clients'; }
+  });
+  brainSave();
+  localStorage.setItem('mm_brain_cats','1');
 }
 function brainSave() {
   localStorage.setItem(BRAIN_KEY, JSON.stringify(brainNodes));
@@ -3645,7 +3669,7 @@ function childTypeFor(n){
            've-root':'ve-client','ve-client':'ve-service','ve-service':'ve-task','ve-task':'ve-task'};
   return m[n.type] || (brandOf(n)==='ve'?'ve-task':'mm-task');
 }
-function kidWord(n){ return {'mm-root':'clients','mm-client':'projects','mm-service':'sub-projects','mm-task':'items',
+function kidWord(n){ return {'mm-root':'areas','mm-client':'projects','mm-service':'sub-projects','mm-task':'items',
   've-root':'projects','ve-client':'sub-projects','ve-service':'sub-projects','ve-task':'items'}[n.type] || 'items'; }
 function bEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function pathTo(id){ const out=[]; let cur=brainMap[id]; while(cur){ out.unshift(cur); cur=cur.parent?brainMap[cur.parent]:null; } return out; }
