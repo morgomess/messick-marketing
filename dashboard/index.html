@@ -1347,6 +1347,40 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
 .rn-ai-row .ai-bar-btn:hover { background:#2a5570; color:#fff; }
 .rn-canvas-wrap { flex:1; min-height:420px; overflow:hidden; position:relative; }
 .rn-svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.rn-mobile { display:none; }
+@media (max-width:760px){
+  .rn-canvas-wrap { display:none !important; }
+  .rn-topbar, #today-mount { display:none !important; }
+  .ol-detail { display:none !important; }
+  .rn-mobile { display:block; flex:1; overflow-y:auto; padding:14px 14px 90px; }
+}
+.mob-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.mob-back { background:#0e1d27; border:1px solid #2a4f64; color:#9fc6db; border-radius:10px; width:42px; height:42px; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mob-title { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:600; color:#e6f1f8; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mob-brand-toggle { display:flex; gap:6px; width:100%; }
+.mob-brand { flex:1; padding:12px 0; background:#0b1620; border:1px solid #1e3a50; border-radius:10px; color:#7ab8d4; font-family:'Jost',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; }
+.mob-brand.on { background:#1e3a50; color:#fff; border-color:#2a5570; }
+.mob-crumb { font-size:0.75rem; color:#5a9ab8; margin-bottom:12px; }
+.mob-section { margin-top:18px; }
+.mob-sec-label { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:#5a9ab8; font-weight:700; margin-bottom:9px; }
+.mob-row { display:flex; align-items:center; gap:10px; padding:16px; background:#0e1d27; border:1px solid #1f3d4d; border-radius:12px; margin-bottom:10px; min-height:58px; cursor:pointer; }
+.mob-row:active { background:#16323f; }
+.mob-row-label { flex:1; font-size:1.05rem; color:#e6f1f8; min-width:0; }
+.mob-chev { color:#4a6575; font-size:1.15rem; flex-shrink:0; }
+.mob-badge { min-width:24px; height:24px; padding:0 7px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:0.74rem; font-weight:800; color:#1a1208; flex-shrink:0; }
+.mob-badge.over { background:#f87171; } .mob-badge.today { background:#fb923c; } .mob-badge.soon { background:#facc15; }
+.mob-badge.open { background:#2a4f64; color:#9fc6db; }
+.mob-task { display:flex; align-items:center; gap:11px; padding:14px; background:#0e1d27; border:1px solid #1f3d4d; border-radius:12px; margin-bottom:8px; }
+.mob-task.done .mob-task-text { text-decoration:line-through; opacity:0.5; }
+.mob-check { background:none; border:none; color:#5a9ab8; font-size:1.5rem; cursor:pointer; display:flex; padding:0; flex-shrink:0; }
+.mob-check.on { color:#34d399; }
+.mob-task-text { flex:1; font-size:1rem; color:#cfe6f2; min-width:0; word-break:break-word; }
+.mob-due { font-size:0.7rem; color:#9fc6db; background:#0b1620; padding:4px 8px; border-radius:8px; flex-shrink:0; }
+.mob-due.overdue { color:#f87171; } .mob-due.due-today { color:#fb923c; } .mob-due.due-week { color:#facc15; }
+.mob-add { display:flex; gap:8px; margin-top:8px; }
+.mob-add-input { flex:1; min-width:0; background:#0b1620; border:1px solid #2a4f64; border-radius:10px; padding:12px; color:#cfe6f2; font-family:'Jost',sans-serif; font-size:0.95rem; outline:none; }
+.mob-add-btn { background:linear-gradient(135deg,#2a5570,#3a6b8a); border:none; color:#fff; border-radius:10px; padding:0 18px; font-weight:700; cursor:pointer; flex-shrink:0; }
+.mob-add-node { width:100%; margin-top:16px; padding:15px; background:#13283a; border:1px dashed #2a5570; border-radius:12px; color:#7ab8d4; font-family:'Jost',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; }
 .rn-board { position:absolute; inset:0; overflow-y:auto; padding:18px 24px 32px; display:none; }
 .rn-canvas-wrap.board-mode .rn-svg { display:none; }
 .rn-canvas-wrap.board-mode #rn-board { display:block; }
@@ -1440,6 +1474,7 @@ header h1 { font-family: 'Cormorant Garamond', serif; color: var(--black); font-
                 <svg id="rn-svg" class="rn-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet"></svg>
                 <div id="rn-board" class="rn-board"></div>
               </div>
+              <div id="rn-mobile" class="rn-mobile"></div>
             </div>
             <div class="ol-detail" id="ol-detail"></div>
           </div>
@@ -1835,6 +1870,7 @@ function radialSetBrand(brand) {
   radialBrand = brand;
   radialFocus = null;
   radialBoardId = null;
+  mobilePath = [brand + '-root'];
   document.getElementById('radial-mm-btn').classList.toggle('rn-brand-active', brand==='mm');
   document.getElementById('radial-ve-btn').classList.toggle('rn-brand-active', brand==='ve');
   renderRadialView();
@@ -1855,6 +1891,7 @@ function renderRadialView() {
     if (wrap) wrap.classList.remove('board-mode');
     renderRadial();
   }
+  renderMobile();
 }
 function openClientBoard(id) {
   radialBoardId = id; selectedId = null;
@@ -1894,6 +1931,86 @@ function addClientFromRadial() {
   const nn = { id: 'b' + bIdCounter++, label: 'New', type: childTypeFor(root), parent: rootId, status: 'todo', done: false, x: 0, y: 0 };
   brainNodes.push(nn); brainMap[nn.id] = nn; brainSave();
   openClientBoard(nn.id);
+}
+let mobilePath = [];
+function mobileRootId(){ return radialBrand + '-root'; }
+function mobileOpen(id){ mobilePath.push(id); renderMobile(); }
+function mobileBack(){ if(mobilePath.length>1) mobilePath.pop(); renderMobile(); }
+function mobileBrand(b){
+  radialBrand=b; mobilePath=[mobileRootId()];
+  const mm=document.getElementById('radial-mm-btn'), ve=document.getElementById('radial-ve-btn');
+  if(mm) mm.classList.toggle('rn-brand-active', b==='mm');
+  if(ve) ve.classList.toggle('rn-brand-active', b==='ve');
+  renderRadial(); renderMobile();
+}
+function mobileToggleTask(id){
+  const ts=loadTasks('todo'); const t=ts.find(x=>x.id===id);
+  if(t){ t.done=!t.done; saveTasks('todo',ts); }
+  renderMobile(); renderTodayStrip();
+}
+function renderMobile(){
+  const host=document.getElementById('rn-mobile'); if(!host) return;
+  if(!mobilePath.length || !brainMap[mobilePath[mobilePath.length-1]]) mobilePath=[mobileRootId()];
+  const curId=mobilePath[mobilePath.length-1], cur=brainMap[curId];
+  if(!cur){ host.innerHTML=''; return; }
+  const isRoot=!cur.parent;
+  let h='<div class="mob-head">';
+  if(mobilePath.length>1){
+    h+='<button class="mob-back" onclick="mobileBack()"><i class="ti ti-chevron-left"></i></button><div class="mob-title">'+bEsc(cur.label)+'</div>';
+  } else {
+    h+='<div class="mob-brand-toggle"><button class="mob-brand'+(radialBrand==='mm'?' on':'')+'" onclick="mobileBrand(\'mm\')">Messick</button><button class="mob-brand'+(radialBrand==='ve'?' on':'')+'" onclick="mobileBrand(\'ve\')">Virtueasy</button></div>';
+  }
+  h+='</div>';
+  if(mobilePath.length>1){
+    h+='<div class="mob-crumb">'+mobilePath.map(id=>brainMap[id]?bEsc(brainMap[id].label):'').join(' / ')+'</div>';
+  }
+  host.innerHTML=h;
+  host.appendChild(buildTodayStrip());
+  if(!isRoot){
+    const tasks=tasksForNode(curId);
+    const sec=document.createElement('div'); sec.className='mob-section';
+    if(tasks.length) sec.innerHTML='<div class="mob-sec-label">Tasks</div>';
+    tasks.forEach(t=>{
+      const row=document.createElement('div'); row.className='mob-task'+(t.done?' done':'');
+      const due=t.due?'<span class="mob-due '+(dueStatus(t.due)||'')+'">'+fmtDate(t.due)+'</span>':'';
+      row.innerHTML='<button class="mob-check'+(t.done?' on':'')+'"><i class="ti ti-'+(t.done?'circle-check-filled':'circle')+'"></i></button><span class="mob-task-text">'+bEsc(t.text)+'</span>'+due;
+      row.querySelector('.mob-check').addEventListener('click',()=>mobileToggleTask(t.id));
+      sec.appendChild(row);
+    });
+    const add=document.createElement('div'); add.className='mob-add';
+    add.innerHTML='<input class="mob-add-input" placeholder="Add a task..."><button class="mob-add-btn">Add</button>';
+    const inp=add.querySelector('.mob-add-input'), btn=add.querySelector('.mob-add-btn');
+    const doAdd=()=>{ const v=inp.value.trim(); if(!v) return; addNodeTask(curId,v,'','none'); renderMobile(); };
+    btn.addEventListener('click',doAdd);
+    inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter') doAdd(); });
+    sec.appendChild(add);
+    host.appendChild(sec);
+  }
+  const kids=brainNodes.filter(n=>n.parent===curId);
+  if(kids.length){
+    const sec=document.createElement('div'); sec.className='mob-section';
+    const word=isRoot?'Areas':(kidWord(cur).charAt(0).toUpperCase()+kidWord(cur).slice(1));
+    sec.innerHTML='<div class="mob-sec-label">'+word+'</div>';
+    kids.forEach(k=>{
+      const dr=nodeDueRollup(k.id), dueCount=dr.overdue+dr.today+dr.soon;
+      let badge='';
+      if(dueCount>0){ const cl=dr.overdue?'over':(dr.today?'today':'soon'); badge='<span class="mob-badge '+cl+'">'+dueCount+'</span>'; }
+      else if(dr.open>0){ badge='<span class="mob-badge open">'+dr.open+'</span>'; }
+      const row=document.createElement('div'); row.className='mob-row';
+      row.innerHTML='<span class="mob-row-label">'+bEsc(k.label)+'</span>'+badge+'<i class="ti ti-chevron-right mob-chev"></i>';
+      row.addEventListener('click',()=>mobileOpen(k.id));
+      sec.appendChild(row);
+    });
+    host.appendChild(sec);
+  }
+  const addNode=document.createElement('button'); addNode.className='mob-add-node';
+  addNode.innerHTML='<i class="ti ti-plus"></i> Add '+(isRoot?'category':kidWord(cur).replace(/s$/,''));
+  addNode.addEventListener('click',()=>{
+    const name=(prompt('Name')||'').trim(); if(!name) return;
+    const nn={id:'b'+bIdCounter++,label:name,type:childTypeFor(cur),parent:curId,status:'todo',done:false,x:0,y:0};
+    brainNodes.push(nn); brainMap[nn.id]=nn; brainSave(); renderMobile();
+  });
+  host.appendChild(addNode);
 }
 
 function radialBack() {
