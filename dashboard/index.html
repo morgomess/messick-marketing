@@ -356,7 +356,7 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
       <div class="picker-phrase" id="picker-phrase">The universe has spoken...</div>
       <div class="wheel-wrap" id="picker-drum-wrap">
         <div class="wheel-pointer"></div>
-        <svg class="wheel-svg" viewBox="0 0 220 220"><g id="wheel-rot"></g></svg>
+        <svg class="wheel-svg" viewBox="0 0 220 220"><g id="wheel-rot" style="transform-origin:110px 110px"></g></svg>
         <div class="wheel-hub">✦</div>
       </div>
       <div class="picker-task-reveal" id="picker-reveal" style="display:none"></div>
@@ -998,10 +998,15 @@ Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-M
    PICKER / SPINNER
 ═══════════════════════════════════════════ */
 let pickerResult=null;
+let spinTimeout=null;
 function openPicker(){document.getElementById('picker-overlay').classList.add('open');pickerSpin();}
-function closePicker(){document.getElementById('picker-overlay').classList.remove('open');}
+function closePicker(){
+  if(spinTimeout){clearTimeout(spinTimeout);spinTimeout=null;}
+  document.getElementById('picker-overlay').classList.remove('open');
+}
 
 function pickerSpin(){
+  if(spinTimeout){clearTimeout(spinTimeout);spinTimeout=null;}
   const phrase=PICKER_PHRASES[Math.floor(Math.random()*PICKER_PHRASES.length)];
   document.getElementById('picker-phrase').textContent=phrase;
 
@@ -1053,18 +1058,20 @@ function pickerSpin(){
   rot.style.transition='transform 3.3s cubic-bezier(0.16,0.84,0.25,1)';
   rot.style.transform=`rotate(${target}deg)`;
 
-  setTimeout(()=>{
+  const capturedResult=pickerResult;
+  spinTimeout=setTimeout(()=>{
+    spinTimeout=null;
     drumWrap.style.display='none';revealEl.style.display='flex';
-    revealEl.classList.remove('landing');revealEl.textContent=pickerResult.task.text;
+    revealEl.classList.remove('landing');revealEl.textContent=capturedResult.task.text;
     void revealEl.offsetWidth;revealEl.classList.add('landing');
     const priColors={critical:['rgba(248,113,113,0.2)','#f87171'],high:['rgba(251,146,60,0.2)','#fb923c'],medium:['rgba(96,165,250,0.2)','#60a5fa'],low:['rgba(52,211,153,0.2)','#34d399']};
     const brandColors={messick:['rgba(90,154,184,0.2)','#7ab8d4'],virtueasy:['rgba(240,62,138,0.2)','#f472b6'],other:['rgba(160,140,100,0.2)','#c4a97a']};
-    const pri=pickerResult.task.priority||'none',brand=pickerResult.task.brand||'messick';
+    const pri=capturedResult.task.priority||'none',brand=capturedResult.task.brand||'messick';
     const[pbg,pfg]=priColors[pri]||[],[bbg,bfg]=brandColors[brand]||['rgba(90,154,184,0.2)','#7ab8d4'];
     const tag=(bg,fg,lbl)=>`<span style="background:${bg};color:${fg};font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;">${lbl}</span>`;
     metaEl.innerHTML=[pbg?tag(pbg,pfg,pri):'',tag(bbg,bfg,brand)].filter(Boolean).join('');
     spawnPickerConfetti();
-  },3500);
+  },3400);
 }
 
 function spawnPickerConfetti(){
