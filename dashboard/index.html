@@ -498,7 +498,7 @@ const BRAIN_KEY='mm_brain';
 let brainNodes=[],brainMap={};
 let bIdCounter=1000,brainBooted=false;
 
-const BRAIN_SEED_V='2';
+const BRAIN_SEED_V='3';
 const BRAIN_SEED=[
   {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
     {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
@@ -521,6 +521,9 @@ const BRAIN_SEED=[
       {id:'desert-s1',label:'Social media',type:'mm-service',parent:'desert'},
     {id:'aspire',label:'Aspire Therapy',type:'mm-client',parent:'mm-root'},
       {id:'aspire-s1',label:'Blog + GBP',type:'mm-service',parent:'aspire'},
+    {id:'bttc',label:'BTTC',type:'mm-client',parent:'mm-root'},
+  {id:'mm-team-rida',label:'Rida',type:'mm-service',parent:'mm-cat-team'},
+  {id:'mm-team-jacob',label:'Jacob',type:'mm-service',parent:'mm-cat-team'},
   {id:'ve-root',label:'Virtueasy',type:'ve-root',parent:null},
     {id:'ve-sk',label:'VA Starter Kit',type:'ve-client',parent:'ve-root'},
     {id:'ve-ok',label:'Onboarding Kit',type:'ve-client',parent:'ve-root'},
