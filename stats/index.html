@@ -98,6 +98,25 @@
         .global-auto-tile .gval { font-size: 1.2rem; font-weight: 600; font-family: 'Cormorant Garamond', serif; }
         .global-auto-tile .glbl { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
+        
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: #faf8f5 !important; }
+            .top-nav, .nav-actions, footer, #settings-modal, #delete-confirm,
+            .btn-danger, .btn-ghost, .btn-sm, .pitch-box,
+            button[onclick*="promptDelete"], button[onclick*="view('dashboard'"],
+            .timeframe-tabs, #strategy-content ~ *, .no-print { display: none !important; }
+            main { padding: 0 !important; max-width: 100% !important; }
+            .form-container { break-inside: avoid; border: 1px solid #d8d5cf; box-shadow: none !important; margin-bottom: 1rem; }
+            .card { break-inside: avoid; }
+            .score-bar-bg { background: #e0deda !important; }
+            .stat-tile { background: #f0eeeb !important; }
+            .pdf-header { display: block !important; }
+            .boost-box { break-inside: avoid; }
+            @page { margin: 1.5cm 1.8cm; size: A4; }
+        }
+        .pdf-header { display: none; padding: 0 0 1.5rem; border-bottom: 2px solid #3a6b8a; margin-bottom: 1.5rem; }
+
         @media (max-width: 600px) {
             main { padding: 1rem; }
             .top-nav { padding: 0.75rem 1rem; }
@@ -509,9 +528,15 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
 
         el.innerHTML = `
             <div style="max-width:760px; margin:0 auto;">
+                <div class="pdf-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-family:'Dancing Script',cursive; font-size:1.5rem; color:#3a6b8a;">Messick Marketing</span>
+                        <span style="font-size:0.75rem; color:#5a6b74;">Social Audit Report &middot; Confidential</span>
+                    </div>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
                     <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><span style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${c.date}</span></div>
-                    <div style="display:flex; gap:8px;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm" onclick="app.view('dashboard')">&larr; Back</button></div>
+                    <div style="display:flex; gap:8px;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm no-print" onclick="app.view('dashboard')">&larr; Back</button><button class="btn btn-primary btn-sm no-print" onclick="app.savePDF()" style="gap:6px;">&#x2193; PDF</button></div>
                 </div>
 
                 <div class="pitch-box" id="pitch-box"><strong>Pitch Summary:</strong><br>"This ecosystem has a Health Score of ${health.total}/100 across ${platforms.join(' + ')}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"</div>
@@ -601,6 +626,21 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
         const h = m.style.display === 'none' || m.style.display === '';
         m.style.display = h ? 'flex' : 'none';
         if (h) document.getElementById('api-key-input').value = this.apiKey;
+    },
+    savePDF() {
+        // Show all pitch/strategy content before printing
+        const pitch = document.getElementById('pitch-box');
+        if (pitch) pitch.style.display = 'block';
+        const strat = document.getElementById('strategy-content');
+        if (strat) {
+            const allTabs = ['win','week','month'];
+            const combined = allTabs.map(t => {
+                const labels = { win:'Quick Wins', week:'1-Week Fix', month:'4-Week Plan' };
+                return '<div style="margin-bottom:1rem;"><strong style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">' + labels[t] + '</strong>' + this.getStrategyHTML(t) + '</div>';
+            }).join('');
+            strat.innerHTML = combined;
+        }
+        window.print();
     },
     saveSettings() { this.apiKey = document.getElementById('api-key-input').value; localStorage.setItem('eb_ant_key', this.apiKey); this.toggleSettings(); }
 };
