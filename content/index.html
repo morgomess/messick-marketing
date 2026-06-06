@@ -886,7 +886,7 @@
   function buildPrompt(d, refNote) {
     const coverLabels = { reel: 'Reel / Story Cover', landscape: 'Landscape Cover' };
     const coverLabel = coverLabels[selectedCoverFormat] || 'Reel / Story Cover';
-    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '3:4';
+    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '4:5';
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
@@ -940,7 +940,7 @@ ${selectedType === 'reel' ? `- "reel_script": a short, punchy script for a 10-30
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.` : ''}
 ${selectedType === 'graphic' ? `- "image_design_approach": one sentence — "EDITORIAL — [specific reason]" or "LIFESTYLE — [specific reason]". Decide based on objective and notes: choose EDITORIAL for educational, pricing, hot-take, authority, stats, or promotional content (text-forward design, brand colors dominant, no photography, bold Canva-style infographic aesthetic). Choose LIFESTYLE for aspirational, emotional, transformation, relatable, day-in-the-life, freedom, or personal story content (candid realistic lifestyle photo as hero, minimal text overlay, brand colors as accent only).
 - "image_visual_hierarchy": JSON object with three keys extracted from the notes and objective — "hook": main message max 5 words, "support": secondary point or stat max 4 words (or "" if none), "cta": CTA phrase or URL very short. These short phrases are the ONLY text that should appear in the image. Never full sentences.
-- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 social media graphic. Build this directly from your image_design_approach and image_visual_hierarchy above — do not write a generic prompt.
+- "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. Build this directly from your image_design_approach and image_visual_hierarchy above — do not write a generic prompt.
 
 If EDITORIAL approach: Structure as [BOLD TEXT-FORWARD DESIGN CONCEPT — declare this is a typographic/infographic social graphic] + [PRIMARY TEXT ELEMENT — hook from visual hierarchy, quoted exactly, bold condensed sans-serif, specific size "large" or "dominant", specific placement top-center/center/etc.] + [SECONDARY TEXT ELEMENT if support is non-empty — quoted, smaller weight, specific placement] + [FOOTER TEXT — cta from hierarchy, small, bottom-center] + [BACKGROUND — solid brand color block, subtle gradient, or clean textured surface — be specific] + [ACCENT ELEMENTS — minimal only: thin rule, small icon, or abstract shape — no photography] + [BRAND COLORS named explicitly per element] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Mood: punchy, authoritative, modern, confident.
 
@@ -1077,7 +1077,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
         const suffix = isCover
           ? ` ${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'} aspect ratio. High quality production-ready ${coverLabel}.` + styleNote
-          : ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+          : ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
         if (false) {  // carousel removed
           const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
@@ -1249,7 +1249,7 @@ Rules:
     // Rebuild the image prompt using the original base + edit instructions
     const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
     const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
-    const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+    const suffix = ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
     // Show loading state immediately
     const grid = document.getElementById('image-grid');
@@ -1335,7 +1335,7 @@ Rules for the rewritten prompt:
 
     const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
     const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
-    const suffix = ' 3:4 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+    const suffix = ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
     // Re-use last prompt if available, otherwise ask Claude for a new one
     const lastPromptEl = document.getElementById('image-prompt-output');
