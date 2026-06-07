@@ -625,6 +625,7 @@
       voice: 'Professional, trustworthy, patient-focused',
       style: 'Navy #0a245e, white #ffffff, sage green #87ad60, light sage #c6d4b6, powder blue #c1cce6, black #000000 — clean clinical with natural undertones, Carlito',
       logo: '',
+      website: 'eccomedical.com',
       audience: 'Adults 45-70 with vascular or vein conditions in Colorado',
       industry: 'Interventional Radiology / Vein',
       tone: 'Empathetic'
@@ -634,6 +635,7 @@
       voice: 'Reassuring, expert, approachable',
       style: 'Deep navy #0c2044, muted rose #9b4848, warm taupe #665f59, white #ffffff — modern clinical warmth, Didact Gothic',
       logo: '',
+      website: 'jointvascular.com',
       audience: 'Adults with joint pain, varicose veins, or vascular conditions',
       industry: 'Interventional Radiology / Orthopedic & Vascular',
       tone: 'Empathetic'
@@ -643,6 +645,7 @@
       voice: 'Confident, knowledgeable, caring',
       style: 'Dark navy-teal #004976, light blue-gray #bfced6, white #ffffff, black #000000 — bold and modern, League Spartan / Bebas Neue',
       logo: '',
+      website: 'texasvascular.com',
       audience: 'Texas adults 40-70 with vascular or wound care needs',
       industry: 'Vascular & Wound Care',
       tone: 'Professional'
@@ -652,6 +655,7 @@
       voice: 'Friendly, expert, community-focused',
       style: 'Steel blue #104e85, off-white #fefefe, slate gray #6c6e71 — clean and trustworthy, Inter',
       logo: '',
+      website: 'soundvascular.com',
       audience: 'Pacific Northwest adults with vein or vascular concerns',
       industry: 'Vascular & Vein Medicine',
       tone: 'Empathetic'
@@ -661,6 +665,7 @@
       voice: 'Expert, calm, reassuring',
       style: 'Red #ff1136, deep navy #002763, white #ffffff, black #000000 — bold and clinical, Carlito',
       logo: '',
+      website: 'desertcardiovascular.com',
       audience: 'Adults 50+ with cardiovascular or vascular concerns in Las Vegas',
       industry: 'Cardiovascular / Interventional Cardiology',
       tone: 'Professional'
@@ -670,6 +675,7 @@
       voice: 'Empowering, educational, warm',
       style: 'White #ffffff, red #d31f2a, near-black #242021 — warm and professional, Canva Sans',
       logo: '',
+      website: 'braintalkfoundation.org',
       audience: 'Adults seeking brain health education and neurological care in Charlotte, NC',
       industry: 'Brain Health / Medical SLP / Neuroscience Education',
       tone: 'Educational'
@@ -679,6 +685,7 @@
       voice: 'Accessible, community-centered, empowering',
       style: 'White #ffffff, green #4cb963, blue #345fac — vibrant and approachable, Canva Sans',
       logo: '',
+      website: 'braintalkfoundation.org',
       audience: 'General public and underserved communities interested in brain health',
       industry: 'Brain Health / Nonprofit Education',
       tone: 'Educational'
@@ -688,6 +695,7 @@
       voice: 'Professional, straightforward, results-driven',
       style: 'Navy #0f4b8f, white #ffffff, black #000000, bright blue #3183dc — clean and bold, Gotham',
       logo: '',
+      website: 'oblmarketing.com',
       audience: 'Office-based lab owners and interventional physicians',
       industry: 'OBL / Interventional Practice Marketing',
       tone: 'Professional'
@@ -697,6 +705,7 @@
       voice: 'Direct, strategic, confident — no fluff',
       style: 'Black #111111, white #ffffff, steel blue #3a6b8a, light blue #5a9ab8 — refined and minimal, Dancing Script / Cormorant Garamond / Jost',
       logo: '',
+      website: 'messickmarketing.com',
       audience: 'Interventional radiology and vascular practice owners and administrators',
       industry: 'Healthcare Content Marketing Agency',
       tone: 'Professional'
@@ -706,6 +715,7 @@
       voice: 'Encouraging, practical, conversational — built for VAs starting out',
       style: 'White #ffffff, hot pink #ef129a, dark gray #414141, black #000000 — bold and modern, Libre Baskerville / Montserrat',
       logo: '',
+      website: 'virtueasy.com',
       audience: 'Aspiring and early-career virtual assistants',
       industry: 'Virtual Assistant Education & Digital Products',
       tone: 'Motivational'
@@ -715,6 +725,7 @@
       voice: 'Empathetic yet results-driven — warm and empowering with patients, data-focused and performance-oriented with community partners. Collaborative innovator positioning the brand as a forward-thinking ally. Action-oriented with verbs like empowering, regaining, overcoming, flourishing.',
       style: 'Electric blue #2b3fe8, purple #7b2fd4, hot pink #d42fa0, lavender #e4e1f0, near-black #0d0e1a, white #ffffff, slate gray #6b6f8a — bold gradient-forward with a modern clinical-wellness feel, Plus Jakarta Sans',
       logo: '',
+      website: 'aspiretherapyandwellness.com',
       audience: 'Rehabilitation patients and families seeking physical, occupational, or speech therapy — plus senior living community administrators and healthcare executives',
       industry: 'Physical, Occupational & Speech Therapy / Senior Living Partnerships',
       tone: 'Empathetic'
@@ -724,6 +735,7 @@
       voice: 'Authoritative and collegial — clinical precision with a peer-to-peer tone. Positions OEIS as the leading voice for outpatient IR and vascular practice. Advocacy-forward, education-driven, and practice-focused.',
       style: 'Light blue #62a1d7, black #000000, white #ffffff, dark navy #171d4b, deep blue #013366 — clean and professional with a medical society feel, Canva Sans or similar clean sans-serif',
       logo: '',
+      website: 'oeis.org',
       audience: 'Interventional radiologists, vascular surgeons, and endovascular specialists in outpatient and OBL settings',
       industry: 'Interventional Radiology / Vascular Surgery — Medical Society & Advocacy',
       tone: 'Professional'
@@ -750,6 +762,7 @@
     document.getElementById('brand-voice').value = kit.voice;
     document.getElementById('brand-style').value = kit.style;
     document.getElementById('logo-url').value    = kit.logo || '';
+    if (document.getElementById('brand-website')) document.getElementById('brand-website').value = kit.website || '';
     document.getElementById('audience').value    = kit.audience || '';
     document.getElementById('industry').value    = kit.industry || '';
     if (kit.tone) document.getElementById('tone').value = kit.tone;
@@ -870,6 +883,7 @@
       tone: document.getElementById('tone').value,
       industry: document.getElementById('industry').value.trim(),
       notes: document.getElementById('notes').value.trim(),
+      website: document.getElementById('brand-website') ? document.getElementById('brand-website').value.trim() : '',
     };
   }
 
@@ -891,17 +905,15 @@
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
-- Maximum 2 short text elements total in the entire image
-- Each text element must be 3 words or fewer — never full sentences
-- Specify exact quoted strings: text: "KNEE PAIN?" not "add a headline about knee pain"
-- Specify exact placement: top-center, bottom-left, center, etc.
-- Specify font style: bold condensed sans-serif
-- Use maximum contrast: pure white on dark, or black on bright/light backgrounds
-- NO bullet points, numbered lists, paragraphs, or multi-line small text anywhere in the image
-- NEVER include hex color codes (#111111, #3a6b8a, etc.), font names, CSS values, or any technical notation as visible text — these are styling instructions only, never render them literally
-- NEVER use lorem ipsum, placeholder text, dummy words, or fabricated content — every word in the image must be real and intentional
-- When rendering tables or lists, each row must appear exactly once — never duplicated, split across lines, or repeated
-- All quoted text values must be clean readable copy only — no hex codes, font names, CSS strings, or technical notation embedded anywhere in cell or row content
+- Maximum 3 text elements total: one headline, one short support phrase, one domain line — never more
+- Headline: 5 words or fewer. Support: 4 words or fewer. Domain: the exact brand domain, nothing else
+- Always specify exact quoted strings for every text element — never describe text vaguely
+- Always specify exact placement for every text element: top-left, center, bottom-center, etc.
+- Always specify font weight and style: ultra-bold condensed, medium-weight sans-serif, small all-caps, etc.
+- Use maximum contrast: white text on dark backgrounds, dark text on light backgrounds only
+- NO bullet points, numbered lists, full sentences, or paragraph text anywhere in the image
+- NEVER render hex color codes, pixel measurements, font names, CSS values, bracket labels, or any technical notation as visible text — these are instructions only, never literal content
+- NEVER use lorem ipsum, placeholder text, or fabricated words — every word must be real and intentional
 
 COMPOSITION & VISUAL:
 - Lead with one strong, clear hero subject — a person, an object, an environment, or an abstract shape
@@ -939,11 +951,26 @@ ${hashtagsOnly || visualOnly ? '' : '- "caption": full post caption with line br
 ${captionOnly || visualOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
 ${selectedType === 'reel' ? `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.` : ''}
-${selectedType === 'graphic' ? `- "image_design_approach": one sentence — "EDITORIAL — [specific reason]" or "LIFESTYLE — [specific reason]". Decide based on objective and notes: choose EDITORIAL for educational, pricing, hot-take, authority, stats, or promotional content (text-forward design, brand colors dominant, no photography, bold Canva-style infographic aesthetic). Choose LIFESTYLE for aspirational, emotional, transformation, relatable, day-in-the-life, freedom, or personal story content (candid realistic lifestyle photo as hero, minimal text overlay, brand colors as accent only).
-- "image_visual_hierarchy": JSON object with three keys extracted from the notes and objective — "hook": main message max 5 words, "support": secondary point or stat max 4 words (or "" if none), "cta": CTA phrase or URL very short. These short phrases are the ONLY text that should appear in the image. Never full sentences.
-- "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. Build this directly from your image_design_approach and image_visual_hierarchy above — do not write a generic prompt.
+${selectedType === 'graphic' ? `- "image_design_approach": one sentence — "EDITORIAL — [specific reason]" or "LIFESTYLE — [specific reason]". Decide based on the objective and notes. EDITORIAL: educational, authority, hot-take, stat, pricing, or promotional content — text-forward, brand colors dominant, no photography. LIFESTYLE: aspirational, emotional, transformation, relatable, personal story, or day-in-the-life content — candid lifestyle photo as hero, minimal text overlay.
+- "image_layout_variant": For EDITORIAL only — choose ONE layout from this list based on what best serves the content. Do not always pick the same one. Options: "HEADLINE_DOMINANT" (one massive oversized word or phrase fills 70% of frame, minimal everything else — best for bold hot-takes or single-idea posts), "SPLIT_BLOCK" (frame divided into two distinct color zones — dark top with white headline, brand-color bottom with supporting text — best for stat or contrast posts), "CENTERED_STACK" (all text centered, stacked vertically with strong typographic hierarchy, thin rule as divider — best for educational or listicle-style content), "DARK_MINIMAL" (single short headline left-aligned upper third, large negative space below, one small accent element bottom-right — best for thought leadership or quote posts), "BOLD_STAT" (a number or short stat rendered huge and dominant center-frame, context text small below it — best for data or proof posts). For LIFESTYLE — set this to "LIFESTYLE".
+- "image_visual_hierarchy": JSON object — "hook": main message max 5 words, "support": secondary point or stat max 4 words (or "" if none), "cta": brand domain only, very short. These are the ONLY words that appear in the image.
+- "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. You must write this from scratch based on the specific layout_variant and visual_hierarchy above — do not recycle a generic structure.
 
-If EDITORIAL approach: You are art-directing a real graphic designer. Be extremely specific. Structure as: [DESIGN CONCEPT — declare: bold typographic social graphic, Canva editorial style, full-bleed dark background] + [PRIMARY TEXT — exact quoted hook, ultra-bold condensed sans-serif, dominant scale, fills top 55% of frame, top-left alignment with generous left margin, white text on dark] + [DIVIDER — thin 3px horizontal rule, steel blue, 80px wide, left-aligned, separating headline from subhead] + [SECONDARY TEXT — exact quoted support phrase, medium-weight sans-serif, steel blue color, large but smaller than headline, below the rule] + [BACKGROUND — full bleed deep black or dark navy, clean and flat, no noise or texture] + [ACCENT GEOMETRY — one or two sharp-edged small rectangles in steel blue, bottom-right corner only, purely decorative, no overlap with text] + [FOOTER — brand URL in small all-caps white, bottom-center] + [BRAND COLORS explicitly named per element: black background, white headline, steel blue accents and subhead] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Mood: authoritative, editorial, typographically bold — think magazine cover meets B2B brand. NO gradients on text. NO drop shadows. NO glow effects. NO decorative border frames.
+For EDITORIAL — write the prompt as flowing prose describing exactly what Imagen should render. Your description must match the chosen layout_variant precisely:
+
+HEADLINE_DOMINANT layout: One or two words from the hook fill nearly the entire frame in ultra-bold condensed black type. Scale is extreme — the letterforms touch or nearly touch the frame edges. Background is a single flat brand color. The domain appears in tiny all-caps at the very bottom. Nothing else. No rule, no subhead, no decoration.
+
+SPLIT_BLOCK layout: The upper 55% of the frame is deep black with the hook text in large bold white sans-serif, left-aligned. A hard horizontal color band in the brand accent color occupies the lower 45%. The support text sits in that band in white or dark text. The domain appears bottom-center in small all-caps. Clean hard edge between zones — no gradient bleed.
+
+CENTERED_STACK layout: All text is horizontally centered. Hook in large bold white at top third. A thin short horizontal rule in the brand accent color centered below it. Support text below the rule in the accent color, medium weight. Domain in tiny all-caps centered at the bottom. Background is solid dark. Generous vertical spacing between elements.
+
+DARK_MINIMAL layout: Hook text is left-aligned in the upper third, bold white, large but not extreme. The rest of the frame is open negative space on a dark background. One small geometric accent — a single rectangle or thin L-shaped line — sits in the bottom-right corner in the brand accent color. Domain in tiny all-caps bottom-center. Nothing else fills the space — the emptiness is intentional.
+
+BOLD_STAT layout: A number, percentage, or very short stat from the hook is rendered center-frame at enormous scale — it is the entire visual focus. It is in bold white or brand accent color. Below it in much smaller text is the support phrase providing context. Background is dark. Domain at bottom. No other decoration.
+
+For LIFESTYLE — write the prompt as a candid photorealistic scene. Describe the specific person (age, expression, activity, clothing), environment, lighting, and mood. Brand color appears only as a subtle bottom overlay bar with the hook text in 2-3 words max. Domain in small text within that bar. Photo must feel real and unposed — not stock, not staged.
+
+End every image_prompt with the ANTI-AI GUARDRAILS and QUALITY FOOTER. Never include pixel measurements, CSS values, bracket labels, or technical notation as visible elements anywhere in the prompt.
 
 If LIFESTYLE approach: Structure as [SPECIFIC CANDID PHOTO SUBJECT — describe the real person: age range, expression, activity, clothing, exact environment — never vague or generic] + [COMPOSITION & FRAMING — close-up/wide/over-shoulder/etc.] + [LIGHTING — golden hour/natural window light/soft overcast/studio softbox — be specific] + [MOOD — emotional quality: hopeful, confident, free, determined, etc.] + [BRAND COLOR ACCENT — bottom overlay text bar, subtle color tint, or thin border — specific element] + [TEXT OVERLAY if needed — hook only, quoted, specific placement] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Photo must feel real, unposed, human — not stock, not staged.
 
