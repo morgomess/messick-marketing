@@ -1449,7 +1449,7 @@ function renderAllTasks(){
   countEl.textContent=filtered.length+' task'+(filtered.length!==1?'s':'')+' open';
 
   if(filtered.length===0){
-    list.innerHTML='<div class="at-empty">'+(q?'No tasks match "'+bEsc(q)+'"':'Nothing open — you're clear 🎉')+'</div>';
+    list.innerHTML='<div class="at-empty">'+(q?'No tasks match "'+bEsc(q)+'"':'Nothing open — all clear 🎉')+'</div>';
     return;
   }
 
