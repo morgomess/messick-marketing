@@ -593,7 +593,7 @@ const BRAIN_KEY='mm_brain';
 let brainNodes=[],brainMap={};
 let bIdCounter=1000,brainBooted=false;
 
-const BRAIN_SEED_V='5';
+const BRAIN_SEED_V='6';
 const BRAIN_SEED=[
   {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
     {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
@@ -675,11 +675,20 @@ function migrateBrainCategories(){
 }
 
 function ensurePersonalRoot(){
+  let changed=false;
   if(!brainMap['personal-root']){
     const n={id:'personal-root',label:'Personal',type:'personal-root',parent:null,x:0,y:0};
-    brainNodes.push(n);brainMap['personal-root']=n;
-    brainSave();
+    brainNodes.push(n);brainMap[n.id]=n;changed=true;
   }
+  if(!brainMap['personal-ops']){
+    const n={id:'personal-ops',label:'Agency Ops',type:'personal-client',parent:'personal-root',x:0,y:0};
+    brainNodes.push(n);brainMap[n.id]=n;changed=true;
+  }
+  if(!brainMap['personal-misc']){
+    const n={id:'personal-misc',label:'Misc',type:'personal-client',parent:'personal-root',x:0,y:0};
+    brainNodes.push(n);brainMap[n.id]=n;changed=true;
+  }
+  if(changed)brainSave();
 }
 
 function brainSave(){
