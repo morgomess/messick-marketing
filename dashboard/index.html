@@ -324,6 +324,43 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 #drawer-backdrop{display:none;position:fixed;inset:0;z-index:499;background:rgba(0,0,0,0.18)}
 #drawer-backdrop.open{display:block}
 
+/* ── ALL-TASKS OVERLAY ── */
+#alltasks-overlay{display:none;position:fixed;inset:0;z-index:850;background:rgba(5,8,12,0.88);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding-top:60px}
+#alltasks-overlay.open{display:flex}
+.at-modal{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:12px;width:min(600px,94vw);max-height:78vh;display:flex;flex-direction:column;box-shadow:0 0 50px rgba(0,0,0,0.5);overflow:hidden}
+.at-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+.at-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:#e6f1f8;letter-spacing:0.02em}
+.at-count{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(90,154,184,0.7);margin-top:2px}
+.at-close{background:none;border:none;color:rgba(255,255,255,0.35);font-size:1.1rem;cursor:pointer;padding:2px 6px;line-height:1;transition:color 0.15s}
+.at-close:hover{color:#e6f1f8}
+.at-search-wrap{padding:10px 22px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+.at-search{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:7px 12px;color:#e6f1f8;font-family:'Jost',sans-serif;font-size:0.83rem;outline:none;transition:border-color 0.2s}
+.at-search:focus{border-color:rgba(90,154,184,0.5)}
+.at-search::placeholder{color:rgba(230,241,248,0.3)}
+.at-list{flex:1;overflow-y:auto;padding:8px 0}
+.at-empty{padding:32px;text-align:center;color:rgba(230,241,248,0.3);font-size:0.85rem;font-style:italic}
+.at-group-label{padding:10px 22px 4px;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(90,154,184,0.55)}
+.at-item{display:flex;align-items:flex-start;gap:10px;padding:9px 22px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+.at-item:hover{background:rgba(255,255,255,0.05)}
+.at-check{width:14px;height:14px;border:1.5px solid rgba(90,154,184,0.35);border-radius:50%;flex-shrink:0;margin-top:3px;transition:all 0.15s;display:flex;align-items:center;justify-content:center}
+.at-item:hover .at-check{border-color:#5a9ab8}
+.at-body{flex:1;min-width:0}
+.at-text{font-size:0.82rem;color:#e6f1f8;line-height:1.4;word-break:break-word}
+.at-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.at-crumb{font-size:0.62rem;color:rgba(230,241,248,0.35)}
+.at-due{font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(58,107,138,0.25);color:#7ab8d4}
+.at-due.over{background:rgba(192,57,43,0.2);color:#f87171}
+.at-due.today{background:rgba(211,84,0,0.2);color:#fb923c}
+.at-pri{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.at-pri-critical{background:var(--crit)}
+.at-pri-high{background:var(--hi)}
+.at-pri-medium{background:var(--med)}
+.at-pri-low{background:var(--lo)}
+.at-edit-btn{background:none;border:none;color:rgba(90,154,184,0.3);font-size:0.85rem;cursor:pointer;padding:2px 4px;flex-shrink:0;transition:color 0.15s;margin-top:1px}
+.at-edit-btn:hover{color:#5a9ab8}
+#completion-stat{cursor:pointer}
+#completion-stat:hover{border-color:rgba(90,154,184,0.6);color:#fff}
+
 /* ── CONFETTI ── */
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
 </style>
@@ -355,7 +392,7 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
       </div>
     </div>
     <div class="h-right">
-      <span id="completion-stat">↻ <span id="stat-text">0 of 0 done</span></span>
+      <span id="completion-stat" onclick="openAllTasks()" title="View all open tasks">↻ <span id="stat-text">0 of 0 done</span></span>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
       <button class="h-btn empire" onclick="openEmpire()">⚡ Empire</button>
@@ -436,6 +473,23 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
   <div class="drawer-footer">
     <button class="drawer-save-btn" onclick="saveDrawer()">Save Changes</button>
     <button class="drawer-del-btn" onclick="deleteDrawerTask()">Delete</button>
+  </div>
+</div>
+
+<!-- All Tasks Overlay -->
+<div id="alltasks-overlay" onclick="if(event.target===this)closeAllTasks()">
+  <div class="at-modal">
+    <div class="at-header">
+      <div>
+        <div class="at-title">All Open Tasks</div>
+        <div class="at-count" id="at-count-label"></div>
+      </div>
+      <button class="at-close" onclick="closeAllTasks()">✕</button>
+    </div>
+    <div class="at-search-wrap">
+      <input class="at-search" id="at-search" placeholder="Filter tasks…" oninput="renderAllTasks()" autocomplete="off">
+    </div>
+    <div class="at-list" id="at-list"></div>
   </div>
 </div>
 
@@ -1364,6 +1418,87 @@ function runSearch(q){
       <div class="sr-badges">${d}${pri}</div>
     </div>`;
   }).join('')+'</div>';
+}
+
+/* ═══════════════════════════════════════════
+   ALL TASKS OVERLAY
+═══════════════════════════════════════════ */
+function openAllTasks(){
+  document.getElementById('alltasks-overlay').classList.add('open');
+  document.getElementById('at-search').value='';
+  renderAllTasks();
+  setTimeout(()=>document.getElementById('at-search').focus(),80);
+}
+
+function closeAllTasks(){
+  document.getElementById('alltasks-overlay').classList.remove('open');
+}
+
+function renderAllTasks(){
+  const q=(document.getElementById('at-search').value||'').toLowerCase().trim();
+  const list=document.getElementById('at-list');
+  const countEl=document.getElementById('at-count-label');
+  const all=loadTodoTasks().filter(t=>!t.done);
+
+  // Filter by search
+  const filtered=q?all.filter(t=>
+    t.text.toLowerCase().includes(q)||
+    (t.notes||'').toLowerCase().includes(q)
+  ):all;
+
+  countEl.textContent=filtered.length+' task'+(filtered.length!==1?'s':'')+' open';
+
+  if(filtered.length===0){
+    list.innerHTML='<div class="at-empty">'+(q?'No tasks match "'+bEsc(q)+'"':'Nothing open — you're clear 🎉')+'</div>';
+    return;
+  }
+
+  // Group by nodeId breadcrumb
+  function crumbFor(nodeId){
+    const chain=[];let nid=nodeId;
+    while(nid&&brainMap[nid]){chain.unshift(brainMap[nid].label);nid=brainMap[nid].parent;}
+    return chain.join(' › ')||'Unfiled';
+  }
+
+  // Sort: overdue first, then by priority, then by text
+  const priOrder={critical:0,high:1,medium:2,low:3,none:4};
+  const ds=dueStatus;
+  filtered.sort((a,b)=>{
+    const ao=ds(a.due)==='overdue'?0:1, bo=ds(b.due)==='overdue'?0:1;
+    if(ao!==bo)return ao-bo;
+    return (priOrder[a.priority||'none']||4)-(priOrder[b.priority||'none']||4);
+  });
+
+  // Group by crumb
+  const groups={};
+  filtered.forEach(t=>{
+    const crumb=crumbFor(t.nodeId);
+    if(!groups[crumb])groups[crumb]=[];
+    groups[crumb].push(t);
+  });
+
+  let html='';
+  Object.keys(groups).sort().forEach(crumb=>{
+    html+=`<div class="at-group-label">${bEsc(crumb)}</div>`;
+    groups[crumb].forEach(t=>{
+      const status=ds(t.due);
+      let dueHtml='';
+      if(status==='overdue')dueHtml=`<span class="at-due over">Overdue</span>`;
+      else if(status==='due-today')dueHtml=`<span class="at-due today">Today</span>`;
+      else if(t.due)dueHtml=`<span class="at-due">${fmtDate(t.due)}</span>`;
+      const pri=t.priority&&t.priority!=='none'?`<span class="at-pri at-pri-${t.priority}"></span>`:'';
+      html+=`<div class="at-item" onclick="closeAllTasks();openDrawer('${t.id}')">
+        <div class="at-check"></div>
+        <div class="at-body">
+          <div class="at-text">${bEsc(t.text)}</div>
+          <div class="at-meta"><span class="at-crumb">${bEsc(crumb)}</span>${dueHtml?'<span style="color:rgba(230,241,248,0.2)">·</span>'+dueHtml:''}${pri}</div>
+        </div>
+        <button class="at-edit-btn" title="Edit">✎</button>
+      </div>`;
+    });
+  });
+
+  list.innerHTML=html;
 }
 
 /* ═══════════════════════════════════════════
