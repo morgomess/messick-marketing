@@ -695,7 +695,7 @@
     messick: {
       name: 'Messick Marketing',
       voice: 'Direct, strategic, confident — no fluff',
-      style: 'Black #111111, warm white #faf8f5, steel blue #3a6b8a, light blue #5a9ab8 — refined and minimal, Dancing Script / Cormorant Garamond / Jost',
+      style: 'Black #111111, white #ffffff, steel blue #3a6b8a, light blue #5a9ab8 — refined and minimal, Dancing Script / Cormorant Garamond / Jost',
       logo: '',
       audience: 'Interventional radiology and vascular practice owners and administrators',
       industry: 'Healthcare Content Marketing Agency',
@@ -878,7 +878,8 @@
   function parseStyleForImage(styleInput) {
     return styleInput
       .replace(/\b(and|with|use|please|include|make|the|it|should|be|have|also|a|an|to|on|in|for|of)\b/gi, '')
-      .replace(/[^\w\s#,./%-]/g, '')
+      .replace(/#[0-9a-fA-F]{3,8}\b/g, '')
+      .replace(/[^\w\s,./%-]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
   }
@@ -924,7 +925,7 @@ QUALITY FOOTER (always end the prompt with this):
 Brand: ${d.brandName}
 ${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType === 'cover' ? coverLabel : selectedType} — ${ratio} aspect ratio`}
 ${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
-${d.brandStyle && !captionOnly && !hashtagsOnly ? 'Visual Style / Colors: ' + d.brandStyle : ''}
+${d.brandStyle && !captionOnly && !hashtagsOnly ? 'Visual Style / Colors: ' + d.brandStyle.replace(/#[0-9a-fA-F]{3,8}\\b/g, '').trim() : ''}
 ${d.objective ? 'Objective: ' + d.objective : ''}
 ${d.audience ? 'Target Audience: ' + d.audience : ''}
 ${d.tone ? 'Tone: ' + d.tone : ''}
@@ -942,7 +943,7 @@ ${selectedType === 'graphic' ? `- "image_design_approach": one sentence — "EDI
 - "image_visual_hierarchy": JSON object with three keys extracted from the notes and objective — "hook": main message max 5 words, "support": secondary point or stat max 4 words (or "" if none), "cta": CTA phrase or URL very short. These short phrases are the ONLY text that should appear in the image. Never full sentences.
 - "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. Build this directly from your image_design_approach and image_visual_hierarchy above — do not write a generic prompt.
 
-If EDITORIAL approach: Structure as [BOLD TEXT-FORWARD DESIGN CONCEPT — declare this is a typographic/infographic social graphic] + [PRIMARY TEXT ELEMENT — hook from visual hierarchy, quoted exactly, bold condensed sans-serif, specific size "large" or "dominant", specific placement top-center/center/etc.] + [SECONDARY TEXT ELEMENT if support is non-empty — quoted, smaller weight, specific placement] + [FOOTER TEXT — cta from hierarchy, small, bottom-center] + [BACKGROUND — solid brand color block, subtle gradient, or clean textured surface — be specific] + [ACCENT ELEMENTS — minimal only: thin rule, small icon, or abstract shape — no photography] + [BRAND COLORS named explicitly per element] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Mood: punchy, authoritative, modern, confident.
+If EDITORIAL approach: You are art-directing a real graphic designer. Be extremely specific. Structure as: [DESIGN CONCEPT — declare: bold typographic social graphic, Canva editorial style, full-bleed dark background] + [PRIMARY TEXT — exact quoted hook, ultra-bold condensed sans-serif, dominant scale, fills top 55% of frame, top-left alignment with generous left margin, white text on dark] + [DIVIDER — thin 3px horizontal rule, steel blue, 80px wide, left-aligned, separating headline from subhead] + [SECONDARY TEXT — exact quoted support phrase, medium-weight sans-serif, steel blue color, large but smaller than headline, below the rule] + [BACKGROUND — full bleed deep black or dark navy, clean and flat, no noise or texture] + [ACCENT GEOMETRY — one or two sharp-edged small rectangles in steel blue, bottom-right corner only, purely decorative, no overlap with text] + [FOOTER — brand URL in small all-caps white, bottom-center] + [BRAND COLORS explicitly named per element: black background, white headline, steel blue accents and subhead] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Mood: authoritative, editorial, typographically bold — think magazine cover meets B2B brand. NO gradients on text. NO drop shadows. NO glow effects. NO decorative border frames.
 
 If LIFESTYLE approach: Structure as [SPECIFIC CANDID PHOTO SUBJECT — describe the real person: age range, expression, activity, clothing, exact environment — never vague or generic] + [COMPOSITION & FRAMING — close-up/wide/over-shoulder/etc.] + [LIGHTING — golden hour/natural window light/soft overcast/studio softbox — be specific] + [MOOD — emotional quality: hopeful, confident, free, determined, etc.] + [BRAND COLOR ACCENT — bottom overlay text bar, subtle color tint, or thin border — specific element] + [TEXT OVERLAY if needed — hook only, quoted, specific placement] + [ANTI-AI GUARDRAILS] + [QUALITY FOOTER]. Photo must feel real, unposed, human — not stock, not staged.
 
