@@ -256,6 +256,74 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .empire-buy-btn:disabled{opacity:0.28;cursor:not-allowed}
 .empire-buy-btn.owned{background:#143a2a;border-color:#1d6e4a;color:#6fe0b8;opacity:1;cursor:default}
 
+/* ── SEARCH BAR ── */
+#search-bar{display:flex;align-items:center;gap:8px;padding:7px 24px;background:#f5f3f0;border-bottom:1px solid var(--border);flex-shrink:0}
+#search-bar.hidden{display:none}
+.srch-icon{color:var(--muted);font-size:0.9rem;flex-shrink:0}
+#search-input{flex:1;border:none;outline:none;font-family:'Jost',sans-serif;font-size:0.84rem;color:var(--black);background:transparent}
+#search-input::placeholder{color:var(--light)}
+#search-count{font-size:0.7rem;color:var(--muted);flex-shrink:0}
+#search-clear{background:none;border:none;color:var(--light);cursor:pointer;font-size:1rem;padding:0 2px;line-height:1}
+#search-clear:hover{color:var(--crit)}
+.search-results{padding:8px 0}
+.sr-item{display:flex;align-items:flex-start;gap:8px;padding:8px 24px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer;transition:background 0.1s}
+.sr-item:hover{background:var(--blue-pale)}
+.sr-crumb{font-size:0.62rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-text{font-size:0.82rem;color:var(--black);flex:1;min-width:0}
+.sr-text mark{background:rgba(58,107,138,0.18);color:var(--blue);border-radius:2px;padding:0 1px}
+.sr-badges{display:flex;gap:4px;flex-shrink:0;align-items:center}
+
+/* ── TASK DRAWER ── */
+#task-drawer{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--surface);border-left:1px solid var(--border-s);z-index:500;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.22s cubic-bezier(0.16,0.84,0.25,1);box-shadow:-4px 0 20px rgba(0,0,0,0.1)}
+#task-drawer.open{transform:translateX(0)}
+.drawer-header{padding:16px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface)}
+.drawer-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--black)}
+.drawer-close{background:none;border:none;color:var(--light);font-size:1.2rem;cursor:pointer;padding:2px 6px;line-height:1;transition:color 0.15s}
+.drawer-close:hover{color:var(--crit)}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.drawer-field label{display:block;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.drawer-field input[type=text],.drawer-field textarea,.drawer-field select,.drawer-field input[type=date]{width:100%;border:1px solid var(--border);border-radius:3px;padding:8px 10px;font-family:'Jost',sans-serif;font-size:0.83rem;color:var(--black);background:var(--surface-2);outline:none;transition:border-color 0.2s}
+.drawer-field input:focus,.drawer-field textarea:focus,.drawer-field select:focus{border-color:var(--blue)}
+.drawer-field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.drawer-field select{cursor:pointer}
+.drawer-assignees{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.assignee-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.15s;background:var(--surface);color:var(--muted)}
+.assignee-chip:hover{border-color:var(--blue-lt);color:var(--blue)}
+.assignee-chip.active{background:var(--blue-pale);border-color:var(--blue);color:var(--blue)}
+.assignee-chip .chip-avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#fff;flex-shrink:0}
+/* Subtask list */
+.subtask-list{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.subtask-row{display:flex;align-items:center;gap:7px;padding:5px 8px;background:var(--surface-2);border-radius:3px;border:1px solid var(--border)}
+.subtask-row.done-sub .sub-text{text-decoration:line-through;opacity:0.45}
+.sub-check{width:13px;height:13px;border:1.5px solid rgba(58,107,138,0.3);border-radius:50%;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.sub-check:hover{border-color:var(--blue)}
+.sub-check.chk{background:var(--blue-lt);border-color:var(--blue-lt)}
+.sub-check.chk::after{content:'✓';color:#fff;font-size:6px;font-weight:bold}
+.sub-text{flex:1;font-size:0.78rem;color:var(--black)}
+.sub-del{background:none;border:none;color:var(--light);cursor:pointer;font-size:0.85rem;padding:0 2px;line-height:1;transition:color 0.15s}
+.sub-del:hover{color:var(--crit)}
+.sub-add-row{display:flex;gap:6px;margin-top:4px}
+.sub-add-inp{flex:1;border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;outline:none;color:var(--black);background:var(--surface-2)}
+.sub-add-inp:focus{border-color:var(--blue)}
+.sub-add-btn{background:var(--blue);color:#fff;border:none;border-radius:3px;padding:5px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;transition:background 0.15s}
+.sub-add-btn:hover{background:var(--blue-lt)}
+.subtask-progress{height:4px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden}
+.subtask-progress-bar{height:100%;background:var(--blue-lt);border-radius:2px;transition:width 0.3s}
+/* Drawer footer */
+.drawer-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.drawer-save-btn{flex:1;background:var(--blue);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:9px;cursor:pointer;border-radius:3px;transition:background 0.2s}
+.drawer-save-btn:hover{background:var(--blue-lt)}
+.drawer-del-btn{background:none;border:1px solid rgba(192,57,43,0.25);color:var(--crit);font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:9px 14px;cursor:pointer;border-radius:3px;transition:all 0.15s}
+.drawer-del-btn:hover{background:rgba(192,57,43,0.07);border-color:var(--crit)}
+/* Assignee mini badge on task card */
+.t-assignee{font-size:0.58rem;font-weight:800;padding:1px 5px;border-radius:8px;background:rgba(58,107,138,0.12);color:var(--blue);letter-spacing:0.04em}
+/* Edit pencil on task card */
+.t-edit{background:none;border:none;cursor:pointer;font-size:0.85rem;color:rgba(58,107,138,0.3);padding:1px 3px;line-height:1;transition:color 0.15s}
+.t-edit:hover{color:var(--blue)}
+/* Drawer overlay backdrop */
+#drawer-backdrop{display:none;position:fixed;inset:0;z-index:499;background:rgba(0,0,0,0.18)}
+#drawer-backdrop.open{display:block}
+
 /* ── CONFETTI ── */
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
 </style>
@@ -288,6 +356,7 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
     </div>
     <div class="h-right">
       <span id="completion-stat">↻ <span id="stat-text">0 of 0 done</span></span>
+      <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
       <button class="h-btn empire" onclick="openEmpire()">⚡ Empire</button>
       <button class="h-btn" onclick="logout()">⎋ Log out</button>
@@ -305,6 +374,13 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
     </div>
     <div class="focus-slots" id="focus-slots"></div>
     <div class="focus-hint">Pin any task using the ◈ icon in each column</div>
+  </div>
+
+  <div id="search-bar" class="hidden">
+    <span class="srch-icon">🔍</span>
+    <input id="search-input" placeholder="Search tasks…" autocomplete="off" oninput="runSearch(this.value)">
+    <span id="search-count"></span>
+    <button id="search-clear" onclick="closeSearch()" title="Close search">✕</button>
   </div>
 
   <div id="quick-add-bar">
@@ -346,6 +422,20 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
     </div>
 
     <div class="clients-grid" id="clients-list"></div>
+  </div>
+</div>
+
+<!-- Task Drawer -->
+<div id="drawer-backdrop" onclick="closeDrawer()"></div>
+<div id="task-drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Task Details</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-footer">
+    <button class="drawer-save-btn" onclick="saveDrawer()">Save Changes</button>
+    <button class="drawer-del-btn" onclick="deleteDrawerTask()">Delete</button>
   </div>
 </div>
 
@@ -412,6 +502,11 @@ const PICKER_PHRASES = [
   'Fate has shuffled the deck and landed on...','Today, the stars align for...',
 ];
 const PRIORITY_ORDER = {critical:0,high:1,medium:2,low:3,none:4};
+const TEAM_MEMBERS = [
+  {id:'rida',  name:'Rida',  color:'#3a6b8a'},
+  {id:'jacob', name:'Jacob', color:'#20a99a'},
+  {id:'sanam', name:'Sanam', color:'#8a5a9a'},
+];
 
 /* ═══════════════════════════════════════════
    UTILITIES
@@ -465,7 +560,7 @@ function tasksForNode(nodeId){
 function addNodeTask(nodeId,text,due,pri){
   const tasks=loadTodoTasks();
   tasks.push({id:uid(),text,nodeId,brand:getNodeBrand(nodeId),priority:pri||'none',due:due||null,
-    recur:'none',done:false,addedAt:Date.now(),subtasks:[],recurLastGen:todayStr()});
+    recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',recurLastGen:todayStr()});
   saveTodoTasks(tasks);
   renderAll();
 }
@@ -498,7 +593,7 @@ const BRAIN_KEY='mm_brain';
 let brainNodes=[],brainMap={};
 let bIdCounter=1000,brainBooted=false;
 
-const BRAIN_SEED_V='4';
+const BRAIN_SEED_V='5';
 const BRAIN_SEED=[
   {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
     {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
@@ -525,6 +620,7 @@ const BRAIN_SEED=[
   {id:'mm-cat-team',label:'Team',type:'mm-client',parent:'mm-root'},
   {id:'mm-team-rida',label:'Rida',type:'mm-service',parent:'mm-cat-team'},
   {id:'mm-team-jacob',label:'Jacob',type:'mm-service',parent:'mm-cat-team'},
+  {id:'mm-team-sanam',label:'Sanam',type:'mm-service',parent:'mm-cat-team'},
   {id:'ve-root',label:'Virtueasy',type:'ve-root',parent:null},
     {id:'ve-sk',label:'VA Starter Kit',type:'ve-client',parent:'ve-root'},
     {id:'ve-ok',label:'Onboarding Kit',type:'ve-client',parent:'ve-root'},
@@ -836,17 +932,22 @@ function buildColTask(task,idx,type){
   const priDot=pri!=='none'?`<span class="t-pri t-pri-${pri}"></span>`:'';
   const pins=getFocusPins();
   const pinned=pins.some(p=>p&&p.id===task.id);
+  const assigneeHtml=(task.assignees&&task.assignees.length)?task.assignees.map(a=>{const m=TEAM_MEMBERS.find(x=>x.id===a);return m?`<span class="t-assignee">${bEsc(m.name)}</span>`:''}).join(''):'' ;
+  const subtasksDone=(task.subtasks||[]).filter(s=>s.done).length,subtasksTotal=(task.subtasks||[]).length;
+  const subProg=subtasksTotal>0?`<span class="t-assignee" style="background:rgba(32,169,154,0.12);color:var(--teal)">${subtasksDone}/${subtasksTotal}</span>`:'';
   tr.innerHTML=`
     <div class="t-check${task.done?' chk':''}"></div>
     <div class="t-body">
       <span class="t-text">${bEsc(task.text)}</span>
-      <div class="t-meta">${dueHtml}${priDot}</div>
+      <div class="t-meta">${dueHtml}${priDot}${assigneeHtml}${subProg}</div>
     </div>
     <div class="t-actions">
+      <button class="t-edit" title="Edit task">✎</button>
       <button class="t-pin${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin to Top 3'}">◈</button>
       <button class="t-del">×</button>
     </div>`;
   tr.querySelector('.t-check').addEventListener('click',()=>{toggleTask(type,task.id);renderColumns();});
+  tr.querySelector('.t-edit').addEventListener('click',()=>openDrawer(task.id));
   tr.querySelector('.t-pin').addEventListener('click',()=>{togglePin(type,task.id);renderColumns();});
   tr.querySelector('.t-del').addEventListener('click',()=>{deleteTask(type,task.id);renderColumns();});
   return tr;
@@ -976,7 +1077,9 @@ nodeId: Pick the most relevant node id from the tree. If unclear, use null.
 
 Client hints: ECCO→ecco, JVI→jvi, OEIS→oeis, TVI/Texas Vascular→tvi, Kelli/Brain Talk→kelli, SVV/Sound Vascular→svv, Desert Cardiovascular→desert, Aspire→aspire, Virtueasy/VA→ve-root, personal/misc→personal-root.
 
-Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null"}`;
+Assignees: optional array of team member ids from [rida, jacob, sanam]. Only include if task clearly mentions one of them by name.
+
+Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":""}`;
 
     const resp=await fetch(`${WORKER}/claude`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -996,6 +1099,8 @@ Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-M
       task.priority=parsed.priority||'none';
       task.due=parsed.due||null;
       task.nodeId=parsed.nodeId||'personal-misc';
+      if(parsed.assignees&&Array.isArray(parsed.assignees))task.assignees=parsed.assignees;
+      if(parsed.notes)task.notes=parsed.notes;
       saveTodoTasks(t2);
     }
     renderColumns();
@@ -1009,6 +1114,247 @@ Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-M
   }
   btn.disabled=false;
   input.focus();
+}
+
+/* ═══════════════════════════════════════════
+   TASK DRAWER
+═══════════════════════════════════════════ */
+let drawerTaskId=null;
+
+function openDrawer(taskId){
+  drawerTaskId=taskId;
+  renderDrawer();
+  document.getElementById('task-drawer').classList.add('open');
+  document.getElementById('drawer-backdrop').classList.add('open');
+}
+
+function closeDrawer(){
+  document.getElementById('task-drawer').classList.remove('open');
+  document.getElementById('drawer-backdrop').classList.remove('open');
+  drawerTaskId=null;
+}
+
+function renderDrawer(){
+  if(!drawerTaskId)return;
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);
+  if(!task){closeDrawer();return;}
+  const body=document.getElementById('drawer-body');
+
+  // Build breadcrumb
+  let crumb='';
+  const nodeChain=[];let nid=task.nodeId;
+  while(nid&&brainMap[nid]){nodeChain.unshift(brainMap[nid].label);nid=brainMap[nid].parent;}
+  crumb=nodeChain.join(' › ')||'Unfiled';
+
+  // Assignee chips HTML
+  const chipHtml=TEAM_MEMBERS.map(m=>{
+    const active=(task.assignees||[]).includes(m.id);
+    return`<button class="assignee-chip${active?' active':''}" onclick="drawerToggleAssignee('${m.id}')" style="${active?'border-color:'+m.color+';color:'+m.color+';background:'+m.color+'18':''}">
+      <span class="chip-avatar" style="background:${m.color}">${bEsc(m.name[0])}</span>${bEsc(m.name)}
+    </button>`;
+  }).join('');
+
+  // Subtasks HTML
+  const subs=(task.subtasks||[]);
+  const subsDone=subs.filter(s=>s.done).length;
+  const subListHtml=subs.map((s,i)=>`
+    <div class="subtask-row${s.done?' done-sub':''}">
+      <div class="sub-check${s.done?' chk':''}" onclick="drawerToggleSub(${i})"></div>
+      <span class="sub-text">${bEsc(s.text)}</span>
+      <button class="sub-del" onclick="drawerDelSub(${i})">×</button>
+    </div>`).join('');
+  const progPct=subs.length>0?Math.round(subsDone/subs.length*100):0;
+  const progHtml=subs.length>0?`<div class="subtask-progress"><div class="subtask-progress-bar" style="width:${progPct}%"></div></div>`:'';
+
+  // Nodes dropdown for re-filing
+  const nodeOpts=brainNodes.filter(n=>n.type&&(n.type.includes('service')||n.type.includes('client')||n.type.includes('root')))
+    .map(n=>`<option value="${bEsc(n.id)}"${n.id===task.nodeId?' selected':''}>${bEsc(n.label)}</option>`).join('');
+
+  body.innerHTML=`
+    <div style="font-size:0.62rem;color:var(--muted);font-weight:600;letter-spacing:0.06em">${bEsc(crumb)}</div>
+
+    <div class="drawer-field">
+      <label>Task</label>
+      <input type="text" id="de-text" value="${bEsc(task.text)}">
+    </div>
+
+    <div class="drawer-field">
+      <label>Notes</label>
+      <textarea id="de-notes" placeholder="Add context, links, brief…">${bEsc(task.notes||'')}</textarea>
+    </div>
+
+    <div class="drawer-field">
+      <label>Due Date</label>
+      <input type="date" id="de-due" value="${task.due||''}">
+    </div>
+
+    <div class="drawer-field">
+      <label>Priority</label>
+      <select id="de-pri">
+        <option value="none"${task.priority==='none'?' selected':''}>None</option>
+        <option value="low"${task.priority==='low'?' selected':''}>Low</option>
+        <option value="medium"${task.priority==='medium'?' selected':''}>Medium</option>
+        <option value="high"${task.priority==='high'?' selected':''}>High</option>
+        <option value="critical"${task.priority==='critical'?' selected':''}>Critical</option>
+      </select>
+    </div>
+
+    <div class="drawer-field">
+      <label>Filed Under</label>
+      <select id="de-node">${nodeOpts}</select>
+    </div>
+
+    <div class="drawer-field">
+      <label>Assign To</label>
+      <div class="drawer-assignees">${chipHtml}</div>
+    </div>
+
+    <div class="drawer-field">
+      <label>Subtasks${subs.length>0?' ('+subsDone+'/'+subs.length+')':''}</label>
+      ${progHtml}
+      <div class="subtask-list" id="drawer-subtasks">${subListHtml}</div>
+      <div class="sub-add-row">
+        <input class="sub-add-inp" id="sub-add-inp" placeholder="Add subtask…" onkeydown="if(event.key==='Enter')drawerAddSub()">
+        <button class="sub-add-btn" onclick="drawerAddSub()">+</button>
+      </div>
+    </div>`;
+}
+
+function drawerToggleAssignee(memberId){
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
+  if(!task.assignees)task.assignees=[];
+  const idx=task.assignees.indexOf(memberId);
+  if(idx>-1)task.assignees.splice(idx,1);else task.assignees.push(memberId);
+  saveTodoTasks(tasks);
+  renderDrawer();
+}
+
+function drawerToggleSub(subIdx){
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);if(!task||!task.subtasks[subIdx])return;
+  task.subtasks[subIdx].done=!task.subtasks[subIdx].done;
+  saveTodoTasks(tasks);
+  renderDrawer();renderColumns();
+}
+
+function drawerDelSub(subIdx){
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
+  task.subtasks.splice(subIdx,1);
+  saveTodoTasks(tasks);
+  renderDrawer();renderColumns();
+}
+
+function drawerAddSub(){
+  const inp=document.getElementById('sub-add-inp');
+  const text=inp.value.trim();if(!text)return;
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
+  if(!task.subtasks)task.subtasks=[];
+  task.subtasks.push({id:uid(),text,done:false});
+  saveTodoTasks(tasks);
+  inp.value='';
+  renderDrawer();renderColumns();
+}
+
+function saveDrawer(){
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
+  task.text=document.getElementById('de-text').value.trim()||task.text;
+  task.notes=document.getElementById('de-notes').value;
+  task.due=document.getElementById('de-due').value||null;
+  task.priority=document.getElementById('de-pri').value;
+  const newNode=document.getElementById('de-node').value;
+  if(newNode)task.nodeId=newNode,task.brand=getNodeBrand(newNode);
+  saveTodoTasks(tasks);
+  renderColumns();
+  closeDrawer();
+}
+
+function deleteDrawerTask(){
+  if(!confirm('Delete this task?'))return;
+  deleteTask('todo',drawerTaskId);
+  renderColumns();
+  closeDrawer();
+}
+
+/* ═══════════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════════ */
+let searchOpen=false;
+
+function toggleSearch(){
+  searchOpen=!searchOpen;
+  const bar=document.getElementById('search-bar');
+  bar.classList.toggle('hidden',!searchOpen);
+  if(searchOpen){
+    document.getElementById('search-input').focus();
+    runSearch('');
+  } else {
+    closeSearch();
+  }
+}
+
+function closeSearch(){
+  searchOpen=false;
+  document.getElementById('search-bar').classList.add('hidden');
+  document.getElementById('search-input').value='';
+  // restore normal col-view
+  const cv=document.getElementById('col-view');
+  if(cv){cv.style.display='flex';cv.style.flexDirection='flex';}
+  const sr=document.getElementById('search-results-container');
+  if(sr)sr.remove();
+}
+
+function runSearch(q){
+  const cv=document.getElementById('col-view');
+  let src=document.getElementById('search-results-container');
+  if(!src){
+    src=document.createElement('div');
+    src.id='search-results-container';
+    src.style.cssText='flex:1;overflow-y:auto;background:var(--surface)';
+    cv.parentNode.insertBefore(src,cv.nextSibling);
+  }
+  cv.style.display='none';
+  const countEl=document.getElementById('search-count');
+
+  if(!q.trim()){
+    src.innerHTML='<div style="padding:32px 24px;color:var(--light);font-size:0.84rem;font-style:italic">Start typing to search all tasks…</div>';
+    countEl.textContent='';
+    return;
+  }
+  const lower=q.toLowerCase();
+  const all=loadTodoTasks().filter(t=>!t.done&&(
+    t.text.toLowerCase().includes(lower)||(t.notes||'').toLowerCase().includes(lower)
+  ));
+  countEl.textContent=all.length+' result'+(all.length!==1?'s':'');
+  if(all.length===0){
+    src.innerHTML='<div style="padding:32px 24px;color:var(--light);font-size:0.84rem;font-style:italic">No tasks match "'+bEsc(q)+'"</div>';
+    return;
+  }
+  function hl(text){
+    return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+  }
+  function crumbFor(nodeId){
+    const chain=[];let nid=nodeId;
+    while(nid&&brainMap[nid]){chain.unshift(brainMap[nid].label);nid=brainMap[nid].parent;}
+    return chain.join(' › ')||'Unfiled';
+  }
+  const ds=dueStatus;
+  src.innerHTML='<div class="search-results">'+all.map(t=>{
+    const crumb=crumbFor(t.nodeId);
+    const d=t.due?`<span class="t-due${ds(t.due)==='overdue'?' over':ds(t.due)==='due-today'?' today':''}">${fmtDate(t.due)}</span>`:'';
+    const pri=t.priority&&t.priority!=='none'?`<span class="t-pri t-pri-${t.priority}"></span>`:'';
+    return`<div class="sr-item" onclick="openDrawer('${t.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="sr-text">${hl(bEsc(t.text))}</div>
+        <div class="sr-crumb">${bEsc(crumb)}</div>
+      </div>
+      <div class="sr-badges">${d}${pri}</div>
+    </div>`;
+  }).join('')+'</div>';
 }
 
 /* ═══════════════════════════════════════════
@@ -1105,7 +1451,7 @@ function spawnPickerConfetti(){
 
 function pickerAccept(){
   if(!pickerResult||pickerResult.type==='auto'){closePicker();return;}
-  togglePin(pickerResult.type,pickerResult.idx);
+  togglePin(pickerResult.type,pickerResult.task.id);
   closePicker();
 }
 
@@ -1417,7 +1763,7 @@ function init(){
   renderColumns();
   // Migrate existing tasks to have IDs
   const tasks=loadTodoTasks();let changed=false;
-  tasks.forEach(t=>{if(!t.id){t.id=uid();changed=true;}if(!t.subtasks){t.subtasks=[];changed=true;}});
+  tasks.forEach(t=>{if(!t.id){t.id=uid();changed=true;}if(!t.subtasks){t.subtasks=[];changed=true;}if(!t.assignees){t.assignees=[];changed=true;}if(t.notes===undefined){t.notes='';changed=true;}});
   if(changed)saveTodoTasks(tasks);
 }
 
