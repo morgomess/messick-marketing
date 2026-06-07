@@ -457,7 +457,7 @@ function saveTodoTasks(tasks){saveTasks('todo',tasks)}
 
 function tasksForNode(nodeId){
   if(nodeId==='personal-root'){
-    return loadTodoTasks().filter(t=>!t.nodeId||t.nodeId==='personal-root'||t.brand==='other'||t.brand==='oeis');
+    return loadTodoTasks().filter(t=>t.nodeId==='personal-root'||(!t.nodeId&&t.brand==='other'));
   }
   return loadTodoTasks().filter(t=>t.nodeId===nodeId);
 }
@@ -470,24 +470,24 @@ function addNodeTask(nodeId,text,due,pri){
   renderAll();
 }
 
-function toggleTask(type,idx){
+function toggleTask(type,taskId){
   const t=(type==='daily'||type==='ongoing')?'todo':type;
-  const tasks=loadTasks(t); if(!tasks[idx])return;
-  const was=tasks[idx].done; tasks[idx].done=!tasks[idx].done;
+  const tasks=loadTasks(t);
+  const task=tasks.find(x=>x.id===taskId); if(!task)return;
+  const was=task.done; task.done=!task.done;
   saveTasks(t,tasks);
   if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();}
 }
 
-function deleteTask(type,idx){
+function deleteTask(type,taskId){
   const t=(type==='daily'||type==='ongoing')?'todo':type;
   const tasks=loadTasks(t);
-  if(!tasks[idx])return;
-  const id=tasks[idx].id;
+  const idx=tasks.findIndex(x=>x.id===taskId); if(idx===-1)return;
   tasks.splice(idx,1);
   saveTasks(t,tasks);
   // Remove from pins
   const pins=getFocusPins();
-  const np=pins.map(p=>p&&p.id===id?null:p);
+  const np=pins.map(p=>p&&p.id===taskId?null:p);
   saveFocusPins(np);
 }
 
@@ -498,7 +498,7 @@ const BRAIN_KEY='mm_brain';
 let brainNodes=[],brainMap={};
 let bIdCounter=1000,brainBooted=false;
 
-const BRAIN_SEED_V='3';
+const BRAIN_SEED_V='4';
 const BRAIN_SEED=[
   {id:'mm-root',label:'Messick Marketing',type:'mm-root',parent:null},
     {id:'ecco',label:'ECCO Medical',type:'mm-client',parent:'mm-root'},
@@ -522,6 +522,7 @@ const BRAIN_SEED=[
     {id:'aspire',label:'Aspire Therapy',type:'mm-client',parent:'mm-root'},
       {id:'aspire-s1',label:'Blog + GBP',type:'mm-service',parent:'aspire'},
     {id:'bttc',label:'BTTC',type:'mm-client',parent:'mm-root'},
+  {id:'mm-cat-team',label:'Team',type:'mm-client',parent:'mm-root'},
   {id:'mm-team-rida',label:'Rida',type:'mm-service',parent:'mm-cat-team'},
   {id:'mm-team-jacob',label:'Jacob',type:'mm-service',parent:'mm-cat-team'},
   {id:'ve-root',label:'Virtueasy',type:'ve-root',parent:null},
@@ -772,9 +773,24 @@ function buildColumn(colIdx,parentId){
     inp.placeholder='Add task... (Enter)';
     inp.addEventListener('keydown',e=>{
       if(e.key==='Enter'&&inp.value.trim()){
-        addNodeTask(parentId,inp.value.trim(),'','none');
+        const capturedId=parentId;
+        const val=inp.value.trim();
         inp.value='';
-        renderColumns();
+        addNodeTask(capturedId,val,'','none');
+        // addNodeTask calls renderAll; re-focus the input in the rebuilt column
+        setTimeout(()=>{
+          const cols=document.querySelectorAll('.col-add-input');
+          // find the input in the column that corresponds to capturedId by checking col header
+          const allCols=document.querySelectorAll('.col');
+          for(const col of allCols){
+            const hdr=col.querySelector('.col-hdr');
+            if(hdr&&brainMap[capturedId]&&hdr.textContent===brainMap[capturedId].label){
+              const inp2=col.querySelector('.col-add-input');
+              if(inp2)inp2.focus();
+              break;
+            }
+          }
+        },30);
       }
     });
     foot.appendChild(inp);
@@ -830,9 +846,9 @@ function buildColTask(task,idx,type){
       <button class="t-pin${pinned?' pinned':''}" title="${pinned?'Unpin':'Pin to Top 3'}">◈</button>
       <button class="t-del">×</button>
     </div>`;
-  tr.querySelector('.t-check').addEventListener('click',()=>{toggleTask(type,idx);renderColumns();});
-  tr.querySelector('.t-pin').addEventListener('click',()=>{togglePin(type,idx);renderColumns();});
-  tr.querySelector('.t-del').addEventListener('click',()=>{deleteTask(type,idx);renderColumns();});
+  tr.querySelector('.t-check').addEventListener('click',()=>{toggleTask(type,task.id);renderColumns();});
+  tr.querySelector('.t-pin').addEventListener('click',()=>{togglePin(type,task.id);renderColumns();});
+  tr.querySelector('.t-del').addEventListener('click',()=>{deleteTask(type,task.id);renderColumns();});
   return tr;
 }
 
@@ -842,19 +858,17 @@ function buildColTask(task,idx,type){
 function getFocusPins(){return JSON.parse(localStorage.getItem(`mm_focus_${getTodayKey()}`)||'[null,null,null]')}
 function saveFocusPins(pins){localStorage.setItem(`mm_focus_${getTodayKey()}`,JSON.stringify(pins));scheduleSave();}
 
-function togglePin(type,idx){
+function togglePin(type,taskId){
   const t2=(type==='daily'||type==='ongoing')?'todo':type;
-  const tasks=loadTasks(t2); const task=tasks[idx]; if(!task)return;
+  const tasks=loadTasks(t2);
+  const task=tasks.find(x=>x.id===taskId); if(!task)return;
   const pins=getFocusPins();
   const existIdx=pins.findIndex(p=>p&&p.id===task.id);
   if(existIdx>-1){pins[existIdx]=null;}
   else{
     const empty=pins.findIndex(p=>!p);
-    if(empty>-1)pins[empty]={type:t2,idx,id:task.id};
-    else{
-      // Ask which to replace
-      pins[0]={type:t2,idx,id:task.id};
-    }
+    if(empty>-1)pins[empty]={type:t2,id:task.id};
+    else{pins[0]={type:t2,id:task.id};}
   }
   saveFocusPins(pins);
   renderAll();
@@ -938,7 +952,7 @@ async function quickAddTask(){
   // Add task immediately (optimistic)
   const taskId=uid();
   const tasks=loadTodoTasks();
-  tasks.push({id:taskId,text,brand:'messick',priority:'none',due:null,nodeId:null,
+  tasks.push({id:taskId,text,brand:'messick',priority:'none',due:null,nodeId:'personal-misc',
     recur:'none',done:false,addedAt:Date.now(),subtasks:[],recurLastGen:todayStr()});
   saveTodoTasks(tasks);
   input.value='';
@@ -981,7 +995,7 @@ Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-M
       task.brand=parsed.brand||'messick';
       task.priority=parsed.priority||'none';
       task.due=parsed.due||null;
-      task.nodeId=parsed.nodeId||null;
+      task.nodeId=parsed.nodeId||'personal-misc';
       saveTodoTasks(t2);
     }
     renderColumns();
