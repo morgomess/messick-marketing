@@ -1604,11 +1604,11 @@ function pickerAccept(){
 ═══════════════════════════════════════════ */
 function updateCompletionStat(){
   const todo=loadTodoTasks();
-  const total=todo.length,done=todo.filter(t=>t.done).length;
+  const open=todo.filter(t=>!t.done).length;
   const el=document.getElementById('completion-stat');
   const txt=document.getElementById('stat-text');
-  if(txt)txt.textContent=`${done} of ${total} done`;
-  if(el)el.classList.toggle('all-done',total>0&&done===total);
+  if(txt)txt.textContent=open+' open task'+(open!==1?'s':'');
+  if(el)el.classList.toggle('all-done',todo.length>0&&open===0);
 }
 
 /* ═══════════════════════════════════════════
