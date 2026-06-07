@@ -150,6 +150,12 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .col-done-list{display:none}
 .col-done-label.open + .col-done-list{display:block}
 .col-empty{padding:16px 14px;font-size:0.78rem;color:var(--light);font-style:italic}
+/* drag and drop */
+.col-task.dragging{opacity:0.35;pointer-events:none}
+.col-task[draggable="true"]{cursor:grab}
+.col-task[draggable="true"]:active{cursor:grabbing}
+.col-body.drag-over{background:rgba(58,107,138,0.07);outline:2px dashed rgba(90,154,184,0.4);outline-offset:-2px}
+.drag-placeholder{height:38px;background:rgba(90,154,184,0.1);border:2px dashed rgba(90,154,184,0.35);border-radius:2px;margin:2px 14px;pointer-events:none}
 /* Column footer */
 .col-foot{padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:5px}
 .col-add-input{width:100%;border:1px solid var(--border);border-radius:3px;padding:6px 10px;font-family:'Jost',sans-serif;font-size:0.8rem;outline:none;color:var(--black);background:var(--surface-2,#f0eee9);transition:border-color 0.2s}
@@ -860,6 +866,32 @@ function buildColumn(colIdx,parentId){
   // Body
   const body=document.createElement('div');
   body.className='col-body';
+  if(parentId){
+    body.addEventListener('dragover',e=>{
+      if(!dragState.taskId)return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      // find insertion point
+      body.classList.add('drag-over');
+      removePlaceholder();
+      const afterEl=getDragAfterElement(body,e.clientY);
+      const ph=document.createElement('div');
+      ph.className='drag-placeholder';
+      ph.id='drag-ph';
+      if(afterEl){body.insertBefore(ph,afterEl);}else{body.appendChild(ph);}
+    });
+    body.addEventListener('dragleave',e=>{
+      if(!body.contains(e.relatedTarget)){body.classList.remove('drag-over');removePlaceholder();}
+    });
+    body.addEventListener('drop',e=>{
+      e.preventDefault();
+      body.classList.remove('drag-over');
+      removePlaceholder();
+      if(!dragState.taskId)return;
+      const afterEl=getDragAfterElement(body,e.clientY);
+      dropTask(dragState.taskId,parentId,afterEl);
+    });
+  }
 
   if(children.length>0){
     children.forEach(child=>{
@@ -986,6 +1018,22 @@ function buildColumn(colIdx,parentId){
 function buildColTask(task,idx,type){
   const tr=document.createElement('div');
   tr.className='col-task'+(task.done?' done':'');
+  if(!task.done){
+    tr.setAttribute('draggable','true');
+    tr.dataset.taskId=task.id;
+    tr.addEventListener('dragstart',e=>{
+      dragState.taskId=task.id;
+      dragState.sourceNodeId=task.nodeId;
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',task.id);
+      setTimeout(()=>tr.classList.add('dragging'),0);
+    });
+    tr.addEventListener('dragend',()=>{
+      tr.classList.remove('dragging');
+      clearDragOver();
+      dragState.taskId=null;dragState.sourceNodeId=null;
+    });
+  }
   const pri=task.priority||'none';
   const ds=dueStatus(task.due);
   let dueHtml='';
@@ -1014,6 +1062,76 @@ function buildColTask(task,idx,type){
   tr.querySelector('.t-pin').addEventListener('click',()=>{togglePin(type,task.id);renderColumns();});
   tr.querySelector('.t-del').addEventListener('click',()=>{deleteTask(type,task.id);renderColumns();});
   return tr;
+}
+
+/* ═══════════════════════════════════════════
+   DRAG AND DROP
+═══════════════════════════════════════════ */
+const dragState={taskId:null,sourceNodeId:null};
+
+function removePlaceholder(){
+  const ph=document.getElementById('drag-ph');
+  if(ph)ph.remove();
+}
+
+function clearDragOver(){
+  document.querySelectorAll('.col-body.drag-over').forEach(b=>b.classList.remove('drag-over'));
+  removePlaceholder();
+}
+
+function getDragAfterElement(container,y){
+  const draggables=[...container.querySelectorAll('.col-task:not(.dragging):not(.drag-placeholder)')];
+  let closest=null,closestOffset=Infinity;
+  draggables.forEach(el=>{
+    const box=el.getBoundingClientRect();
+    const offset=y-(box.top+box.height/2);
+    if(offset<0&&Math.abs(offset)<closestOffset){
+      closestOffset=Math.abs(offset);
+      closest=el;
+    }
+  });
+  return closest;
+}
+
+function dropTask(taskId,targetNodeId,afterEl){
+  const tasks=loadTodoTasks();
+  const taskIdx=tasks.findIndex(t=>t.id===taskId);
+  if(taskIdx===-1)return;
+  const task=tasks[taskIdx];
+
+  // Re-file to new node if different
+  if(task.nodeId!==targetNodeId){
+    task.nodeId=targetNodeId;
+    task.brand=getNodeBrand(targetNodeId);
+  }
+
+  // Determine new order among tasks in target node
+  // Remove task from array, re-insert at right position
+  tasks.splice(taskIdx,1);
+
+  // Figure out insertion index based on afterEl
+  // afterEl is the DOM element we insert before; get its task id
+  if(afterEl&&afterEl.dataset.taskId){
+    const afterId=afterEl.dataset.taskId;
+    const afterIdx=tasks.findIndex(t=>t.id===afterId);
+    if(afterIdx>-1){
+      tasks.splice(afterIdx,0,task);
+    } else {
+      // afterEl is in done section or not found — append among pending
+      const lastPending=tasks.reduce((last,t,i)=>(!t.done&&t.nodeId===targetNodeId)?i:last,-1);
+      tasks.splice(lastPending+1,0,task);
+    }
+  } else {
+    // Drop at end of pending tasks in this node
+    let insertAt=tasks.length;
+    for(let i=tasks.length-1;i>=0;i--){
+      if(!tasks[i].done&&tasks[i].nodeId===targetNodeId){insertAt=i+1;break;}
+    }
+    tasks.splice(insertAt,0,task);
+  }
+
+  saveTodoTasks(tasks);
+  renderColumns();
 }
 
 /* ═══════════════════════════════════════════
