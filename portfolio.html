@@ -55,6 +55,9 @@
       text-decoration: none;
       letter-spacing: 0.02em;
     }
+    .nav-logo img { height: 34px; width: auto; max-width: 190px; object-fit: contain; display: block; }
+    .nav-cta { background: var(--blue); color: var(--white) !important; padding: 0.55rem 1rem; border-radius: 2px; transition: background 0.2s; }
+    .nav-cta:hover { background: #315c76; color: var(--white) !important; }
     .nav-links {
       display: flex;
       gap: 32px;
@@ -681,12 +684,13 @@
 
 <!-- NAV -->
 <nav>
-  <a href="/index.html" class="nav-logo">Messick Marketing</a>
+  <a href="/" class="nav-logo"><img src="/logo.png" alt="Messick Marketing" decoding="async"></a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="/index.html">Home</a></li>
-    <li><a href="/portfolio.html" class="active">Portfolio</a></li>
-    <li><a href="/index.html#services">Services</a></li>
-    <li><a href="/index.html#contact">Contact</a></li>
+    <li><a href="/#ai-tools">Specialties</a></li>
+    <li><a href="/#visibility">Services</a></li>
+    <li><a href="/portfolio" class="active">Work</a></li>
+    <li><a href="/blog/">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Growth Assessment</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -713,9 +717,9 @@
     <div class="cs-visual">
       <div class="cs-visual-grid">
         <video src="/portfolio-assets/ecco-gae-explainer.mp4" poster="/portfolio-assets/ecco-gae-explainer-poster.jpg" muted loop playsinline preload="none"></video>
-        <img src="/portfolio-assets/ecco-joint-embolization.png" alt="ECCO Medical - Joint Embolization Infographic" loading="lazy" />
-        <img src="/portfolio-assets/ecco-fibroids-prostate.png" alt="ECCO Medical - Fibroids or Enlarged Prostate" loading="lazy" />
-        <img src="/portfolio-assets/ecco-testimonial.jpg" alt="ECCO Medical - Patient Testimonial Erik M" loading="lazy" />
+        <img src="/portfolio-assets/ecco-joint-embolization.png" alt="ECCO Medical - Joint Embolization Infographic" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/ecco-fibroids-prostate.png" alt="ECCO Medical - Fibroids or Enlarged Prostate" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/ecco-testimonial.jpg" alt="ECCO Medical - Patient Testimonial Erik M" loading="lazy" / decoding="async">
       </div>
       <div class="cs-client-badge"><span>ECCO Medical</span></div>
     </div>
@@ -761,9 +765,9 @@
     <div class="cs-visual">
       <div class="cs-visual-grid">
         <video src="/portfolio-assets/jvi-knee-testimonial.mp4" poster="/portfolio-assets/jvi-knee-testimonial-poster.jpg" muted loop playsinline preload="none"></video>
-        <img src="/portfolio-assets/jvi-hip-oa.png" alt="JVI - Hip Osteoarthritis TAME" loading="lazy" />
-        <img src="/portfolio-assets/jvi-msk-trials.png" alt="JVI - Active MSK Clinical Trials" loading="lazy" />
-        <img src="/portfolio-assets/jvi-knee-pain.png" alt="JVI - 3 Things Every Knee Pain Patient Should Know" loading="lazy" />
+        <img src="/portfolio-assets/jvi-hip-oa.png" alt="JVI - Hip Osteoarthritis TAME" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/jvi-msk-trials.png" alt="JVI - Active MSK Clinical Trials" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/jvi-knee-pain.png" alt="JVI - 3 Things Every Knee Pain Patient Should Know" loading="lazy" / decoding="async">
       </div>
       <div class="cs-client-badge"><span>Joint &amp; Vascular Institute</span></div>
     </div>
@@ -809,9 +813,9 @@
     <div class="cs-visual">
       <div class="cs-visual-grid">
         <video src="/portfolio-assets/tvi-legs-back.mp4" poster="/portfolio-assets/tvi-legs-back-poster.jpg" style="object-position:top;" muted loop playsinline preload="none"></video>
-        <img src="/portfolio-assets/tvi-hysterectomy.png" alt="TVI - You Don't Need a Hysterectomy" loading="lazy" />
-        <img src="/portfolio-assets/tvi-faq-vein.png" alt="TVI - FAQ Is Vein Treatment Painful" loading="lazy" />
-        <img src="/portfolio-assets/tvi-testimonial.png" alt="TVI - Patient Testimonial" loading="lazy" />
+        <img src="/portfolio-assets/tvi-hysterectomy.png" alt="TVI - You Don't Need a Hysterectomy" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/tvi-faq-vein.png" alt="TVI - FAQ Is Vein Treatment Painful" loading="lazy" / decoding="async">
+        <img src="/portfolio-assets/tvi-testimonial.png" alt="TVI - Patient Testimonial" loading="lazy" / decoding="async">
       </div>
       <div class="cs-client-badge"><span>Texas Vascular Institute</span></div>
     </div>
@@ -869,14 +873,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/blackhills-heart-failure-risk.png" alt="Black Hills Heart and Vascular - Are You At Risk For Heart Failure" loading="lazy" />
+      <img src="/portfolio-assets/blackhills-heart-failure-risk.png" alt="Black Hills Heart and Vascular - Are You At Risk For Heart Failure" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">Are You At Risk for Heart Failure?</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/kelli-tedx-charlotte.png" alt="Brain Talk - Dr Kelli TEDxCharlotte" loading="lazy" />
+      <img src="/portfolio-assets/kelli-tedx-charlotte.png" alt="Brain Talk - Dr Kelli TEDxCharlotte" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Brain Talk Foundation</span>
         <span class="sample-title">TEDxCharlotte - Dr. Kelli Showed Up</span>
@@ -890,14 +894,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/blackhills-good-hands.png" alt="Black Hills Heart and Vascular - Your Heart Is In Good Hands" loading="lazy" />
+      <img src="/portfolio-assets/blackhills-good-hands.png" alt="Black Hills Heart and Vascular - Your Heart Is In Good Hands" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">Your Heart Is in Good Hands</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/denver-busy-schedule.png" alt="My Denver Therapy - Therapy That Fits Your Busy Schedule" loading="lazy" />
+      <img src="/portfolio-assets/denver-busy-schedule.png" alt="My Denver Therapy - Therapy That Fits Your Busy Schedule" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Therapy That Fits Your Busy Schedule</span>
@@ -911,21 +915,21 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/aspire-pickleball-parkinsons.jpg" alt="Aspire Therapy - Pickleball for Parkinson's" loading="lazy" />
+      <img src="/portfolio-assets/aspire-pickleball-parkinsons.jpg" alt="Aspire Therapy - Pickleball for Parkinson's" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Aspire Therapy</span>
         <span class="sample-title">Pickleball for Parkinson's - June 6</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/dcc-pad-explained.png" alt="Desert Cardiovascular - Peripheral Artery Disease Explained" loading="lazy" />
+      <img src="/portfolio-assets/dcc-pad-explained.png" alt="Desert Cardiovascular - Peripheral Artery Disease Explained" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">Peripheral Artery Disease Explained</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/denver-testimonial.png" alt="My Denver Therapy - Patient Review for John Hague" loading="lazy" />
+      <img src="/portfolio-assets/denver-testimonial.png" alt="My Denver Therapy - Patient Review for John Hague" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Patient Review - John Hague, LPC</span>
@@ -939,14 +943,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/svv-fibroid-relief.png" alt="Sound Vascular - Fibroid Relief Without Surgery" loading="lazy" />
+      <img src="/portfolio-assets/svv-fibroid-relief.png" alt="Sound Vascular - Fibroid Relief Without Surgery" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
         <span class="sample-title">Fibroid Relief Without Surgery</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/blackhills-world-class.png" alt="Black Hills Heart and Vascular - World-Class Care to Black Hills" loading="lazy" />
+      <img src="/portfolio-assets/blackhills-world-class.png" alt="Black Hills Heart and Vascular - World-Class Care to Black Hills" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">World-Class Heart &amp; Vascular Care</span>
@@ -960,21 +964,21 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/braintalk-brain-injury-disability.jpg" alt="Brain Talk - Is Brain Injury Considered a Disability" loading="lazy" />
+      <img src="/portfolio-assets/braintalk-brain-injury-disability.jpg" alt="Brain Talk - Is Brain Injury Considered a Disability" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Brain Talk Foundation</span>
         <span class="sample-title">Is Brain Injury Considered a Disability?</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/dcc-pad-warning-signs.png" alt="Desert Cardiovascular - PAD Warning Signs You Shouldn't Ignore" loading="lazy" />
+      <img src="/portfolio-assets/dcc-pad-warning-signs.png" alt="Desert Cardiovascular - PAD Warning Signs You Shouldn't Ignore" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">PAD Warning Signs You Shouldn't Ignore</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/denver-qa-therapy-length.png" alt="My Denver Therapy - How Long Does Therapy Last Q and A" loading="lazy" />
+      <img src="/portfolio-assets/denver-qa-therapy-length.png" alt="My Denver Therapy - How Long Does Therapy Last Q and A" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Q&amp;A - How Long Does Therapy Last?</span>
@@ -988,14 +992,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/svv-pelvic-pressure.png" alt="Sound Vascular - Pelvic Pressure" loading="lazy" />
+      <img src="/portfolio-assets/svv-pelvic-pressure.png" alt="Sound Vascular - Pelvic Pressure" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
         <span class="sample-title">Symptom Awareness - Fibroids</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/blackhills-rapid-city.png" alt="Black Hills Heart and Vascular - Best Heart Care in Rapid City" loading="lazy" />
+      <img src="/portfolio-assets/blackhills-rapid-city.png" alt="Black Hills Heart and Vascular - Best Heart Care in Rapid City" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Black Hills Heart &amp; Vascular</span>
         <span class="sample-title">Best Heart &amp; Vascular Care in Rapid City</span>
@@ -1009,14 +1013,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/braintalk-new-here.jpg" alt="Brain Talk - New Here Meet Dr. Kelli" loading="lazy" />
+      <img src="/portfolio-assets/braintalk-new-here.jpg" alt="Brain Talk - New Here Meet Dr. Kelli" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Brain Talk Foundation</span>
         <span class="sample-title">New Here? Meet Dr. Kelli</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/dcc-abi-test.png" alt="Desert Cardiovascular - PAD Detected in Minutes, ABI Test" loading="lazy" />
+      <img src="/portfolio-assets/dcc-abi-test.png" alt="Desert Cardiovascular - PAD Detected in Minutes, ABI Test" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">Early PAD Detection - ABI Test</span>
@@ -1030,21 +1034,21 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/denver-website-methods.png" alt="My Denver Therapy - Website UI Methods Menu" loading="lazy" />
+      <img src="/portfolio-assets/denver-website-methods.png" alt="My Denver Therapy - Website UI Methods Menu" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Website UI - Methods Menu</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/svv-gae-5reasons-cover.png" alt="Sound Vascular - 5 Reasons to Choose GAE Over Knee Replacement" loading="lazy" />
+      <img src="/portfolio-assets/svv-gae-5reasons-cover.png" alt="Sound Vascular - 5 Reasons to Choose GAE Over Knee Replacement" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
         <span class="sample-title">5 Reasons to Choose GAE - Carousel</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/aspire-stop-waiting.jpg" alt="Aspire - Stop Waiting Start Healing" loading="lazy" />
+      <img src="/portfolio-assets/aspire-stop-waiting.jpg" alt="Aspire - Stop Waiting Start Healing" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Aspire Therapy</span>
         <span class="sample-title">Stop Waiting. Start Healing.</span>
@@ -1058,14 +1062,14 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/dcc-testimonial-donald.png" alt="Desert Cardiovascular - Patient Testimonial Donald O" loading="lazy" />
+      <img src="/portfolio-assets/dcc-testimonial-donald.png" alt="Desert Cardiovascular - Patient Testimonial Donald O" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Desert Cardiovascular Consultants</span>
         <span class="sample-title">Patient Testimonial - Donald O.</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/denver-kap-cover.png" alt="My Denver Therapy - What is Ketamine-Assisted Psychotherapy" loading="lazy" />
+      <img src="/portfolio-assets/denver-kap-cover.png" alt="My Denver Therapy - What is Ketamine-Assisted Psychotherapy" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">My Denver Therapy</span>
         <span class="sample-title">Ketamine-Assisted Psychotherapy - Carousel</span>
@@ -1079,21 +1083,21 @@
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/svv-gae-faq-bone-on-bone.png" alt="Sound Vascular - Will GAE work if I am bone on bone" loading="lazy" />
+      <img src="/portfolio-assets/svv-gae-faq-bone-on-bone.png" alt="Sound Vascular - Will GAE work if I am bone on bone" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
         <span class="sample-title">FAQ - GAE for Bone-on-Bone Knees</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/obl-did-you-know.png" alt="OBL Marketing - Did You Know ChatGPT" loading="lazy" />
+      <img src="/portfolio-assets/obl-did-you-know.png" alt="OBL Marketing - Did You Know ChatGPT" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">OBL Marketing</span>
         <span class="sample-title">40M People Asked ChatGPT a Health Question Today</span>
       </div>
     </div>
     <div class="sample-card">
-      <img src="/portfolio-assets/svv-testimonial-dwane.png" alt="Sound Vascular - Patient Testimonial Dwane H" loading="lazy" />
+      <img src="/portfolio-assets/svv-testimonial-dwane.png" alt="Sound Vascular - Patient Testimonial Dwane H" loading="lazy" / decoding="async">
       <div class="sample-overlay">
         <span class="sample-client">Sound Vascular &amp; Vein</span>
         <span class="sample-title">Patient Testimonial - Dwane H.</span>
