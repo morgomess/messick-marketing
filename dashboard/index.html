@@ -1862,22 +1862,63 @@ function pickerSpin(){
   const phrase=PICKER_PHRASES[Math.floor(Math.random()*PICKER_PHRASES.length)];
   document.getElementById('picker-phrase').textContent=phrase;
 
+  // Build candidate pool - only actionable tasks
+  const today=new Date(); today.setHours(0,0,0,0);
+  const allTasks=loadTodoTasks().filter(t=>!t.done);
+
+  // Score each task: higher = more likely to be picked
+  function pickerScore(t){
+    let score=0;
+    // Priority weight
+    const pw={critical:40,high:20,medium:8,low:2,none:2};
+    score+=pw[t.priority||'none']||2;
+    // Due date weight - closer due = much higher score, far future = lower
+    if(t.due){
+      const due=new Date(t.due+'T12:00:00');
+      const daysAway=Math.round((due-today)/(1000*60*60*24));
+      if(daysAway<0)score+=30;          // overdue: big boost
+      else if(daysAway===0)score+=25;   // due today
+      else if(daysAway<=3)score+=15;    // due within 3 days
+      else if(daysAway<=7)score+=8;     // due this week
+      else if(daysAway<=14)score+=2;    // due next 2 weeks
+      else score-=5;                     // due 2+ weeks out: penalize
+    }
+    // Exclude tasks due more than 3 weeks away from the pool entirely
+    if(t.due){
+      const due=new Date(t.due+'T12:00:00');
+      const daysAway=Math.round((due-today)/(1000*60*60*24));
+      if(daysAway>21)return 0;
+    }
+    return Math.max(score,1);
+  }
+
+  // Build weighted pool based on scores
   const candidates=[];
-  loadTodoTasks().forEach((t,i)=>{if(!t.done)candidates.push({type:'todo',idx:i,task:t});});
+  allTasks.forEach((t,i)=>{
+    const s=pickerScore(t);
+    if(s>0)candidates.push({type:'todo',idx:i,task:t,score:s});
+  });
+
+  // Fallback: if all tasks are far-future, include everything
+  const pool=candidates.length>0?candidates:allTasks.map((t,i)=>({type:'todo',idx:i,task:t,score:1}));
+
+  // Weighted random pick
+  const totalScore=pool.reduce((s,c)=>s+c.score,0);
+  let rand=Math.random()*totalScore;
+  let picked=pool[pool.length-1];
+  for(const c of pool){rand-=c.score;if(rand<=0){picked=c;break;}}
 
   const drumWrap=document.getElementById('picker-drum-wrap');
   const revealEl=document.getElementById('picker-reveal');
   const metaEl=document.getElementById('picker-meta');
   const rot=document.getElementById('wheel-rot');
 
-  if(candidates.length===0){
+  if(pool.length===0){
     drumWrap.style.display='none';revealEl.style.display='block';
     revealEl.textContent='Nothing left — go celebrate! 🎉';metaEl.innerHTML='';pickerResult=null;return;
   }
 
-  const weights={critical:8,high:4,medium:2,low:1,none:1};
-  const pool=candidates.flatMap(c=>Array(weights[c.task.priority||'none']).fill(c));
-  pickerResult=pool[Math.floor(Math.random()*pool.length)];
+  pickerResult=picked;
 
   drumWrap.style.display='block';revealEl.style.display='none';metaEl.innerHTML='';
 
