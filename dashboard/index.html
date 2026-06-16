@@ -1434,12 +1434,14 @@ Always infer from initials even if ambiguous.
 
 Assignees: optional array from [rida, jacob, sanam]. Only include if clearly named.
 
+Recurrence: detect repeat frequency from words like daily, weekly, every week, biweekly, every 2 weeks, monthly, every month, quarterly. Set "recur" to one of: "none","daily","weekly","biweekly","monthly","quarterly". Default "none".
+
 EXPANSION RULES - these are critical:
 1. MULTI-CLIENT: If multiple clients are listed (e.g. "ECCO, JVI, TVI - blog due Friday" or "all clients - Q3 strategy"), create ONE task object per client, each with the same text and due/priority but different nodeId.
 2. MULTI-TASK: If a numbered or counted set is requested for ONE client (e.g. "BTTC blog posts 3 and 4" or "ECCO 3 captions"), create one task per item with descriptive text (e.g. "BTTC blog post 3", "BTTC blog post 4").
 3. SINGLE: All other inputs = array with one task object.
 
-Each task object: {"text":"cleaned task label","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":""}
+Each task object: {"text":"cleaned task label","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":"","recur":"none"}
 
 Return a JSON array. Always an array, even for a single task.`;
 
@@ -1463,7 +1465,7 @@ Return a JSON array. Always an array, even for a single task.`;
         priority:p.priority||'none',
         due:p.due||null,
         nodeId:p.nodeId||'personal-misc',
-        recur:'none',done:false,addedAt:Date.now(),
+        recur:p.recur||'none',done:false,addedAt:Date.now(),
         subtasks:[],assignees:p.assignees||[],notes:p.notes||'',
         recurLastGen:todayStr()
       });
@@ -1576,6 +1578,18 @@ function renderDrawer(){
     </div>
 
     <div class="drawer-field">
+      <label>Repeats</label>
+      <select id="de-recur">
+        <option value="none"${task.recur==='none'||!task.recur?' selected':''}>Does not repeat</option>
+        <option value="daily"${task.recur==='daily'?' selected':''}>Daily</option>
+        <option value="weekly"${task.recur==='weekly'?' selected':''}>Weekly</option>
+        <option value="biweekly"${task.recur==='biweekly'?' selected':''}>Every 2 weeks</option>
+        <option value="monthly"${task.recur==='monthly'?' selected':''}>Monthly</option>
+        <option value="quarterly"${task.recur==='quarterly'?' selected':''}>Quarterly</option>
+      </select>
+    </div>
+
+    <div class="drawer-field">
       <label>Filed Under</label>
       <select id="de-node">${nodeOpts}</select>
     </div>
@@ -1641,6 +1655,7 @@ function saveDrawer(){
   task.notes=document.getElementById('de-notes').value;
   task.due=document.getElementById('de-due').value||null;
   task.priority=document.getElementById('de-pri').value;
+  task.recur=document.getElementById('de-recur').value||'none';
   const newNode=document.getElementById('de-node').value;
   if(newNode)task.nodeId=newNode,task.brand=getNodeBrand(newNode);
   saveTodoTasks(tasks);
@@ -2280,11 +2295,62 @@ function renderAll(){
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   RECURRING TASK ENGINE
+═══════════════════════════════════════════ */
+function recurDaysBetween(recur){
+  if(recur==='daily')return 1;
+  if(recur==='weekly')return 7;
+  if(recur==='biweekly')return 14;
+  if(recur==='monthly')return 30;
+  if(recur==='quarterly')return 90;
+  return null;
+}
+function addDays(dateStr,n){
+  const d=new Date(dateStr+'T12:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function processRecurringTasks(){
+  const tasks=loadTodoTasks();
+  const today=todayStr();
+  let changed=false;
+  const toAdd=[];
+  tasks.forEach(t=>{
+    if(!t.recur||t.recur==='none')return;
+    if(!t.done)return; // only regenerate completed recurring tasks
+    const days=recurDaysBetween(t.recur);
+    if(!days)return;
+    const lastGen=t.recurLastGen||t.addedAt&&new Date(t.addedAt).toISOString().slice(0,10)||today;
+    const nextDue=addDays(lastGen,days);
+    if(nextDue<=today){
+      // Check a fresh copy doesn't already exist (same text + nodeId + not done)
+      const alreadyOpen=tasks.some(x=>!x.done&&x.text===t.text&&x.nodeId===t.nodeId&&x.id!==t.id);
+      if(!alreadyOpen){
+        toAdd.push({
+          id:uid(),text:t.text,brand:t.brand,priority:t.priority,
+          due:nextDue,nodeId:t.nodeId,recur:t.recur,done:false,
+          addedAt:Date.now(),subtasks:[],assignees:t.assignees||[],
+          notes:t.notes||'',recurLastGen:nextDue
+        });
+        t.recurLastGen=nextDue;
+        changed=true;
+      }
+    }
+  });
+  if(toAdd.length||changed){
+    tasks.push(...toAdd);
+    saveTodoTasks(tasks);
+  }
+  return toAdd.length;
+}
+
 function init(){
   brainLoad();
   setDate();
   initServicesChecklist();
   setupResponsiveRerender();
+  processRecurringTasks();
   renderColumns();
   // Migrate existing tasks to have IDs
   const tasks=loadTodoTasks();let changed=false;
