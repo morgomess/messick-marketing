@@ -1423,7 +1423,20 @@ Priority: "critical","high","medium","low","none". No modifier = "medium". urgen
 Due: today is ${todayStr()}. Parse relative terms. No date = null.
 nodeId: Pick the most relevant node id from the tree. If unclear, use null.
 
-Client hints: ECCO→ecco, JVI→jvi, OEIS→oeis, TVI/Texas Vascular→tvi, Kelli/Brain Talk→kelli, SVV/Sound Vascular→svv, Desert Cardiovascular→desert, Aspire→aspire, Virtueasy/VA→ve-root, personal/misc→personal-root.
+Client hints (match initials, abbreviations, or partial names):
+ECCO / ECCO Medical / EM → ecco
+JVI / Joint Vascular / Joint & Vascular → jvi
+OEIS → oeis
+TVI / Texas Vascular / Texas Vascular Institute → tvi
+Kelli / Brain Talk / BT / BTTCF / BTF → kelli
+SVV / Sound Vascular / Sound Vein → svv
+Desert / Desert Cardiovascular / DCC / DC → desert
+Aspire / Aspire Therapy / AT → aspire
+BTTC / BTTCF / Brain Talk Foundation → bttc
+Virtueasy / VA / ve → ve-root
+personal / misc / me / admin → personal-root
+Team / Rida / Jacob / Sanam → mm-cat-team
+Always infer from initials even if ambiguous - pick the closest client match.
 
 Assignees: optional array of team member ids from [rida, jacob, sanam]. Only include if task clearly mentions one of them by name.
 
@@ -2215,7 +2228,11 @@ function scheduleSave(){
 async function bootApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  await pullState();
+  const gotRemote=await pullState();
+  if(gotRemote){
+    // Remote data just wrote into localStorage - skip the reseed guard so brainLoad uses it
+    localStorage.removeItem('mm_brain_seedv');
+  }
   init();
   pushState();
   startSyncLoop();
