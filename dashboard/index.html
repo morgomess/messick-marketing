@@ -1398,22 +1398,15 @@ async function quickAddTask(){
   const text=input.value.trim();
   if(!text)return;
 
-  // Add task immediately (optimistic)
-  const taskId=uid();
-  const tasks=loadTodoTasks();
-  tasks.push({id:taskId,text,brand:'messick',priority:'none',due:null,nodeId:'personal-misc',
-    recur:'none',done:false,addedAt:Date.now(),subtasks:[],recurLastGen:todayStr()});
-  saveTodoTasks(tasks);
   input.value='';
-  renderColumns();
   status.className='qa-status';
   status.textContent='⏳ Filing...';
   btn.disabled=true;
 
-  // AI enrichment in background
+  // AI enrichment - returns array of tasks to create
   try {
     const nodes=brainNodes.map(n=>({id:n.id,label:n.label,parent:n.parent||null}));
-    const systemPrompt=`You are a task parser for a marketing agency dashboard. Given a plain-English task description, extract structured data and return ONLY valid JSON with no markdown or explanation.
+    const systemPrompt=`You are a task parser for a marketing agency dashboard. Parse the input and return ONLY a valid JSON array of task objects with no markdown or explanation.
 
 Brain tree nodes (use id for nodeId):
 ${JSON.stringify(nodes)}
@@ -1421,14 +1414,14 @@ ${JSON.stringify(nodes)}
 Brand values: "messick", "virtueasy", "oeis", "other"
 Priority: "critical","high","medium","low","none". No modifier = "medium". urgent/asap = "critical".
 Due: today is ${todayStr()}. Parse relative terms. No date = null.
-nodeId: Pick the most relevant node id from the tree. If unclear, use null.
+nodeId: Pick the most relevant node id from the tree.
 
 Client hints (match initials, abbreviations, or partial names):
 ECCO / ECCO Medical / EM → ecco
 JVI / Joint Vascular / Joint & Vascular → jvi
 OEIS → oeis
 TVI / Texas Vascular / Texas Vascular Institute → tvi
-Kelli / Brain Talk / BT / BTTCF / BTF → kelli
+Kelli / Brain Talk / BT / BTF → kelli
 SVV / Sound Vascular / Sound Vein → svv
 Desert / Desert Cardiovascular / DCC / DC → desert
 Aspire / Aspire Therapy / AT → aspire
@@ -1436,13 +1429,21 @@ BTTC / BTTCF / Brain Talk Foundation → bttc
 Virtueasy / VA / ve → ve-root
 personal / misc / me / admin → personal-root
 Team / Rida / Jacob / Sanam → mm-cat-team
-Always infer from initials even if ambiguous - pick the closest client match.
+all clients = [ecco, jvi, oeis, tvi, kelli, svv, desert, aspire, bttc]
+Always infer from initials even if ambiguous.
 
-Assignees: optional array of team member ids from [rida, jacob, sanam]. Only include if task clearly mentions one of them by name.
+Assignees: optional array from [rida, jacob, sanam]. Only include if clearly named.
 
-Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":""}`;
+EXPANSION RULES - these are critical:
+1. MULTI-CLIENT: If multiple clients are listed (e.g. "ECCO, JVI, TVI - blog due Friday" or "all clients - Q3 strategy"), create ONE task object per client, each with the same text and due/priority but different nodeId.
+2. MULTI-TASK: If a numbered or counted set is requested for ONE client (e.g. "BTTC blog posts 3 and 4" or "ECCO 3 captions"), create one task per item with descriptive text (e.g. "BTTC blog post 3", "BTTC blog post 4").
+3. SINGLE: All other inputs = array with one task object.
 
-    const resp=await fetch(`${WORKER}/claude`,{
+Each task object: {"text":"cleaned task label","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":""}
+
+Return a JSON array. Always an array, even for a single task.`;
+
+    const resp=await fetch(WORKER+'/claude',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:systemPrompt+'\n\nTask to parse: '+text})
     });
@@ -1450,28 +1451,41 @@ Return JSON: {"text":"cleaned task","brand":"...","priority":"...","due":"YYYY-M
     if(!resp.ok)throw new Error(data.error||'Worker error');
     const raw=data.text||'';
     const clean=raw.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(clean);
+    let parsed=JSON.parse(clean);
+    if(!Array.isArray(parsed))parsed=[parsed];
 
     const t2=loadTodoTasks();
-    const task=t2.find(t=>t.id===taskId);
-    if(task){
-      task.text=(parsed.text||text).replace(/^./,c=>c.toUpperCase());
-      task.brand=parsed.brand||'messick';
-      task.priority=parsed.priority||'none';
-      task.due=parsed.due||null;
-      task.nodeId=parsed.nodeId||'personal-misc';
-      if(parsed.assignees&&Array.isArray(parsed.assignees))task.assignees=parsed.assignees;
-      if(parsed.notes)task.notes=parsed.notes;
-      saveTodoTasks(t2);
-    }
+    parsed.forEach(p=>{
+      t2.push({
+        id:uid(),
+        text:(p.text||text).replace(/^./,ch=>ch.toUpperCase()),
+        brand:p.brand||'messick',
+        priority:p.priority||'none',
+        due:p.due||null,
+        nodeId:p.nodeId||'personal-misc',
+        recur:'none',done:false,addedAt:Date.now(),
+        subtasks:[],assignees:p.assignees||[],notes:p.notes||'',
+        recurLastGen:todayStr()
+      });
+    });
+    saveTodoTasks(t2);
     renderColumns();
+    const n=parsed.length;
     status.className='qa-status ok';
-    status.textContent='✓ Filed';
-    setTimeout(()=>{status.textContent='';},2500);
+    status.textContent=n>1?'✓ '+n+' tasks filed':'✓ Filed';
+    setTimeout(()=>{status.textContent='';btn.disabled=false;},2500);
   } catch(e){
+    // Fallback: save as single unorganized task
+    const t2=loadTodoTasks();
+    t2.push({id:uid(),text:text.replace(/^./,ch=>ch.toUpperCase()),brand:'messick',priority:'none',
+      due:null,nodeId:'personal-misc',recur:'none',done:false,addedAt:Date.now(),
+      subtasks:[],assignees:[],notes:'',recurLastGen:todayStr()});
+    saveTodoTasks(t2);
+    renderColumns();
     status.className='qa-status err';
     status.textContent='✗ Saved unorganized';
     console.error('Quick add AI error:',e);
+    setTimeout(()=>{btn.disabled=false;},2000);
   }
   btn.disabled=false;
   input.focus();
