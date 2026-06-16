@@ -2230,11 +2230,10 @@ async function bootApp(){
   document.getElementById('app').style.display='flex';
   const gotRemote=await pullState();
   if(gotRemote){
-    // Remote data just wrote into localStorage - skip the reseed guard so brainLoad uses it
     localStorage.removeItem('mm_brain_seedv');
   }
   init();
-  pushState();
+  // Do NOT push on boot - only pull. Push happens only when user makes a change.
   startSyncLoop();
 }
 function startSyncLoop(){
