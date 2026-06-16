@@ -26,7 +26,8 @@
     --card: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Jost', sans-serif; background: var(--warm-white); color: var(--black); min-height: 100vh; }
+  html { overflow-x: hidden; }
+  body { font-family: 'Jost', sans-serif; background: var(--warm-white); color: var(--black); min-height: 100vh; overflow-x: hidden; max-width: 100%; }
 
   #pw-screen {
     position: fixed; inset: 0; background: var(--black);
@@ -72,7 +73,7 @@
 
   .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
 
-  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .type-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .type-btn {
     border: 1px solid var(--border); border-radius: 8px; background: var(--warm-white);
     padding: 16px 8px; cursor: pointer; text-align: center;
@@ -139,7 +140,7 @@
   .action-btn.download { border-color: var(--steel); color: var(--steel); }
   .action-btn.download:hover { background: var(--steel); color: white; }
 
-  .output-body { padding: 18px; font-size: 14px; line-height: 1.75; color: var(--black); white-space: pre-wrap; }
+  .output-body { padding: 18px; font-size: 14px; line-height: 1.75; color: var(--black); white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
   .output-body.small { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); }
 
   /* IMAGE GRID */
@@ -257,8 +258,12 @@
   .custom-fields-note.visible { display: block; }
 
   @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-    .panel-right { min-height: 60vh; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .panel-left, .panel-right { min-width: 0; }
+    .panel-left { padding: 20px 16px 40px; }
+    .panel-right { padding: 20px 16px; min-height: 60vh; }
+    .form-row { grid-template-columns: 1fr; }
+    #content-type-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   }
 
   /* Reference image upload zone */
@@ -323,7 +328,7 @@
 
       <div>
         <div class="section-label">Content Type</div>
-        <div class="type-grid" id="content-type-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="type-grid" id="content-type-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
           <button class="type-btn active" data-type="graphic" onclick="selectType(this)">
             <div class="icon">🖼️</div>
             <span class="lbl">Graphic</span>
@@ -461,7 +466,7 @@
 
       <div id="cover-format-row" style="display:none;">
         <div class="section-label">Cover Format</div>
-        <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
           <button class="type-btn active" data-format="reel" onclick="selectCoverFormat(this)">
             <div class="icon">📱</div>
             <span class="lbl" style="font-size:11px;">Reel / Story (9:16)</span>
