@@ -772,9 +772,13 @@ const BRAIN_SEED=[
 function brainLoad(){
   const raw=localStorage.getItem(BRAIN_KEY);
   if(raw){try{brainNodes=JSON.parse(raw);}catch(e){brainNodes=null;}}
-  const reseed=localStorage.getItem('mm_brain_seedv')!==BRAIN_SEED_V;
-  if(!brainNodes||!brainNodes.length||reseed){
+  // Only seed from scratch if there is genuinely NO brain data at all.
+  // NEVER reseed based on version flag alone - that destroys custom nodes.
+  if(!brainNodes||!brainNodes.length){
     brainNodes=BRAIN_SEED.map(n=>({...n,x:0,y:0}));
+    localStorage.setItem('mm_brain_seedv',BRAIN_SEED_V);
+  } else {
+    // Mark as seeded so this block never fires again on this device
     localStorage.setItem('mm_brain_seedv',BRAIN_SEED_V);
   }
   brainMap={};
@@ -2271,10 +2275,7 @@ function scheduleSave(){
 async function bootApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  const gotRemote=await pullState();
-  if(gotRemote){
-    localStorage.removeItem('mm_brain_seedv');
-  }
+  await pullState();
   init();
   // Do NOT push on boot - only pull. Push happens only when user makes a change.
   startSyncLoop();
