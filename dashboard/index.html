@@ -1434,12 +1434,22 @@ Always infer from initials even if ambiguous.
 
 Assignees: optional array from [rida, jacob, sanam]. Only include if clearly named.
 
-Recurrence: detect repeat frequency from words like daily, weekly, every week, biweekly, every 2 weeks, monthly, every month, quarterly. Set "recur" to one of: "none","daily","weekly","biweekly","monthly","quarterly". Default "none".
+Recurrence: detect repeat frequency. Set "recur" to one of: "none","daily","weekly","biweekly","monthly","quarterly","mon-thu","tue-fri".
+- "every Monday and Thursday" or "Mon/Thu" → "mon-thu"
+- "every Tuesday and Friday" → "tue-fri"
+- "twice a week" → "mon-thu"
+- weekly/every week → "weekly"
+- biweekly/every 2 weeks → "biweekly"
+- monthly/every month → "monthly"
+- daily → "daily"
+- quarterly → "quarterly"
+IMPORTANT: When recur is set, do NOT set "due" - leave it null. The system will calculate the correct next due date automatically.
 
 EXPANSION RULES - these are critical:
-1. MULTI-CLIENT: If multiple clients are listed (e.g. "ECCO, JVI, TVI - blog due Friday" or "all clients - Q3 strategy"), create ONE task object per client, each with the same text and due/priority but different nodeId.
-2. MULTI-TASK: If a numbered or counted set is requested for ONE client (e.g. "BTTC blog posts 3 and 4" or "ECCO 3 captions"), create one task per item with descriptive text (e.g. "BTTC blog post 3", "BTTC blog post 4").
-3. SINGLE: All other inputs = array with one task object.
+1. MULTI-CLIENT DELIVERY TASKS: If multiple specific clients are listed with a task clearly meant to be done FOR each one individually (e.g. "ECCO, JVI, TVI - write blog post" or "all clients - send invoice"), create ONE task per client with different nodeId. Use client node ids (ecco, jvi, etc.), NOT mm-root.
+2. AGENCY-LEVEL TASKS: If a task is something done BY YOU about or across clients (e.g. "review Airtable calendars for all clients", "check all client metrics", "team standup"), create ONE single task filed under mm-root (Messick Marketing overview). Do NOT duplicate per client.
+3. MULTI-TASK: If a numbered or counted set for ONE client (e.g. "BTTC blog posts 3 and 4" or "ECCO 3 captions"), create one task per item.
+4. SINGLE: All other inputs = array with one task object.
 
 Each task object: {"text":"cleaned task label","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":"","recur":"none"}
 
@@ -1465,7 +1475,9 @@ Return a JSON array. Always an array, even for a single task.`;
         priority:p.priority||'none',
         due:p.due||null,
         nodeId:p.nodeId||'personal-misc',
-        recur:p.recur||'none',done:false,addedAt:Date.now(),
+        recur:p.recur||'none',
+        due:(p.recur&&p.recur!=='none'&&!p.due)?firstDueDate(p.recur):(p.due||null),
+        done:false,addedAt:Date.now(),
         subtasks:[],assignees:p.assignees||[],notes:p.notes||'',
         recurLastGen:todayStr()
       });
@@ -1586,6 +1598,8 @@ function renderDrawer(){
         <option value="biweekly"${task.recur==='biweekly'?' selected':''}>Every 2 weeks</option>
         <option value="monthly"${task.recur==='monthly'?' selected':''}>Monthly</option>
         <option value="quarterly"${task.recur==='quarterly'?' selected':''}>Quarterly</option>
+        <option value="mon-thu"${task.recur==='mon-thu'?' selected':''}>Every Mon &amp; Thu</option>
+        <option value="tue-fri"${task.recur==='tue-fri'?' selected':''}>Every Tue &amp; Fri</option>
       </select>
     </div>
 
@@ -2304,6 +2318,53 @@ function recurDaysBetween(recur){
   if(recur==='biweekly')return 14;
   if(recur==='monthly')return 30;
   if(recur==='quarterly')return 90;
+  if(recur==='mon-thu'||recur==='tue-fri'||recur==='twice-weekly')return 3; // avg spacing
+  return null;
+}
+// For day-specific recur, find next occurrence after a given date
+function nextRecurDate(recur, fromDateStr){
+  const from=new Date(fromDateStr+'T12:00:00');
+  const dow=from.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  if(recur==='mon-thu'){
+    // next Mon(1) or Thu(4) strictly after from
+    let d=new Date(from); d.setDate(d.getDate()+1);
+    for(let i=0;i<7;i++){if(d.getDay()===1||d.getDay()===4)return d.toISOString().slice(0,10);d.setDate(d.getDate()+1);}
+  }
+  if(recur==='tue-fri'){
+    let d=new Date(from); d.setDate(d.getDate()+1);
+    for(let i=0;i<7;i++){if(d.getDay()===2||d.getDay()===5)return d.toISOString().slice(0,10);d.setDate(d.getDate()+1);}
+  }
+  if(recur==='twice-weekly'){
+    // Mon+Thu by default
+    let d=new Date(from); d.setDate(d.getDate()+1);
+    for(let i=0;i<7;i++){if(d.getDay()===1||d.getDay()===4)return d.toISOString().slice(0,10);d.setDate(d.getDate()+1);}
+  }
+  const days=recurDaysBetween(recur);
+  if(!days)return null;
+  return addDays(fromDateStr,days);
+}
+// First due date for a new recurring task (next occurrence from today)
+function firstDueDate(recur){
+  const today=todayStr();
+  if(recur==='mon-thu'||recur==='twice-weekly'){
+    const d=new Date(today+'T12:00:00');
+    let t=new Date(d); t.setDate(t.getDate()+1);
+    for(let i=0;i<7;i++){if(t.getDay()===1||t.getDay()===4)return t.toISOString().slice(0,10);t.setDate(t.getDate()+1);}
+  }
+  if(recur==='tue-fri'){
+    const d=new Date(today+'T12:00:00');
+    let t=new Date(d); t.setDate(t.getDate()+1);
+    for(let i=0;i<7;i++){if(t.getDay()===2||t.getDay()===5)return t.toISOString().slice(0,10);t.setDate(t.getDate()+1);}
+  }
+  if(recur==='weekly'){
+    // next Monday
+    const d=new Date(today+'T12:00:00');
+    let t=new Date(d); t.setDate(t.getDate()+1);
+    for(let i=0;i<7;i++){if(t.getDay()===1)return t.toISOString().slice(0,10);t.setDate(t.getDate()+1);}
+  }
+  if(recur==='daily')return addDays(today,1);
+  if(recur==='monthly')return addDays(today,30);
+  if(recur==='quarterly')return addDays(today,90);
   return null;
 }
 function addDays(dateStr,n){
@@ -2322,7 +2383,7 @@ function processRecurringTasks(){
     const days=recurDaysBetween(t.recur);
     if(!days)return;
     const lastGen=t.recurLastGen||t.addedAt&&new Date(t.addedAt).toISOString().slice(0,10)||today;
-    const nextDue=addDays(lastGen,days);
+    const nextDue=nextRecurDate(t.recur,lastGen)||addDays(lastGen,days);
     if(nextDue<=today){
       // Check a fresh copy doesn't already exist (same text + nodeId + not done)
       const alreadyOpen=tasks.some(x=>!x.done&&x.text===t.text&&x.nodeId===t.nodeId&&x.id!==t.id);
