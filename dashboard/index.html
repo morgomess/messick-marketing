@@ -418,6 +418,26 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
   .login-card input,.form-row input,.custom-service-input,
   .drawer-field input,.drawer-field textarea,.drawer-field select{font-size:16px}
 }
+
+/* MOBILE ACCORDION (mobile only) */
+@media (max-width:768px){
+  .acc{border-bottom:1px solid var(--border);background:var(--surface)}
+  .acc-d0{border-bottom:2px solid var(--surface-2)}
+  .acc>summary.acc-sum{list-style:none;display:flex;align-items:center;gap:9px;cursor:pointer;padding:13px 16px;font-family:'Jost',sans-serif;user-select:none;-webkit-tap-highlight-color:transparent}
+  .acc>summary.acc-sum::-webkit-details-marker{display:none}
+  .acc>summary.acc-sum::before{content:'\203A';color:var(--light);font-size:1.15rem;line-height:1;transition:transform 0.18s;flex-shrink:0;width:12px;text-align:center}
+  .acc[open]>summary.acc-sum::before{transform:rotate(90deg)}
+  .acc-d0>summary.acc-sum{font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+  .acc-d1>summary.acc-sum{font-size:0.96rem;font-weight:600;color:var(--black)}
+  .acc-d2>summary.acc-sum{font-size:0.86rem;font-weight:500;color:var(--black)}
+  .acc-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acc-ve.acc-d1>summary .acc-label{color:var(--ve)}
+  .acc-personal.acc-d1>summary .acc-label{color:var(--personal)}
+  .acc-body{padding-left:13px;border-left:2px solid var(--surface-2);margin-left:17px}
+  .acc-d0>.acc-body{padding-left:0;border-left:none;margin-left:0}
+  .acc .col-task{padding-left:6px}
+  .acc-add{margin:8px 16px 12px;width:auto}
+}
 </style>
 </head>
 <body>
@@ -880,6 +900,7 @@ function selectColNode(colIdx,nodeId){
 function renderColumns(){
   const cv=document.getElementById('col-view');
   if(!cv)return;
+  if(isMobileView()){renderMobileTree(cv);renderFocus();updateCompletionStat();return;}
   cv.innerHTML='';
   // Root column: shows root nodes (parentId = null)
   cv.appendChild(buildColumn(0,null));
@@ -1114,6 +1135,78 @@ function buildColTask(task,idx,type){
 /* ═══════════════════════════════════════════
    DRAG AND DROP
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   MOBILE ACCORDION TREE (mobile only - desktop uses columns)
+═══════════════════════════════════════════ */
+function isMobileView(){try{return window.matchMedia('(max-width:768px)').matches;}catch(e){return false;}}
+let accOpen=null;
+function accLoad(){if(accOpen)return;try{accOpen=new Set(JSON.parse(localStorage.getItem('dash_acc_open')||'[]'));}catch(e){accOpen=new Set();}}
+function accSave(){try{localStorage.setItem('dash_acc_open',JSON.stringify([...accOpen]));}catch(e){}}
+let _respSetup=false;
+function setupResponsiveRerender(){
+  if(_respSetup)return;_respSetup=true;
+  try{window.matchMedia('(max-width:768px)').addEventListener('change',function(){renderColumns();});}
+  catch(e){window.addEventListener('resize',function(){renderColumns();});}
+}
+function renderMobileTree(cv){
+  accLoad();
+  cv.innerHTML='';
+  const roots=brainNodes.filter(n=>n.parent===null).sort((a,b)=>(a.order||0)-(b.order||0));
+  roots.forEach(r=>cv.appendChild(buildTreeNode(r,0)));
+}
+function buildTreeNode(node,depth){
+  const children=brainNodes.filter(n=>n.parent===node.id).sort((a,b)=>(a.order||0)-(b.order||0));
+  const pending=tasksForNode(node.id).filter(t=>!t.done);
+  const done=tasksForNode(node.id).filter(t=>t.done);
+  const d=document.createElement('details');
+  d.className='acc acc-d'+depth;
+  const brand=getColBrand(node.id);
+  if(brand==='ve')d.classList.add('acc-ve');
+  else if(brand==='personal')d.classList.add('acc-personal');
+  if(accOpen.has(node.id))d.open=true;
+  d.addEventListener('toggle',function(){if(d.open)accOpen.add(node.id);else accOpen.delete(node.id);accSave();});
+  const sum=document.createElement('summary');
+  sum.className='acc-sum';
+  const dr=nodeDueRollup(node.id);
+  let badge='';
+  if(dr.overdue>0)badge='<span class="col-badge over">'+dr.open+'</span>';
+  else if(dr.today>0)badge='<span class="col-badge today">'+dr.open+'</span>';
+  else if(dr.open>0)badge='<span class="col-badge">'+dr.open+'</span>';
+  sum.innerHTML='<span class="acc-label">'+bEsc(node.label)+'</span>'+badge;
+  d.appendChild(sum);
+  const body=document.createElement('div');
+  body.className='acc-body';
+  children.forEach(c2=>body.appendChild(buildTreeNode(c2,depth+1)));
+  const allTodos=loadTodoTasks();
+  if(pending.length||done.length){
+    if(children.length){const lbl=document.createElement('div');lbl.className='col-sec-label';lbl.textContent='Tasks';body.appendChild(lbl);}
+    pending.forEach(task=>{const idx=allTodos.findIndex(t=>t.id===task.id);body.appendChild(buildColTask(task,idx,'todo'));});
+    if(done.length){
+      const dl=document.createElement('div');dl.className='col-done-label';dl.innerHTML='Done ('+done.length+')';
+      dl.addEventListener('click',function(){dl.classList.toggle('open');});
+      body.appendChild(dl);
+      const dlist=document.createElement('div');dlist.className='col-done-list';
+      done.forEach(task=>{const idx=allTodos.findIndex(t=>t.id===task.id);dlist.appendChild(buildColTask(task,idx,'todo'));});
+      body.appendChild(dlist);
+    }
+  }
+  if(node.parent!==null){
+    const inp=document.createElement('input');
+    inp.className='col-add-input acc-add';
+    inp.placeholder='Add task... (Enter)';
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&inp.value.trim()){
+        const val=inp.value.trim();inp.value='';
+        accOpen.add(node.id);accSave();
+        addNodeTask(node.id,val,'','none');
+      }
+    });
+    body.appendChild(inp);
+  }
+  d.appendChild(body);
+  return d;
+}
+
 const dragState={taskId:null,sourceNodeId:null};
 
 function removePlaceholder(){
@@ -2134,6 +2227,7 @@ function init(){
   brainLoad();
   setDate();
   initServicesChecklist();
+  setupResponsiveRerender();
   renderColumns();
   // Migrate existing tasks to have IDs
   const tasks=loadTodoTasks();let changed=false;
