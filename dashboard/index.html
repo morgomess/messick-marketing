@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Messick Ops">
+<meta name="theme-color" content="#111111">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
 <title>Morgan's Dashboard | Messick Marketing</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Dancing+Script:wght@600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -369,6 +376,48 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 
 /* ── CONFETTI ── */
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
+
+/* MOBILE / iPHONE WEB APP  (additive - desktop untouched) */
+@media (max-width:768px){
+  body{height:100dvh}
+  #app{height:100dvh}
+  header{height:auto;min-height:52px;flex-wrap:wrap;gap:6px;padding:6px 12px;padding-top:calc(6px + env(safe-area-inset-top));row-gap:6px}
+  .h-left{gap:10px;flex-wrap:wrap}
+  .h-logo h1{font-size:1.3rem}
+  .h-date{display:none}
+  .h-tabs{margin-left:0;padding-left:10px}
+  .h-tab{padding:6px 10px}
+  .h-right{gap:6px;flex-wrap:wrap;width:100%;justify-content:flex-start}
+  .h-btn{padding:6px 10px;font-size:0.66rem}
+  #focus-section{padding:12px 14px}
+  .focus-slots{grid-template-columns:1fr}
+  .focus-slot{min-height:auto}
+  #quick-add-bar{flex-wrap:wrap;padding:10px 14px;gap:8px}
+  .qa-input{flex:1 1 100%;order:1}
+  .qa-status{order:2}
+  .qa-btn{order:3;padding:9px 18px}
+  #search-bar{padding:8px 14px}
+  #col-view{flex-direction:column;overflow-x:hidden;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+  .col{width:100%;min-width:0;border-right:none;border-bottom:8px solid var(--surface-2)}
+  .col-body{flex:none;overflow:visible}
+  #task-drawer{width:100%}
+  .drawer-footer{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  #clients-view{padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .clients-grid{grid-template-columns:1fr}
+  .form-row{flex-direction:column}
+  .form-row input{min-width:0;width:100%}
+}
+@media (pointer:coarse){
+  .t-actions{opacity:1}
+  .col-task{padding-top:10px;padding-bottom:10px}
+  .t-edit,.t-pin,.t-del{font-size:1.05rem;padding:4px 6px}
+  .fs-check,.t-check{width:20px;height:20px}
+  .fs-check.chk::after{font-size:10px}
+  .t-check.chk::after{font-size:9px}
+  .qa-input,#search-input,.col-add-input,.at-search,.sub-add-inp,
+  .login-card input,.form-row input,.custom-service-input,
+  .drawer-field input,.drawer-field textarea,.drawer-field select{font-size:16px}
+}
 </style>
 </head>
 <body>
@@ -589,10 +638,8 @@ function dueStatus(due){
 ═══════════════════════════════════════════ */
 function doLogin(){
   if(document.getElementById('pw-input').value===PASSWORD){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
     localStorage.setItem('mm_auth','1');
-    init();
+    bootApp();
   } else {
     document.getElementById('login-error').style.display='block';
   }
@@ -1992,10 +2039,75 @@ function closeEmpire(){
 /* ═══════════════════════════════════════════
    SYNC (background)
 ═══════════════════════════════════════════ */
+/* GLOBAL SYNC (cross-device via Cloudflare KV) */
+const STATE_SECRET = 'Bwv7nJNlHpeIT0QIEjGwA-BI6RJYH8vXz6zq9UX5'; // must match STATE_KEY env var on the worker
+let lastSyncV = 0, syncEnabled = true, syncLoopStarted = false;
+if(String(STATE_SECRET).indexOf('REPLACE')===0)syncEnabled=false;
+
+function collectState(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k && k.indexOf('mm_')===0 && k!=='mm_auth') data[k]=localStorage.getItem(k);
+  }
+  return data;
+}
+async function pushState(){
+  if(!syncEnabled)return;
+  try{
+    const v=Date.now();
+    const resp=await fetch(WORKER+'/state',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-MM-Key':STATE_SECRET},
+      body:JSON.stringify({v,data:collectState()})
+    });
+    if(resp.ok)lastSyncV=v;
+  }catch(e){/* offline: stays on localStorage */}
+}
+async function pullState(){
+  if(!syncEnabled)return false;
+  try{
+    const resp=await fetch(WORKER+'/state',{headers:{'X-MM-Key':STATE_SECRET}});
+    if(!resp.ok)return false;
+    const body=await resp.json();
+    if(!body||!body.data||Object.keys(body.data).length===0)return false;
+    if(body.v && body.v<=lastSyncV)return false;
+    Object.keys(body.data).forEach(k=>{
+      if(k.indexOf('mm_')===0 && k!=='mm_auth')localStorage.setItem(k,body.data[k]);
+    });
+    lastSyncV=body.v||Date.now();
+    return true;
+  }catch(e){return false;}
+}
+function applyRemoteAndRender(){
+  brainLoad();
+  renderColumns();
+  if(typeof renderFocus==='function')renderFocus();
+  const cv=document.getElementById('clients-view');
+  if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
+  if(typeof empireLoad==='function')empireLoad();
+}
 let saveTimer=null;
 function scheduleSave(){
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{},3000); // placeholder — no remote sync needed
+  saveTimer=setTimeout(pushState,1500);
+}
+async function bootApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await pullState();
+  init();
+  pushState();
+  startSyncLoop();
+}
+function startSyncLoop(){
+  if(syncLoopStarted)return; syncLoopStarted=true;
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)pullState().then(function(ok){if(ok)applyRemoteAndRender();});
+  });
+  setInterval(function(){
+    if(!document.hidden)pullState().then(function(ok){if(ok)applyRemoteAndRender();});
+  },30000);
 }
 
 /* ═══════════════════════════════════════════
@@ -2031,9 +2143,7 @@ function init(){
 
 // Auto-login if session active
 if(localStorage.getItem('mm_auth')==='1'){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  init();
+  bootApp();
 }
 
 // Empire overlay click-outside to close
