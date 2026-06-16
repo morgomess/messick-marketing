@@ -1886,6 +1886,10 @@ function pickerSpin(){
     // Priority weight
     const pw={critical:40,high:20,medium:8,low:2,none:2};
     score+=pw[t.priority||'none']||2;
+    // Sequence ordering: if task text ends in a number (#3, post 3, part 3, step 3 etc),
+    // lower numbers score higher so #3 beats #4 beats #5
+    const seqMatch=(t.text||'').match(/[#\s](\d+)\s*$/);
+    if(seqMatch){const n=parseInt(seqMatch[1],10);if(n>0)score+=Math.max(0,20-n*2);}
     // Due date weight - closer due = much higher score, far future = lower
     if(t.due){
       const due=new Date(t.due+'T12:00:00');
