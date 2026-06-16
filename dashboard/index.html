@@ -438,6 +438,17 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
   .acc .col-task{padding-left:6px}
   .acc-add{margin:8px 16px 12px;width:auto}
 }
+
+/* MOBILE: collapsible Top 3 so tasks are the focal point */
+@media (max-width:768px){
+  #focus-section{padding:10px 14px}
+  .focus-sub{display:none}
+  .focus-title-row{cursor:pointer}
+  .focus-title-row::after{content:'\25BE';margin-left:6px;color:rgba(230,241,248,0.55);font-size:0.72rem;display:inline-block;transition:transform 0.18s}
+  #focus-section.mobile-collapsed .focus-title-row::after{transform:rotate(-90deg)}
+  #focus-section.mobile-collapsed .focus-slots,
+  #focus-section.mobile-collapsed .focus-hint{display:none}
+}
 </style>
 </head>
 <body>
@@ -1143,10 +1154,26 @@ let accOpen=null;
 function accLoad(){if(accOpen)return;try{accOpen=new Set(JSON.parse(localStorage.getItem('dash_acc_open')||'[]'));}catch(e){accOpen=new Set();}}
 function accSave(){try{localStorage.setItem('dash_acc_open',JSON.stringify([...accOpen]));}catch(e){}}
 let _respSetup=false;
+function toggleFocusMobile(){
+  const fs=document.getElementById('focus-section');if(!fs)return;
+  fs.classList.toggle('mobile-collapsed');
+  try{localStorage.setItem('dash_focus_collapsed',fs.classList.contains('mobile-collapsed')?'1':'0');}catch(e){}
+}
+function applyFocusCollapse(){
+  const fs=document.getElementById('focus-section');if(!fs)return;
+  if(isMobileView()){
+    if(localStorage.getItem('dash_focus_collapsed')==='0')fs.classList.remove('mobile-collapsed');
+    else fs.classList.add('mobile-collapsed');
+  }else{fs.classList.remove('mobile-collapsed');}
+}
 function setupResponsiveRerender(){
   if(_respSetup)return;_respSetup=true;
-  try{window.matchMedia('(max-width:768px)').addEventListener('change',function(){renderColumns();});}
-  catch(e){window.addEventListener('resize',function(){renderColumns();});}
+  const tr=document.querySelector('#focus-section .focus-title-row');
+  if(tr)tr.addEventListener('click',function(){if(isMobileView())toggleFocusMobile();});
+  const onChange=function(){renderColumns();applyFocusCollapse();};
+  try{window.matchMedia('(max-width:768px)').addEventListener('change',onChange);}
+  catch(e){window.addEventListener('resize',onChange);}
+  applyFocusCollapse();
 }
 function renderMobileTree(cv){
   accLoad();
