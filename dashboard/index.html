@@ -1864,7 +1864,21 @@ function pickerSpin(){
 
   // Build candidate pool - only actionable tasks
   const today=new Date(); today.setHours(0,0,0,0);
-  const allTasks=loadTodoTasks().filter(t=>!t.done);
+  const todayDow=today.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+
+  function isRecurActionableToday(t){
+    if(!t.recur||t.recur==='none')return true;
+    if(t.recur==='daily')return true;
+    if(t.recur==='weekly')return true;   // weekly tasks are always in pool
+    if(t.recur==='biweekly')return true;
+    if(t.recur==='monthly')return true;
+    if(t.recur==='quarterly')return true;
+    if(t.recur==='mon-thu'||t.recur==='twice-weekly')return todayDow===1||todayDow===4;
+    if(t.recur==='tue-fri')return todayDow===2||todayDow===5;
+    return true;
+  }
+
+  const allTasks=loadTodoTasks().filter(t=>!t.done&&isRecurActionableToday(t));
 
   // Score each task: higher = more likely to be picked
   function pickerScore(t){
