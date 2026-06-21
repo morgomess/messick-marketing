@@ -807,7 +807,7 @@
         <div class="section-sub">4 title variants with character count + a full YouTube description.</div>
         <div class="form-group">
           <label class="form-label">Topic / Procedure *</label>
-          <input type="text" class="form-input" id="t-topic" placeholder="e.g. Laparoscopic appendectomy recovery">
+          <input type="text" class="form-input" id="t-topic" placeholder="e.g. 5 Signs You Have Sleep Apnea">
         </div>
 
         <button class="btn-primary" onclick="generateTitles()">Generate</button>
@@ -833,7 +833,7 @@
         <div class="kw-score-row">
           <div class="form-group">
             <label class="form-label">Keyword or Phrase *</label>
-            <input type="text" class="form-input" id="kw-input" placeholder="e.g. hernia surgery recovery time">
+            <input type="text" class="form-input" id="kw-input" placeholder="e.g. how to start investing in your 30s">
           </div>
           <button class="btn-primary" style="margin-bottom:0;height:50px;align-self:flex-end" onclick="scoreKeyword()">Score</button>
         </div>
@@ -914,7 +914,7 @@
           <div class="panel-sub">Describe your reel and get AI-generated cover thumbnail concepts, overlay text, color direction, and a ready-to-use design brief.</div>
           <div class="form-group">
             <label class="form-label">Reel Topic / Procedure *</label>
-            <input type="text" class="form-input" id="rl-topic" placeholder="e.g. Varicose vein treatment, UFE recovery, PAD symptoms">
+            <input type="text" class="form-input" id="rl-topic" placeholder="e.g. Morning routine, product review, how-to tutorial">
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -929,9 +929,9 @@
             <div class="form-group">
               <label class="form-label">Cover Style</label>
               <select class="form-input" id="rl-style">
-                <option value="clean">Clean &amp; Clinical</option>
+                <option value="clean">Clean &amp; Minimal</option>
                 <option value="bold">Bold Text-Forward</option>
-                <option value="lifestyle">Lifestyle / Patient-Focused</option>
+                <option value="lifestyle">Lifestyle / Human</option>
                 <option value="educational">Educational / Infographic</option>
                 <option value="before_after">Before &amp; After Frame</option>
               </select>
@@ -978,9 +978,9 @@
               <div class="form-group">
                 <label class="form-label">Cover Style</label>
                 <select class="form-input" id="rl-import-style">
-                  <option value="clean">Clean &amp; Clinical</option>
+                  <option value="clean">Clean &amp; Minimal</option>
                   <option value="bold">Bold Text-Forward</option>
-                  <option value="lifestyle">Lifestyle / Patient-Focused</option>
+                  <option value="lifestyle">Lifestyle / Human</option>
                   <option value="educational">Educational / Infographic</option>
                 </select>
               </div>
@@ -1153,7 +1153,7 @@ async function detectNiche(channelId) {
 
   const system = `You are a YouTube channel niche analyst. Return ONLY a valid JSON object with no markdown:
 {
-  "primaryNiche": "one of: healthcare, medical-specialty, digital-education, wellness, va-business, fitness, finance, real-estate, legal, other",
+  "primaryNiche": "one of: healthcare, medical-specialty, digital-education, wellness, va-business, fitness, finance, real-estate, legal, beauty, food, travel, gaming, tech, parenting, pets, sports, home, automotive, art, music, comedy, news, spirituality, other",
   "secondaryNiches": ["strings"],
   "targetAudience": "one sentence",
   "contentThemes": ["5 to 8 keyword strings"],
@@ -1227,8 +1227,7 @@ function buildSystem(featureInstructions) {
 - Never use em dashes. Use a single hyphen if needed.
 - Never start a YouTube description with "In this video"
 - All titles must be under 70 characters
-- Use patient-friendly, outcome-focused language for medical/healthcare brands
-- Use income/lifestyle/outcome language for VA and digital education brands
+- Match the language and tone to the channel's detected niche and audience
 - Single hyphen only if punctuation needed - no double hyphens
 
 ${featureInstructions}`;
@@ -1499,8 +1498,7 @@ async function generateTags() {
   "broadMatch": ["6 to 10 broader related tags"],
   "audienceMatch": ["4 to 8 audience-intent tags based on who is searching"]
 }
-Medical/healthcare: include procedure name, symptom variants, and location-qualified versions.
-Education: include outcome, audience-type, and format variants.`);
+Tailor tag types to the channel niche: include specific topic variants, audience-intent phrases, and niche-relevant keyword combinations.`);
 
   try {
     const raw = await callAI(system, `Build a 3-tier YouTube tag strategy for: ${topic}`);
@@ -2198,7 +2196,7 @@ async function aiRewriteTags() {
   "broadMatch": ["6 to 10 broader tags"],
   "audienceMatch": ["4 to 8 audience-intent tags"]
 }
-Rules: every tag must be under 30 characters. All tags lowercase. No special characters. Medical/healthcare: include procedure name, symptom variants, location versions. Education: include outcome, audience-type, format variants.`);
+Rules: every tag must be under 30 characters. All tags lowercase. No special characters. Tailor tag types to the channel niche: topic variants, audience-intent phrases, niche-relevant keyword combinations.`);
 
   try {
     const raw = await callAI(system, `Generate YouTube tags for: "${currentTitle}"`);
@@ -2402,7 +2400,7 @@ Rules:
 - If text overlay is needed, keep it to 3-5 words max and describe placement exactly
 - Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [COLOR PALETTE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]
 - Quality footer must include: professional YouTube thumbnail, 16:9 aspect ratio, high resolution, sharp focus, vibrant colors
-- Medical/healthcare: clean clinical or empathetic imagery, no gore, no needles in frame unless abstract
+- For sensitive or medical topics: clean, empathetic imagery; avoid graphic visuals or anything off-putting
 - DO NOT include any explanation - output the prompt text only, no JSON, no quotes, no preamble`);
 
   try {
@@ -2528,11 +2526,11 @@ async function generateCoverBrief() {
   if (!topic) { out.innerHTML = '<div class="error-msg">Please enter a topic.</div>'; return; }
 
   const platMap = { instagram:'Instagram Reels (9:16, 1080x1920px)', facebook:'Facebook Reels (9:16, 1080x1920px)', tiktok:'TikTok (9:16, 1080x1920px)', youtube:'YouTube Shorts (9:16, 1080x1920px)' };
-  const styleMap = { clean:'Clean & Clinical (white space, minimal text, professional)', bold:'Bold Text-Forward (large type, high contrast, hook-first)', lifestyle:'Lifestyle / Patient-Focused (warm, human, relatable)', educational:'Educational / Infographic (icons, data, structured layout)', before_after:'Before & After Frame (split screen or sequential)' };
+  const styleMap = { clean:'Clean & Minimal (white space, minimal text, professional)', bold:'Bold Text-Forward (large type, high contrast, hook-first)', lifestyle:'Lifestyle / Human (warm, relatable, authentic)', educational:'Educational / Infographic (icons, data, structured layout)', before_after:'Before & After Frame (split screen or sequential)' };
 
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief...</div>';
 
-  const system = buildSystem('You are a social media visual designer specializing in healthcare and specialty medical content. Return ONLY valid JSON with no markdown.');
+  const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
   const userMsg = `Generate a reel cover thumbnail design brief for:
 Topic: ${topic}
 Platform: ${platMap[platform]}
@@ -2602,11 +2600,11 @@ async function generateCoverFromVideo() {
   const platform = document.getElementById('rl-import-platform').value;
   const style = document.getElementById('rl-import-style').value;
   const platMap = { instagram:'Instagram Reels (9:16)', facebook:'Facebook Reels (9:16)', tiktok:'TikTok (9:16)', youtube:'YouTube Shorts (9:16)' };
-  const styleMap = { clean:'Clean & Clinical', bold:'Bold Text-Forward', lifestyle:'Lifestyle / Patient-Focused', educational:'Educational / Infographic' };
+  const styleMap = { clean:'Clean & Minimal', bold:'Bold Text-Forward', lifestyle:'Lifestyle / Human', educational:'Educational / Infographic' };
   const out = document.getElementById('rl-import-out');
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief from video...</div>';
 
-  const system = buildSystem('You are a social media visual designer specializing in healthcare content. Return ONLY valid JSON with no markdown.');
+  const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
   const userMsg = `Generate a reel cover thumbnail design brief to repurpose this YouTube video as a ${platMap[platform]}:
 Video title: ${reelSelectedVideo.title}
 ${reelSelectedVideo.description ? 'Description excerpt: ' + reelSelectedVideo.description.substring(0, 300) : ''}
@@ -2829,7 +2827,7 @@ async function generateImprovedCover() {
 - High-contrast minimalist design: 70/30 color split so the subject pops. Top combos: Red/Blue, Yellow/Purple, Orange/Teal
 - Rim light / sticker effect: cyan or magenta rim light around the subject creates a mobile pop-out effect
 - Bold text overlay: short punchy headline (5 words max), teases the answer without giving it away
-- For healthcare: clean trustworthy composition, physician or patient looking directly at camera with intentional expression (not open-mouth shock)
+- For professional/informational topics: clean trustworthy composition, a relatable person looking directly at camera with intentional expression (not open-mouth shock)
 - All key elements centered in safe zone (works for both 9:16 and 16:9 crops)
 - Teal-orange color grading is the hottest CTR style in 2026
 - NO busy backgrounds, NO cluttered text, NO generic stock photo feel
@@ -2841,7 +2839,7 @@ EXTRACT from the reference image (use for style/layout reference only, not to re
 - Lighting direction and mood
 
 WRITE the prompt in this exact structure:
-[SUBJECT - physician or patient archetype looking directly at camera, intentional expression, rim-lit with cyan or magenta] + [SETTING from reference - clean clinical background, slightly blurred] + [COMPOSITION - centered safe zone, 70/30 color split, sticker effect] + [LIGHTING - rim light, teal-orange grade, high contrast] + [BRAND COLORS as design elements - translated to color names, used for text block background and overlays] + [TEXT OVERLAY - bold short headline if provided] + [QUALITY FOOTER: professional social media thumbnail, 9:16 vertical, ultra sharp, high resolution, vibrant contrast, mobile-optimized]
+[SUBJECT - person relevant to the niche looking directly at camera, intentional expression, rim-lit with cyan or magenta] + [SETTING from reference - clean clinical background, slightly blurred] + [COMPOSITION - centered safe zone, 70/30 color split, sticker effect] + [LIGHTING - rim light, teal-orange grade, high contrast] + [BRAND COLORS as design elements - translated to color names, used for text block background and overlays] + [TEXT OVERLAY - bold short headline if provided] + [QUALITY FOOTER: professional social media thumbnail, 9:16 vertical, ultra sharp, high resolution, vibrant contrast, mobile-optimized]
 
 CRITICAL:
 - NEVER put hex codes into the prompt as text - always translate to descriptive color names
