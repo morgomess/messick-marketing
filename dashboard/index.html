@@ -1338,13 +1338,9 @@ function toggleFocusDone(slot){
     saveTasks(p.type,tasks);
     if(!wasDone){
       fireConfetti();
-      // Auto-remove from Top 3 once marked done
-      setTimeout(()=>{
-        const pins2=getFocusPins();
-        pins2[slot]=null;
-        saveFocusPins(pins2);
-        renderAll();
-      },900);
+      // Clear the slot immediately so it can be refilled
+      pins[slot]=null;
+      saveFocusPins(pins);
     }
   }
   renderAll();
