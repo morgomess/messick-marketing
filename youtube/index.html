@@ -2314,18 +2314,32 @@ async function pushToYouTube(videoId, token) {
 
   // Preserve original snippet fields - only overwrite title, description, tags
   const origSnippet = currentVideoData?.snippet || {};
-  // Sanitize tags: max 30 chars each, no leading/trailing spaces, no special chars, total under 500 chars
+  // Sanitize tags for YouTube before saving:
+  // - strip angle brackets (YouTube rejects < and >, a classic invalidTags cause)
+  // - collapse internal whitespace and trim
+  // - drop empties, cap each tag at 100 chars, dedupe case-insensitively
+  const seen = new Set();
   const cleanTags = editTags
-    .map(t => t.trim().replace(/[<>]/g, ''))
-    .filter(t => t.length > 0 && t.length <= 30)
-    .filter((t, i, arr) => arr.indexOf(t) === i); // dedupe
-  // Trim to fit 500 char total limit
+    .map(t => String(t).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim())
+    .filter(t => {
+      if (!t || t.length > 100) return false;
+      const k = t.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  // Enforce YouTube's 500-character total. YouTube wraps any tag containing a
+  // space in double quotes, so each multi-word tag costs its length + 2.
+  // Counting only length + separator (the old behavior) let tag sets that are
+  // actually over 500 slip through, which triggers the invalid keywords error.
   const finalTags = [];
   let total = 0;
   for (const t of cleanTags) {
-    if (total + t.length + (finalTags.length > 0 ? 1 : 0) > 500) break;
+    const cost = t.length + (/\s/.test(t) ? 2 : 0);
+    const sep = finalTags.length > 0 ? 1 : 0;
+    if (total + sep + cost > 500) break;
     finalTags.push(t);
-    total += t.length + (finalTags.length > 1 ? 1 : 0);
+    total += sep + cost;
   }
 
   const body = {
