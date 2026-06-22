@@ -809,6 +809,25 @@
           <label class="form-label">Topic / Procedure *</label>
           <input type="text" class="form-input" id="t-topic" placeholder="e.g. 5 Signs You Have Sleep Apnea">
         </div>
+        <div class="form-group">
+          <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+            Transcript
+            <span style="font-size:11px;font-weight:400;color:var(--text-dim);">optional - upload .srt to improve output</span>
+          </label>
+          <div id="srt-drop-zone" style="border:1px dashed var(--border2);border-radius:6px;padding:14px 18px;cursor:pointer;transition:border-color 0.2s;display:flex;align-items:center;gap:12px;" onclick="document.getElementById('srt-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--blue)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="handleSrtDrop(event)">
+            <span style="font-size:22px;">📄</span>
+            <div style="flex:1;">
+              <div id="srt-drop-label" style="font-size:13px;font-weight:500;">Drop .srt file or click to upload</div>
+              <div id="srt-drop-sub" style="font-size:12px;color:var(--text-dim);margin-top:2px;">Exported from Descript, Premiere, or YouTube Studio</div>
+            </div>
+            <input type="file" id="srt-file-input" accept=".srt,.txt" style="display:none" onchange="handleSrtFile(this.files[0])">
+          </div>
+          <div id="srt-preview" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text-dim);max-height:72px;overflow:hidden;position:relative;">
+            <div id="srt-preview-text" style="white-space:pre-wrap;line-height:1.5;"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,rgba(18,18,18,0.95));"></div>
+            <button onclick="clearSrt(event)" style="position:absolute;top:5px;right:8px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;line-height:1;" title="Clear">x</button>
+          </div>
+        </div>
 
         <button class="btn-primary" onclick="generateTitles()">Generate</button>
         <div class="output-area" id="titles-out"></div>
@@ -1397,15 +1416,74 @@ function emptyState(icon, title, sub, btnLabel, btnAction) {
 // ============================================================
 // FEATURE 1: TITLE & DESCRIPTION
 // ============================================================
+// ============================================================
+// SRT HANDLING
+// ============================================================
+let _srtTranscript = "";
+
+function parseSrt(text) {
+  return text
+    .replace(/^\d+\s*$/gm, "")
+    .replace(/\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/g, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\{[^}]+\}/g, "")
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function handleSrtFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseSrt(e.target.result);
+    _srtTranscript = parsed;
+    const words = parsed.split(" ").length;
+    document.getElementById("srt-drop-label").textContent = "\u2713 " + file.name;
+    document.getElementById("srt-drop-sub").textContent = words + " words loaded";
+    document.getElementById("srt-drop-zone").style.borderColor = "var(--blue)";
+    const preview = document.getElementById("srt-preview");
+    document.getElementById("srt-preview-text").textContent = parsed.slice(0, 400) + (parsed.length > 400 ? "..." : "");
+    preview.style.display = "block";
+    const topicField = document.getElementById("t-topic");
+    if (topicField && !topicField.value.trim()) {
+      topicField.placeholder = "AI will derive topic from transcript...";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function handleSrtDrop(e) {
+  e.preventDefault();
+  document.getElementById("srt-drop-zone").style.borderColor = "var(--border2)";
+  const file = e.dataTransfer.files[0];
+  if (file) handleSrtFile(file);
+}
+
+function clearSrt(e) {
+  e.stopPropagation();
+  _srtTranscript = "";
+  document.getElementById("srt-drop-label").textContent = "Drop .srt file or click to upload";
+  document.getElementById("srt-drop-sub").textContent = "Exported from Descript, Premiere, or YouTube Studio";
+  document.getElementById("srt-drop-zone").style.borderColor = "var(--border2)";
+  document.getElementById("srt-preview").style.display = "none";
+  document.getElementById("srt-file-input").value = "";
+  const topicField = document.getElementById("t-topic");
+  if (topicField) topicField.placeholder = "e.g. 5 Signs You Have Sleep Apnea";
+}
+
 async function generateTitles() {
   const topic = document.getElementById('t-topic').value.trim();
   const out = document.getElementById('titles-out');
-  if (!topic) { out.innerHTML = errHtml('Topic is required.'); return; }
+  if (!topic && !_srtTranscript) { out.innerHTML = errHtml('Enter a topic or upload an .srt transcript.'); return; }
   out.innerHTML = spinner('Generating titles and description...');
 
   // Auto-fill tag topic from title topic
   const tgField = document.getElementById('tg-topic');
-  if (tgField && !tgField.value.trim()) tgField.value = topic;
+  if (tgField && !tgField.value.trim() && topic) tgField.value = topic;
 
   const system = buildSystem(`You are a YouTube SEO copywriter. Return ONLY a valid JSON object with no markdown:
 {
@@ -1419,8 +1497,20 @@ async function generateTitles() {
 }
 All titles under 70 characters. No em dashes.`);
 
+  // Build user prompt - use transcript when available
+  let userMsg;
+  if (_srtTranscript) {
+    const truncated = _srtTranscript.length > 6000 ? _srtTranscript.slice(0, 6000) + "...[truncated]" : _srtTranscript;
+    userMsg = topic
+      ? `Topic hint: ${topic}\n\nFull transcript:\n${truncated}`
+      : `Derive the topic and generate titles + description from this transcript:\n${truncated}`;
+    if (tgField && !tgField.value.trim()) tgField.value = topic || "derived from transcript";
+  } else {
+    userMsg = `Topic: ${topic}`;
+  }
+
   try {
-    const raw = await callAI(system, `Topic: ${topic}`);
+    const raw = await callAI(system, userMsg);
     renderTitlesOutput(parseJSON(raw), out);
   } catch (e) {
     out.innerHTML = errHtml('Generation failed. Try again.');
