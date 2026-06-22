@@ -1132,10 +1132,9 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
           // Single graphic
           document.getElementById('loading-msg').textContent = 'Generating graphic...';
           try {
-            const imgResult = await callWorker('imagen', {
-              prompt: parsed.image_prompt + suffix,
-              count: 1
-            });
+            const imgBody = { prompt: parsed.image_prompt + suffix, count: 1 };
+            if (isCover) imgBody.aspectRatio = selectedCoverFormat === 'landscape' ? '16:9' : '9:16';
+            const imgResult = await callWorker('imagen', imgBody);
             const pred = (imgResult.predictions || [])[0];
             const slot = document.getElementById('image-grid').querySelector('.image-slot');
             if (pred && pred.bytesBase64Encoded) {
@@ -1229,6 +1228,34 @@ Rules:
     applyBtn.textContent = '↻ Apply & Regenerate';
   }
 
+  // Returns aspect config for the current content type + cover format.
+  // ratio is sent to the worker as aspectRatio ONLY for covers. Graphics keep
+  // the worker's native 4:5 default (Imagen has no literal 4:5 ratio option).
+  function getImageAspect() {
+    if (selectedType === 'cover') {
+      if (selectedCoverFormat === 'landscape') {
+        return {
+          ratio: '16:9',
+          slotClass: 'ratio-169',
+          suffix: ' 16:9 landscape aspect ratio. High quality production-ready landscape cover image.',
+          footerNoun: 'landscape cover image, 16:9 horizontal'
+        };
+      }
+      return {
+        ratio: '9:16',
+        slotClass: 'ratio-916',
+        suffix: ' 9:16 vertical aspect ratio. High quality production-ready reel/story cover image.',
+        footerNoun: 'reel/story cover image, 9:16 vertical'
+      };
+    }
+    return {
+      ratio: null,
+      slotClass: 'ratio-45',
+      suffix: ' 4:5 aspect ratio. High quality production-ready social media graphic.',
+      footerNoun: 'social media graphic'
+    };
+  }
+
   async function regenerateGraphic() {
     const d = getFormData();
     if (!d.brandName) return alert('Please enter a brand name.');
@@ -1246,12 +1273,13 @@ Rules:
     // Rebuild the image prompt using the original base + edit instructions
     const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
     const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
-    const suffix = ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+    const asp = getImageAspect();
+    const suffix = asp.suffix + styleNote;
 
     // Show loading state immediately
     const grid = document.getElementById('image-grid');
     grid.className = 'image-grid graphic';
-    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Rewriting prompt...</div></div>`;
+    grid.innerHTML = `<div class="image-slot ${asp.slotClass}"><div class="img-placeholder">Rewriting prompt...</div></div>`;
 
     let editedPrompt = basePrompt;
 
@@ -1272,7 +1300,7 @@ Rules for the rewritten prompt:
 - Fully incorporate the edit instructions — do not just append them, restructure the whole prompt
 - Maximum 2 short text elements (3 words or fewer each) if text is needed
 - Specify subject, composition/framing, lighting, mood, background, brand colors
-- End with: "Photorealistic high resolution. Crisp sharp text. Professional social media graphic. No distorted letters. No placeholder elements. No watermarks. Shot on high-end camera, editorial quality."
+- End with: "Photorealistic high resolution. Crisp sharp text. Professional ${asp.footerNoun}. No distorted letters. No placeholder elements. No watermarks. Shot on high-end camera, editorial quality."
 - Output the prompt only, nothing else`
         });
         const rewritten = (rewriteResult.text || '').replace(/```[a-z]*|```/g, '').trim();
@@ -1290,10 +1318,9 @@ Rules for the rewritten prompt:
     applyBtn.textContent = 'Generating...';
 
     try {
-      const imgResult = await callWorker('imagen', {
-        prompt: editedPrompt + suffix,
-        count: 1
-      });
+      const imgBody = { prompt: editedPrompt + suffix, count: 1 };
+      if (asp.ratio) imgBody.aspectRatio = asp.ratio;
+      const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
       if (pred && pred.bytesBase64Encoded) {
@@ -1332,7 +1359,8 @@ Rules for the rewritten prompt:
 
     const brand = d.brandName.replace(/\s+/g, '-').toLowerCase();
     const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
-    const suffix = ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+    const asp = getImageAspect();
+    const suffix = asp.suffix + styleNote;
 
     // Re-use last prompt if available, otherwise ask Claude for a new one
     const lastPromptEl = document.getElementById('image-prompt-output');
@@ -1364,14 +1392,13 @@ Rules for the rewritten prompt:
     show('card-image', true);
     const grid = document.getElementById('image-grid');
     grid.className = 'image-grid graphic';
-    grid.innerHTML = `<div class="image-slot ratio-45"><div class="img-placeholder">Regenerating graphic...</div></div>`;
+    grid.innerHTML = `<div class="image-slot ${asp.slotClass}"><div class="img-placeholder">Regenerating...</div></div>`;
     document.getElementById('edit-graphic-btn').style.display = '';
 
     try {
-      const imgResult = await callWorker('imagen', {
-        prompt: imagePrompt + suffix,
-        count: 1
-      });
+      const imgBody = { prompt: imagePrompt + suffix, count: 1 };
+      if (asp.ratio) imgBody.aspectRatio = asp.ratio;
+      const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
       if (pred && pred.bytesBase64Encoded) {
