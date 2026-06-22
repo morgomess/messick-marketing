@@ -1332,7 +1332,21 @@ function toggleFocusDone(slot){
   const p=pins[slot]; if(!p)return;
   const tasks=loadTasks(p.type);
   const task=tasks.find(t=>t.id===p.id);
-  if(task){const wasDone=task.done;task.done=!task.done;saveTasks(p.type,tasks);if(!wasDone)fireConfetti();}
+  if(task){
+    const wasDone=task.done;
+    task.done=!task.done;
+    saveTasks(p.type,tasks);
+    if(!wasDone){
+      fireConfetti();
+      // Auto-remove from Top 3 once marked done
+      setTimeout(()=>{
+        const pins2=getFocusPins();
+        pins2[slot]=null;
+        saveFocusPins(pins2);
+        renderAll();
+      },900);
+    }
+  }
   renderAll();
 }
 
