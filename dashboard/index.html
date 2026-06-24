@@ -66,6 +66,27 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .h-btn.todo:hover{background:var(--blue-lt);border-color:var(--blue-lt);color:#fff}
 
 /* ── FOCUS SECTION ── */
+#today-due-section{background:#0c0c0c;padding:12px 24px;border-bottom:1px solid #000000;flex-shrink:0;display:none}
+#today-due-section.has-tasks{display:block}
+.td-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.td-head .td-dot{width:7px;height:7px;border-radius:50%;background:var(--hi);box-shadow:0 0 8px var(--hi)}
+.td-title{font-size:0.7rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--hi)}
+.td-count{font-size:0.62rem;font-weight:700;color:rgba(230,241,248,0.45)}
+.td-list{display:flex;flex-wrap:wrap;gap:8px}
+.td-item{display:flex;align-items:center;gap:9px;background:rgba(211,84,0,0.08);border:1px solid rgba(211,84,0,0.28);border-radius:7px;padding:7px 11px;cursor:pointer;transition:background 0.12s,border-color 0.12s;max-width:100%}
+.td-item:hover{background:rgba(211,84,0,0.15);border-color:rgba(211,84,0,0.5)}
+.td-item.td-done{opacity:0.45}
+.td-item.td-done .td-text{text-decoration:line-through}
+.td-check{width:16px;height:16px;border-radius:50%;border:2px solid rgba(211,84,0,0.6);flex-shrink:0;cursor:pointer;transition:background 0.12s}
+.td-check:hover{background:rgba(211,84,0,0.3)}
+.td-check.td-on{background:var(--hi);border-color:var(--hi)}
+.td-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.td-text{font-size:0.78rem;font-weight:600;color:#f0f4f8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.td-sub{display:flex;align-items:center;gap:6px}
+.td-pill{font-size:0.58rem;font-weight:700;color:rgba(230,241,248,0.55)}
+.td-pri{width:6px;height:6px;border-radius:50%}
+.td-pri.critical{background:var(--crit)}.td-pri.high{background:var(--hi)}.td-pri.medium{background:var(--med)}.td-pri.low{background:var(--lo)}
+@media(max-width:640px){#today-due-section{padding:10px 14px}.td-text{max-width:200px}}
 #focus-section{background:#111111;padding:14px 24px 16px;border-bottom:2px solid #000000;flex-shrink:0}
 .focus-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .focus-title-row{display:flex;align-items:center;gap:8px}
@@ -523,6 +544,15 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     </div>
   </header>
 
+  <div id="today-due-section">
+    <div class="td-head">
+      <span class="td-dot"></span>
+      <span class="td-title">Due Today</span>
+      <span class="td-count" id="td-count"></span>
+    </div>
+    <div class="td-list" id="td-list"></div>
+  </div>
+
   <div id="focus-section">
     <div class="focus-top">
       <div class="focus-title-row">
@@ -953,7 +983,7 @@ function selectColNode(colIdx,nodeId){
 function renderColumns(){
   const cv=document.getElementById('col-view');
   if(!cv)return;
-  if(isMobileView()){renderMobileTree(cv);renderFocus();updateCompletionStat();return;}
+  if(isMobileView()){renderMobileTree(cv);renderTodayDue();renderFocus();updateCompletionStat();return;}
   cv.innerHTML='';
   // Root column: shows root nodes (parentId = null)
   cv.appendChild(buildColumn(0,null));
@@ -961,6 +991,7 @@ function renderColumns(){
   navPath.forEach((nodeId,i)=>{
     cv.appendChild(buildColumn(i+1,nodeId));
   });
+  renderTodayDue();
   renderFocus();
   updateCompletionStat();
 }
@@ -1428,6 +1459,40 @@ function renderFocus(){
   }
 }
 
+function renderTodayDue(){
+  const sec=document.getElementById("today-due-section");
+  const list=document.getElementById("td-list");
+  const countEl=document.getElementById("td-count");
+  if(!sec||!list)return;
+  const due=loadTodoTasks().filter(t=>!t.done&&dueStatus(t.due)==="due-today");
+  if(due.length===0){sec.classList.remove("has-tasks");list.innerHTML="";if(countEl)countEl.textContent="";return;}
+  const priOrder={critical:0,high:1,medium:2,low:3,none:4};
+  due.sort((a,b)=>(priOrder[a.priority||"none"]||4)-(priOrder[b.priority||"none"]||4));
+  sec.classList.add("has-tasks");
+  if(countEl)countEl.textContent=due.length+(due.length===1?" task":" tasks");
+  list.innerHTML=due.map(t=>{
+    const label=getBrandLabel(t.brand,t.nodeId);
+    const pri=(t.priority&&t.priority!=="none")?`<span class="td-pri ${t.priority}"></span>`:"";
+    return `<div class="td-item" onclick="openDrawer('${t.id}')">
+      <div class="td-check" onclick="event.stopPropagation();completeTodayDue('${t.id}')" title="Mark done"></div>
+      <div class="td-body">
+        <div class="td-text">${bEsc(t.text)}</div>
+        <div class="td-sub"><span class="td-pill">${bEsc(label)}</span>${pri}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function completeTodayDue(taskId){
+  const tasks=loadTodoTasks();
+  const task=tasks.find(t=>t.id===taskId);
+  if(!task)return;
+  task.done=true;
+  saveTodoTasks(tasks);
+  if(typeof fireConfetti==="function")fireConfetti();
+  renderColumns();
+}
+
 function getBrandLabel(brand,nodeId){
   if(brand==='virtueasy')return'Virtueasy';
   if(brand==='other')return'Other';
@@ -1464,10 +1529,15 @@ async function quickAddTask(){
   // AI enrichment - returns array of tasks to create
   try {
     const nodes=brainNodes.map(n=>({id:n.id,label:n.label,parent:n.parent||null}));
-    const systemPrompt=`You are a task parser for a marketing agency dashboard. Parse the input and return ONLY a valid JSON array of task objects with no markdown or explanation.
+    const nodeLabel=id=>{const n=brainMap[id];return n?n.label:(id||'Unfiled');};
+    const openTasks=loadTodoTasks().filter(t=>!t.done).map(t=>({id:t.id,text:t.text,location:nodeLabel(t.nodeId),nodeId:t.nodeId||null,due:t.due||null,priority:t.priority||'none'}));
+    const systemPrompt=`You are a task assistant for a marketing agency dashboard. Read the input and decide whether the user is CREATING new task(s) or EDITING existing task(s). Return ONLY valid JSON with no markdown or explanation.
 
 Brain tree nodes (use id for nodeId):
 ${JSON.stringify(nodes)}
+
+EXISTING OPEN TASKS (these already exist - match against these when the user edits):
+${JSON.stringify(openTasks)}
 
 Brand values: "messick", "virtueasy", "oeis", "other"
 Priority: "critical","high","medium","low","none". No modifier = "medium". urgent/asap = "critical".
@@ -1475,43 +1545,55 @@ Due: today is ${todayStr()}. Parse relative terms. No date = null.
 nodeId: Pick the most relevant node id from the tree.
 
 Client hints (match initials, abbreviations, or partial names):
-ECCO / ECCO Medical / EM → ecco
-JVI / Joint Vascular / Joint & Vascular → jvi
-OEIS → oeis
-TVI / Texas Vascular / Texas Vascular Institute → tvi
-Kelli / Brain Talk / BT / BTF → kelli
-SVV / Sound Vascular / Sound Vein → svv
-Desert / Desert Cardiovascular / DCC / DC → desert
-Aspire / Aspire Therapy / AT → aspire
-BTTC / BTTCF / Brain Talk Foundation → bttc
-Virtueasy / VA / ve → ve-root
-personal / misc / me / admin → personal-root
-Team / Rida / Jacob / Sanam → mm-cat-team
+ECCO / ECCO Medical / EM -> ecco
+JVI / Joint Vascular / Joint & Vascular -> jvi
+OEIS -> oeis
+TVI / Texas Vascular / Texas Vascular Institute -> tvi
+Kelli / Brain Talk / BT / BTF -> kelli
+SVV / Sound Vascular / Sound Vein -> svv
+Desert / Desert Cardiovascular / DCC / DC -> desert
+Aspire / Aspire Therapy / AT -> aspire
+BTTC / BTTCF / Brain Talk Foundation -> bttc
+Virtueasy / VA / ve -> ve-root
+personal / misc / me / admin -> personal-root
+Team / Rida / Jacob / Sanam -> mm-cat-team
 all clients = [ecco, jvi, oeis, tvi, kelli, svv, desert, aspire, bttc]
 Always infer from initials even if ambiguous.
 
 Assignees: optional array from [rida, jacob, sanam]. Only include if clearly named.
 
 Recurrence: detect repeat frequency. Set "recur" to one of: "none","daily","weekly","biweekly","monthly","quarterly","mon-thu","tue-fri".
-- "every Monday and Thursday" or "Mon/Thu" → "mon-thu"
-- "every Tuesday and Friday" → "tue-fri"
-- "twice a week" → "mon-thu"
-- weekly/every week → "weekly"
-- biweekly/every 2 weeks → "biweekly"
-- monthly/every month → "monthly"
-- daily → "daily"
-- quarterly → "quarterly"
-IMPORTANT: When recur is set, do NOT set "due" - leave it null. The system will calculate the correct next due date automatically.
+- "every Monday and Thursday" or "Mon/Thu" -> "mon-thu"
+- "every Tuesday and Friday" -> "tue-fri"
+- "twice a week" -> "mon-thu"
+- weekly/every week -> "weekly"
+- biweekly/every 2 weeks -> "biweekly"
+- monthly/every month -> "monthly"
+- daily -> "daily"
+- quarterly -> "quarterly"
+IMPORTANT: When recur is set on a NEW task, do NOT set "due" - leave it null.
 
-EXPANSION RULES - these are critical:
-1. MULTI-CLIENT DELIVERY TASKS: If multiple specific clients are listed with a task clearly meant to be done FOR each one individually (e.g. "ECCO, JVI, TVI - write blog post" or "all clients - send invoice"), create ONE task per client with different nodeId. Use client node ids (ecco, jvi, etc.), NOT mm-root.
-2. AGENCY-LEVEL TASKS: If a task is something done BY YOU about or across clients (e.g. "review Airtable calendars for all clients", "check all client metrics", "team standup"), create ONE single task filed under mm-root (Messick Marketing overview). Do NOT duplicate per client.
-3. MULTI-TASK: If a numbered or counted set for ONE client (e.g. "BTTC blog posts 3 and 4" or "ECCO 3 captions"), create one task per item.
-4. SINGLE: All other inputs = array with one task object.
+DECIDE THE ACTION:
+Choose UPDATE when the user is clearly changing an EXISTING task from the list above - e.g. moving its location/node ("move the ECCO blog to JVI", "file the invoice task under personal"), changing its due date ("push the JVI draft to Friday", "the OEIS calendar is now due tomorrow"), reprioritizing ("make the TVI captions urgent"), renaming, reassigning, marking it done ("mark the ECCO blog done"), or deleting it ("delete the YMCA refund task", "remove the duplicate"). Match the correct task by its text and location and use that task's exact "id".
+Choose CREATE for anything that is a brand-new task (default when unsure or when no existing task clearly matches).
 
+CREATE format:
+{"action":"create","tasks":[ {task object}, ... ]}
 Each task object: {"text":"cleaned task label","brand":"...","priority":"...","due":"YYYY-MM-DD or null","nodeId":"node id or null","assignees":[],"notes":"","recur":"none"}
 
-Return a JSON array. Always an array, even for a single task.`;
+CREATE EXPANSION RULES:
+1. MULTI-CLIENT DELIVERY TASKS: multiple specific clients with a task done FOR each one individually -> one task per client with its client nodeId (NOT mm-root).
+2. AGENCY-LEVEL TASKS: one task done BY YOU across clients (e.g. "review all client calendars") -> ONE task under mm-root. Do NOT duplicate per client.
+3. MULTI-TASK: a numbered/counted set for ONE client (e.g. "ECCO 3 captions") -> one task per item.
+4. SINGLE: everything else -> one task object.
+
+UPDATE format:
+{"action":"update","updates":[ {"id":"<existing task id>","changes":{ ...only the fields that change... }}, ... ]}
+"changes" may include any of: "text", "nodeId" (to move location), "due" ("YYYY-MM-DD" or null), "priority", "assignees", "recur", "done" (true to complete), "delete" (true to remove).
+For "move to X"/"file under X"/"change location", set "nodeId" to the matching node id.
+You may update multiple existing tasks in one response. Only include the fields that actually change.
+
+Always return one JSON object with an "action" of either "create" or "update".`;
 
     const resp=await fetch(WORKER+'/claude',{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1522,30 +1604,73 @@ Return a JSON array. Always an array, even for a single task.`;
     const raw=data.text||'';
     const clean=raw.replace(/```json|```/g,'').trim();
     let parsed=JSON.parse(clean);
-    if(!Array.isArray(parsed))parsed=[parsed];
 
-    const t2=loadTodoTasks();
-    parsed.forEach(p=>{
-      t2.push({
-        id:uid(),
-        text:(p.text||text).replace(/^./,ch=>ch.toUpperCase()),
-        brand:p.brand||'messick',
-        priority:p.priority||'none',
-        due:p.due||null,
-        nodeId:p.nodeId||'personal-misc',
-        recur:p.recur||'none',
-        due:(p.recur&&p.recur!=='none'&&!p.due)?firstDueDate(p.recur):(p.due||null),
-        done:false,addedAt:Date.now(),
-        subtasks:[],assignees:p.assignees||[],notes:p.notes||'',
-        recurLastGen:todayStr()
+    // Normalize into an action envelope (back-compatible with a bare array = create)
+    let action='create', tasks=[], updates=[];
+    if(Array.isArray(parsed)){tasks=parsed;}
+    else if(parsed&&parsed.action==='update'){action='update';updates=parsed.updates||[];}
+    else if(parsed&&parsed.action==='create'){tasks=parsed.tasks||[];}
+    else if(parsed&&Array.isArray(parsed.tasks)){tasks=parsed.tasks;}
+    else if(parsed&&Array.isArray(parsed.updates)){action='update';updates=parsed.updates;}
+    else{tasks=[parsed];}
+
+    if(action==='update'&&updates.length){
+      const t2=loadTodoTasks();
+      const delIds=[];
+      let changed=0, lastMsg='';
+      updates.forEach(u=>{
+        const task=t2.find(x=>x.id===u.id);
+        if(!task)return;
+        const ch=u.changes||{};
+        if(ch.delete){delIds.push(task.id);changed++;lastMsg='Deleted';return;}
+        if('text' in ch && ch.text){task.text=String(ch.text).replace(/^./,c2=>c2.toUpperCase());lastMsg='Renamed';}
+        if('nodeId' in ch && ch.nodeId){task.nodeId=ch.nodeId;task.brand=getNodeBrand(ch.nodeId);lastMsg='Moved to '+(brainMap[ch.nodeId]?brainMap[ch.nodeId].label:ch.nodeId);}
+        if('due' in ch){task.due=ch.due||null;lastMsg=ch.due?('Due '+fmtDate(ch.due)):'Due date cleared';}
+        if('priority' in ch && ch.priority){task.priority=ch.priority;lastMsg='Priority: '+ch.priority;}
+        if('assignees' in ch && Array.isArray(ch.assignees)){task.assignees=ch.assignees;lastMsg='Reassigned';}
+        if('recur' in ch && ch.recur){task.recur=ch.recur;}
+        if('done' in ch){task.done=!!ch.done;if(ch.done)lastMsg='Marked done';}
+        changed++;
       });
-    });
-    saveTodoTasks(t2);
-    renderColumns();
-    const n=parsed.length;
-    status.className='qa-status ok';
-    status.textContent=n>1?'✓ '+n+' tasks filed':'✓ Filed';
-    setTimeout(()=>{status.textContent='';btn.disabled=false;},2500);
+      let kept=t2;
+      if(delIds.length){
+        kept=t2.filter(x=>!delIds.includes(x.id));
+        const pins=getFocusPins();let pinChanged=false;
+        pins.forEach((p,i)=>{if(p&&delIds.includes(p.id)){pins[i]=null;pinChanged=true;}});
+        if(pinChanged)saveFocusPins(pins);
+      }
+      saveTodoTasks(kept);
+      renderColumns();
+      status.className='qa-status ok';
+      if(changed===0){status.className='qa-status err';status.textContent='✗ No matching task found';input.value=text;}
+      else status.textContent='✓ '+(changed>1?(changed+' tasks updated'):(lastMsg||'Updated'));
+      setTimeout(()=>{status.textContent='';btn.disabled=false;},2500);
+    } else {
+      let parsedTasks=tasks;
+      if(!Array.isArray(parsedTasks))parsedTasks=[parsedTasks];
+      const t2=loadTodoTasks();
+      parsedTasks.forEach(p=>{
+        t2.push({
+          id:uid(),
+          text:(p.text||text).replace(/^./,ch=>ch.toUpperCase()),
+          brand:p.brand||'messick',
+          priority:p.priority||'none',
+          due:p.due||null,
+          nodeId:p.nodeId||'personal-misc',
+          recur:p.recur||'none',
+          due:(p.recur&&p.recur!=='none'&&!p.due)?firstDueDate(p.recur):(p.due||null),
+          done:false,addedAt:Date.now(),
+          subtasks:[],assignees:p.assignees||[],notes:p.notes||'',
+          recurLastGen:todayStr()
+        });
+      });
+      saveTodoTasks(t2);
+      renderColumns();
+      const n=parsedTasks.length;
+      status.className='qa-status ok';
+      status.textContent=n>1?'✓ '+n+' tasks filed':'✓ Filed';
+      setTimeout(()=>{status.textContent='';btn.disabled=false;},2500);
+    }
   } catch(e){
     // Fallback: save as single unorganized task
     const t2=loadTodoTasks();
