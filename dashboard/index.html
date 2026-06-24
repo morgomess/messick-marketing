@@ -62,6 +62,8 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .h-btn.empire:hover{border-color:#7ab8d4;color:#7ab8d4}
 .h-btn.spin{background:var(--teal);border-color:var(--teal);color:#fff}
 .h-btn.spin:hover{background:#1a9089}
+.h-btn.todo{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.h-btn.todo:hover{background:var(--blue-lt);border-color:var(--blue-lt);color:#fff}
 
 /* ── FOCUS SECTION ── */
 #focus-section{background:#111111;padding:14px 24px 16px;border-bottom:2px solid #000000;flex-shrink:0}
@@ -220,10 +222,18 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .picker-modal{background:#111111;border:1.5px solid #3a6b8a;border-radius:16px;width:min(420px,90vw);overflow:hidden;box-shadow:0 0 60px rgba(58,107,138,0.25);animation:picker-pop 0.4s cubic-bezier(0.16,0.84,0.25,1) both}
 .picker-modal-header{padding:28px 28px 24px;text-align:center;background:linear-gradient(135deg,#111111,#1c2e3d);border-bottom:1px solid #3a6b8a;position:relative;overflow:hidden}
 .picker-phrase{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:rgba(230,241,248,0.7);font-style:italic;margin-bottom:20px}
-.wheel-wrap{position:relative;width:220px;height:220px;margin:0 auto 16px}
-.wheel-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid #ffd700;z-index:2;filter:drop-shadow(0 0 6px rgba(255,215,0,0.6))}
-.wheel-svg{width:100%;height:100%;border-radius:50%;overflow:hidden}
-.wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;background:#111111;border:2px solid #5a9ab8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#5a9ab8;font-size:0.9rem;z-index:3}
+.pslot-wrap{margin:0 auto 16px;display:flex;justify-content:center}
+.pslot-window{position:relative;width:300px;max-width:78vw;height:138px;border-radius:12px;background:linear-gradient(180deg,#1b2a36,#0e1820);border:2px solid #3a6b8a;box-shadow:inset 0 0 30px rgba(0,0,0,0.6),0 0 0 4px rgba(58,107,138,0.12);overflow:hidden}
+.pslot-window::before,.pslot-window::after{content:'';position:absolute;left:0;right:0;height:46px;z-index:3;pointer-events:none}
+.pslot-window::before{top:0;background:linear-gradient(180deg,#0e1820,transparent)}
+.pslot-window::after{bottom:0;background:linear-gradient(0deg,#0e1820,transparent)}
+.pslot-indicator{position:absolute;top:50%;left:-6px;right:-6px;height:46px;transform:translateY(-50%);z-index:4;border-top:2px solid #5a9ab8;border-bottom:2px solid #5a9ab8;pointer-events:none}
+.pslot-notch{position:absolute;top:50%;width:0;height:0;transform:translateY(-50%);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.pslot-notch.l{left:2px;border-left:9px solid #5a9ab8}
+.pslot-notch.r{right:2px;border-right:9px solid #5a9ab8}
+.pslot-reel{position:absolute;left:0;right:0;top:0;will-change:transform}
+.pslot-row{height:46px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 16px;font-size:0.85rem;font-weight:500;color:#cfe2ee;line-height:1.1}
+.pslot-row.win{color:#faf8f5;font-weight:600}
 .picker-task-reveal{font-size:1.15rem;font-weight:600;color:#e6f1f8;text-align:center;min-height:50px;padding:8px 16px;display:flex;align-items:center;justify-content:center}
 .picker-task-reveal.landing{animation:slot-land 0.5s cubic-bezier(0.16,0.84,0.25,1) both}
 .picker-meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:28px;align-items:center}
@@ -479,6 +489,7 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
     </div>
     <div class="h-right">
       <span id="completion-stat" onclick="openAllTasks()" title="View all open tasks">↻ <span id="stat-text">0 of 0 done</span></span>
+      <button class="h-btn todo" onclick="openAllTasks()">📋 To-Do</button>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
       <button class="h-btn empire" onclick="openEmpire()">⚡ Empire</button>
@@ -584,10 +595,11 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
   <div class="picker-modal">
     <div class="picker-modal-header" id="picker-header">
       <div class="picker-phrase" id="picker-phrase">The universe has spoken...</div>
-      <div class="wheel-wrap" id="picker-drum-wrap">
-        <div class="wheel-pointer"></div>
-        <svg class="wheel-svg" viewBox="0 0 220 220"><g id="wheel-rot" style="transform-origin:110px 110px"></g></svg>
-        <div class="wheel-hub">✦</div>
+      <div class="pslot-wrap" id="picker-drum-wrap">
+        <div class="pslot-window">
+          <div class="pslot-reel" id="picker-reel"></div>
+          <div class="pslot-indicator"><span class="pslot-notch l"></span><span class="pslot-notch r"></span></div>
+        </div>
       </div>
       <div class="picker-task-reveal" id="picker-reveal" style="display:none"></div>
       <div class="picker-meta" id="picker-meta"></div>
@@ -1883,15 +1895,21 @@ function pickerSpin(){
   const todayDow=today.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
 
   function isRecurActionableToday(t){
-    if(!t.recur||t.recur==='none')return true;
-    if(t.recur==='daily')return true;
-    if(t.recur==='weekly')return true;   // weekly tasks are always in pool
-    if(t.recur==='biweekly')return true;
-    if(t.recur==='monthly')return true;
-    if(t.recur==='quarterly')return true;
+    // Non-recurring and daily: always in the pool
+    if(!t.recur||t.recur==='none'||t.recur==='daily')return true;
+    // Fixed day-of-week cadences: only on their days
     if(t.recur==='mon-thu'||t.recur==='twice-weekly')return todayDow===1||todayDow===4;
     if(t.recur==='tue-fri')return todayDow===2||todayDow===5;
-    return true;
+    // Weekly / biweekly / monthly / quarterly: only surface as they actually come
+    // due, so a weekly chore stops reappearing in the picker every single day.
+    let dueStr=t.due;
+    if(!dueStr&&t.recurLastGen){
+      dueStr=nextRecurDate(t.recur,t.recurLastGen)||addDays(t.recurLastGen,recurDaysBetween(t.recur)||7);
+    }
+    if(!dueStr)return true; // no date signal at all - leave eligible rather than hide it
+    const due=new Date(dueStr+'T12:00:00');
+    const daysAway=Math.round((due-today)/(1000*60*60*24));
+    return daysAway<=3; // within 3 days of (or past) its due date
   }
 
   const allTasks=loadTodoTasks().filter(t=>!t.done&&isRecurActionableToday(t));
@@ -1900,7 +1918,7 @@ function pickerSpin(){
   function pickerScore(t){
     let score=0;
     // Priority weight
-    const pw={critical:40,high:20,medium:8,low:2,none:2};
+    const pw={critical:60,high:28,medium:10,low:2,none:1};
     score+=pw[t.priority||'none']||2;
     // Sequence ordering: if task text ends in a number (#3, post 3, part 3, step 3 etc),
     // lower numbers score higher so #3 beats #4 beats #5
@@ -1945,45 +1963,33 @@ function pickerSpin(){
   const drumWrap=document.getElementById('picker-drum-wrap');
   const revealEl=document.getElementById('picker-reveal');
   const metaEl=document.getElementById('picker-meta');
-  const rot=document.getElementById('wheel-rot');
+  const reel=document.getElementById('picker-reel');
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   if(pool.length===0){
     drumWrap.style.display='none';revealEl.style.display='block';
-    revealEl.textContent='Nothing left — go celebrate! 🎉';metaEl.innerHTML='';pickerResult=null;return;
+    revealEl.textContent='Nothing left - go celebrate! 🎉';metaEl.innerHTML='';pickerResult=null;return;
   }
 
   pickerResult=picked;
 
-  drumWrap.style.display='block';revealEl.style.display='none';metaEl.innerHTML='';
+  drumWrap.style.display='flex';revealEl.style.display='none';metaEl.innerHTML='';
 
-  const decoys=candidates.filter(c=>c!==pickerResult).sort(()=>Math.random()-0.5);
-  const segCount=Math.min(8,candidates.length);
-  const winSlot=Math.floor(Math.random()*segCount);
-  const segs=[];let di=0;
-  for(let i=0;i<segCount;i++)segs.push(i===winSlot?pickerResult:(decoys[di++]||pickerResult));
+  // Build the slot reel: a run of decoys, the winner, then a couple of trailing rows.
+  // Drawn from the live pool, so it can never divide by zero on far-future days.
+  const ROW=46,WIN_INDEX=28;
+  const poolTasks=pool.map(c=>c.task);
+  const randTask=()=>poolTasks[Math.floor(Math.random()*poolTasks.length)];
+  const strip=[];
+  for(let i=0;i<WIN_INDEX;i++)strip.push(randTask());
+  strip.push(pickerResult.task);
+  strip.push(randTask());strip.push(randTask());
+  reel.innerHTML=strip.map((t,i)=>`<div class="pslot-row${i===WIN_INDEX?' win':''}">${esc(t.text)}</div>`).join('');
 
-  const CX=110,CY=110,R=104,seg=360/segCount;
-  const palMM=['#1e4258','#2a5570','#3a6b8a'],palVE=['#5a1232','#8a2050','#a8235f'];
-  const polar=(deg,r)=>{const a=(deg-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];};
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  let svg='';
-  segs.forEach((c,i)=>{
-    const a0=i*seg,a1=(i+1)*seg;
-    const[x0,y0]=polar(a0,R),[x1,y1]=polar(a1,R);
-    const lg=seg>180?1:0;
-    const pal=(c.task.brand||'').startsWith('virtueasy')?palVE:palMM;
-    const fill=pal[i%pal.length];
-    svg+=`<path d="M${CX},${CY} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${lg} 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${fill}" stroke="#0a1219" stroke-width="1.5"/>`;
-    const mid=a0+seg/2,[tx,ty]=polar(mid,R*0.63);
-    svg+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#e6f1f8" font-size="7.5" font-family="Jost" text-anchor="middle" dominant-baseline="middle" transform="rotate(${mid.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc((c.task.text||'').slice(0,15))}</text>`;
-  });
-  rot.innerHTML=svg;
-  const winCentre=winSlot*seg+seg/2;
-  const jitter=(Math.random()-0.5)*seg*0.4;
-  const target=360*5+(360-winCentre)+jitter;
-  rot.style.transition='none';rot.style.transform='rotate(0deg)';rot.getBoundingClientRect();
-  rot.style.transition='transform 3.3s cubic-bezier(0.16,0.84,0.25,1)';
-  rot.style.transform=`rotate(${target}deg)`;
+  const target=WIN_INDEX*ROW-(138/2-ROW/2); // centre the winner under the indicator
+  reel.style.transition='none';reel.style.transform='translateY(0)';reel.getBoundingClientRect();
+  reel.style.transition='transform 2.7s cubic-bezier(0.12,0.72,0.16,1)';
+  reel.style.transform=`translateY(${-target}px)`;
 
   const capturedResult=pickerResult;
   spinTimeout=setTimeout(()=>{
@@ -1998,7 +2004,7 @@ function pickerSpin(){
     const tag=(bg,fg,lbl)=>`<span style="background:${bg};color:${fg};font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:20px;">${lbl}</span>`;
     metaEl.innerHTML=[pbg?tag(pbg,pfg,pri):'',tag(bbg,bfg,brand)].filter(Boolean).join('');
     spawnPickerConfetti();
-  },3400);
+  },2750);
 }
 
 function spawnPickerConfetti(){
