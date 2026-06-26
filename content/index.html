@@ -1163,8 +1163,8 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
           // Single graphic
           document.getElementById('loading-msg').textContent = 'Generating graphic...';
           try {
-            const imgBody = { prompt: parsed.image_prompt + suffix, count: 1 };
-            if (isCover) imgBody.aspectRatio = selectedCoverFormat === 'landscape' ? '16:9' : '9:16';
+            const asp2 = getImageAspect();
+            const imgBody = { prompt: parsed.image_prompt + suffix, count: 1, aspectRatio: asp2.ratio };
             const imgResult = await callWorker('imagen', imgBody);
             const pred = (imgResult.predictions || [])[0];
             const slot = document.getElementById('image-grid').querySelector('.image-slot');
@@ -1280,7 +1280,7 @@ Rules:
       };
     }
     return {
-      ratio: null,
+      ratio: '4:5',
       slotClass: 'ratio-45',
       suffix: ' 4:5 aspect ratio. High quality production-ready social media graphic.',
       footerNoun: 'social media graphic'
@@ -1350,8 +1350,7 @@ Rules for the rewritten prompt:
     applyBtn.textContent = 'Generating...';
 
     try {
-      const imgBody = { prompt: editedPrompt + suffix, count: 1 };
-      if (asp.ratio) imgBody.aspectRatio = asp.ratio;
+      const imgBody = { prompt: editedPrompt + suffix, count: 1, aspectRatio: asp.ratio || '4:5' };
       const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
@@ -1429,8 +1428,7 @@ Rules for the rewritten prompt:
     document.getElementById('edit-graphic-btn').style.display = '';
 
     try {
-      const imgBody = { prompt: imagePrompt + suffix, count: 1 };
-      if (asp.ratio) imgBody.aspectRatio = asp.ratio;
+      const imgBody = { prompt: imagePrompt + suffix, count: 1, aspectRatio: asp.ratio || '4:5' };
       const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
