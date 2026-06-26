@@ -1211,13 +1211,16 @@ async function detectNiche(channelId) {
   const brand = getBrand(channelId);
   if (!brand) return;
 
-  const system = `You are a YouTube channel niche analyst. Return ONLY a valid JSON object with no markdown:
+  const system = `You are a YouTube channel niche analyst and brand identifier. Return ONLY a valid JSON object with no markdown:
 {
   "primaryNiche": "one of: healthcare, medical-specialty, digital-education, wellness, va-business, fitness, finance, real-estate, legal, beauty, food, travel, gaming, tech, parenting, pets, sports, home, automotive, art, music, comedy, news, spirituality, other",
   "secondaryNiches": ["strings"],
   "targetAudience": "one sentence",
   "contentThemes": ["5 to 8 keyword strings"],
-  "locationSignals": ["location keywords found, or empty array"]
+  "locationSignals": ["location keywords found, or empty array"],
+  "brandColors": "2-4 brand colors described by name (e.g. hot pink, white, black, electric blue) — infer from channel name, description, niche, and typical brand palettes for this industry. Never use hex codes.",
+  "thumbnailStyle": "one of: bold-text-forward, lifestyle-human, clean-minimal, educational-infographic, before-after — the style that best fits this channel's niche and audience",
+  "audienceArchetype": "one short phrase describing the target viewer (e.g. aspiring virtual assistants, interventional radiologists, women 40+ with fibroids)"
 }`;
 
   const userMsg = `Channel: ${brand.channelName}
@@ -2574,10 +2577,14 @@ Output the prompt text ONLY — no JSON, no quotes around it, no preamble, no ex
         system: promptSystem,
         messages: [{ role: 'user', content: `Write an elite YouTube thumbnail Imagen 4 prompt for:
 Title: "${sn.title}"
-Description excerpt: ${(sn.description || '').slice(0, 400)}${niche ? '\nChannel niche: ' + niche : ''}
-${brand?.nicheProfile?.contentStyle ? 'Content style: ' + brand.nicheProfile.contentStyle : ''}
+Description excerpt: ${(sn.description || '').slice(0, 400)}
+${niche ? 'Channel niche: ' + niche : ''}
+${brand?.channelName ? 'Channel: ' + brand.channelName : ''}
+${brand?.nicheProfile?.brandColors ? 'Brand colors (use on overlays and text blocks, describe by name): ' + brand.nicheProfile.brandColors : ''}
+${brand?.nicheProfile?.thumbnailStyle ? 'Preferred thumbnail style: ' + brand.nicheProfile.thumbnailStyle : ''}
+${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}
 
-Apply all 2026 best practices: 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout, single emotional hook.` }]
+Apply all 2026 best practices: 70/30 split, rim light sticker effect, bold centered safe-zone layout, single emotional hook. Use brand colors on overlays and design elements — only default to teal-orange if those are the actual brand colors.` }]
       })
     });
     const promptData = await promptRes.json();
@@ -2749,6 +2756,30 @@ function switchReelsTab(tab) {
   document.querySelectorAll('.reels-panel').forEach(el =>
     el.classList.toggle('active', el.id === `rp-${tab}`));
   if (tab === 'import') renderReelImportList();
+  if (tab === 'audit') injectBrandIntoAuditForm();
+  if (tab === 'manual') injectBrandIntoManualForm();
+}
+
+function injectBrandIntoAuditForm() {
+  const brand = getActive();
+  if (!brand?.nicheProfile) return;
+  const np = brand.nicheProfile;
+  const colorsEl = document.getElementById('rl-audit-colors');
+  const contextEl = document.getElementById('rl-audit-context');
+  if (colorsEl && !colorsEl.value && np.brandColors) colorsEl.value = np.brandColors;
+  // Also set platform to youtube_yt by default if a YouTube channel is connected
+  const platformEl = document.getElementById('rl-audit-platform');
+  if (platformEl && platformEl.value === 'instagram') platformEl.value = 'youtube_yt';
+}
+
+function injectBrandIntoManualForm() {
+  const brand = getActive();
+  if (!brand?.nicheProfile) return;
+  const np = brand.nicheProfile;
+  const colorsEl = document.getElementById('rl-colors');
+  if (colorsEl && !colorsEl.value && np.brandColors) colorsEl.value = np.brandColors;
+  const platformEl = document.getElementById('rl-platform');
+  if (platformEl && platformEl.value === 'instagram') platformEl.value = 'youtube_yt';
 }
 
 // -- Manual Entry --
@@ -3274,22 +3305,36 @@ CRITICAL:
   const compNotes = audit.composition_notes || '';
   const headline = (audit.headline_rewrites || [])[0] || '';
 
-  const brandColorDesc = brandColors
-    ? `Brand colors: ${brandColors}. Use these as background, overlay, and accent colors - describe them by color name in the prompt, never as hex codes.`
+  const activeBrand = getActive();
+  const np = activeBrand?.nicheProfile || {};
+  // Merge: typed colors take priority; fall back to detected brand colors from niche profile
+  const effectiveColors = brandColors || np.brandColors || '';
+  const effectiveStyle = np.thumbnailStyle || '';
+  const effectiveArchetype = np.audienceArchetype || np.targetAudience || '';
+  const channelName = activeBrand?.channelName || '';
+
+  const brandColorDesc = effectiveColors
+    ? `Brand colors: ${effectiveColors}. Use these as background, overlay, and accent colors - describe them by color name in the prompt, never as hex codes.`
     : '';
+  const brandStyleDesc = effectiveStyle ? `Thumbnail style: ${effectiveStyle}.` : '';
+  const audienceDesc = effectiveArchetype ? `Target viewer: ${effectiveArchetype}.` : '';
+  const channelDesc = channelName ? `Channel: ${channelName}.` : '';
 
   const promptUserMsg = `Reference image attached. Use it for setting, layout, and topic context only - do not recreate the person shown.
 
 Platform: ${platMap[platform]}
+${channelDesc}
 ${context ? 'Topic: ' + context : ''}
+${audienceDesc}
 ${brandColorDesc}
+${brandStyleDesc}
 ${headline ? 'Headline text for bold overlay: "' + headline + '"' : ''}
 
 Audit fixes to apply: ${fixes || 'improve contrast, visual hierarchy, and mobile legibility'}
 Keep: ${goodParts || 'clean clinical setting'}
 ${compNotes ? 'Composition notes: ' + compNotes : ''}
 
-Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout.`;
+Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout. The generated thumbnail must feel on-brand for this specific channel - use the brand colors on overlays and text blocks, not generic teal-orange unless those ARE the brand colors.`;
 
   try {
     const promptRes = await fetch(WORKER_URL, {
