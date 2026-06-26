@@ -145,7 +145,7 @@
 
   /* IMAGE GRID */
   .image-grid { padding: 18px; display: grid; gap: 12px; }
-  .image-grid.graphic { grid-template-columns: 1fr; max-width: 320px; }
+  .image-grid.graphic { grid-template-columns: 1fr; max-width: 420px; }
   .image-grid.carousel { grid-template-columns: repeat(2, 1fr); }
 
   .image-slot {
@@ -153,9 +153,12 @@
     background: var(--surface); display: flex; align-items: center; justify-content: center;
     position: relative;
   }
-  .image-slot.ratio-45 { aspect-ratio: 4/5; }
-  .image-slot.ratio-916 { aspect-ratio: 9/16; }
-  .image-slot.ratio-169 { aspect-ratio: 16/9; max-width: 100%; }
+  /* 4:5 social graphic */
+  .image-slot.ratio-45 { aspect-ratio: 4/5; width: 100%; max-width: 340px; }
+  /* 9:16 vertical cover (Reels/Stories/Shorts) — constrain width so it doesn't blow out */
+  .image-slot.ratio-916 { aspect-ratio: 9/16; width: 100%; max-width: 260px; }
+  /* 16:9 horizontal cover (YouTube/landscape) — full width, natural height from ratio */
+  .image-slot.ratio-169 { aspect-ratio: 16/9; width: 100%; max-width: 100%; }
   .image-slot img.generated { width: 100%; height: 100%; object-fit: cover; display: block; }
   .img-placeholder { font-size: 12px; color: var(--muted); text-align: center; padding: 16px; line-height: 1.6; }
   .img-placeholder.error { color: #e8533a; }
@@ -1089,6 +1092,8 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         document.getElementById('image-prompt-output').textContent = 'Prompt: ' + (parsed.image_prompt || '');
         const grid = document.getElementById('image-grid');
         grid.className = 'image-grid graphic';
+        // Landscape covers need the grid to go full width; vertical/graphic constrain via CSS
+        grid.style.maxWidth = (isCover && selectedCoverFormat === 'landscape') ? '100%' : '';
         grid.innerHTML = `<div class="image-slot ${isCover ? (selectedCoverFormat === 'landscape' ? 'ratio-169' : 'ratio-916') : 'ratio-45'}"><div class="img-placeholder">Generating...</div></div>`;
       }
 
@@ -1305,6 +1310,7 @@ Rules:
     // Show loading state immediately
     const grid = document.getElementById('image-grid');
     grid.className = 'image-grid graphic';
+    grid.style.maxWidth = (selectedType === 'cover' && selectedCoverFormat === 'landscape') ? '100%' : '';
     grid.innerHTML = `<div class="image-slot ${asp.slotClass}"><div class="img-placeholder">Rewriting prompt...</div></div>`;
 
     let editedPrompt = basePrompt;
@@ -1418,6 +1424,7 @@ Rules for the rewritten prompt:
     show('card-image', true);
     const grid = document.getElementById('image-grid');
     grid.className = 'image-grid graphic';
+    grid.style.maxWidth = (selectedType === 'cover' && selectedCoverFormat === 'landscape') ? '100%' : '';
     grid.innerHTML = `<div class="image-slot ${asp.slotClass}"><div class="img-placeholder">Regenerating...</div></div>`;
     document.getElementById('edit-graphic-btn').style.display = '';
 
