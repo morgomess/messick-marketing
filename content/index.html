@@ -1260,8 +1260,7 @@ Rules:
   }
 
   // Returns aspect config for the current content type + cover format.
-  // ratio is sent to the worker as aspectRatio ONLY for covers. Graphics keep
-  // the worker's native 4:5 default (Imagen has no literal 4:5 ratio option).
+  // ratio is always sent to the worker as aspectRatio. Graphic = 4:5, Cover = 9:16 or 16:9.
   function getImageAspect() {
     if (selectedType === 'cover') {
       if (selectedCoverFormat === 'landscape') {
