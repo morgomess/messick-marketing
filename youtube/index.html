@@ -2799,31 +2799,66 @@ async function generateCoverBrief() {
   out.innerHTML = spinner('Writing prompt and generating thumbnail...');
 
   // Step 1: Claude builds Imagen prompt + brief JSON
-  const system = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer. You specialize in thumbnails that achieve 8-12% CTR.
-Return ONLY valid JSON with no markdown:
+  // Step 1a: Claude writes the Imagen prompt as PLAIN TEXT (no JSON leakage into the prompt)
+  const promptSystem = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer specializing in thumbnails that achieve 8-12% CTR.
+
+Write a single Imagen 4 image generation prompt. Output the prompt text ONLY — no JSON, no labels, no preamble, no explanation.
+
+STRICT RULES — violating any of these ruins the image:
+- NEVER include hex color codes (#000D4D4, #3a6b8a, etc.) anywhere in the prompt — Imagen renders them as visible text
+- NEVER include font names (Canva Sans, Arial, Extra Bold, etc.) — describe the style instead: "bold condensed sans-serif"
+- NEVER include structural labels like "Line 1", "Line 2", "Header:", "Subtext:", "CTA:" — write the actual words
+- NEVER include placeholder text, template language, or technical notation of any kind
+- Describe colors by name only: "deep teal", "warm orange", "navy", "electric cyan" — never hex codes
+- Text overlays: maximum 4 words total, describe them as quoted strings with exact placement
+- If the style is Clean/Minimal: no text overlay at all — pure visual only
+
+2026 best practices (always apply all):
+- 70/30 contrast split: strong subject fills 70% of frame, clean space for text/breathing room fills 30%
+- Rim light sticker effect: subject lit from behind with a glowing edge against contrasting background
+- Teal-orange color grading: warm skin tones against cool teal/cyan background for maximum pop
+- Bold centered safe-zone layout: all critical elements centered within middle 80% of frame
+- Single emotional hook: one face with a clear expression OR one bold object — never split attention
+
+Prompt structure (use all 6 parts, no labels):
+Describe the subject and their emotional state → describe the composition and framing → describe the rim lighting and how the subject pops from the background → describe the color grading and background → describe any text overlay (quoted, 4 words max, with exact placement) → end with this exact footer: "Professional thumbnail, ultra-sharp focus, cinematic color grade, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text, no font names, no hex codes."`);
+
+  const promptUserMsg = `Write an Imagen 4 thumbnail prompt for:
+Topic: ${topic}
+Platform: ${platMap[platform] || platMap.instagram}
+Aspect ratio: ${ratio}
+Style: ${styleMap[style]}
+${colors ? 'Brand color direction (describe by name, never use hex codes in prompt): ' + colors : ''}
+${headline ? 'Text overlay to include (max 4 words, quoted with placement): "' + headline + '"' : 'No text overlay unless Bold Text-Forward style selected.'}`;
+
+  // Step 1b: Claude writes the brief JSON separately
+  const briefSystem = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
+  const briefUserMsg = `Generate a thumbnail design brief for:
+Topic: ${topic}
+Platform: ${platMap[platform] || platMap.instagram}
+Style: ${styleMap[style]}
+${colors ? 'Brand colors: ' + colors : ''}
+${headline ? 'Preferred headline: ' + headline : ''}
+
+Return this exact JSON:
 {
-  "image_prompt": "Highly detailed Imagen 4 prompt using: [SUBJECT & EMOTIONAL HOOK] + [COMPOSITION & SAFE-ZONE FRAMING] + [RIM LIGHT & STICKER EFFECT] + [COLOR GRADING] + [TEXT ELEMENTS max 4 words each] + [QUALITY FOOTER]. Apply 2026 best practices: 70/30 contrast split, rim light sticker effect, teal-orange grading, bold centered safe-zone. Quality footer must end with: Professional thumbnail, ultra-sharp focus, cinematic color grade, no watermarks, no placeholder elements.",
-  "headline_options": ["3 short punchy cover text options, under 8 words each"],
+  "headline_options": ["3 short punchy text options, under 8 words each"],
   "visual_concept": "2-3 sentence description of the visual scene",
   "color_palette": ["primary hex", "secondary hex", "accent hex"],
   "design_notes": ["3-4 specific instructions for a designer"],
   "ctr_hooks": ["2-3 psychological hooks this cover uses"]
-}`);
+}`;
 
-  const userMsg = `Generate a thumbnail for:
-Topic: ${topic}
-Platform: ${platMap[platform] || platMap.instagram}
-Ratio: ${ratio} ${both ? '(generate both 9:16 and 16:9)' : ''}
-Style: ${styleMap[style]}
-${colors ? 'Brand colors: ' + colors : ''}
-${headline ? 'Preferred headline/text: "' + headline + '"' : ''}
-
-Apply all 2026 best practices. The image_prompt must be specific, production-ready, and optimized for maximum CTR.`;
+  const userMsg = briefUserMsg; // kept for compat — actual prompt fetch uses promptUserMsg below
 
   try {
-    const raw = await callAI(system, userMsg);
-    const d = parseJSON(raw);
-    const imagePrompt = d.image_prompt || '';
+    // Fetch prompt and brief in parallel
+    const [promptRes, briefRes] = await Promise.all([
+      callAI(promptSystem, promptUserMsg),
+      callAI(briefSystem, briefUserMsg)
+    ]);
+    const imagePrompt = (promptRes || '').trim();
+    const d = parseJSON(briefRes || '{}');
     window._lastManualCoverPrompt = imagePrompt;
 
     // Step 2: Generate images
@@ -2960,27 +2995,46 @@ async function generateCoverFromVideo() {
   const out = document.getElementById('rl-import-out');
   out.innerHTML = spinner('Writing prompt and generating thumbnail from video...');
 
-  const system = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer. Return ONLY valid JSON with no markdown:
-{
-  "image_prompt": "Highly detailed Imagen 4 prompt using: [SUBJECT & EMOTIONAL HOOK] + [COMPOSITION & SAFE-ZONE FRAMING] + [RIM LIGHT & STICKER EFFECT] + [COLOR GRADING] + [TEXT ELEMENTS max 4 words] + [QUALITY FOOTER]. Apply 2026 best practices. Quality footer must end with: Professional thumbnail, ultra-sharp focus, cinematic color grade, no watermarks, no placeholder elements.",
-  "headline_options": ["3 short cover text options from the video, under 8 words"],
-  "visual_concept": "2-3 sentence description",
-  "design_notes": ["3-4 specific instructions"],
-  "repurpose_angle": "1 sentence on what angle from the video to highlight"
-}`);
+  const promptSystem2 = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer specializing in thumbnails that achieve 8-12% CTR.
 
-  const userMsg = `Generate a thumbnail to repurpose this YouTube video:
+Write a single Imagen 4 image generation prompt. Output the prompt text ONLY — no JSON, no labels, no preamble, no explanation.
+
+STRICT RULES:
+- NEVER include hex color codes — Imagen renders them as visible text
+- NEVER include font names — describe the style instead
+- NEVER include structural labels like "Line 1", "Header:", "Subtext:", "CTA:"
+- Describe colors by name only: "deep teal", "warm orange", "navy" — never hex codes
+- Text overlays: maximum 4 words, quoted strings with exact placement only
+- No placeholder text or technical notation of any kind
+
+2026 best practices (always apply all): 70/30 contrast split, rim light sticker effect subject isolated with glowing edge, teal-orange color grading, bold centered safe-zone layout, single emotional hook.
+
+End every prompt with this exact footer: "Professional thumbnail, ultra-sharp focus, cinematic color grade, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text, no font names, no hex codes."`);
+
+  const briefSystem2 = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
+
+  const promptUserMsg2 = `Write an Imagen 4 thumbnail prompt to repurpose this YouTube video:
 Title: "${reelSelectedVideo.title}"
 ${reelSelectedVideo.description ? 'Description: ' + reelSelectedVideo.description.substring(0,300) : ''}
 Platform: ${platMap[platform]||platMap.instagram}
-Ratio: ${ratio}${both?' (generate both 9:16 and 16:9)':''}
+Aspect ratio: ${ratio}
 Style: ${styleMap[style]}
-Apply all 2026 best practices: 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone.`;
+Apply all 2026 best practices. No hex codes, no font names, no structural labels in the prompt.`;
+
+  const briefUserMsg2 = `Generate a thumbnail brief for repurposing this YouTube video:
+Title: "${reelSelectedVideo.title}"
+Style: ${styleMap[style]}
+Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "2-3 sentences", "design_notes": ["3-4 instructions"], "repurpose_angle": "1 sentence" }`;
+
+  const userMsg = briefUserMsg2;
 
   try {
-    const raw = await callAI(system, userMsg);
-    const d = parseJSON(raw);
-    const imagePrompt = d.image_prompt || '';
+    const [promptRes2, briefRes2] = await Promise.all([
+      callAI(promptSystem2, promptUserMsg2),
+      callAI(briefSystem2, briefUserMsg2)
+    ]);
+    const imagePrompt = (promptRes2 || '').trim();
+    const d = parseJSON(briefRes2 || '{}');
 
     out.innerHTML = spinner(`Generating ${both?'both formats':ratio} thumbnail...`);
     const results = [];
