@@ -817,7 +817,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     <button class="mode-pill active" id="pill-optimize" onclick="switchMode('optimize')">Optimize</button>
     <button class="mode-pill" id="pill-videos" onclick="switchMode('videos')">My Videos</button>
     <button class="mode-pill" id="pill-research" onclick="switchMode('research')">Research</button>
-    <button class="mode-pill" id="pill-reels" onclick="switchMode('reels')">Reel Covers</button>
+    <button class="mode-pill" id="pill-reels" onclick="switchMode('reels')">Thumbnail Studio</button>
     <div class="mode-niche-badge" id="niche-badge"></div>
   </div>
 
@@ -955,20 +955,21 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <!-- MANUAL ENTRY PANEL -->
       <div class="reels-panel active" id="rp-manual">
         <div class="reels-panel-inner">
-          <div class="panel-title">Reel Cover Generator</div>
-          <div class="panel-sub">Describe your reel and get AI-generated cover thumbnail concepts, overlay text, color direction, and a ready-to-use design brief.</div>
+          <div class="panel-title">Thumbnail Studio</div>
+          <div class="panel-sub">Generate AI thumbnails for YouTube (16:9), Shorts &amp; Reels (9:16), or both at once — plus a full design brief.</div>
           <div class="form-group">
-            <label class="form-label">Reel Topic / Procedure *</label>
-            <input type="text" class="form-input" id="rl-topic" placeholder="e.g. Morning routine, product review, how-to tutorial">
+            <label class="form-label">Topic / Procedure *</label>
+            <input type="text" class="form-input" id="rl-topic" placeholder="e.g. UFE procedure, VA starter tips, morning routine">
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Platform</label>
               <select class="form-input" id="rl-platform">
-                <option value="instagram">Instagram Reels</option>
-                <option value="facebook">Facebook Reels</option>
-                <option value="tiktok">TikTok</option>
-                <option value="youtube">YouTube Shorts</option>
+                <option value="youtube_yt">YouTube Thumbnail (16:9)</option>
+                <option value="youtube">YouTube Shorts (9:16)</option>
+                <option value="instagram">Instagram Reels (9:16)</option>
+                <option value="facebook">Facebook Reels (9:16)</option>
+                <option value="tiktok">TikTok (9:16)</option>
               </select>
             </div>
             <div class="form-group">
@@ -983,6 +984,15 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label">Generate Format</label>
+            <select class="form-input" id="rl-gen-format">
+              <option value="match">Match platform ratio</option>
+              <option value="9:16">9:16 — Shorts / Reels / Stories</option>
+              <option value="16:9">16:9 — YouTube Thumbnail</option>
+              <option value="both">Both 9:16 + 16:9</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Brand Colors (optional)</label>
             <input type="text" class="form-input" id="rl-colors" placeholder="e.g. Navy blue and white, or leave blank to use channel brand">
           </div>
@@ -990,7 +1000,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
             <label class="form-label">Cover Headline / Text Overlay (optional)</label>
             <input type="text" class="form-input" id="rl-headline" placeholder="e.g. 'Is your leg pain PAD?' or leave blank for AI to suggest">
           </div>
-          <button class="btn-primary" onclick="generateCoverBrief()">Generate Cover Brief</button>
+          <button class="btn-primary" onclick="generateCoverBrief()">Generate Thumbnail + Brief</button>
           <div id="rl-manual-out"></div>
         </div>
       </div>
@@ -998,8 +1008,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <!-- IMPORT FROM VIDEO PANEL -->
       <div class="reels-panel" id="rp-import">
         <div class="reels-panel-inner">
-          <div class="panel-title">Import from Connected Video</div>
-          <div class="panel-sub">Select an existing YouTube video and generate a reel cover thumbnail brief based on its title, topic, and channel niche.</div>
+          <div class="panel-title">Generate from Connected Video</div>
+          <div class="panel-sub">Select an existing YouTube video and generate a thumbnail or reel cover — AI images in your chosen format plus a design brief.</div>
           <div id="rl-import-list">
             <div class="empty-state">
               <div class="empty-state-icon">🔗</div>
@@ -1014,10 +1024,11 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
               <div class="form-group">
                 <label class="form-label">Target Platform</label>
                 <select class="form-input" id="rl-import-platform">
-                  <option value="instagram">Instagram Reels</option>
-                  <option value="facebook">Facebook Reels</option>
-                  <option value="tiktok">TikTok</option>
-                  <option value="youtube">YouTube Shorts</option>
+                  <option value="youtube_yt">YouTube Thumbnail (16:9)</option>
+                  <option value="youtube">YouTube Shorts (9:16)</option>
+                  <option value="instagram">Instagram Reels (9:16)</option>
+                  <option value="facebook">Facebook Reels (9:16)</option>
+                  <option value="tiktok">TikTok (9:16)</option>
                 </select>
               </div>
               <div class="form-group">
@@ -1030,7 +1041,16 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
                 </select>
               </div>
             </div>
-            <button class="btn-primary" onclick="generateCoverFromVideo()">Generate Cover Brief</button>
+            <div class="form-group" style="margin-top:12px;">
+              <label class="form-label">Generate Format</label>
+              <select class="form-input" id="rl-import-format">
+                <option value="match">Match platform ratio</option>
+                <option value="9:16">9:16 — Shorts / Reels</option>
+                <option value="16:9">16:9 — YouTube Thumbnail</option>
+                <option value="both">Both formats</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="generateCoverFromVideo()">Generate Thumbnail + Brief</button>
           </div>
           <div id="rl-import-out"></div>
         </div>
@@ -1039,8 +1059,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <!-- UPLOAD & AUDIT PANEL -->
       <div class="reels-panel" id="rp-audit">
         <div class="reels-panel-inner">
-          <div class="panel-title">Audit Existing Cover</div>
-          <div class="panel-sub">Upload a reel cover thumbnail or screenshot. AI will score it on click-through potential, text legibility, visual hierarchy, and platform fit - and return specific fixes.</div>
+          <div class="panel-title">Audit &amp; Regenerate</div>
+          <div class="panel-sub">Upload any existing thumbnail or cover. AI scores it on CTR potential, text legibility, visual hierarchy, and platform fit — then generates an improved version in your chosen format.</div>
 
           <div class="upload-drop-zone" id="rl-drop-zone" onclick="document.getElementById('rl-file-input').click()">
             <div class="upload-drop-icon">🖼️</div>
@@ -1056,10 +1076,11 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
               <div class="form-group">
                 <label class="form-label">Platform</label>
                 <select class="form-input" id="rl-audit-platform">
-                  <option value="instagram">Instagram Reels</option>
-                  <option value="facebook">Facebook Reels</option>
-                  <option value="tiktok">TikTok</option>
-                  <option value="youtube">YouTube Shorts</option>
+                  <option value="youtube_yt">YouTube Thumbnail (16:9)</option>
+                  <option value="youtube">YouTube Shorts (9:16)</option>
+                  <option value="instagram">Instagram Reels (9:16)</option>
+                  <option value="facebook">Facebook Reels (9:16)</option>
+                  <option value="tiktok">TikTok (9:16)</option>
                 </select>
               </div>
               <div class="form-group">
@@ -2738,49 +2759,150 @@ function switchReelsTab(tab) {
 
 // -- Manual Entry --
 // -- Manual Entry: Cover Brief --
+// Helper: resolve ratio and label from platform + override format selector
+function resolveFormat(platform, formatOverride) {
+  const isLandscape = platform === 'youtube_yt';
+  let ratio = isLandscape ? '16:9' : '9:16';
+  let both = false;
+  if (formatOverride && formatOverride !== 'match') {
+    if (formatOverride === 'both') { both = true; ratio = '9:16'; }
+    else ratio = formatOverride;
+  }
+  return { ratio, both, isLandscape: ratio === '16:9' && !both };
+}
+
 async function generateCoverBrief() {
   const topic = document.getElementById('rl-topic').value.trim();
   const platform = document.getElementById('rl-platform').value;
   const style = document.getElementById('rl-style').value;
   const colors = document.getElementById('rl-colors').value.trim();
   const headline = document.getElementById('rl-headline').value.trim();
+  const formatOverride = document.getElementById('rl-gen-format')?.value || 'match';
   const out = document.getElementById('rl-manual-out');
   if (!topic) { out.innerHTML = '<div class="error-msg">Please enter a topic.</div>'; return; }
 
-  const platMap = { instagram:'Instagram Reels (9:16, 1080x1920px)', facebook:'Facebook Reels (9:16, 1080x1920px)', tiktok:'TikTok (9:16, 1080x1920px)', youtube:'YouTube Shorts (9:16, 1080x1920px)' };
+  const platMap = {
+    youtube_yt: 'YouTube Thumbnail (16:9, 1280x720px)',
+    youtube: 'YouTube Shorts (9:16, 1080x1920px)',
+    instagram: 'Instagram Reels (9:16, 1080x1920px)',
+    facebook: 'Facebook Reels (9:16, 1080x1920px)',
+    tiktok: 'TikTok (9:16, 1080x1920px)'
+  };
   const styleMap = { clean:'Clean & Minimal (white space, minimal text, professional)', bold:'Bold Text-Forward (large type, high contrast, hook-first)', lifestyle:'Lifestyle / Human (warm, relatable, authentic)', educational:'Educational / Infographic (icons, data, structured layout)', before_after:'Before & After Frame (split screen or sequential)' };
 
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief...</div>';
+  const { ratio, both } = resolveFormat(platform, formatOverride);
+  const ratios = both ? ['9:16','16:9'] : [ratio];
 
-  const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
-  const userMsg = `Generate a reel cover thumbnail design brief for:
+  out.innerHTML = spinner('Writing prompt and generating thumbnail...');
+
+  // Step 1: Claude builds Imagen prompt + brief JSON
+  const system = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer. You specialize in thumbnails that achieve 8-12% CTR.
+Return ONLY valid JSON with no markdown:
+{
+  "image_prompt": "Highly detailed Imagen 4 prompt using: [SUBJECT & EMOTIONAL HOOK] + [COMPOSITION & SAFE-ZONE FRAMING] + [RIM LIGHT & STICKER EFFECT] + [COLOR GRADING] + [TEXT ELEMENTS max 4 words each] + [QUALITY FOOTER]. Apply 2026 best practices: 70/30 contrast split, rim light sticker effect, teal-orange grading, bold centered safe-zone. Quality footer must end with: Professional thumbnail, ultra-sharp focus, cinematic color grade, no watermarks, no placeholder elements.",
+  "headline_options": ["3 short punchy cover text options, under 8 words each"],
+  "visual_concept": "2-3 sentence description of the visual scene",
+  "color_palette": ["primary hex", "secondary hex", "accent hex"],
+  "design_notes": ["3-4 specific instructions for a designer"],
+  "ctr_hooks": ["2-3 psychological hooks this cover uses"]
+}`);
+
+  const userMsg = `Generate a thumbnail for:
 Topic: ${topic}
-Platform: ${platMap[platform]}
+Platform: ${platMap[platform] || platMap.instagram}
+Ratio: ${ratio} ${both ? '(generate both 9:16 and 16:9)' : ''}
 Style: ${styleMap[style]}
 ${colors ? 'Brand colors: ' + colors : ''}
-${headline ? 'Preferred headline: ' + headline : ''}
+${headline ? 'Preferred headline/text: "' + headline + '"' : ''}
 
-Return this exact JSON:
-{
-  "headline_options": ["3 short punchy cover text options, under 8 words each"],
-  "subtext": "optional 1-line subtext or leave empty string",
-  "visual_concept": "2-3 sentence description of the visual scene or composition",
-  "color_palette": ["primary hex", "secondary hex", "accent hex"],
-  "color_rationale": "one sentence explaining the color choice",
-  "typography_direction": "font style recommendation (e.g. bold sans-serif, clean serif) and placement notes",
-  "design_notes": ["3-4 specific design instructions for a Canva designer"],
-  "ctr_hooks": ["2-3 psychological hooks this cover uses to drive clicks"],
-  "avoid": ["2-3 things to avoid for this topic/platform combo"],
-  "canva_search_terms": ["3-4 Canva template search terms to find a good starting point"]
-}`;
+Apply all 2026 best practices. The image_prompt must be specific, production-ready, and optimized for maximum CTR.`;
 
   try {
     const raw = await callAI(system, userMsg);
     const d = parseJSON(raw);
-    out.innerHTML = renderCoverBrief(d);
+    const imagePrompt = d.image_prompt || '';
+    window._lastManualCoverPrompt = imagePrompt;
+
+    // Step 2: Generate images
+    out.innerHTML = spinner(`Generating ${both ? 'both formats' : ratio} thumbnail...`);
+    const results = [];
+    for (const r of ratios) {
+      const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: r })
+      });
+      const imgData = await imgRes.json();
+      const pred = (imgData.predictions || [])[0];
+      if (pred?.bytesBase64Encoded) results.push({ ratio: r, b64: pred.bytesBase64Encoded });
+      else results.push({ ratio: r, b64: null });
+    }
+
+    const imagesHTML = results.map(r => `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:7px;font-weight:600;">
+          ${r.ratio === '9:16' ? '9:16 — Shorts / Reels / Stories' : '16:9 — YouTube Thumbnail'}
+        </div>
+        ${r.b64 ? `
+        <div style="text-align:center;margin-bottom:10px;${r.ratio==='9:16'?'max-width:200px;margin:0 auto 10px;':''}">
+          <img src="data:image/png;base64,${r.b64}" style="width:100%;border-radius:8px;border:1px solid var(--border2);display:block;">
+        </div>
+        <a href="data:image/png;base64,${r.b64}" download="cover-${r.ratio.replace(':','-')}-${topic.replace(/\s+/g,'-').toLowerCase().substring(0,20)}.png" class="btn-primary" style="text-decoration:none;text-align:center;display:block;margin-bottom:8px;">Download ${r.ratio}</a>
+        ` : `<div class="error-msg" style="margin-bottom:8px;">Generation failed for ${r.ratio} — try again.</div>`}
+      </div>`).join('<div style="border-top:1px solid var(--border);margin:4px 0 14px;"></div>');
+
+    out.innerHTML = `
+      <div class="reel-output-block" style="margin-top:16px;">
+        <div class="reel-output-label">Generated Thumbnail${both ? 's' : ''}</div>
+        ${imagesHTML}
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-copy" style="flex:1;" onclick="generateCoverBrief()">↻ Regenerate</button>
+          <button class="btn-copy" style="flex:1;" onclick="document.getElementById('rl-refine-area').style.display=document.getElementById('rl-refine-area').style.display==='none'?'block':'none'">Refine...</button>
+        </div>
+        <div id="rl-refine-area" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <textarea id="rl-refine-input" class="form-textarea" rows="2" placeholder="e.g. More dramatic lighting, use teal instead of orange, remove text overlay..." style="font-size:13px;margin-bottom:8px;"></textarea>
+          <button class="btn-primary" style="width:100%;" onclick="refineCoverBrief()">Apply &amp; Regenerate</button>
+        </div>
+        ${renderCoverBrief(d)}
+        <details style="margin-top:10px;"><summary style="font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">Imagen prompt used</summary><div style="font-size:12px;color:var(--text-dim);line-height:1.6;padding-top:8px;white-space:pre-wrap;">${esc(imagePrompt)}</div></details>
+      </div>`;
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
+}
+
+async function refineCoverBrief() {
+  const notes = (document.getElementById('rl-refine-input')?.value || '').trim();
+  const base = window._lastManualCoverPrompt || '';
+  const topic = document.getElementById('rl-topic').value.trim();
+  const platform = document.getElementById('rl-platform').value;
+  const formatOverride = document.getElementById('rl-gen-format')?.value || 'match';
+  if (!base) { generateCoverBrief(); return; }
+  const { ratio, both } = resolveFormat(platform, formatOverride);
+  const ratios = both ? ['9:16','16:9'] : [ratio];
+  const out = document.getElementById('rl-manual-out');
+  out.innerHTML = spinner('Refining and regenerating...');
+  const refineSystem = buildSystem('You are an Imagen 4 prompt editor for social thumbnails. Rewrite the prompt incorporating the refinement notes while keeping all 2026 best practices. Output revised prompt text ONLY — no explanation, no preamble.');
+  try {
+    const res = await fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ system: refineSystem, messages:[{ role:'user', content:`Original:\n${base}\n\nRefinement:\n${notes||'Improve visual impact and contrast'}` }] }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    window._lastManualCoverPrompt = (data.text||'').trim();
+    // Regenerate images with refined prompt
+    const results = [];
+    for (const r of ratios) {
+      const imgRes = await fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: window._lastManualCoverPrompt, count:1, aspectRatio:r }) });
+      const imgData = await imgRes.json();
+      const pred = (imgData.predictions||[])[0];
+      results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
+    }
+    const imagesHTML = results.map(r => `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:7px;font-weight:600;">${r.ratio==='9:16'?'9:16 — Shorts / Reels':'16:9 — YouTube Thumbnail'}</div>
+        ${r.b64?`<div style="text-align:center;margin-bottom:10px;${r.ratio==='9:16'?'max-width:200px;margin:0 auto 10px;':''}"><img src="data:image/png;base64,${r.b64}" style="width:100%;border-radius:8px;border:1px solid var(--border2);display:block;"></div><a href="data:image/png;base64,${r.b64}" download="cover-refined-${r.ratio.replace(':','-')}.png" class="btn-primary" style="text-decoration:none;text-align:center;display:block;margin-bottom:8px;">Download ${r.ratio}</a>`:`<div class="error-msg">Failed for ${r.ratio}</div>`}
+      </div>`).join('<div style="border-top:1px solid var(--border);margin:4px 0 14px;"></div>');
+    out.innerHTML = `<div class="reel-output-block" style="margin-top:16px;"><div class="reel-output-label">Refined Thumbnail${both?'s':''}</div>${imagesHTML}<button class="btn-copy" style="width:100%;" onclick="generateCoverBrief()">↺ Start Over</button></div>`;
+  } catch(e) { out.innerHTML = `<div class="error-msg">${e.message}</div>`; }
 }
 
 // -- Import from Video: Cover Brief --
@@ -2796,7 +2918,7 @@ function renderReelImportList() {
     el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎬</div><div class="empty-state-title">No videos loaded yet</div><div class="empty-state-sub">Switch to My Videos tab and click Refresh to load your channel videos, then come back here.</div></div>`;
     return;
   }
-  el.innerHTML = `<div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:12px;">Select a video to create a reel cover for</div>` +
+  el.innerHTML = `<div style="font-size:11px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); font-weight:600; margin-bottom:12px;">Select a video to generate a thumbnail for</div>` +
     storedVideos.slice(0, 20).map(v => `
     <div class="video-import-card${reelSelectedVideo?.id === v.id ? ' selected' : ''}" onclick="selectReelVideo(${JSON.stringify(v).replace(/"/g,'&quot;')}, event)">
       <img class="video-import-thumb" src="${v.thumbnail || ''}" onerror="this.style.display='none'">
@@ -2821,35 +2943,65 @@ async function generateCoverFromVideo() {
   if (!reelSelectedVideo) return;
   const platform = document.getElementById('rl-import-platform').value;
   const style = document.getElementById('rl-import-style').value;
-  const platMap = { instagram:'Instagram Reels (9:16)', facebook:'Facebook Reels (9:16)', tiktok:'TikTok (9:16)', youtube:'YouTube Shorts (9:16)' };
+  const formatOverride = document.getElementById('rl-import-format')?.value || 'match';
+  const platMap = {
+    youtube_yt: 'YouTube Thumbnail (16:9)',
+    youtube: 'YouTube Shorts (9:16)',
+    instagram: 'Instagram Reels (9:16)',
+    facebook: 'Facebook Reels (9:16)',
+    tiktok: 'TikTok (9:16)'
+  };
   const styleMap = { clean:'Clean & Minimal', bold:'Bold Text-Forward', lifestyle:'Lifestyle / Human', educational:'Educational / Infographic' };
+  const { ratio, both } = resolveFormat(platform, formatOverride);
+  const ratios = both ? ['9:16','16:9'] : [ratio];
   const out = document.getElementById('rl-import-out');
-  out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating cover brief from video...</div>';
+  out.innerHTML = spinner('Writing prompt and generating thumbnail from video...');
 
-  const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
-  const userMsg = `Generate a reel cover thumbnail design brief to repurpose this YouTube video as a ${platMap[platform]}:
-Video title: ${reelSelectedVideo.title}
-${reelSelectedVideo.description ? 'Description excerpt: ' + reelSelectedVideo.description.substring(0, 300) : ''}
-Style: ${styleMap[style]}
-
-Return this exact JSON:
+  const system = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer. Return ONLY valid JSON with no markdown:
 {
-  "headline_options": ["3 short cover text options adapted from the video, under 8 words each"],
-  "subtext": "optional 1-line subtext or empty string",
-  "visual_concept": "2-3 sentence description of the visual scene or composition",
-  "color_palette": ["primary hex", "secondary hex", "accent hex"],
-  "color_rationale": "one sentence",
-  "typography_direction": "font style and placement notes",
-  "design_notes": ["3-4 specific design instructions"],
-  "repurpose_angle": "1 sentence on what angle from the video to highlight on the cover",
-  "ctr_hooks": ["2-3 psychological hooks this cover uses"],
-  "canva_search_terms": ["3-4 Canva template search terms"]
-}`;
+  "image_prompt": "Highly detailed Imagen 4 prompt using: [SUBJECT & EMOTIONAL HOOK] + [COMPOSITION & SAFE-ZONE FRAMING] + [RIM LIGHT & STICKER EFFECT] + [COLOR GRADING] + [TEXT ELEMENTS max 4 words] + [QUALITY FOOTER]. Apply 2026 best practices. Quality footer must end with: Professional thumbnail, ultra-sharp focus, cinematic color grade, no watermarks, no placeholder elements.",
+  "headline_options": ["3 short cover text options from the video, under 8 words"],
+  "visual_concept": "2-3 sentence description",
+  "design_notes": ["3-4 specific instructions"],
+  "repurpose_angle": "1 sentence on what angle from the video to highlight"
+}`);
+
+  const userMsg = `Generate a thumbnail to repurpose this YouTube video:
+Title: "${reelSelectedVideo.title}"
+${reelSelectedVideo.description ? 'Description: ' + reelSelectedVideo.description.substring(0,300) : ''}
+Platform: ${platMap[platform]||platMap.instagram}
+Ratio: ${ratio}${both?' (generate both 9:16 and 16:9)':''}
+Style: ${styleMap[style]}
+Apply all 2026 best practices: 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone.`;
 
   try {
     const raw = await callAI(system, userMsg);
     const d = parseJSON(raw);
-    out.innerHTML = renderCoverBrief(d);
+    const imagePrompt = d.image_prompt || '';
+
+    out.innerHTML = spinner(`Generating ${both?'both formats':ratio} thumbnail...`);
+    const results = [];
+    for (const r of ratios) {
+      const imgRes = await fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: imagePrompt, count:1, aspectRatio:r }) });
+      const imgData = await imgRes.json();
+      const pred = (imgData.predictions||[])[0];
+      results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
+    }
+
+    const imagesHTML = results.map(r => `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:7px;font-weight:600;">${r.ratio==='9:16'?'9:16 — Shorts / Reels':'16:9 — YouTube Thumbnail'}</div>
+        ${r.b64?`<div style="text-align:center;margin-bottom:10px;${r.ratio==='9:16'?'max-width:200px;margin:0 auto 10px;':''}"><img src="data:image/png;base64,${r.b64}" style="width:100%;border-radius:8px;border:1px solid var(--border2);display:block;"></div><a href="data:image/png;base64,${r.b64}" download="thumb-${r.ratio.replace(':','-')}.png" class="btn-primary" style="text-decoration:none;text-align:center;display:block;margin-bottom:8px;">Download ${r.ratio}</a>`:`<div class="error-msg">Failed for ${r.ratio}</div>`}
+      </div>`).join('<div style="border-top:1px solid var(--border);margin:4px 0 14px;"></div>');
+
+    out.innerHTML = `
+      <div class="reel-output-block" style="margin-top:16px;">
+        <div class="reel-output-label">Generated Thumbnail${both?'s':''}</div>
+        ${imagesHTML}
+        <button class="btn-copy" style="width:100%;margin-bottom:12px;" onclick="generateCoverFromVideo()">↻ Regenerate</button>
+        ${renderCoverBrief(d)}
+        <details style="margin-top:10px;"><summary style="font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">Imagen prompt used</summary><div style="font-size:12px;color:var(--text-dim);line-height:1.6;padding-top:8px;white-space:pre-wrap;">${esc(imagePrompt)}</div></details>
+      </div>`;
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
   }
@@ -2890,7 +3042,7 @@ async function auditCoverUpload() {
   if (!coverUploadB64 || !coverUploadFile) return;
   const platform = document.getElementById('rl-audit-platform').value;
   const context = document.getElementById('rl-audit-context').value.trim();
-  const platMap = { instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok', youtube:'YouTube Shorts' };
+  const platMap = { youtube_yt:'YouTube Thumbnail (16:9)', youtube:'YouTube Shorts', instagram:'Instagram Reels', facebook:'Facebook Reels', tiktok:'TikTok' };
   const out = document.getElementById('rl-audit-out');
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Auditing cover thumbnail...</div>';
 
