@@ -1466,14 +1466,15 @@ function renderFocus(){
         <div class="fs-top">
           <div class="fs-num">${i+1}</div>
           <div class="fs-actions">
-            <button class="fs-check${task&&task.done?' chk':''}" onclick="toggleFocusDone(${i})" title="Toggle done"></button>
-            <button class="fs-remove" onclick="removeFocusSlot(${i})" title="Remove">×</button>
+            <button class="fs-check${task&&task.done?' chk':''}" onclick="event.stopPropagation();toggleFocusDone(${i})" title="Toggle done"></button>
+            <button class="fs-remove" onclick="event.stopPropagation();removeFocusSlot(${i})" title="Remove">×</button>
           </div>
         </div>
         <div class="fs-text">${bEsc(text)}</div>
         <div class="fs-bot">
           <span class="fs-pill ${brandCls}">${bEsc(brandLabel)}</span>
         </div>`;
+      if(task){slot.style.cursor='pointer';slot.addEventListener('click',()=>openDrawer(task.id));}
     } else {
       slot.innerHTML=`
         <div class="fs-top"><div class="fs-num">${i+1}</div></div>
