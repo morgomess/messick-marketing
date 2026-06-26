@@ -95,6 +95,9 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .focus-slot[draggable="true"]:active{cursor:grabbing}
 .focus-slot.focus-dragging{opacity:0.4}
 .focus-slot.focus-drop{outline:2px dashed rgba(90,154,184,0.65);outline-offset:-2px}
+body.td-dragging-active .focus-slot:not(.filled){background:rgba(211,84,0,0.07);border-color:rgba(211,84,0,0.3);cursor:copy}
+body.td-dragging-active .focus-slot:not(.filled) .fs-text{color:rgba(211,84,0,0.6);font-style:italic}
+body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,0.7);outline-offset:-2px;background:rgba(211,84,0,0.13)}
 @media(max-width:640px){#today-due-section{padding:10px 14px}.td-text{max-width:200px}}
 #focus-section{background:#111111;padding:14px 24px 16px;border-bottom:2px solid #000000;flex-shrink:0}
 .focus-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -1442,9 +1445,13 @@ function renderFocus(){
     const slot=document.createElement('div');
     slot.className='focus-slot'+(p?' filled':'');
     slot.dataset.slot=i;
-    slot.addEventListener('dragover',e=>{if(focusDragSlot===null)return;e.preventDefault();e.dataTransfer.dropEffect='move';slot.classList.add('focus-drop');});
+    slot.addEventListener('dragover',e=>{if(focusDragSlot===null&&!tdDragId)return;e.preventDefault();e.dataTransfer.dropEffect='move';slot.classList.add('focus-drop');});
     slot.addEventListener('dragleave',()=>slot.classList.remove('focus-drop'));
-    slot.addEventListener('drop',e=>{slot.classList.remove('focus-drop');if(focusDragSlot===null)return;e.preventDefault();const to=+slot.dataset.slot, from=focusDragSlot;if(from===to)return;const pn=getFocusPins();const tmp=pn[from];pn[from]=pn[to];pn[to]=tmp;saveFocusPins(pn);renderColumns();});
+    slot.addEventListener('drop',e=>{slot.classList.remove('focus-drop');e.preventDefault();
+      // Today Bar → Top 3 drop
+      if(tdDragId){const taskId=tdDragId;tdDragId=null;const tasks=loadTodoTasks();const task=tasks.find(t=>t.id===taskId);if(!task)return;const slotIdx=+slot.dataset.slot;const pn=getFocusPins();pn[slotIdx]={type:'todo',id:task.id};saveFocusPins(pn);renderColumns();return;}
+      // Slot → Slot reorder
+      if(focusDragSlot===null)return;const to=+slot.dataset.slot, from=focusDragSlot;if(from===to)return;const pn=getFocusPins();const tmp=pn[from];pn[from]=pn[to];pn[to]=tmp;saveFocusPins(pn);renderColumns();});
     if(p){
       slot.setAttribute('draggable','true');
       slot.addEventListener('dragstart',e=>{focusDragSlot=i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','slot:'+i);setTimeout(()=>slot.classList.add('focus-dragging'),0);});
@@ -1526,8 +1533,8 @@ function renderTodayDue(){
       </div>`;
     el.addEventListener("click",()=>openDrawer(t.id));
     el.querySelector(".td-check").addEventListener("click",e=>{e.stopPropagation();completeTodayDue(t.id);});
-    el.addEventListener("dragstart",e=>{tdDragId=t.id;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","td:"+t.id);setTimeout(()=>el.classList.add("td-dragging"),0);});
-    el.addEventListener("dragend",()=>{el.classList.remove("td-dragging");list.querySelectorAll(".td-drop-before").forEach(x=>x.classList.remove("td-drop-before"));list.classList.remove("td-drop-end");tdDragId=null;});
+    el.addEventListener("dragstart",e=>{tdDragId=t.id;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","td:"+t.id);setTimeout(()=>{el.classList.add("td-dragging");document.body.classList.add("td-dragging-active");},0);});
+    el.addEventListener("dragend",()=>{el.classList.remove("td-dragging");document.body.classList.remove("td-dragging-active");list.querySelectorAll(".td-drop-before").forEach(x=>x.classList.remove("td-drop-before"));list.classList.remove("td-drop-end");tdDragId=null;});
     el.addEventListener("dragover",e=>{if(!tdDragId||tdDragId===t.id)return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="move";list.classList.remove("td-drop-end");list.querySelectorAll(".td-drop-before").forEach(x=>x.classList.remove("td-drop-before"));el.classList.add("td-drop-before");});
     el.addEventListener("dragleave",()=>el.classList.remove("td-drop-before"));
     el.addEventListener("drop",e=>{if(!tdDragId)return;e.preventDefault();e.stopPropagation();el.classList.remove("td-drop-before");reorderTodayDue(tdDragId,t.id);});
