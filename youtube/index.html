@@ -2372,7 +2372,15 @@ async function aiRewriteDesc() {
   const currentDesc = document.getElementById('edit-desc')?.value || '';
   btn.disabled = true; btn.textContent = '...';
 
-  const system = buildSystem(`You are a YouTube description writer. Write a full YouTube description. Structure: strong hook (2-3 sentences, never start with "In this video"), blank line, what you will learn (3-5 bullet points with dashes), blank line, about the channel/speaker (2-3 sentences), blank line, CTA line. 200-400 words. No em dashes.`);
+  // Detect short-form: #shorts marker, or a very short existing description
+  const blob = `${currentTitle}\n${currentDesc}`.toLowerCase();
+  const isShort = /#shorts?\b/.test(blob) || (currentDesc.trim().length > 0 && currentDesc.trim().length < 150);
+
+  const shortRules = `This is a SHORT (vertical short-form video). Write a tight description: 1-3 sentences max, a strong hook plus one line of context, then a CTA. Do NOT use a "what you will learn" section or any bullet list. End with relevant hashtags including #Shorts. Under 60 words.`;
+
+  const longRules = `This is a standard long-form video. Structure: strong hook (2-3 sentences, never start with "In this video"), blank line, a short body that may include a "what you will learn" bullet list (3-5 dashes) ONLY if the video genuinely covers multiple distinct points - if it is a single-topic or narrative video, write a flowing paragraph instead of bullets, blank line, about the channel/speaker (2-3 sentences), blank line, CTA line. 200-400 words.`;
+
+  const system = buildSystem(`You are a YouTube description writer. ${isShort ? shortRules : longRules} No em dashes. Only use a bullet list when the content actually warrants one.`);
 
   try {
     const raw = await callAI(system, `Rewrite the YouTube description for this video.\nTitle: "${currentTitle}"\nCurrent description:\n${currentDesc}`);
