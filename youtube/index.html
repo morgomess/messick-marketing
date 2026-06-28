@@ -762,7 +762,38 @@
       .form-row { flex-direction: column; gap: 0; }
       .top-bar-logo { display: none; }
       .kw-score-row { flex-direction: column; align-items: stretch; }
+
+      /* MY VIDEOS: single-pane flow */
+      .videos-layout { flex-direction: column; }
+      .videos-list-col {
+        width: 100%; flex-shrink: 1;
+        border-right: none;
+        height: 100%;
+      }
+      .videos-edit-col {
+        width: 100%; max-width: none;
+        padding: 18px 18px 60px;
+      }
+      .video-card { padding: 12px 10px; }
+      .video-thumb { width: 104px; height: 59px; }
+      .video-card-title { font-size: 14px; }
+      .edit-video-thumb { width: 120px; height: 68px; }
+
+      /* mobile shows one pane at a time */
+      .videos-layout.show-edit .videos-list-col { display: none; }
+      .videos-layout:not(.show-edit) .videos-edit-col { display: none; }
+      .mobile-back-btn { display: flex; }
     }
+    /* back button hidden on desktop */
+    .mobile-back-btn {
+      display: none; align-items: center; gap: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 9px;
+      padding: 8px 14px; font-size: 14px; font-weight: 500;
+      font-family: var(--font-body); cursor: pointer;
+      margin-bottom: 18px;
+    }
+    .mobile-back-btn:active { background: var(--surface3); }
   </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1826,7 +1857,29 @@ async function generateIdeas() {
 
   out.innerHTML = spinner('Searching for trending topics and generating ideas...');
 
+  // Pull previously-shown idea titles so we never repeat across runs
+  const memKey = `mm_yt_ideas_${brand.channelId}`;
+  let shown = [];
+  try { shown = JSON.parse(localStorage.getItem(memKey) || '[]'); } catch (e) { shown = []; }
+
+  // Rotate an angle each run so the model explores different territory
+  const angles = [
+    'patient-decision and "is this right for me" angles',
+    'myth-busting and common-misconception angles',
+    'comparison and "X vs Y" angles',
+    'recovery, timeline, and what-to-expect angles',
+    'cost, insurance, and access angles',
+    'symptom-driven "should I see a specialist" angles',
+    'behind-the-procedure and how-it-works angles',
+    'newest-research and trending-question angles'
+  ];
+  const seed = angles[Math.floor(Math.random() * angles.length)];
+
+  const avoid = [...(brand.recentVideos || []).slice(0, 10), ...shown].slice(0, 40);
+
   const system = buildSystem(`You are a YouTube content strategist with access to current web data. Search for trending topics, popular video formats, and competitor content in this channel's niche. Then generate ideas that are timely and informed by what is actually performing well right now.
+
+This run, lean into ${seed}. Avoid generic evergreen ideas you would suggest every time - be specific, fresh, and varied.
 
 Return ONLY a valid JSON array with exactly 5 objects, no markdown:
 [
@@ -1839,21 +1892,32 @@ Return ONLY a valid JSON array with exactly 5 objects, no markdown:
   }
 ]
 Difficulty: Easy = clear angle, lower competition. Medium = solid demand, some competition. Hard = competitive or deep expertise needed.
-Do not repeat any of the channel's recent video topics. Be specific and outcome-focused.`);
+Do not repeat or lightly reword any title in the avoid list. Be specific and outcome-focused.`);
 
-  const userMsg = `Generate 5 trending video ideas for this channel. Search for what is performing well in this niche right now. Recent videos to avoid: ${(brand.recentVideos || []).slice(0, 10).join(' | ')}`;
+  const userMsg = `Generate 5 fresh video ideas for this channel, leaning into ${seed}. Search for what is performing well in this niche right now. Do NOT repeat or reword any of these already-used or recent titles: ${avoid.join(' | ')}`;
+
+  const saveShown = (ideas) => {
+    try {
+      const titles = (ideas || []).map(i => i.title).filter(Boolean);
+      const merged = [...titles, ...shown].slice(0, 60);
+      localStorage.setItem(memKey, JSON.stringify(merged));
+    } catch (e) {}
+  };
 
   try {
     const raw = await callAI(system, userMsg, {
+      temperature: 0.9,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }]
     });
     const json = parseJSON(raw);
+    saveShown(json);
     renderIdeasOutput(json, out, true);
   } catch (e) {
     // Fall back without web search tool
     try {
-      const raw2 = await callAI(system, userMsg);
+      const raw2 = await callAI(system, userMsg, { temperature: 0.9 });
       const json2 = parseJSON(raw2);
+      saveShown(json2);
       renderIdeasOutput(json2, out, false);
     } catch (e2) {
       out.innerHTML = errHtml('Idea generation failed. Try again.');
@@ -2092,6 +2156,9 @@ async function selectVideo(videoId, token) {
   document.querySelectorAll('.video-card').forEach(c =>
     c.classList.toggle('active', c.dataset.vid === videoId));
 
+  // Mobile: switch to edit pane
+  document.querySelector('.videos-layout')?.classList.add('show-edit');
+
   const panel = document.getElementById('videos-edit-panel');
   panel.innerHTML = spinner('Loading video details...');
 
@@ -2118,6 +2185,7 @@ function renderEditPanel(video, token) {
   const thumb = sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || '';
 
   panel.innerHTML = `
+    <button class="mobile-back-btn" onclick="document.querySelector('.videos-layout').classList.remove('show-edit')">‹ Back to videos</button>
     <div class="edit-video-header">
       <img class="edit-video-thumb" src="${thumb}" alt="">
       <div class="edit-video-meta">
