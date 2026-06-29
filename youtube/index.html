@@ -784,9 +784,9 @@
       .videos-layout:not(.show-edit) .videos-edit-col { display: none; }
       .mobile-back-btn { display: flex; }
     }
-    /* back button hidden on desktop */
+    /* close/back button - visible on desktop and mobile */
     .mobile-back-btn {
-      display: none; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 6px;
       background: var(--surface); border: 1px solid var(--border);
       color: var(--text-muted); border-radius: 9px;
       padding: 8px 14px; font-size: 14px; font-weight: 500;
@@ -1153,7 +1153,7 @@ const PASSWORD = 'Messick2026';
 // ============================================================
 let brands = JSON.parse(localStorage.getItem('mm_yt_brands') || '[]');
 let activeId = localStorage.getItem('mm_yt_active') || null;
-const sessionTokens = {};
+const sessionTokens = JSON.parse(sessionStorage.getItem('mm_yt_tokens') || '{}');
 let currentMode = 'optimize';
 let currentResearchTab = 'audit';
 
@@ -1203,6 +1203,7 @@ async function onOAuthToken(token) {
     const recentVideos = (vidData.items || []).map(v => v.snippet.title);
 
     sessionTokens[channelId] = token;
+    sessionStorage.setItem('mm_yt_tokens', JSON.stringify(sessionTokens));
 
     const existing = brands.find(b => b.channelId === channelId);
     const brand = {
@@ -2175,6 +2176,25 @@ async function selectVideo(videoId, token) {
   }
 }
 
+function closeVideo() {
+  // Deselect any highlighted card
+  document.querySelectorAll('.video-card').forEach(c => c.classList.remove('active'));
+  // Mobile: slide back to the list pane
+  document.querySelector('.videos-layout')?.classList.remove('show-edit');
+  // Desktop + mobile: reset the edit panel to its empty prompt (this is the "exit")
+  const panel = document.getElementById('videos-edit-panel');
+  if (panel) {
+    panel.innerHTML = `
+            <div class="edit-empty">
+              <div class="edit-empty-icon">🎬</div>
+              <div class="edit-empty-title">Select a video</div>
+              <div class="edit-empty-sub">Click any video on the left to load its current metadata and start optimizing.</div>
+            </div>`;
+  }
+  currentVideoData = null;
+  editTags = [];
+}
+
 function renderEditPanel(video, token) {
   const sn = video.snippet;
   const stats = video.statistics || {};
@@ -2185,7 +2205,7 @@ function renderEditPanel(video, token) {
   const thumb = sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || '';
 
   panel.innerHTML = `
-    <button class="mobile-back-btn" onclick="document.querySelector('.videos-layout').classList.remove('show-edit')">‹ Back to videos</button>
+    <button class="mobile-back-btn" onclick="closeVideo()">‹ Back to videos</button>
     <div class="edit-video-header">
       <img class="edit-video-thumb" src="${thumb}" alt="">
       <div class="edit-video-meta">
