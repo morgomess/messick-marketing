@@ -17,6 +17,14 @@
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YouTube Optimizer - Messick Marketing</title>
+  <!-- Home-screen icon + PWA (distinct from the Content app) -->
+  <link rel="apple-touch-icon" href="/youtube/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/youtube/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="YT Optimizer">
+  <meta name="theme-color" content="#3a6b8a">
+  <link rel="manifest" href="/youtube/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1926,9 +1934,95 @@ Do not repeat or lightly reword any title in the avoid list. Be specific and out
   }
 }
 
+// ---- Download helpers (audit results + video ideas) ----
+let lastIdeasData = null;
+let lastAuditData = null;
+
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function safeFilePart(s) {
+  return String(s || 'channel').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'channel';
+}
+
+function todayStamp() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+function downloadIdeas() {
+  if (!lastIdeasData || !lastIdeasData.length) return;
+  const brand = getActive();
+  const channel = brand?.channelName || 'Channel';
+  const lines = [];
+  lines.push(`VIDEO IDEAS — ${channel}`);
+  lines.push(`Generated ${todayStamp()}`);
+  lines.push('='.repeat(48));
+  lines.push('');
+  lastIdeasData.forEach((idea, i) => {
+    lines.push(`${i + 1}. ${idea.title || ''}`);
+    if (idea.targetKeyword) lines.push(`   Target keyword: ${idea.targetKeyword}`);
+    if (idea.difficulty) lines.push(`   Difficulty: ${idea.difficulty}`);
+    if (idea.whyItFits) lines.push(`   Why it fits: ${idea.whyItFits}`);
+    if (idea.trendSignal) lines.push(`   Trend signal: ${idea.trendSignal}`);
+    lines.push('');
+  });
+  downloadTextFile(`video-ideas-${safeFilePart(channel)}-${todayStamp()}.txt`, lines.join('\n'));
+}
+
+function downloadAudit() {
+  if (!lastAuditData) return;
+  const json = lastAuditData;
+  const brand = getActive();
+  const channel = brand?.channelName || 'Channel';
+  const lines = [];
+  lines.push(`CHANNEL AUDIT — ${channel}`);
+  lines.push(`Generated ${todayStamp()}`);
+  lines.push('='.repeat(48));
+  lines.push('');
+  lines.push(`Keyword Consistency Score: ${json.keywordConsistencyScore || 0}/100`);
+  lines.push('');
+  if (json.titleFormulas?.length) {
+    lines.push('Title Formulas Detected:');
+    json.titleFormulas.forEach(f => lines.push(`  - ${f}`));
+    lines.push('');
+  }
+  if (json.topicGaps?.length) {
+    lines.push('Topic Gaps:');
+    json.topicGaps.forEach(g => lines.push(`  - ${g}`));
+    lines.push('');
+  }
+  if (json.recommendations?.length) {
+    lines.push('Recommendations:');
+    json.recommendations.forEach((r, i) => {
+      lines.push(`  ${i + 1}. ${r.title || ''}`);
+      if (r.detail) lines.push(`     ${r.detail}`);
+    });
+    lines.push('');
+  }
+  downloadTextFile(`channel-audit-${safeFilePart(channel)}-${todayStamp()}.txt`, lines.join('\n'));
+}
+
 function renderIdeasOutput(ideas, out, webSearched) {
   const diffClass = { Easy: 'diff-easy', Medium: 'diff-medium', Hard: 'diff-hard' };
+  lastIdeasData = ideas || [];
   out.innerHTML = '';
+  if (lastIdeasData.length) {
+    const dlRow = document.createElement('div');
+    dlRow.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:14px';
+    dlRow.innerHTML = `<button class="btn-copy" onclick="downloadIdeas()">⬇ Download ideas</button>`;
+    out.appendChild(dlRow);
+  }
   if (webSearched) {
     const badge = document.createElement('div');
     badge.className = 'web-search-badge';
@@ -2012,8 +2106,14 @@ topicGaps: important topics in this niche missing from the channel.`);
 }
 
 function renderAuditOutput(json, out) {
+  lastAuditData = json;
   out.innerHTML = '';
   const score = json.keywordConsistencyScore || 0;
+
+  const dlRow = document.createElement('div');
+  dlRow.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:14px';
+  dlRow.innerHTML = `<button class="btn-copy" onclick="downloadAudit()">⬇ Download audit</button>`;
+  out.appendChild(dlRow);
 
   const s1 = document.createElement('div');
   s1.className = 'audit-section';
