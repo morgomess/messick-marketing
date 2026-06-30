@@ -267,6 +267,7 @@
     .panel-right { padding: 20px 16px; min-height: 60vh; }
     .form-row { grid-template-columns: 1fr; }
     #content-type-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    #video-type-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
   }
 
   /* Reference image upload zone */
@@ -484,6 +485,32 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         </div>
       </div>
 
+      <div id="video-type-row" style="display:none;">
+        <div class="section-label">Video Type</div>
+        <div class="type-grid" id="video-type-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+          <button class="type-btn active" data-vtype="reel" onclick="selectVideoType(this)">
+            <div class="icon">🎬</div>
+            <span class="lbl" style="font-size:11px;">Short Reel</span>
+          </button>
+          <button class="type-btn" data-vtype="youtube" onclick="selectVideoType(this)">
+            <div class="icon">▶️</div>
+            <span class="lbl" style="font-size:11px;">YouTube Script</span>
+          </button>
+          <button class="type-btn" data-vtype="tutorial" onclick="selectVideoType(this)">
+            <div class="icon">🛠️</div>
+            <span class="lbl" style="font-size:11px;">Tutorial</span>
+          </button>
+          <button class="type-btn" data-vtype="cinematic" onclick="selectVideoType(this)">
+            <div class="icon">🎞️</div>
+            <span class="lbl" style="font-size:11px;">Cinematic</span>
+          </button>
+          <button class="type-btn" data-vtype="talking" onclick="selectVideoType(this)">
+            <div class="icon">🗣️</div>
+            <span class="lbl" style="font-size:11px;">Talking Head</span>
+          </button>
+        </div>
+      </div>
+
       <div id="cover-format-row" style="display:none;">
         <div class="section-label">Cover Format</div>
         <div class="type-grid" id="cover-format-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
@@ -567,7 +594,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <!-- Reel script -->
         <div class="output-card" id="card-reel" style="display:none;">
           <div class="output-card-header">
-            <h3>Reel Script</h3>
+            <h3 id="reel-script-title">Reel Script</h3>
             <div class="header-actions">
               <button class="action-btn" onclick="copyEl('reel-script-output', this)">Copy</button>
             </div>
@@ -578,7 +605,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <!-- Reel video prompt -->
         <div class="output-card" id="card-reel-prompt" style="display:none;">
           <div class="output-card-header">
-            <h3>Visual Prompt</h3>
+            <h3 id="reel-prompt-title">Visual Prompt</h3>
             <div class="header-actions">
               <button class="action-btn" id="edit-reel-prompt-btn" onclick="toggleReelPromptEdit()">Edit Prompt</button>
               <button class="action-btn" onclick="copyEl('reel-prompt-output', this)">Copy Prompt</button>
@@ -647,6 +674,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
   let selectedCoverFormat = 'reel';
+  let selectedVideoType = 'reel';
   let generatedImages = [];
   let refImageBase64 = null;
   let refImageMime = 'image/png';
@@ -848,12 +876,19 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     btn.classList.add('active');
     selectedType = btn.dataset.type;
     document.getElementById('cover-format-row').style.display = selectedType === 'cover' ? 'block' : 'none';
+    document.getElementById('video-type-row').style.display = selectedType === 'reel' ? 'block' : 'none';
   }
 
   function selectCoverFormat(btn) {
     document.querySelectorAll('#cover-format-grid .type-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedCoverFormat = btn.dataset.format;
+  }
+
+  function selectVideoType(btn) {
+    document.querySelectorAll('#video-type-grid .type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedVideoType = btn.dataset.vtype;
   }
 
   function copyEl(id, btn) {
@@ -919,7 +954,16 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   function buildPrompt(d, refNote) {
     const coverLabels = { reel: 'Reel / Story Cover', landscape: 'Landscape Cover' };
     const coverLabel = coverLabels[selectedCoverFormat] || 'Reel / Story Cover';
-    const ratio = selectedType === 'reel' ? '9:16 vertical' : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '4:5';
+    // Video-type metadata: friendly label + native aspect ratio for the prompt header.
+    const videoMeta = {
+      reel:      { label: 'Short Reel', ratio: '9:16 vertical' },
+      youtube:   { label: 'Full YouTube Video', ratio: '16:9 horizontal' },
+      tutorial:  { label: 'Tutorial / How-To', ratio: '16:9 horizontal' },
+      cinematic: { label: 'Cinematic Video', ratio: '16:9 horizontal' },
+      talking:   { label: 'Talking Head Video', ratio: '9:16 vertical' },
+    };
+    const vMeta = videoMeta[selectedVideoType] || videoMeta.reel;
+    const ratio = selectedType === 'reel' ? vMeta.ratio : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '4:5';
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
@@ -952,10 +996,30 @@ QUALITY FOOTER (always end the prompt with this):
     const hashtagsOnly = selectedType === 'hashtags';
     const visualOnly = selectedType === 'cover';
 
+    // Video-type specs — the "reel" content type produces different script + AI-video
+    // prompts depending on which Video Type the user picked.
+    const videoSpecs = {
+      reel: `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
+- "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.`,
+
+      youtube: `- "reel_script": a complete long-form YouTube video script for roughly 4-8 minutes of spoken content. Structure it clearly with: 3 alternative TITLE options at the top; a HOOK (first 15 seconds) that stops the scroll; an INTRO that frames the problem and previews what the viewer will learn; 3-5 main BODY SECTIONS each with a clear subheading and full spoken-word narration written exactly as it should be read aloud; [B-roll: ...] visual direction notes in brackets throughout; and an OUTRO with a subscribe prompt and a single clear CTA. Conversational but authoritative.
+- "reel_video_prompt": a B-roll visual prompt describing the supporting footage for this YouTube video, written as one flowing AI video generation prompt (optimized for Sora, Runway, Kling). Cover the key scenes needed to illustrate the script with camera movement, pacing, lighting, and mood. No text overlays, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations).`,
+
+      tutorial: `- "reel_script": a step-by-step tutorial / how-to script. Open with a HOOK stating the exact outcome the viewer will achieve, then a short "What you'll need" line, then numbered STEPS (Step 1, Step 2, ...). Each step has clear spoken narration plus an [On screen: ...] direction describing precisely what to show. End with a quick recap and a single CTA. Be concrete, sequential, and easy to follow.
+- "reel_video_prompt": a visual prompt describing the screen-capture, demonstration, and B-roll footage needed to show each tutorial step, written as one AI video generation prompt (optimized for Sora, Runway, Kling). Specify framing for demonstration and close-up shots, camera movement, and lighting. No text overlays. Keep it generic (no brand names, practice names, or locations).`,
+
+      cinematic: `- "reel_script": a concise SHOT LIST for a cinematic, visual-led video — 4 to 8 numbered shots, each one line describing subject, framing, and camera movement (e.g. "Shot 3: slow dolly-in on hands, shallow depth of field"). End with one optional line of mood or voiceover suggestion. This is visual-led, so do not write a full spoken script.
+- "reel_video_prompt": a richly detailed cinematic AI video generation prompt (optimized for Sora, Runway, Kling) describing one continuous, emotionally resonant visual sequence. Emphasize cinematography: camera movement (dolly, crane, handheld, drone), lens feel, lighting (golden hour, moody low-key, soft natural window light), color grade, pacing, and atmosphere. Pure B-roll visuals only — no text overlays, no on-screen titles. Keep it generic (no brand names, practice names, or locations). Make it premium, evocative, and production-ready.`,
+
+      talking: `- "reel_script": a to-camera talking-head script of about 45-90 seconds, written exactly as it should be spoken. Open with a HOOK question or bold statement, deliver 3-4 concise value points in natural conversational speech, and close with a single clear CTA. Keep stage directions out of the spoken lines — this is pure narration to camera.
+- "reel_video_prompt": a B-roll visual prompt to cut over the talking-head narration, written as one AI video generation prompt (optimized for Sora, Runway, Kling). Describe supporting footage that illustrates each point, with camera movement, lighting, and mood. No text overlays, no on-screen titles. Keep it generic (no brand names, practice names, or locations).`,
+    };
+    const videoSpec = videoSpecs[selectedVideoType] || videoSpecs.reel;
+
     return `You are an expert social media content strategist. You adapt fully to the brand and industry provided — you have no default industry. All content is cross-posted so avoid platform-specific references.
 
 Brand: ${d.brandName}
-${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType === 'cover' ? coverLabel : selectedType} — ${ratio} aspect ratio`}
+${captionOnly || hashtagsOnly ? '' : `Content Type: ${selectedType === 'cover' ? coverLabel : selectedType === 'reel' ? vMeta.label : selectedType} — ${ratio} aspect ratio`}
 ${d.brandVoice ? 'Brand Voice: ' + d.brandVoice : ''}
 ${d.brandStyle && !captionOnly && !hashtagsOnly ? 'Visual Style / Colors: ' + d.brandStyle : ''}
 ${d.objective ? 'Objective: ' + d.objective : ''}
@@ -969,8 +1033,7 @@ Respond with a single valid JSON object and nothing else — no markdown, no bac
 Required JSON keys:
 ${hashtagsOnly || visualOnly ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags. Never use em dashes (—) in the caption — use a regular hyphen (-) if a dash is needed.'}
 ${captionOnly || visualOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
-${selectedType === 'reel' ? `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
-- "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.` : ''}
+${selectedType === 'reel' ? videoSpec : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}
 ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'}). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'landscape' ? 'Landscape cover rules: bold high-contrast visuals, key elements centered and clear at full width, nothing critical near edges, visually engaging at a glance.' : 'Reel/Story cover rules: bold high-contrast vertical composition, single strong hero subject optimized for 9:16, eye-catching thumbnail feel, important elements centered away from top/bottom edges.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}`;
   }
@@ -1075,6 +1138,16 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
       document.getElementById('hashtags-output').closest('.output-card').style.display = (isCaption || isCover) ? 'none' : 'block';
 
       if (isReel) {
+        const videoTitles = {
+          reel:      ['Reel Script', 'Visual Prompt'],
+          youtube:   ['YouTube Script', 'B-Roll Visual Prompt'],
+          tutorial:  ['Tutorial Script', 'Screen & B-Roll Prompt'],
+          cinematic: ['Shot List', 'Cinematic Video Prompt'],
+          talking:   ['Talking Head Script', 'B-Roll Visual Prompt'],
+        };
+        const titles = videoTitles[selectedVideoType] || videoTitles.reel;
+        document.getElementById('reel-script-title').textContent = titles[0];
+        document.getElementById('reel-prompt-title').textContent = titles[1];
         document.getElementById('reel-script-output').textContent = parsed.reel_script || '';
         document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
       } else if (isGraphic || isCover) {
