@@ -2173,32 +2173,27 @@ function pickerSpin(){
 
   // Score each task: higher = more likely to be picked
   function pickerScore(t){
-    let score=0;
-    // Priority weight
-    const pw={critical:60,high:28,medium:10,low:2,none:1};
-    score+=pw[t.priority||'none']||2;
-    // Sequence ordering: if task text ends in a number (#3, post 3, part 3, step 3 etc),
-    // lower numbers score higher so #3 beats #4 beats #5
+    // Gentle weighting: still nudges toward important / overdue work, but keeps the
+    // spinner varied so it stops landing on the same standout task every single spin.
+    let score=1; // base so every eligible task keeps a real shot at being picked
+    // Priority weight (compressed ~5x range, not 60x)
+    const pw={critical:5,high:3.5,medium:2.2,low:1.5,none:1};
+    score+=pw[t.priority||'none']||1;
+    // Sequence ordering: numbered tasks (#3, post 3, step 3) nudge lower numbers up first
     const seqMatch=(t.text||'').match(/[#\s](\d+)\s*$/);
-    if(seqMatch){const n=parseInt(seqMatch[1],10);if(n>0)score+=Math.max(0,20-n*2);}
-    // Due date weight - closer due = much higher score, far future = lower
+    if(seqMatch){const n=parseInt(seqMatch[1],10);if(n>0)score+=Math.max(0,4-n*0.5);}
+    // Due-date proximity: soft boosts, and only a slight de-emphasis for far-future
+    // (no hard exclusion any more, so the backlog still surfaces occasionally).
     if(t.due){
       const due=new Date(t.due+'T12:00:00');
       const daysAway=Math.round((due-today)/(1000*60*60*24));
-      if(daysAway<0)score+=30;          // overdue: big boost
-      else if(daysAway===0)score+=25;   // due today
-      else if(daysAway<=3)score+=15;    // due within 3 days
-      else if(daysAway<=7)score+=8;     // due this week
-      else if(daysAway<=14)score+=2;    // due next 2 weeks
-      else score-=5;                     // due 2+ weeks out: penalize
+      if(daysAway<0)score+=4;           // overdue
+      else if(daysAway===0)score+=3;    // due today
+      else if(daysAway<=3)score+=2;     // within 3 days
+      else if(daysAway<=7)score+=1;     // this week
+      else if(daysAway>30)score-=0.5;   // far future: slight de-emphasis, not excluded
     }
-    // Exclude tasks due more than 3 weeks away from the pool entirely
-    if(t.due){
-      const due=new Date(t.due+'T12:00:00');
-      const daysAway=Math.round((due-today)/(1000*60*60*24));
-      if(daysAway>21)return 0;
-    }
-    return Math.max(score,1);
+    return Math.max(score,0.5);
   }
 
   // Build weighted pool based on scores
