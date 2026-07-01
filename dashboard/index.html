@@ -311,6 +311,41 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .empire-buy-btn:hover:not(:disabled){background:#5a9ab8;color:#fff}
 .empire-buy-btn:disabled{opacity:0.28;cursor:not-allowed}
 .empire-buy-btn.owned{background:#143a2a;border-color:#1d6e4a;color:#6fe0b8;opacity:1;cursor:default}
+/* Empire Quest: level / xp */
+.empire-lvl-row{padding:12px 24px 6px}
+.empire-lvl-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.empire-lvl-num{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#7ab8d4}
+.empire-lvl-ch{font-size:0.68rem;color:#8fb3c8;text-align:right}
+.empire-xp-bar{height:7px;background:#0c1a24;border:1px solid rgba(58,107,138,0.4);border-radius:6px;overflow:hidden}
+.empire-xp-fill{height:100%;background:linear-gradient(90deg,#3a6b8a,#7ab8d4);width:0;transition:width 0.3s}
+.empire-xp-sub{font-size:0.6rem;color:#4a7a9a;margin-top:3px;text-align:right}
+.empire-quest{margin:10px 20px 2px;padding:9px 12px;background:rgba(58,107,138,0.12);border:1px solid rgba(58,107,138,0.3);border-radius:8px;display:flex;gap:9px;align-items:center}
+.empire-quest .qi{color:#e0b64a;font-size:0.95rem;flex-shrink:0}
+.empire-quest-txt{font-size:0.68rem;color:#c8dce8;line-height:1.4}
+/* locks */
+.empire-asset.locked{opacity:0.6}
+.empire-lock-tag{font-size:0.6rem;color:#c07a3a;margin-top:1px}
+/* prestige */
+.empire-prestige{margin:10px 0 4px;padding:13px;border:1px dashed #b06fd4;border-radius:10px;background:rgba(176,111,212,0.08);text-align:center}
+.empire-prestige-btn{margin-top:9px;padding:9px 20px;background:linear-gradient(135deg,#7a3a8a,#b06fd4);border:none;border-radius:6px;color:#fff;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;font-size:0.7rem;cursor:pointer;font-family:'Jost',sans-serif}
+.empire-prestige-btn:hover{background:linear-gradient(135deg,#b06fd4,#7a3a8a)}
+/* map */
+.empire-chapter{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(58,107,138,0.18)}
+.empire-chapter:last-child{border-bottom:none}
+.empire-ch-badge{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.78rem}
+.empire-ch-badge.done{background:#143a2a;color:#6fe0b8;border:1px solid #1d6e4a}
+.empire-ch-badge.cur{background:linear-gradient(135deg,#3a6b8a,#7ab8d4);color:#fff}
+.empire-ch-badge.lock{background:#151f28;color:#4a5a68;border:1px solid #29323c}
+.empire-ch-name{font-size:0.8rem;font-weight:700;color:#c8dce8}
+.empire-ch-name.lock{color:#5a6a76}
+.empire-ch-story{font-size:0.64rem;color:#6a8394;margin-top:2px;line-height:1.35}
+.empire-ch-req{font-size:0.6rem;color:#c07a3a;margin-top:2px;font-weight:600}
+/* reward toast */
+#empire-toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(20px);z-index:9999;background:#111;border:1px solid #5a9ab8;border-radius:10px;padding:10px 18px;color:#e6f1f8;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:all 0.35s;display:flex;align-items:center;gap:10px}
+#empire-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#empire-toast .coin{color:#e0b64a}
+#empire-toast .xp{color:#7ab8d4}
+#empire-toast.levelup{border-color:#e0b64a;background:linear-gradient(135deg,#1c2e3d,#2a1c3d)}
 
 /* ── SEARCH BAR ── */
 #search-bar{display:flex;align-items:center;gap:8px;padding:7px 24px;background:#f5f3f0;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -677,23 +712,39 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   <div class="empire-modal">
     <div class="empire-header">
       <div>
-        <div class="empire-title">Build Your Empire</div>
+        <div class="empire-title">Empire Quest</div>
         <div class="empire-rank-label" id="empire-rank">Freelancer</div>
       </div>
       <button class="empire-x" onclick="closeEmpire()">&#10005;</button>
+    </div>
+    <div class="empire-lvl-row">
+      <div class="empire-lvl-top">
+        <span class="empire-lvl-num" id="empire-level">Level 1</span>
+        <span class="empire-lvl-ch" id="empire-chapter-label">Chapter I &middot; The Grind</span>
+      </div>
+      <div class="empire-xp-bar"><div class="empire-xp-fill" id="empire-xp-fill"></div></div>
+      <div class="empire-xp-sub" id="empire-xp-sub">0 / 35 XP</div>
     </div>
     <div class="empire-cash-area">
       <div class="empire-cash" id="empire-cash">$0</div>
       <div class="empire-rate" id="empire-rate">$0 / sec</div>
       <button class="empire-hustle-btn" id="empire-hustle-btn" onclick="empireHustle()">&#9889; Hustle</button>
     </div>
+    <div class="empire-quest" id="empire-quest">
+      <span class="qi"><i class="ti ti-flag"></i></span>
+      <span class="empire-quest-txt" id="empire-quest-txt"></span>
+    </div>
     <div class="empire-offline" id="empire-offline"></div>
     <div class="empire-tabs">
       <button id="emp-tab-build" class="emp-tab active" onclick="empireSetTab('build')">Build</button>
-      <button id="emp-tab-spend" class="emp-tab" onclick="empireSetTab('spend')">Spend</button>
+      <button id="emp-tab-upgrades" class="emp-tab" onclick="empireSetTab('upgrades')">Upgrades</button>
+      <button id="emp-tab-spend" class="emp-tab" onclick="empireSetTab('spend')">Rewards</button>
+      <button id="emp-tab-map" class="emp-tab" onclick="empireSetTab('map')">Map</button>
     </div>
     <div class="empire-assets" id="empire-assets"></div>
+    <div class="empire-assets" id="empire-upgrades" style="display:none"></div>
     <div class="empire-assets" id="empire-spend" style="display:none"></div>
+    <div class="empire-assets" id="empire-map" style="display:none"></div>
   </div>
 </div>
 
@@ -780,7 +831,7 @@ function toggleTask(type,taskId){
   const task=tasks.find(x=>x.id===taskId); if(!task)return;
   const was=task.done; task.done=!task.done;
   saveTasks(t,tasks);
-  if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();}
+  if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();if(typeof empireAwardTask==='function')empireAwardTask(task.priority);}
 }
 
 function deleteTask(type,taskId){
@@ -1411,6 +1462,7 @@ function toggleFocusDone(slot){
     saveTasks(p.type,tasks);
     if(!wasDone){
       fireConfetti();
+      if(typeof empireAwardTask==='function')empireAwardTask(task.priority);
       // Clear the slot immediately so it can be refilled
       pins[slot]=null;
       saveFocusPins(pins);
@@ -1538,9 +1590,11 @@ function completeTodayDue(taskId){
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===taskId);
   if(!task)return;
+  const wasDone=task.done;
   task.done=true;
   saveTodoTasks(tasks);
   if(typeof fireConfetti==="function")fireConfetti();
+  if(!wasDone&&typeof empireAwardTask==='function')empireAwardTask(task.priority);
   renderColumns();
 }
 
@@ -1872,6 +1926,7 @@ function drawerToggleSub(subIdx){
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task||!task.subtasks[subIdx])return;
   task.subtasks[subIdx].done=!task.subtasks[subIdx].done;
+  if(task.subtasks[subIdx].done&&typeof empireAwardTask==='function')empireAwardTask(null,true);
   saveTodoTasks(tasks);
   renderDrawer();renderColumns();
 }
@@ -2398,13 +2453,37 @@ function renderClients(){
 /* ═══════════════════════════════════════════
    EMPIRE GAME
 ═══════════════════════════════════════════ */
+/* ── Adventure structure: chapters gate assets & upgrades by level ── */
+const EMPIRE_CHAPTERS=[
+  {lvl:1, tag:'Chapter I',   name:'The Grind',         story:'Just you, a laptop, and relentless hustle.'},
+  {lvl:4, tag:'Chapter II',  name:'First Hires',       story:"You can't do it all alone anymore."},
+  {lvl:8, tag:'Chapter III', name:'Open for Business', story:'A real studio with your name on the door.'},
+  {lvl:14,tag:'Chapter IV',  name:'Building a Brand',  story:'Your name starts to mean something.'},
+  {lvl:22,tag:'Chapter V',   name:'The Acquisition',   story:'Buy out the competition.'},
+  {lvl:32,tag:'Chapter VI',  name:'Media Empire',      story:'You own the channels now.'},
+  {lvl:45,tag:'Chapter VII', name:'Global Player',     story:'Continents, not cities.'},
+  {lvl:60,tag:'Finale',      name:'Legacy',            story:'Decide what you leave behind.'},
+];
 const EMPIRE_ASSETS_DEF=[
-  {id:'va',name:'Hire a VA',icon:'ti-user-plus',base:15,income:0.3},
-  {id:'client',name:'Land a Client',icon:'ti-briefcase',base:120,income:2},
-  {id:'team',name:'Build a Team',icon:'ti-users',base:1200,income:18},
-  {id:'studio',name:'Open a Studio',icon:'ti-building',base:13000,income:140},
-  {id:'brand',name:'Launch a Brand',icon:'ti-rocket',base:140000,income:1100},
-  {id:'agency',name:'Acquire Agency',icon:'ti-crown',base:1500000,income:8000},
+  {id:'va',       name:'Hire a VA',         icon:'ti-user-plus',     base:15,          income:0.3,       ch:0},
+  {id:'client',   name:'Land a Client',     icon:'ti-briefcase',     base:120,         income:2,         ch:0},
+  {id:'team',     name:'Build a Team',      icon:'ti-users',         base:1200,        income:18,        ch:1},
+  {id:'studio',   name:'Open a Studio',     icon:'ti-building',      base:13000,       income:140,       ch:2},
+  {id:'brand',    name:'Launch a Brand',    icon:'ti-rocket',        base:140000,      income:1100,      ch:3},
+  {id:'agency',   name:'Acquire an Agency', icon:'ti-crown',         base:1500000,     income:8000,      ch:4},
+  {id:'franchise',name:'Franchise It',      icon:'ti-affiliate',     base:18000000,    income:90000,     ch:4},
+  {id:'media',    name:'Media Network',     icon:'ti-broadcast',     base:220000000,   income:1100000,   ch:5},
+  {id:'conglom',  name:'Conglomerate',      icon:'ti-building-bank', base:3000000000,  income:14000000,  ch:5},
+  {id:'multi',    name:'Go Multinational',  icon:'ti-world',         base:40000000000, income:180000000, ch:6},
+];
+const EMPIRE_UPGRADES=[
+  {id:'hustle2', name:'Sharper Hustle',    icon:'ti-bolt',        desc:'Hustle click ×2',     cost:800,     ch:0, type:'click', val:2},
+  {id:'focus1',  name:'Deep Work Ritual',  icon:'ti-target',      desc:'Task payouts +50%',        cost:5000,    ch:1, type:'task',  val:0.5},
+  {id:'hustle3', name:'Caffeine Protocol', icon:'ti-coffee',      desc:'Hustle click ×3',     cost:12000,   ch:1, type:'click', val:3},
+  {id:'auto1',   name:'Ops Automation',    icon:'ti-robot',       desc:'All income ×2',       cost:60000,   ch:2, type:'inc',   val:2},
+  {id:'offline1',name:'Overnight Empire',  icon:'ti-moon',        desc:'Offline earnings ×3', cost:150000,  ch:3, type:'off',   val:3},
+  {id:'focus2',  name:'Flow State',        icon:'ti-flame',       desc:'Task payouts +100%',       cost:400000,  ch:3, type:'task',  val:1},
+  {id:'auto2',   name:'Scaling Engine',    icon:'ti-trending-up', desc:'All income ×2',       cost:5000000, ch:4, type:'inc',   val:2},
 ];
 const EMPIRE_LUXURIES=[
   {id:'desk',name:'Dream Standing Desk',icon:'ti-armchair',cost:500,blurb:'For the home office.'},
@@ -2419,55 +2498,176 @@ const EMPIRE_LUXURIES=[
   {id:'island',name:'Private Island',icon:'ti-map-pin',cost:400000000,blurb:'Your own zip code.'},
   {id:'tower',name:'Name a Tower After Yourself',icon:'ti-building-skyscraper',cost:250000000000,blurb:'Messick Tower.'},
 ];
-const EMPIRE_RANKS=[[0,'Freelancer'],[1000,'Solo Operator'],[10000,'Agency Owner'],[100000,'Power Player'],[1000000,'Mogul'],[10000000,'Empire Builder'],[1e8,'Tycoon']];
-let empireState=null,empireTick=null;
+const EMPIRE_RANKS=[[0,'Freelancer'],[1000,'Solo Operator'],[10000,'Agency Owner'],[100000,'Power Player'],[1000000,'Mogul'],[10000000,'Empire Builder'],[1e8,'Tycoon'],[1e10,'Legend']];
+/* task -> reward weighting by priority */
+const EMP_TASK_W ={critical:2,   high:1.4, medium:1,  low:0.6, none:0.9, sub:0.3};
+const EMP_TASK_XP={critical:45,  high:30,  medium:20, low:12,  none:16,  sub:6};
+
+let empireState=null,empireTick=null,empireTab='build';
 function empireLoad(){
   try{empireState=JSON.parse(localStorage.getItem('mm_empire'))||null;}catch(e){}
-  if(!empireState)empireState={cash:0,totalEarned:0,perClick:1,owned:{},lastSeen:Date.now()};
-  if(!empireState.luxuries)empireState.luxuries={};
+  if(!empireState)empireState={};
+  const s=empireState;
+  if(s.coins==null)s.coins=(s.cash!=null?s.cash:0);   // migrate old cash -> coins
+  if(s.totalEarned==null)s.totalEarned=s.coins||0;
+  if(s.perClick==null)s.perClick=1;
+  if(!s.owned)s.owned={};
+  if(!s.luxuries)s.luxuries={};
+  if(!s.upgrades)s.upgrades={};
+  if(s.boosts==null)s.boosts=0;
+  if(s.legacy==null)s.legacy=0;
+  if(s.xp==null)s.xp=0;
+  if(s.level==null)s.level=1;
+  if(s.tasksDone==null)s.tasksDone=0;
+  if(s.lastSeen==null)s.lastSeen=Date.now();
+  delete s.cash;
 }
 function empireSave(){try{localStorage.setItem('mm_empire',JSON.stringify(empireState));}catch(e){}}
-function empirePerSec(){return EMPIRE_ASSETS_DEF.reduce((s,a)=>s+(empireState.owned[a.id]||0)*a.income,0);}
+/* ── multipliers ── */
+function empUpg(id){return !!empireState.upgrades[id];}
+function empClickMult(){return EMPIRE_UPGRADES.filter(u=>u.type==='click'&&empUpg(u.id)).reduce((m,u)=>m*u.val,1);}
+function empTaskMult(){const add=EMPIRE_UPGRADES.filter(u=>u.type==='task'&&empUpg(u.id)).reduce((s,u)=>s+u.val,0);return (1+add)*(1+empireState.legacy*0.05);}
+function empIncomeMult(){let m=EMPIRE_UPGRADES.filter(u=>u.type==='inc'&&empUpg(u.id)).reduce((mm,u)=>mm*u.val,1);m*=Math.pow(1.5,empireState.boosts);m*=(1+empireState.legacy*0.1);return m;}
+function empOfflineMult(){return EMPIRE_UPGRADES.filter(u=>u.type==='off'&&empUpg(u.id)).reduce((m,u)=>m*u.val,1);}
+function assetMilestone(n){if(n>=100)return 10;if(n>=50)return 5;if(n>=25)return 3;if(n>=10)return 2;return 1;}
+function assetNextMilestone(n){if(n<10)return 10;if(n<25)return 25;if(n<50)return 50;if(n<100)return 100;return null;}
+function empirePerSec(){return EMPIRE_ASSETS_DEF.reduce((s,a)=>{const n=empireState.owned[a.id]||0;return s+n*a.income*assetMilestone(n);},0)*empIncomeMult();}
 function empireCost(a){return Math.ceil(a.base*Math.pow(1.15,empireState.owned[a.id]||0));}
+function empireClickVal(){return empireState.perClick*empClickMult();}
+function empireBoostCost(){return Math.ceil(500000*Math.pow(6,empireState.boosts));}
+/* ── levels / chapters ── */
+function xpForLevel(l){return Math.floor(35*Math.pow(l,1.05));}
+function empireChapterIdx(){let idx=0;for(let i=0;i<EMPIRE_CHAPTERS.length;i++)if(empireState.level>=EMPIRE_CHAPTERS[i].lvl)idx=i;return idx;}
+function empireAssetUnlocked(a){return empireState.level>=EMPIRE_CHAPTERS[a.ch].lvl;}
+function empireUpgUnlocked(u){return empireState.level>=EMPIRE_CHAPTERS[u.ch].lvl;}
 function empireRank(){for(let i=EMPIRE_RANKS.length-1;i>=0;i--)if(empireState.totalEarned>=EMPIRE_RANKS[i][0])return EMPIRE_RANKS[i][1];return'Freelancer';}
 function empireFormat(n){if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.floor(n);}
+function empirePrestigeGain(){return Math.floor(Math.pow(empireState.totalEarned/1e7,0.5));}
+/* ── reward from completing a REAL dashboard task ── */
+function empireAwardTask(priority,isSub){
+  empireLoad();
+  const key=isSub?'sub':(EMP_TASK_W[priority]!=null?priority:'none');
+  const w=EMP_TASK_W[key],xpGain=EMP_TASK_XP[key];
+  const base=Math.max(40,empirePerSec()*15);
+  const coins=Math.max(1,Math.round(base*w*empTaskMult()));
+  empireState.coins+=coins;empireState.totalEarned+=coins;
+  if(!isSub)empireState.tasksDone++;
+  let leveled=false,unlocked='';
+  empireState.xp+=xpGain;
+  while(empireState.xp>=xpForLevel(empireState.level)){
+    empireState.xp-=xpForLevel(empireState.level);empireState.level++;leveled=true;
+    const ch=EMPIRE_CHAPTERS.find(c=>c.lvl===empireState.level);
+    if(ch)unlocked=ch.tag+': '+ch.name;
+  }
+  empireSave();
+  empireToast(coins,xpGain,leveled,unlocked);
+  const ov=document.getElementById('empire-overlay');
+  if(ov&&ov.classList.contains('open'))empireRender();
+}
+function empireToast(coins,xp,leveled,unlocked){
+  let el=document.getElementById('empire-toast');
+  if(!el){el=document.createElement('div');el.id='empire-toast';document.body.appendChild(el);}
+  el.className=leveled?'levelup':'';
+  el.innerHTML=leveled
+    ? `<span><i class="ti ti-arrow-big-up-lines"></i></span><span>Level ${empireState.level}!${unlocked?' <span class="xp">'+unlocked+' unlocked</span>':''}</span><span class="coin">+${empireFormat(coins)}</span>`
+    : `<span class="coin">+${empireFormat(coins)}</span><span class="xp">+${xp} XP</span>`;
+  void el.offsetWidth;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),leveled?3400:1700);
+}
+/* ── render ── */
 function empireRender(){
-  document.getElementById('empire-cash').textContent=empireFormat(empireState.cash);
+  const s=empireState;
+  document.getElementById('empire-cash').textContent=empireFormat(s.coins);
   document.getElementById('empire-rate').textContent=empireFormat(empirePerSec())+' / sec';
   document.getElementById('empire-rank').textContent=empireRank();
-  document.getElementById('empire-assets').innerHTML=EMPIRE_ASSETS_DEF.map(a=>{
-    const owned=empireState.owned[a.id]||0,cost=empireCost(a),ok=empireState.cash>=cost;
-    return`<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ${a.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${a.name}${owned?' <span style="color:#5a9ab8">x'+owned+'</span>':''}</div><div class="empire-asset-sub">+${empireFormat(a.income)}/sec each</div></div><button class="empire-buy-btn" onclick="empireBuy('${a.id}')" ${ok?'':'disabled'}>${empireFormat(cost)}</button></div>`;
-  }).join('');
-  renderEmpireSpend();
+  document.getElementById('empire-level').textContent='Level '+s.level;
+  const ch=EMPIRE_CHAPTERS[empireChapterIdx()];
+  document.getElementById('empire-chapter-label').textContent=ch.tag+' · '+ch.name;
+  const need=xpForLevel(s.level);
+  document.getElementById('empire-xp-fill').style.width=Math.min(100,(s.xp/need)*100)+'%';
+  document.getElementById('empire-xp-sub').textContent=Math.floor(s.xp)+' / '+need+' XP';
+  document.getElementById('empire-quest-txt').innerHTML=empireQuestText();
+  document.getElementById('empire-hustle-btn').innerHTML='&#9889; Hustle <span style="opacity:.7">+'+empireFormat(empireClickVal())+'</span>';
+  renderEmpireBuild();renderEmpireUpgrades();renderEmpireSpend();renderEmpireMap();
 }
-function empireHustle(){
-  empireState.cash+=empireState.perClick;empireState.totalEarned+=empireState.perClick;
-  const b=document.getElementById('empire-hustle-btn');
-  b.classList.remove('empire-hustle-pop');void b.offsetWidth;b.classList.add('empire-hustle-pop');
-  empireRender();empireSave();
+function empireQuestText(){
+  const ci=empireChapterIdx(),next=EMPIRE_CHAPTERS[ci+1];
+  if(next){
+    const togo=next.lvl-empireState.level;
+    return `Complete tasks to earn coins &amp; XP. <b style="color:#e6f1f8">${togo} level${togo>1?'s':''}</b> to unlock <b style="color:#7ab8d4">${next.tag}: ${next.name}</b>.`;
+  }
+  const gain=empirePrestigeGain();
+  return gain>0?`You've reached the Finale. Retire in <b style="color:#c8dce8">Upgrades</b> to bank <b style="color:#d9b8ec">${gain} Legacy</b> and start New Game+.`
+              :`You've reached the Finale — keep building toward your first Legacy point.`;
+}
+function renderEmpireBuild(){
+  const host=document.getElementById('empire-assets');if(!host)return;
+  host.innerHTML=EMPIRE_ASSETS_DEF.map(a=>{
+    if(!empireAssetUnlocked(a)){
+      const req=EMPIRE_CHAPTERS[a.ch];
+      return `<div class="empire-asset locked"><div class="empire-asset-ic"><i class="ti ti-lock"></i></div><div class="empire-asset-info"><div class="empire-asset-name" style="color:#5a6a76">${a.name}</div><div class="empire-lock-tag">Unlocks at Level ${req.lvl} · ${req.tag}</div></div><button class="empire-buy-btn" disabled><i class="ti ti-lock"></i></button></div>`;
+    }
+    const owned=empireState.owned[a.id]||0,cost=empireCost(a),ok=empireState.coins>=cost,mult=assetMilestone(owned),nx=assetNextMilestone(owned);
+    const multTag=mult>1?` <span style="color:#e0b64a">×${mult}</span>`:'';
+    const nextTag=nx?` · ×${mult<10?mult+1:'?'} bonus at ${nx} owned`:' · max bonus';
+    return `<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ${a.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${a.name}${owned?' <span style="color:#5a9ab8">x'+owned+'</span>':''}${multTag}</div><div class="empire-asset-sub">+${empireFormat(a.income*mult)}/sec each${nextTag}</div></div><button class="empire-buy-btn" onclick="empireBuy('${a.id}')" ${ok?'':'disabled'}>${empireFormat(cost)}</button></div>`;
+  }).join('');
 }
 function empireBuy(id){
-  const a=EMPIRE_ASSETS_DEF.find(x=>x.id===id),cost=empireCost(a);
-  if(empireState.cash<cost)return;
-  empireState.cash-=cost;empireState.owned[id]=(empireState.owned[id]||0)+1;
+  const a=EMPIRE_ASSETS_DEF.find(x=>x.id===id);if(!a||!empireAssetUnlocked(a))return;
+  const cost=empireCost(a);if(empireState.coins<cost)return;
+  empireState.coins-=cost;empireState.owned[id]=(empireState.owned[id]||0)+1;
   empireRender();empireSave();
 }
-let empireTab='build';
+function renderEmpireUpgrades(){
+  const host=document.getElementById('empire-upgrades');if(!host)return;
+  let html=EMPIRE_UPGRADES.map(u=>{
+    const owned=empUpg(u.id),unlocked=empireUpgUnlocked(u),ok=empireState.coins>=u.cost;
+    let btn;
+    if(owned)btn=`<button class="empire-buy-btn owned" disabled><i class="ti ti-check"></i> Owned</button>`;
+    else if(!unlocked){const req=EMPIRE_CHAPTERS[u.ch];btn=`<button class="empire-buy-btn" disabled>Lvl ${req.lvl}</button>`;}
+    else btn=`<button class="empire-buy-btn" onclick="empireBuyUpg('${u.id}')" ${ok?'':'disabled'}>${empireFormat(u.cost)}</button>`;
+    return `<div class="empire-asset${owned?' owned-lux':''}${!unlocked&&!owned?' locked':''}"><div class="empire-asset-ic"><i class="ti ${u.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${u.name}</div><div class="empire-asset-sub">${u.desc}</div></div>${btn}</div>`;
+  }).join('');
+  const bc=empireBoostCost(),bok=empireState.coins>=bc;
+  html+=`<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ti-rocket"></i></div><div class="empire-asset-info"><div class="empire-asset-name">Global Boost <span style="color:#5a9ab8">×1.5</span>${empireState.boosts?' <span style="color:#5a9ab8">('+empireState.boosts+')</span>':''}</div><div class="empire-asset-sub">Multiplies ALL income · repeatable</div></div><button class="empire-buy-btn" onclick="empireBuyBoost()" ${bok?'':'disabled'}>${empireFormat(bc)}</button></div>`;
+  const gain=empirePrestigeGain();
+  if(gain>0||empireState.legacy>0){
+    html+=`<div class="empire-prestige"><div style="font-size:0.8rem;font-weight:800;color:#d9b8ec;letter-spacing:0.06em">RETIRE &amp; PASS THE TORCH</div><div style="font-size:0.66rem;color:#b593c9;margin-top:6px;line-height:1.45">Reset your empire, assets, upgrades &amp; level to bank <b style="color:#e6c6ff">${gain} Legacy</b>.<br>Each Legacy: +10% income &amp; +5% task payouts, forever.${empireState.legacy?'<br>Current Legacy: <b style="color:#e6c6ff">'+empireState.legacy+'</b>':''}</div>${gain>0?`<button class="empire-prestige-btn" onclick="empirePrestige()">Retire for ${gain} Legacy</button>`:`<div style="font-size:0.62rem;color:#8a6fa0;margin-top:8px">Earn more to bank your first Legacy point.</div>`}</div>`;
+  }
+  host.innerHTML=html;
+}
+function empireBuyUpg(id){
+  const u=EMPIRE_UPGRADES.find(x=>x.id===id);
+  if(!u||empUpg(id)||!empireUpgUnlocked(u)||empireState.coins<u.cost)return;
+  empireState.coins-=u.cost;empireState.upgrades[id]=1;fireConfetti();empireRender();empireSave();
+}
+function empireBuyBoost(){
+  const c=empireBoostCost();if(empireState.coins<c)return;
+  empireState.coins-=c;empireState.boosts++;empireRender();empireSave();
+}
+function empirePrestige(){
+  const gain=empirePrestigeGain();if(gain<=0)return;
+  if(!confirm('Retire your empire for '+gain+' Legacy?\n\nYour coins, assets and upgrades reset — but your Level, chapter progress, Rewards and Legacy bonus are kept forever.'))return;
+  const s=empireState;
+  s.legacy+=gain;
+  s.coins=0;s.totalEarned=0;s.owned={};s.upgrades={};s.boosts=0;s.perClick=1;
+  s.lastSeen=Date.now();
+  fireConfetti();empireRender();empireSave();
+}
 function empireSetTab(t){
   empireTab=t;
-  const a=document.getElementById('empire-assets'),s=document.getElementById('empire-spend');
-  if(a)a.style.display=(t==='build'?'block':'none');
-  if(s)s.style.display=(t==='spend'?'block':'none');
-  document.getElementById('emp-tab-build').classList.toggle('active',t==='build');
-  document.getElementById('emp-tab-spend').classList.toggle('active',t==='spend');
+  [['build','empire-assets'],['upgrades','empire-upgrades'],['spend','empire-spend'],['map','empire-map']].forEach(([k,id])=>{
+    const pane=document.getElementById(id);if(pane)pane.style.display=(k===t?'block':'none');
+    const btn=document.getElementById('emp-tab-'+k);if(btn)btn.classList.toggle('active',k===t);
+  });
 }
 function renderEmpireSpend(){
   const host=document.getElementById('empire-spend');if(!host)return;
   const ownedCount=EMPIRE_LUXURIES.filter(l=>empireState.luxuries[l.id]).length;
-  let html=`<div class="empire-spend-head">${ownedCount} / ${EMPIRE_LUXURIES.length} treasures unlocked</div>`;
+  let html=`<div class="empire-spend-head">${ownedCount} / ${EMPIRE_LUXURIES.length} rewards unlocked</div>`;
   html+=EMPIRE_LUXURIES.map(l=>{
-    const owned=!!empireState.luxuries[l.id],ok=empireState.cash>=l.cost;
+    const owned=!!empireState.luxuries[l.id],ok=empireState.coins>=l.cost;
     const btn=owned?`<button class="empire-buy-btn owned" disabled><i class="ti ti-check"></i> Owned</button>`:`<button class="empire-buy-btn" onclick="empireBuyLux('${l.id}')" ${ok?'':'disabled'}>${empireFormat(l.cost)}</button>`;
     return`<div class="empire-asset${owned?' owned-lux':''}"><div class="empire-asset-ic"><i class="ti ${l.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${l.name}</div><div class="empire-asset-sub">${l.blurb}</div></div>${btn}</div>`;
   }).join('');
@@ -2476,15 +2676,33 @@ function renderEmpireSpend(){
 function empireBuyLux(id){
   const x=EMPIRE_LUXURIES.find(l=>l.id===id);if(!x)return;
   if(empireState.luxuries[id])return;
-  if(empireState.cash<x.cost)return;
-  empireState.cash-=x.cost;empireState.luxuries[id]=1;
+  if(empireState.coins<x.cost)return;
+  empireState.coins-=x.cost;empireState.luxuries[id]=1;
   fireConfetti();empireRender();empireSave();
+}
+function renderEmpireMap(){
+  const host=document.getElementById('empire-map');if(!host)return;
+  const ci=empireChapterIdx();
+  host.innerHTML=EMPIRE_CHAPTERS.map((c,i)=>{
+    const state=i<ci?'done':i===ci?'cur':'lock';
+    const badge=`<div class="empire-ch-badge ${state}">${state==='done'?'<i class="ti ti-check"></i>':state==='lock'?'<i class="ti ti-lock"></i>':(i+1)}</div>`;
+    const here=state==='cur'?' <span style="color:#7ab8d4;font-size:0.6rem">◆ HERE</span>':'';
+    const req=state==='lock'?`<div class="empire-ch-req">Reach Level ${c.lvl}</div>`:'';
+    return `<div class="empire-chapter">${badge}<div><div class="empire-ch-name${state==='lock'?' lock':''}">${c.tag} · ${c.name}${here}</div><div class="empire-ch-story">${c.story}</div>${req}</div></div>`;
+  }).join('');
+}
+function empireHustle(){
+  const v=empireClickVal();
+  empireState.coins+=v;empireState.totalEarned+=v;
+  const b=document.getElementById('empire-hustle-btn');
+  b.classList.remove('empire-hustle-pop');void b.offsetWidth;b.classList.add('empire-hustle-pop');
+  empireRender();empireSave();
 }
 function openEmpire(){
   empireLoad();
-  const elapsed=(Date.now()-(empireState.lastSeen||Date.now()))/1000,offEarn=elapsed*empirePerSec();
+  const elapsed=(Date.now()-(empireState.lastSeen||Date.now()))/1000,offEarn=elapsed*empirePerSec()*empOfflineMult();
   if(offEarn>0.5){
-    empireState.cash+=offEarn;empireState.totalEarned+=offEarn;
+    empireState.coins+=offEarn;empireState.totalEarned+=offEarn;
     const n=document.getElementById('empire-offline');
     n.textContent='While you were working, your empire earned '+empireFormat(offEarn)+'!';
     n.style.display='block';setTimeout(()=>{n.style.display='none';},4500);
@@ -2492,10 +2710,10 @@ function openEmpire(){
   empireState.lastSeen=Date.now();
   document.getElementById('empire-overlay').classList.add('open');
   empireRender();empireSetTab(empireTab);clearInterval(empireTick);
-  empireTick=setInterval(()=>{const ps=empirePerSec();if(ps>0){empireState.cash+=ps/5;empireState.totalEarned+=ps/5;empireRender();}},200);
+  empireTick=setInterval(()=>{const ps=empirePerSec();if(ps>0){empireState.coins+=ps/5;empireState.totalEarned+=ps/5;empireRender();}},200);
 }
 function closeEmpire(){
-  clearInterval(empireTick);empireState.lastSeen=Date.now();empireSave();
+  clearInterval(empireTick);if(empireState){empireState.lastSeen=Date.now();empireSave();}
   document.getElementById('empire-overlay').classList.remove('open');
 }
 
