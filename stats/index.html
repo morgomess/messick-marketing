@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Social Audit Tool | Messick Marketing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -803,9 +806,9 @@ ${JSON.stringify(dataForAI, null, 0)}
 Write a SPECIFIC analysis tailored to THIS account's exact numbers - no boilerplate, no advice that could apply to any account.
 Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat their numbers as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
 
-Return ONLY valid JSON (no markdown, no prose outside the object):
-{"executiveSummary":"2-3 sentences, key numbers","clientSummary":"2-3 warm plain-language sentences, lead with the biggest win, no jargon","keyFindings":["5-6 data-backed findings citing real metrics"],"platformNotes":[{"platform":"Name","note":"1-2 sentences citing its numbers"}],"wins":["3-5 punchy wins each leading with the number"],"concerns":["2-4 concerns with numbers"],"recommendations":[{"title":"plain-language action","detail":"1-2 sentences, why it matters"}]}
-Give 5 recommendations.`;
+Output ONLY compact minified JSON on a SINGLE line - no markdown, no code fences, no line breaks, no prose outside the object. Keep every string tight (one sentence where possible) so the response never gets cut off. This exact shape:
+{"executiveSummary":"2 sentences, key numbers","clientSummary":"2 warm plain-language sentences, lead with the biggest win, no jargon","keyFindings":["4-5 short findings citing real metrics"],"platformNotes":[{"platform":"Name","note":"one sentence citing its numbers"}],"wins":["3-4 punchy wins each leading with the number"],"concerns":["2-3 concerns with numbers"],"recommendations":[{"title":"plain action","detail":"one sentence, why it matters"}]}
+Give exactly 5 recommendations.`;
 
         try {
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
@@ -836,7 +839,28 @@ Give 5 recommendations.`;
         let s = String(txt).trim().replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
         const start = s.indexOf('{'); if (start < 0) return null; s = s.slice(start);
         try { return JSON.parse(s); } catch (e) {}
-        const last = s.lastIndexOf('}'); if (last > 0) { try { return JSON.parse(s.slice(0, last + 1)); } catch (e) {} }
+        // Repair a truncated response: close a dangling string, drop a trailing partial
+        // element, and append the closing brackets the open structures still need.
+        try {
+            let inStr = false, escp = false; const stack = [];
+            for (let k = 0; k < s.length; k++) {
+                const ch = s[k];
+                if (inStr) { if (escp) escp = false; else if (ch === '\\') escp = true; else if (ch === '"') inStr = false; continue; }
+                if (ch === '"') inStr = true;
+                else if (ch === '{' || ch === '[') stack.push(ch === '{' ? '}' : ']');
+                else if (ch === '}' || ch === ']') stack.pop();
+            }
+            let base = s;
+            if (inStr) base += '"';                    // close an unterminated string
+            base = base.replace(/[,\s]+$/, '');         // trailing comma/space
+            base = base.replace(/:\s*$/, ':null');      // a key with no value yet
+            base = base.replace(/,\s*("[^"]*"\s*:?\s*)?$/, ''); // a dangling partial property
+            const closed = base + stack.reverse().join('');
+            return JSON.parse(closed);
+        } catch (e) {}
+        // Last resort: parse up to the last complete brace
+        const last = s.lastIndexOf('}');
+        if (last > 0) { try { return JSON.parse(s.slice(0, last + 1)); } catch (e) {} }
         return null;
     },
 
