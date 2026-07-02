@@ -315,6 +315,14 @@
     }
     .char-badge.good { background: rgba(39,174,96,0.14); color: var(--green); }
     .char-badge.over { background: rgba(192,57,43,0.14); color: var(--red); }
+    /* Format toggle (Long-form / Shorts) */
+    .fmt-toggle { display: inline-flex; gap: 4px; background: var(--surface3); border: 1px solid var(--border2); border-radius: 8px; padding: 3px; margin-bottom: 14px; }
+    .fmt-btn {
+      background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 12px; font-weight: 600;
+      padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+    .fmt-btn:hover { color: var(--text); }
+    .fmt-btn.active { background: var(--blue); color: #fff; }
     .description-block {
       background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px;
     }
@@ -863,7 +871,11 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <!-- Section 1: Title & Description -->
       <div class="opt-section">
         <div class="section-title">Title &amp; Description</div>
-        <div class="section-sub">4 title variants with character count + a full YouTube description.</div>
+        <div class="section-sub">4 title variants with character count + a full YouTube description, tuned to the video format.</div>
+        <div class="fmt-toggle" id="title-fmt-toggle">
+          <button class="fmt-btn active" data-fmt="long" onclick="setTitleFormat('long')">🎬 Long-form</button>
+          <button class="fmt-btn" data-fmt="short" onclick="setTitleFormat('short')">⚡ Shorts</button>
+        </div>
         <div class="form-group">
           <label class="form-label">Topic / Procedure *</label>
           <input type="text" class="form-input" id="t-topic" placeholder="e.g. 5 Signs You Have Sleep Apnea">
@@ -1569,14 +1581,16 @@ async function generateTitles() {
   const tgField = document.getElementById('tg-topic');
   if (tgField && !tgField.value.trim() && topic) tgField.value = topic;
 
-  const system = buildSystem(`You are an elite YouTube title strategist trained on 2026 ranking and click-through data. Return ONLY a valid JSON object with no markdown.
+  const fmt = titleFormat;
+  const longFormInstr = `You are an elite YouTube title strategist trained on 2026 ranking and click-through data. This is a LONG-FORM video. Return ONLY a valid JSON object with no markdown.
 
-2026 TITLE FORMULAS (apply the strongest fit per variant):
+2026 LONG-FORM TITLE FORMULAS (apply the strongest fit per variant):
 - FRONT-LOAD the primary keyword in the first 1-3 words so it is searchable and matches how people actually query in 2026.
 - Earn the click with exactly ONE driver: a specific number, a concrete outcome/payoff, a curiosity gap, a how/why/what hook, or a stakes/urgency word. Do not stack multiple gimmicks.
 - Be specific and concrete over vague - real numbers, real outcomes, real stakes.
 - Ideal length 45-60 characters (hard max 70). Shorter wins on mobile.
-- Natural human phrasing, never keyword-stuffed. No clickbait you cannot pay off (it kills retention and ranking). No em dashes.
+- NEVER put hashtags in a long-form title. Hashtags belong in the description for long-form.
+- Natural human phrasing, never keyword-stuffed. No clickbait you cannot pay off. No em dashes.
 
 {
   "primaryKeyword": "the main search phrase this video should rank for - 2 to 5 words, phrased how a real person types it into YouTube in 2026",
@@ -1592,8 +1606,37 @@ async function generateTitles() {
 DESCRIPTION RULES (these drive the in-app SEO score, follow exactly):
 - The FIRST sentence must lead with the primary keyword, and the primary keyword must appear within the first 150 characters.
 - Never open with filler ("In this video", "Welcome to", "Hey guys", "Hello everyone").
-- Structure: keyword-led hook paragraph (2-3 sentences), blank line, "What You'll Learn" with 3-5 dash bullets, blank line, About section (2-3 sentences), blank line, a clear CTA line (subscribe, book a consult, or visit the link).
-All titles under 70 characters. No em dashes.`);
+- Structure: keyword-led hook paragraph (2-3 sentences), blank line, "What You'll Learn" with 3-5 dash bullets, blank line, About section (2-3 sentences), blank line, a clear CTA line (subscribe, book a consult, or visit the link), blank line, then 2-3 relevant hashtags on their own line (the first 3 surface above the title on YouTube).
+All titles under 70 characters. No hashtags in the title. No em dashes.`;
+
+  const shortsInstr = `You are an elite YouTube SHORTS strategist (2026). This is a SHORT (vertical, under 60s). Shorts live or die on the first-second hook and on hashtag discovery. Return ONLY a valid JSON object with no markdown.
+
+2026 SHORTS TITLE FORMULAS:
+- Lead with a punchy hook or curiosity gap - a Shorts title is a scroll-stopper, not an SEO string.
+- Put 2-3 relevant hashtags INSIDE the title (this is the Shorts convention), and ALWAYS include #Shorts. Place the hashtags at the END of the title text.
+- Still front-load the core keyword/topic before the hashtags so it stays searchable.
+- Keep the visible text (before the hashtags) tight - aim under 50 characters.
+- Natural, high-energy phrasing. No clickbait you cannot pay off. No em dashes.
+
+{
+  "primaryKeyword": "the core search phrase/topic for this Short - 2 to 4 words",
+  "titles": [
+    { "variant": "A - Hook", "text": "Punchy hook #Shorts #Topic" },
+    { "variant": "B - Curiosity", "text": "..." },
+    { "variant": "C - Payoff", "text": "..." },
+    { "variant": "D - Bold claim", "text": "..." }
+  ],
+  "description": "Short description - see DESCRIPTION RULES."
+}
+
+DESCRIPTION RULES (drive the in-app SEO score, follow exactly):
+- Keep it to 1-3 short lines. The FIRST line must lead with the primary keyword (within the first 150 characters).
+- Never open with filler ("In this video", "Welcome to", "Hey guys").
+- End with 3-5 hashtags on their own line, always including #Shorts plus topical tags.
+- Add a short follow/subscribe CTA.
+Every title MUST include #Shorts and at least one topical hashtag. No em dashes.`;
+
+  const system = buildSystem(fmt === 'short' ? shortsInstr : longFormInstr);
 
   // Build user prompt - use transcript when available
   let userMsg;
@@ -1623,6 +1666,8 @@ function renderTitlesOutput(json, out) {
   const cards = document.createElement('div');
   cards.className = 'title-cards';
 
+  // Shorts titles carry hashtags so they run longer; YouTube's hard cap is 100.
+  const charLimit = titleFormat === 'short' ? 100 : 70;
   (json.titles || []).forEach(t => {
     const chars = (t.text || '').length;
     const card = document.createElement('div');
@@ -1633,7 +1678,7 @@ function renderTitlesOutput(json, out) {
     const actions = document.createElement('div');
     actions.className = 'title-card-actions';
     const badge = document.createElement('span');
-    badge.className = 'char-badge ' + (chars <= 70 ? 'good' : 'over');
+    badge.className = 'char-badge ' + (chars <= charLimit ? 'good' : 'over');
     badge.textContent = chars;
     actions.appendChild(badge);
     actions.appendChild(makeCopyBtn(t.text));
@@ -1665,10 +1710,11 @@ function renderTitlesOutput(json, out) {
   if (json.titles && json.titles[0]) _lastTitle = json.titles[0].text || '';
   if (json.description) _lastDesc = json.description;
   if (json.primaryKeyword) _lastPrimaryKw = json.primaryKeyword;
+  _lastFormat = titleFormat;
 
   // Auto SEO score using title A + description + any already-generated tags
   if (_lastTitle && _lastDesc) {
-    runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out, _lastPrimaryKw);
+    runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out, _lastPrimaryKw, _lastFormat);
   }
 }
 
@@ -1781,14 +1827,14 @@ function renderTagsOutput(json, out) {
     // Remove any existing inline score under tags
     const prev = out.querySelector('.seo-inline-check');
     if (prev) prev.remove();
-    runInlineChecklist(_lastTitle, _lastDesc, all, out, _lastPrimaryKw);
+    runInlineChecklist(_lastTitle, _lastDesc, all, out, _lastPrimaryKw, _lastFormat);
 
     // Also update the score in the titles section
     const titlesOut = document.getElementById('titles-out');
     if (titlesOut) {
       const prevScore = titlesOut.querySelector('.seo-inline-check');
       if (prevScore) prevScore.remove();
-      runInlineChecklist(_lastTitle, _lastDesc, all, titlesOut, _lastPrimaryKw);
+      runInlineChecklist(_lastTitle, _lastDesc, all, titlesOut, _lastPrimaryKw, _lastFormat);
     }
   }
 }
@@ -1851,6 +1897,18 @@ let _lastTitle = '';
 let _lastDesc = '';
 let _lastTags = [];
 let _lastPrimaryKw = '';
+let titleFormat = 'long';   // 'long' = long-form, 'short' = Shorts
+let _lastFormat = 'long';
+
+function setTitleFormat(f) {
+  titleFormat = f;
+  document.querySelectorAll('#title-fmt-toggle .fmt-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.fmt === f));
+  const topic = document.getElementById('t-topic');
+  if (topic) topic.placeholder = f === 'short'
+    ? 'e.g. Why your knees crack (Shorts hook)'
+    : 'e.g. 5 Signs You Have Sleep Apnea';
+}
 
 // --- 2026 SEO scoring helpers ---
 const SEO_STOP = new Set(['the','a','an','to','of','for','and','or','in','on','with','your','you','is','are','my','this','that','it','we','how','why','what','when','best','top','vs']);
@@ -1868,51 +1926,87 @@ function seoPhraseIn(kw, text) {
   return hit / words.length >= 0.6;
 }
 
-function runInlineChecklist(title, desc, tags, container, primaryKeyword) {
+function runInlineChecklist(title, desc, tags, container, primaryKeyword, format) {
   if (!title || !desc) return;
   tags = tags || [];
+  const isShort = format === 'short';
   const titleLow = title.toLowerCase();
   const descLow = desc.toLowerCase();
   const desc150 = desc.slice(0, 150);
+  // Title with hashtags stripped, so keyword/length checks aren't skewed by #tags
+  const titleTextOnly = title.replace(/#\w[\w-]*/g, '').replace(/\s{2,}/g, ' ').trim();
+  const hashtags = title.match(/#\w[\w-]*/g) || [];
+  const hasShortsTag = /#shorts\b/i.test(title);
+  const descHasHashtag = /#\w[\w-]*/.test(desc);
+  const kwBase = titleTextOnly || title;
   // Use the explicit primary keyword; fall back to the title's leading significant words
-  const primaryKw = (primaryKeyword && primaryKeyword.trim()) || seoKwWords(title).slice(0, 3).join(' ');
-  const titleFront = title.slice(0, Math.max(28, Math.round(title.length * 0.5)));
-  const hasSignal = /\d/.test(title) || /[\[\(]/.test(title) || /\b(how|why|what|secret|proven|mistake|avoid|stop|best|worst|never|always|ultimate|guide|easy|fast|simple|truth|warning|before|after|vs|versus|need|should|signs|ways|tips)\b/i.test(title);
+  const primaryKw = (primaryKeyword && primaryKeyword.trim()) || seoKwWords(kwBase).slice(0, 3).join(' ');
+  const titleFront = kwBase.slice(0, Math.max(28, Math.round(kwBase.length * 0.5)));
+  const hasSignal = /\d/.test(kwBase) || /[\[\(]/.test(title) || /\b(how|why|what|secret|proven|mistake|avoid|stop|best|worst|never|always|ultimate|guide|easy|fast|simple|truth|warning|before|after|vs|versus|need|should|signs|ways|tips)\b/i.test(title);
   const hasTags = tags.length > 0;
   const tagChars = tags.join(',').length;
 
-  const checks = [
-    {
+  const checks = [];
+  // Format-specific title checks
+  if (isShort) {
+    checks.push({
+      pass: hasShortsTag && hashtags.length >= 2,
+      rule: '#Shorts + hashtags in title',
+      detail: hashtags.length ? `${hashtags.length} hashtag${hashtags.length > 1 ? 's' : ''}${hasShortsTag ? '' : ' - add #Shorts'}` : 'Add #Shorts and 1-2 topical hashtags'
+    });
+    checks.push({
+      pass: titleTextOnly.length <= 60,
+      rule: 'Hook text tight (Shorts)',
+      detail: `${titleTextOnly.length} chars before hashtags${titleTextOnly.length > 60 ? ' - trim the hook' : ''}`
+    });
+  } else {
+    checks.push({
       pass: title.length <= 70,
       rule: 'Title within 70 characters',
       detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over` : title.length <= 60 ? ' - mobile-optimal' : ''}`
-    },
-    {
-      pass: seoPhraseIn(primaryKw, titleFront),
-      rule: 'Primary keyword front-loaded in title',
-      detail: primaryKw ? `"${primaryKw}" should sit early in the title` : 'No primary keyword set'
-    },
-    {
-      pass: hasSignal,
-      rule: 'Title has a click driver',
-      detail: 'A number, bracket, or power word (how / why / signs / best / avoid...)'
-    },
-    {
-      pass: seoPhraseIn(primaryKw, desc150),
-      rule: 'Keyword in first 150 chars of description',
-      detail: seoPhraseIn(primaryKw, desc150) ? 'Found' : 'Lead the description with the primary keyword'
-    },
-    {
-      pass: ['link', 'subscribe', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
-      rule: 'CTA in description',
-      detail: 'subscribe, book, click the link, download, etc.'
-    },
-    {
-      pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => descLow.trimStart().startsWith(f)),
-      rule: 'No filler opener',
-      detail: 'Hook first - not "In this video" or "Welcome to"'
-    },
-    ...(hasTags ? [
+    });
+    checks.push({
+      pass: hashtags.length === 0,
+      rule: 'No hashtags in title (long-form)',
+      detail: hashtags.length ? 'Move hashtags to the description' : 'Clean'
+    });
+  }
+  // Shared checks
+  checks.push({
+    pass: seoPhraseIn(primaryKw, titleFront),
+    rule: 'Primary keyword front-loaded in title',
+    detail: primaryKw ? `"${primaryKw}" should sit early in the title` : 'No primary keyword set'
+  });
+  checks.push({
+    pass: hasSignal,
+    rule: isShort ? 'Title has a hook / click driver' : 'Title has a click driver',
+    detail: 'A number, bracket, or power word (how / why / signs / best / avoid...)'
+  });
+  checks.push({
+    pass: seoPhraseIn(primaryKw, desc150),
+    rule: 'Keyword in first 150 chars of description',
+    detail: seoPhraseIn(primaryKw, desc150) ? 'Found' : 'Lead the description with the primary keyword'
+  });
+  checks.push({
+    pass: ['link', 'subscribe', 'follow', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
+    rule: 'CTA in description',
+    detail: 'subscribe, follow, book, click the link, etc.'
+  });
+  checks.push({
+    pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => descLow.trimStart().startsWith(f)),
+    rule: 'No filler opener',
+    detail: 'Hook first - not "In this video" or "Welcome to"'
+  });
+  if (isShort) {
+    checks.push({
+      pass: descHasHashtag,
+      rule: 'Hashtags in description',
+      detail: descHasHashtag ? 'Found' : 'Add #Shorts + topical hashtags to the description'
+    });
+  }
+  // Tag checks (only when tags exist)
+  if (hasTags) {
+    checks.push(
       {
         pass: tagChars <= 500,
         rule: 'Tags within YouTube 500-char limit',
@@ -1928,8 +2022,8 @@ function runInlineChecklist(title, desc, tags, container, primaryKeyword) {
         rule: 'Tags align with title',
         detail: 'Title and tag keywords overlap'
       }
-    ] : [])
-  ];
+    );
+  }
 
   const passCount = checks.filter(c => c.pass).length;
   const total = checks.length;
