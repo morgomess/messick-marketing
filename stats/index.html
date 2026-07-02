@@ -595,8 +595,14 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (totalContent > 0 && totalContent < 8)
             boosts.push({ tier:'week', title:'Increase Post Frequency', desc:`Only ${totalContent} posts this period. Aim for 3+/week. Batch-create carousel and short-form video content.` });
 
-        if (pp.YouTube && (pp.YouTube.followersGained||0) < 10 && (c.platforms||[]).includes('YouTube'))
+        if (pp.YouTube && (pp.YouTube.followersGained||0) < 10 && (c.platforms||[]).includes('YouTube') && !this.isNewChannel(c, 'YouTube'))
             boosts.push({ tier:'month', title:'YouTube Subscriber Push', desc:`Only ${pp.YouTube.followersGained||0} subscribers gained. Launch a 4-week series with subscribe CTAs, end screens, pinned comments.` });
+        (c.platforms||[]).forEach(p => {
+            if (this.isNewChannel(c, p)) {
+                const pd = pp[p] || {};
+                boosts.push({ tier:'month', title:`${p} Just Launched`, desc:`${p} is brand-new this period (${pd.followers||0} followers, all gained, none lost) - so this is a launch baseline, not a shortfall. Focus on a steady posting cadence to build the initial audience; judge growth against next period, not established channels.` });
+            }
+        });
         if (pp.Instagram && (pp.Instagram.avgDailyReach||0) > 0 && (pp.Instagram.avgDailyReach||0) < 200)
             boosts.push({ tier:'month', title:'Instagram Reach Recovery', desc:`Instagram avg daily reach is ${pp.Instagram.avgDailyReach}. Plan 4-week content wave: 3 Reels/week + daily Stories + 2 carousels/week.` });
         if (g.followers > 500 && engRate < 2)
@@ -638,6 +644,12 @@ ${JSON.stringify(extractShape, null, 2)}` }
     },
     platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.clicks||0); },
     platPosts(pd) { pd = pd || {}; return (pd.postsPublished||0)+(pd.reelsPublished||0); },
+    // A platform is "new this period" when almost all its followers were gained now and none were lost
+    isNewChannel(c, platform) {
+        const pd = (c.perPlatform && c.perPlatform[platform]) || {};
+        const foll = pd.followers || 0, gained = pd.followersGained || 0, lost = pd.followersLost || 0;
+        return foll > 0 && lost === 0 && gained >= foll * 0.9;
+    },
     periodLabel(c) {
         if (c.periodStart || c.periodEnd) return `${c.periodStart || ''}${c.periodStart && c.periodEnd ? ' &ndash; ' : ''}${c.periodEnd || ''}`;
         return c.date || '';
@@ -741,17 +753,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
                 ${c.perPlatform ? `<div class="form-container"><div class="section-label">Per-Platform Detail</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${p}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
 
-                <div class="form-container"><div class="section-label">Boost Suggestions</div>${boostHTML}</div>
-
-                <div class="form-container">
-                    <h3 style="margin-bottom:1rem;">Strategic Plan</h3>
-                    <div class="timeframe-tabs">
-                        <button class="timeframe-tab active" onclick="app.showTab('win', this)">Quick Wins</button>
-                        <button class="timeframe-tab" onclick="app.showTab('week', this)">1-Week Fix</button>
-                        <button class="timeframe-tab" onclick="app.showTab('month', this)">4-Week Plan</button>
-                    </div>
-                    <div id="strategy-content" style="font-size:0.9rem; line-height:1.7;">${this.getStrategyHTML('win')}</div>
-                </div>
+                <div class="form-container"><div class="section-label">Automated Alerts</div><p style="font-size:0.72rem; color:var(--text-muted); margin:-4px 0 10px;">Rule-based flags from the raw numbers. Your tailored recommendations live in Findings &amp; Analysis above.</p>${boostHTML}</div>
             </div>`;
         if (c.perPlatform && platforms.length > 0) this.showPlatformTab(i, platforms[0]);
         this.renderFindingsSection(i);
@@ -779,10 +781,14 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (body) body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;"><span class="loader"></span> Analyzing the full dataset&hellip;</p>`;
 
         // Compact, number-rich payload for the model
+        const newChannels = (c.platforms || []).filter(p => this.isNewChannel(c, p));
+        const hasPriorReport = !!this.prevAuditFor(i);
         const dataForAI = {
-            client: c.name, reportDate: c.date, platforms: c.platforms,
+            client: c.name, reportingPeriod: this.periodLabel(c), platforms: c.platforms,
             globalTotals: c.global, perPlatform: c.perPlatform,
             periodOverPeriodDeltas: c.deltas || {},
+            newChannelsThisPeriod: newChannels,
+            hasPriorReportToCompare: hasPriorReport,
             topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
         };
 
@@ -790,7 +796,13 @@ ${JSON.stringify(extractShape, null, 2)}` }
 Here is the full dataset for the reporting period (numbers are exact; deltas are period-over-period changes from the export):
 ${JSON.stringify(dataForAI, null, 1)}
 
-Write a rigorous, SPECIFIC analysis. Every point must cite actual numbers or deltas from the data. No generic advice that could apply to any account. If a platform is brand-new (near-zero prior baseline), say so rather than overstating growth. Note any data quality caveats you infer (e.g. a metric marked 0 or n/a).
+Write a rigorous, SPECIFIC analysis tailored to THIS account's exact numbers. This must read completely differently from any other client's report - no boilerplate, no advice that could apply to any account, no stock phrases.
+
+CONTEXT RULES (critical - follow exactly):
+- newChannelsThisPeriod lists platforms that LAUNCHED during this period (nearly all followers gained this period, none lost). For those platforms, treat every number as a fresh launch BASELINE, not growth to critique. Do NOT flag low subscriber/follower/view counts as a problem, and do NOT recommend generic "gain more subscribers / add subscribe CTAs / end screens" tactics. Instead, acknowledge the launch and recommend building consistency and cadence on the early traction.
+- If hasPriorReportToCompare is false, there is no prior period, so do not invent month-over-month comparisons beyond the deltas explicitly given.
+- Every recommendation must be driven by a specific number or pattern in THIS data. If two clients would get the same recommendation, it is too generic - rewrite it.
+- Note real data-quality caveats you infer (a metric shown as 0 or n/a, a brand-new channel, etc.).
 
 Return ONLY valid JSON, no markdown:
 {
@@ -808,7 +820,7 @@ Provide 5-7 recommendations so the strategist can pick the best ones for the cli
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey: this.apiKey, payload: {
-                    model: 'claude-sonnet-5', max_tokens: 2048,
+                    model: 'claude-haiku-4-5-20251001', max_tokens: 3200,
                     messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }]
                 }})
             });
