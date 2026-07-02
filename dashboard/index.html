@@ -119,8 +119,10 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .fs-text{font-size:0.8rem;color:rgba(230,241,248,0.35);flex:1;font-style:italic;line-height:1.4}
 .focus-slot.filled .fs-text{color:#e6f1f8;font-style:normal}
 .fs-bot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
-.fs-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:rgba(58,107,138,0.3);color:#7ab8d4}
+.fs-pills{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0;flex:1}
+.fs-pill{font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;background:rgba(58,107,138,0.3);color:#7ab8d4;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fs-pill.ve{background:rgba(212,49,122,0.25);color:#f472b6}
+.fs-pill.fs-pill-proj{background:rgba(255,255,255,0.1);color:rgba(230,241,248,0.72)}
 .fs-check{width:16px;height:16px;border:1.5px solid rgba(90,154,184,0.35);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all 0.15s}
 .fs-check:hover{border-color:#5a9ab8}
 .fs-check.chk{background:var(--blue-lt);border-color:var(--blue-lt)}
@@ -1503,7 +1505,7 @@ function renderFocus(){
       const task=tasks.find(t=>t.id===p.id);
       if(task&&task.done)slot.classList.add('slot-done');
       const text=task?task.text:'(task removed)';
-      const brandLabel=task?getBrandLabel(task.brand,task.nodeId):'';
+      const cp=task?getClientProject(task.brand,task.nodeId):{client:'',project:''};
       const brandCls=task&&task.brand==='virtueasy'?'ve':'';
       slot.innerHTML=`
         <div class="fs-top">
@@ -1515,7 +1517,10 @@ function renderFocus(){
         </div>
         <div class="fs-text">${bEsc(text)}</div>
         <div class="fs-bot">
-          <span class="fs-pill ${brandCls}">${bEsc(brandLabel)}</span>
+          <div class="fs-pills">
+            ${cp.client?`<span class="fs-pill ${brandCls}">${bEsc(cp.client)}</span>`:''}
+            ${cp.project?`<span class="fs-pill fs-pill-proj">${bEsc(cp.project)}</span>`:''}
+          </div>
         </div>`;
       if(task){slot.style.cursor='pointer';slot.addEventListener('click',()=>openDrawer(task.id));}
     } else {
@@ -1596,6 +1601,26 @@ function completeTodayDue(taskId){
   if(typeof fireConfetti==="function")fireConfetti();
   if(!wasDone&&typeof empireAwardTask==='function')empireAwardTask(task.priority);
   renderColumns();
+}
+
+// Resolve BOTH the client and the project for a task's node, by walking the
+// ancestor chain. Client = shallowest real node under the brand; Project = the
+// task's own (deepest) node when it sits below the client level.
+function getClientProject(brand,nodeId){
+  const ROOTS={'mm-root':'Messick','ve-root':'Virtueasy','personal-root':'Personal'};
+  const CATS=new Set(['mm-cat-clients']); // pure grouping node, not a client
+  if(nodeId&&ROOTS[nodeId])return{client:ROOTS[nodeId],project:''};
+  const chain=[]; let id=nodeId, guard=0;
+  while(id&&brainMap[id]&&guard++<20){
+    if(!ROOTS[id]&&!CATS.has(id))chain.push(brainMap[id]);
+    id=brainMap[id].parent;
+  }
+  if(chain.length){
+    return {client:chain[chain.length-1].label, project:chain.length>1?chain[0].label:''};
+  }
+  if(brand==='virtueasy')return{client:'Virtueasy',project:''};
+  if(brand==='other')return{client:'Personal',project:''};
+  return{client:'Messick',project:''};
 }
 
 function getBrandLabel(brand,nodeId){
