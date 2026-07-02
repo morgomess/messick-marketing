@@ -765,78 +765,137 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const body = document.getElementById('findings-body');
         if (!body) return;
         if (c.findings) { body.innerHTML = this.findingsHTML(c.findings, i); return; }
-        if (!this.apiKey) {
-            body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Add your Anthropic API key in <strong>API Settings</strong> to generate an in-depth AI analysis of this audit.</p>`;
-            return;
-        }
-        // Auto-generate on first view
+        // Auto-generate on first view (computes a data-driven analysis, then enhances with AI if a key is set)
         this.generateFindings(i);
     },
 
     async generateFindings(i, force) {
         const c = this.clients[i];
         const body = document.getElementById('findings-body');
-        if (!this.apiKey) { if (body) body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Add your Anthropic API key in <strong>API Settings</strong> first.</p>`; return; }
         if (c.findings && !force) { if (body) body.innerHTML = this.findingsHTML(c.findings, i); return; }
         if (body) body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;"><span class="loader"></span> Analyzing the full dataset&hellip;</p>`;
 
-        // Compact, number-rich payload for the model
-        const newChannels = (c.platforms || []).filter(p => this.isNewChannel(c, p));
-        const hasPriorReport = !!this.prevAuditFor(i);
+        // Always build a data-driven analysis from the REAL numbers first. This guarantees
+        // account-specific (never cookie-cutter) output even if the AI call is unavailable.
+        const computed = this.computeFindings(c, i);
+        const useComputed = (errMsg) => {
+            c.findings = computed; c.findingsSource = 'computed';
+            c.findingsError = errMsg ? String(errMsg).slice(0, 200) : '';
+            c.selectedRecs = null;
+            this.persist();
+            const b = document.getElementById('findings-body');
+            if (b) b.innerHTML = this.findingsHTML(c.findings, i);
+        };
+        if (!this.apiKey) { useComputed(''); return; }
+
         const dataForAI = {
             client: c.name, reportingPeriod: this.periodLabel(c), platforms: c.platforms,
             globalTotals: c.global, perPlatform: c.perPlatform,
             periodOverPeriodDeltas: c.deltas || {},
-            newChannelsThisPeriod: newChannels,
-            hasPriorReportToCompare: hasPriorReport,
+            newChannelsThisPeriod: (c.platforms || []).filter(p => this.isNewChannel(c, p)),
+            hasPriorReportToCompare: !!this.prevAuditFor(i),
             topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
         };
+        const prompt = `You are a senior social media strategist writing the "Findings & Analysis" for a client audit of ${c.name}.
+Dataset for the reporting period (numbers exact; deltas are period-over-period from the export):
+${JSON.stringify(dataForAI, null, 0)}
 
-        const prompt = `You are a senior social media strategist writing the "Findings & Analysis" section of a client audit for ${c.name}.
-Here is the full dataset for the reporting period (numbers are exact; deltas are period-over-period changes from the export):
-${JSON.stringify(dataForAI, null, 1)}
+Write a SPECIFIC analysis tailored to THIS account's exact numbers - no boilerplate, no advice that could apply to any account.
+Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat their numbers as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
 
-Write a rigorous, SPECIFIC analysis tailored to THIS account's exact numbers. This must read completely differently from any other client's report - no boilerplate, no advice that could apply to any account, no stock phrases.
-
-CONTEXT RULES (critical - follow exactly):
-- newChannelsThisPeriod lists platforms that LAUNCHED during this period (nearly all followers gained this period, none lost). For those platforms, treat every number as a fresh launch BASELINE, not growth to critique. Do NOT flag low subscriber/follower/view counts as a problem, and do NOT recommend generic "gain more subscribers / add subscribe CTAs / end screens" tactics. Instead, acknowledge the launch and recommend building consistency and cadence on the early traction.
-- If hasPriorReportToCompare is false, there is no prior period, so do not invent month-over-month comparisons beyond the deltas explicitly given.
-- Every recommendation must be driven by a specific number or pattern in THIS data. If two clients would get the same recommendation, it is too generic - rewrite it.
-- Note real data-quality caveats you infer (a metric shown as 0 or n/a, a brand-new channel, etc.).
-
-Return ONLY valid JSON, no markdown:
-{
-  "executiveSummary": "2-3 sentences summarizing the period with the most important numbers (internal/strategist tone)",
-  "clientSummary": "2-3 sentences in warm, plain, jargon-free language a busy business owner would enjoy reading. Lead with the single biggest win. No marketing jargon, no acronyms, no percentages stacked on percentages - keep it human.",
-  "keyFindings": ["6-8 specific, data-backed findings, each citing real metrics/deltas"],
-  "platformNotes": [{"platform":"Name","note":"1-2 sentences of platform-specific insight citing its numbers"}],
-  "wins": ["3-5 SHORT, punchy, client-friendly wins that each LEAD WITH THE NUMBER, e.g. 'Impressions jumped 381% to 20.5K' or '867 interactions, nearly double last period'. Plain language."],
-  "concerns": ["2-4 concrete concerns or risks with numbers (internal tone)"],
-  "recommendations": [{"title":"Short plain-language action (client-friendly, no jargon)","detail":"1-2 sentences on what to do and why it matters, in language a client understands"}]
-}
-Provide 5-7 recommendations so the strategist can pick the best ones for the client.`;
+Return ONLY valid JSON (no markdown, no prose outside the object):
+{"executiveSummary":"2-3 sentences, key numbers","clientSummary":"2-3 warm plain-language sentences, lead with the biggest win, no jargon","keyFindings":["5-6 data-backed findings citing real metrics"],"platformNotes":[{"platform":"Name","note":"1-2 sentences citing its numbers"}],"wins":["3-5 punchy wins each leading with the number"],"concerns":["2-4 concerns with numbers"],"recommendations":[{"title":"plain-language action","detail":"1-2 sentences, why it matters"}]}
+Give 5 recommendations.`;
 
         try {
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey: this.apiKey, payload: {
-                    model: 'claude-haiku-4-5-20251001', max_tokens: 3200,
+                    model: 'claude-haiku-4-5-20251001', max_tokens: 4096,
                     messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }]
                 }})
             });
+            if (!resp.ok) { let t = ''; try { t = await resp.text(); } catch (e) {} throw new Error(`HTTP ${resp.status} ${t.slice(0,140)}`); }
             const data = await resp.json();
-            if (data.error) throw new Error(data.error.message || 'API error');
+            if (data.error) throw new Error((data.error.message || JSON.stringify(data.error)).slice(0, 160));
             const txt = data.content && data.content[0] && data.content[0].text;
-            const m = txt && txt.match(/\{[\s\S]*\}/);
-            if (!m) throw new Error('AI returned no analysis.');
-            c.findings = JSON.parse(m[0]);
+            if (!txt) throw new Error('Empty AI response');
+            const parsed = this.parseFindingsJSON(txt);
+            if (!parsed || !parsed.recommendations) throw new Error('Could not parse analysis JSON');
+            c.findings = parsed; c.findingsSource = 'ai'; c.findingsError = ''; c.selectedRecs = null;
             this.persist();
             const b2 = document.getElementById('findings-body');
             if (b2) b2.innerHTML = this.findingsHTML(c.findings, i);
         } catch (e) {
-            const b2 = document.getElementById('findings-body');
-            if (b2) b2.innerHTML = `<p style="color:var(--red); font-size:0.85rem;">Analysis failed: ${e.message}</p><button class="btn btn-ghost btn-sm no-print" style="margin-top:8px;" onclick="app.generateFindings(${i}, true)">Retry</button>`;
+            console.error('Findings AI error:', e);
+            useComputed(e.message || e);
         }
+    },
+
+    parseFindingsJSON(txt) {
+        let s = String(txt).trim().replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
+        const start = s.indexOf('{'); if (start < 0) return null; s = s.slice(start);
+        try { return JSON.parse(s); } catch (e) {}
+        const last = s.lastIndexOf('}'); if (last > 0) { try { return JSON.parse(s.slice(0, last + 1)); } catch (e) {} }
+        return null;
+    },
+
+    // Deterministic, data-driven findings computed straight from the numbers - always specific
+    computeFindings(c, i) {
+        const g = c.global || {}, plats = c.platforms || [], pp = c.perPlatform || {};
+        const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
+        const n = v => fmt(v || 0);
+        const stats = plats.map(p => { const pd = pp[p] || {}; return { p, followers: pd.followers||0, impressions: pd.impressions||0, interactions: this.platInteractions(pd), posts: this.platPosts(pd), engRate: pd.engRate||0, isNew: this.isNewChannel(c, p) }; });
+        const totalImpr = stats.reduce((s,x)=>s+x.impressions,0);
+        const top = stats.slice().sort((a,b)=>b.impressions-a.impressions)[0];
+        const topPost = (c.topContent||[]).slice().sort((a,b)=>(b.impressions||0)-(a.impressions||0)||(b.totalEng||0)-(a.totalEng||0))[0];
+        const newChans = stats.filter(x=>x.isNew);
+        const keyFindings=[], wins=[], concerns=[], recommendations=[], platformNotes=[];
+
+        if (top && top.impressions>0 && totalImpr>0) {
+            const pct = Math.round((top.impressions/totalImpr)*100);
+            keyFindings.push(`${top.p} drove the most reach: ${n(top.impressions)} impressions (${pct}% of the ${n(totalImpr)} total).`);
+            if (pct>=40) recommendations.push({title:`Lean into ${top.p}`, detail:`${top.p} delivered ${pct}% of your reach this period. Concentrate your best content and posting rhythm there while it's outperforming.`});
+        }
+        if (topPost && topPost.title) {
+            const lbl = topPost.impressions ? `${n(topPost.impressions)} views` : `${n(topPost.totalEng)} interactions`;
+            wins.push(`Top post "${String(topPost.title).slice(0,55)}" earned ${lbl} on ${topPost.platform}.`);
+            recommendations.push({title:'Repurpose your top post', detail:`"${String(topPost.title).slice(0,65)}" was the standout (${lbl}). Recut it into other formats and cross-post it to your other channels.`});
+        }
+        if (pg) {
+            [['Followers',g.followers,pg.followers],['Impressions',g.impressions,pg.impressions],['Interactions',g.totalInteractions,pg.totalInteractions]].forEach(([lbl,cur,prv]) => {
+                const pct = this.momPct(cur||0, prv||0);
+                if (pct!=null && isFinite(pct) && Math.abs(pct)>=10) {
+                    if (pct>=0) wins.push(`${lbl} up ${pct.toFixed(0)}% vs last period, to ${n(cur)}.`);
+                    else concerns.push(`${lbl} down ${Math.abs(pct).toFixed(0)}% vs last period, to ${n(cur)}.`);
+                    keyFindings.push(`${lbl} moved ${pct>=0?'+':''}${pct.toFixed(0)}% month-over-month to ${n(cur)}.`);
+                }
+            });
+        }
+        newChans.forEach(x => {
+            keyFindings.push(`${x.p} launched this period with ${n(x.followers)} followers and ${n(x.impressions)} views - a fresh baseline, not a shortfall.`);
+            platformNotes.push({platform:x.p, note:`Brand-new this period (${n(x.followers)} followers, all gained, none lost). Judge it on cadence, not size, for now.`});
+            recommendations.push({title:`Build cadence on your new ${x.p} channel`, detail:`${x.p} just launched (${n(x.followers)} followers, ${n(x.impressions)} views). A steady weekly rhythm now is what sets up compounding growth.`});
+        });
+        plats.forEach(p => {
+            if (stats.find(s=>s.p===p && s.isNew)) return;
+            const d = (c.deltas && c.deltas[p]) || {}; const iv = String(d.interactions||'');
+            if (iv.replace(/[^0-9.+-]/g,'').startsWith('-')) { concerns.push(`${p} interactions fell ${iv} vs the prior period.`); recommendations.push({title:`Review the ${p} content mix`, detail:`${p} interactions dropped ${iv} even while posting continued. Audit which formats underperformed and shift toward the ones that earned engagement.`}); }
+        });
+        stats.forEach(x => {
+            if (x.isNew) return;
+            if (x.impressions>0) platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
+            if (x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. Open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
+        });
+        if ((g.totalContent||0) > 0 && (g.totalContent||0) < 12) recommendations.push({title:'Lift posting frequency', detail:`${g.totalContent} posts this period. Building toward 3+ per week keeps reach compounding between reports.`});
+        if (!wins.length && (g.impressions || g.totalInteractions)) wins.push(`${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions across ${plats.length} platform${plats.length===1?'':'s'}.`);
+        if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`Maintain your cadence and double down on ${top?top.p:'your top platform'}, your strongest channel this period.`});
+
+        const biggestWin = wins[0] || `${n(g.impressions)} impressions this period.`;
+        const executiveSummary = `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.join(', ')||'social'} during ${this.periodLabel(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
+        const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'Your content kept the audience engaged'}, and your top post did a lot of the heavy lifting. Here's where we'd push next.`;
+
+        return { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
     },
 
     // Normalize recommendations to {title, detail} objects (tolerates old string form)
@@ -869,7 +928,11 @@ Provide 5-7 recommendations so the strategist can pick the best ones for the cli
         const recs = this.normalizeRecs(f);
         const sel = this.selectedRecSet(c);
         const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}</div>`).join('');
+        const srcNote = (c.findingsSource === 'computed')
+            ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:7px 11px; border-radius:6px; margin-bottom:12px;">Data-driven analysis${c.findingsError ? ` &middot; AI unavailable: ${esc(c.findingsError)}` : ''} &mdash; still tailored to this account&rsquo;s numbers. <span style="color:var(--steel); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="app.generateFindings(${i}, true)">Retry AI</span></div>`
+            : '';
         return `
+            ${srcNote}
             ${f.executiveSummary ? `<p style="font-size:0.95rem; line-height:1.6; margin-bottom:1rem;">${esc(f.executiveSummary)}</p>` : ''}
             ${(f.keyFindings && f.keyFindings.length) ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Key Findings</div><ul style="margin:0 0 1rem; padding-left:1.1rem; font-size:0.88rem; line-height:1.5;">${list(f.keyFindings)}</ul>` : ''}
             ${platNotes ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">By Platform</div><div style="margin-bottom:1rem;">${platNotes}</div>` : ''}
