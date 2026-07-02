@@ -1569,16 +1569,30 @@ async function generateTitles() {
   const tgField = document.getElementById('tg-topic');
   if (tgField && !tgField.value.trim() && topic) tgField.value = topic;
 
-  const system = buildSystem(`You are a YouTube SEO copywriter. Return ONLY a valid JSON object with no markdown:
+  const system = buildSystem(`You are an elite YouTube title strategist trained on 2026 ranking and click-through data. Return ONLY a valid JSON object with no markdown.
+
+2026 TITLE FORMULAS (apply the strongest fit per variant):
+- FRONT-LOAD the primary keyword in the first 1-3 words so it is searchable and matches how people actually query in 2026.
+- Earn the click with exactly ONE driver: a specific number, a concrete outcome/payoff, a curiosity gap, a how/why/what hook, or a stakes/urgency word. Do not stack multiple gimmicks.
+- Be specific and concrete over vague - real numbers, real outcomes, real stakes.
+- Ideal length 45-60 characters (hard max 70). Shorter wins on mobile.
+- Natural human phrasing, never keyword-stuffed. No clickbait you cannot pay off (it kills retention and ranking). No em dashes.
+
 {
+  "primaryKeyword": "the main search phrase this video should rank for - 2 to 5 words, phrased how a real person types it into YouTube in 2026",
   "titles": [
-    { "variant": "A - Topic-led", "text": "..." },
-    { "variant": "B - Benefit-led", "text": "..." },
-    { "variant": "C - Question", "text": "..." },
-    { "variant": "D - Speaker-led", "text": "..." }
+    { "variant": "A - Keyword-led", "text": "..." },
+    { "variant": "B - Benefit / Outcome", "text": "..." },
+    { "variant": "C - Curiosity / Question", "text": "..." },
+    { "variant": "D - Number / List", "text": "..." }
   ],
-  "description": "Full YouTube description. Structure: Hook paragraph (2-3 sentences, no filler opener), blank line, What You Will Learn (3-5 bullet points with dashes), blank line, About section (2-3 sentences), blank line, CTA line."
+  "description": "Full YouTube description - see DESCRIPTION RULES."
 }
+
+DESCRIPTION RULES (these drive the in-app SEO score, follow exactly):
+- The FIRST sentence must lead with the primary keyword, and the primary keyword must appear within the first 150 characters.
+- Never open with filler ("In this video", "Welcome to", "Hey guys", "Hello everyone").
+- Structure: keyword-led hook paragraph (2-3 sentences), blank line, "What You'll Learn" with 3-5 dash bullets, blank line, About section (2-3 sentences), blank line, a clear CTA line (subscribe, book a consult, or visit the link).
 All titles under 70 characters. No em dashes.`);
 
   // Build user prompt - use transcript when available
@@ -1650,10 +1664,11 @@ function renderTitlesOutput(json, out) {
   // Store for cross-section SEO scoring
   if (json.titles && json.titles[0]) _lastTitle = json.titles[0].text || '';
   if (json.description) _lastDesc = json.description;
+  if (json.primaryKeyword) _lastPrimaryKw = json.primaryKeyword;
 
   // Auto SEO score using title A + description + any already-generated tags
   if (_lastTitle && _lastDesc) {
-    runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out);
+    runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out, _lastPrimaryKw);
   }
 }
 
@@ -1666,34 +1681,79 @@ async function generateTags() {
   if (!topic) { out.innerHTML = errHtml('Please enter a topic.'); return; }
   out.innerHTML = spinner('Building tag strategy...');
 
-  const system = buildSystem(`You are a YouTube tag strategist. Return ONLY a valid JSON object with no markdown:
+  const system = buildSystem(`You are a YouTube SEO tag strategist using 2026 best practices. Return ONLY a valid JSON object with no markdown.
+
+HOW YOUTUBE TAGS WORK IN 2026 (follow this or tags will not rank):
+- YouTube only rewards tags that are REAL search queries with actual demand. Invented keyword combinations, random adjective+noun pairs, and generic one-word tags return zero search volume and do nothing.
+- The FIRST few tags carry the most weight - lead with the exact primary search phrase.
+- Use current search behavior: autocomplete-style phrases, question phrasing ("how to", "why does", "what is"), comparison phrasing ("x vs y"), and intent phrasing ("near me", "for beginners", "at home"). Favor 2-5 word long-tail phrases people actually type.
+- Search the web to confirm how people currently search this topic and niche before choosing tags.
+
 {
-  "exactMatch": ["5 to 7 highly specific tags"],
-  "broadMatch": ["6 to 10 broader related tags"],
-  "audienceMatch": ["4 to 8 audience-intent tags based on who is searching"]
+  "primaryKeyword": "the exact primary search phrase - this becomes tag #1",
+  "exactMatch": ["4 to 6 tags: the primary keyword plus its closest real search variants"],
+  "broadMatch": ["5 to 8 tags: real related searches and adjacent topics people also query"],
+  "audienceMatch": ["4 to 6 tags: real audience/intent searches (questions, 'near me', 'for beginners', symptom or problem phrasing)"]
 }
-Tailor tag types to the channel niche: include specific topic variants, audience-intent phrases, and niche-relevant keyword combinations.`);
+
+TAG RULES:
+- 12 to 18 tags total, ordered most-important and highest-demand first.
+- HARD LIMIT: the combined length of all tags (joined by commas, the way YouTube counts them) must stay UNDER 480 characters. YouTube rejects anything past 500. Keep phrases tight and drop the weakest tags rather than exceed this.
+- Every single tag must be a phrase a real person would actually type into YouTube search. No word salad, no random combos, no generic single words with no demand.
+- Mostly 2-5 word phrases. No duplicates or near-duplicates. Ground every choice in real 2026 search behavior for this channel's niche.`);
 
   try {
-    const raw = await callAI(system, `Build a 3-tier YouTube tag strategy for: ${topic}`);
+    let raw;
+    try {
+      raw = await callAI(system, `Build a 2026 YouTube tag strategy grounded in real search demand for: ${topic}`, { tools: [{ type: 'web_search_20250305', name: 'web_search' }] });
+    } catch (e) {
+      raw = await callAI(system, `Build a 2026 YouTube tag strategy grounded in real search demand for: ${topic}`);
+    }
     renderTagsOutput(parseJSON(raw), out);
   } catch (e) {
     out.innerHTML = errHtml('Tag generation failed. Try again.');
   }
 }
 
+// YouTube counts tags as a single comma-separated string capped at 500 chars.
+// Keep the highest-priority tags (exact -> broad -> audience order) that fit under the cap.
+function trimTagsToLimit(tags, limit) {
+  const kept = []; let len = 0;
+  for (const t of tags) {
+    const add = (kept.length ? 1 : 0) + t.length; // comma + tag
+    if (len + add > limit) continue; // skip this one, a shorter later tag may still fit
+    kept.push(t); len += add;
+  }
+  return kept;
+}
+
 function renderTagsOutput(json, out) {
-  const all = [...(json.exactMatch||[]), ...(json.broadMatch||[]), ...(json.audienceMatch||[])];
+  const TAG_LIMIT = 500;
+  const raw = [...(json.exactMatch||[]), ...(json.broadMatch||[]), ...(json.audienceMatch||[])]
+    .map(t => (t || '').trim()).filter(Boolean);
+  // De-dupe (case-insensitive), preserving priority order
+  const seen = new Set();
+  const ordered = raw.filter(t => { const k = t.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+  const all = trimTagsToLimit(ordered, TAG_LIMIT);
+  const trimmed = ordered.length - all.length;
+  const keptSet = new Set(all.map(t => t.toLowerCase()));
+  const charLen = all.join(',').length;
+
   _lastTags = all; // store for cross-section scoring
+  if (json.primaryKeyword) _lastPrimaryKw = json.primaryKeyword;
   out.innerHTML = '';
   const summary = document.createElement('div');
   summary.className = 'tag-summary';
-  summary.appendChild(document.createTextNode(`Total tags: ${all.length} `));
+  const chars = document.createElement('span');
+  const limitColor = charLen > 500 ? 'var(--red)' : charLen > 460 ? '#e67e22' : 'var(--text-muted)';
+  chars.innerHTML = `${all.length} tags &middot; <span style="color:${limitColor};font-weight:600">${charLen} / 500 chars</span>${trimmed > 0 ? ` <span style="color:var(--text-dim)">(${trimmed} over-limit tag${trimmed>1?'s':''} trimmed)</span>` : ''}`;
+  summary.appendChild(chars);
   summary.appendChild(makeCopyBtn(all.join(', '), 'Copy All'));
   out.appendChild(summary);
 
   [['Exact Match', 'exactMatch'], ['Broad Match', 'broadMatch'], ['Audience Match', 'audienceMatch']].forEach(([label, key]) => {
-    const tags = json[key] || [];
+    const tags = (json[key] || []).map(t => (t||'').trim()).filter(t => keptSet.has(t.toLowerCase()));
+    if (!tags.length) return;
     const tier = document.createElement('div');
     tier.className = 'tag-tier';
     const header = document.createElement('div');
@@ -1712,14 +1772,14 @@ function renderTagsOutput(json, out) {
     // Remove any existing inline score under tags
     const prev = out.querySelector('.seo-inline-check');
     if (prev) prev.remove();
-    runInlineChecklist(_lastTitle, _lastDesc, all, out);
+    runInlineChecklist(_lastTitle, _lastDesc, all, out, _lastPrimaryKw);
 
     // Also update the score in the titles section
     const titlesOut = document.getElementById('titles-out');
     if (titlesOut) {
       const prevScore = titlesOut.querySelector('.seo-inline-check');
       if (prevScore) prevScore.remove();
-      runInlineChecklist(_lastTitle, _lastDesc, all, titlesOut);
+      runInlineChecklist(_lastTitle, _lastDesc, all, titlesOut, _lastPrimaryKw);
     }
   }
 }
@@ -1781,35 +1841,57 @@ OpportunityScore: high demand + low competition = high score. Calibrate to the c
 let _lastTitle = '';
 let _lastDesc = '';
 let _lastTags = [];
+let _lastPrimaryKw = '';
 
-function runInlineChecklist(title, desc, tags, container) {
+// --- 2026 SEO scoring helpers ---
+const SEO_STOP = new Set(['the','a','an','to','of','for','and','or','in','on','with','your','you','is','are','my','this','that','it','we','how','why','what','when','best','top','vs']);
+function seoKwWords(kw) {
+  return (kw || '').toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !SEO_STOP.has(w));
+}
+// True if the keyword phrase (or most of its significant words) appears in the text.
+function seoPhraseIn(kw, text) {
+  if (!kw) return false;
+  const t = (text || '').toLowerCase();
+  if (t.includes(kw.toLowerCase().trim())) return true;
+  const words = seoKwWords(kw);
+  if (!words.length) return false;
+  const hit = words.filter(w => t.includes(w)).length;
+  return hit / words.length >= 0.6;
+}
+
+function runInlineChecklist(title, desc, tags, container, primaryKeyword) {
   if (!title || !desc) return;
-  const brand = getActive();
+  tags = tags || [];
   const titleLow = title.toLowerCase();
   const descLow = desc.toLowerCase();
-  const desc150 = desc.slice(0, 150).toLowerCase();
-  const firstWord = titleLow.split(/\s+/)[0];
+  const desc150 = desc.slice(0, 150);
+  // Use the explicit primary keyword; fall back to the title's leading significant words
+  const primaryKw = (primaryKeyword && primaryKeyword.trim()) || seoKwWords(title).slice(0, 3).join(' ');
+  const titleFront = title.slice(0, Math.max(28, Math.round(title.length * 0.5)));
+  const hasSignal = /\d/.test(title) || /[\[\(]/.test(title) || /\b(how|why|what|secret|proven|mistake|avoid|stop|best|worst|never|always|ultimate|guide|easy|fast|simple|truth|warning|before|after|vs|versus|need|should|signs|ways|tips)\b/i.test(title);
+  const hasTags = tags.length > 0;
+  const tagChars = tags.join(',').length;
 
   const checks = [
     {
       pass: title.length <= 70,
-      rule: 'Title under 70 chars',
-      detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over` : ''}`
+      rule: 'Title within 70 characters',
+      detail: `${title.length} chars${title.length > 70 ? ` - ${title.length - 70} over` : title.length <= 60 ? ' - mobile-optimal' : ''}`
     },
     {
-      pass: desc150.includes(firstWord),
+      pass: seoPhraseIn(primaryKw, titleFront),
+      rule: 'Primary keyword front-loaded in title',
+      detail: primaryKw ? `"${primaryKw}" should sit early in the title` : 'No primary keyword set'
+    },
+    {
+      pass: hasSignal,
+      rule: 'Title has a click driver',
+      detail: 'A number, bracket, or power word (how / why / signs / best / avoid...)'
+    },
+    {
+      pass: seoPhraseIn(primaryKw, desc150),
       rule: 'Keyword in first 150 chars of description',
-      detail: desc150.includes(firstWord) ? 'Found' : 'Move a title keyword to the opening line'
-    },
-    {
-      pass: tags.length === 0 || tags.map(t => t.toLowerCase()).some(tag => titleLow.includes(tag) || tag.split(' ').some(w => w.length > 3 && titleLow.includes(w))),
-      rule: 'Tags align with title',
-      detail: tags.length === 0 ? 'No tags yet' : 'Title/tag keyword overlap'
-    },
-    {
-      pass: tags.length >= 15 && tags.length <= 25,
-      rule: 'Tag count 15-25',
-      detail: `${tags.length} tags${tags.length < 15 ? ` - add ${15 - tags.length} more` : tags.length > 25 ? ` - remove ${tags.length - 25}` : ''}`
+      detail: seoPhraseIn(primaryKw, desc150) ? 'Found' : 'Lead the description with the primary keyword'
     },
     {
       pass: ['link', 'subscribe', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
@@ -1817,15 +1899,27 @@ function runInlineChecklist(title, desc, tags, container) {
       detail: 'subscribe, book, click the link, download, etc.'
     },
     {
-      pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => desc.toLowerCase().trimStart().startsWith(f)),
+      pass: !['in this video', 'welcome to', 'hey guys', 'hello everyone', 'hey everyone', 'so today we', "today we're"].some(f => descLow.trimStart().startsWith(f)),
       rule: 'No filler opener',
       detail: 'Hook first - not "In this video" or "Welcome to"'
     },
-    ...(brand ? [{
-      pass: brand.channelName.toLowerCase().split(/\s+/).filter(w => w.length > 3).some(f => titleLow.includes(f) || descLow.includes(f)),
-      rule: 'Brand name present',
-      detail: `"${brand.channelName}" in title or description`
-    }] : [])
+    ...(hasTags ? [
+      {
+        pass: tagChars <= 500,
+        rule: 'Tags within YouTube 500-char limit',
+        detail: `${tagChars} / 500 chars${tagChars > 500 ? ` - trim ${tagChars - 500}` : ''}`
+      },
+      {
+        pass: seoPhraseIn(primaryKw, tags[0] || ''),
+        rule: 'First tag is the primary keyword',
+        detail: tags[0] ? `Tag #1: "${tags[0]}"` : 'Put the primary keyword first'
+      },
+      {
+        pass: tags.map(t => t.toLowerCase()).some(tag => titleLow.includes(tag) || tag.split(' ').some(w => w.length > 3 && titleLow.includes(w))),
+        rule: 'Tags align with title',
+        detail: 'Title and tag keywords overlap'
+      }
+    ] : [])
   ];
 
   const passCount = checks.filter(c => c.pass).length;
