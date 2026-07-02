@@ -273,7 +273,7 @@ const app = {
         }
         const cards = this.clients.map((c, i) => {
             const h = this.calcHealth(c);
-            return `<div class="card" onclick="app.view('profile', ${i})"><button class="btn-icon" onclick="app.promptDelete(${i}, event)" title="Delete" style="position:absolute; top:12px; right:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button><div style="font-weight:800; margin-bottom:2px;">${c.name}</div><div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem;">${c.platforms.join(' + ')} &middot; ${c.date}</div><div style="display:flex; align-items:baseline; gap:6px;"><span style="font-size:2rem; font-weight:800; color:${h.total > 65 ? 'var(--green)' : h.total > 40 ? 'var(--amber)' : 'var(--red)'}">${h.total}</span><span style="font-size:0.8rem; color:var(--text-muted)">/100</span></div></div>`;
+            return `<div class="card" onclick="app.view('profile', ${i})"><button class="btn-icon" onclick="app.promptDelete(${i}, event)" title="Delete" style="position:absolute; top:12px; right:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button><div style="font-weight:800; margin-bottom:2px;">${c.name}</div><div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem;">${c.platforms.join(' + ')} &middot; ${this.periodLabel(c)}</div><div style="display:flex; align-items:baseline; gap:6px;"><span style="font-size:2rem; font-weight:800; color:${h.total > 65 ? 'var(--green)' : h.total > 40 ? 'var(--amber)' : 'var(--red)'}">${h.total}</span><span style="font-size:0.8rem; color:var(--text-muted)">/100</span></div></div>`;
         }).join('');
         el.innerHTML = `<h2 style="margin-bottom:1.5rem;">Audits</h2><div class="grid">${cards}</div>`;
     },
@@ -332,7 +332,8 @@ const app = {
             const extractShape = {
                 metrics: perPlatShape,
                 topContent: [{ title: '', platform: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
-                deltas: deltaShape
+                deltas: deltaShape,
+                period: { start: '', end: '' }
             };
 
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
@@ -373,6 +374,8 @@ Field synonyms:
 
 (3) deltas — the period-over-period % change the report shows for each platform (e.g. "+101.71%", "-49.39%", "n/a"). Capture the change strings verbatim (keep the sign and %). Map: followers=follower growth %, impressions=impressions %, interactions=interactions/engagement %, posts=posts %. If a platform shows no % for a metric, use "".
 
+(4) period — the reporting date range shown on the report header. Return start and end as shown (e.g. start "15 May 2026", end "30 Jun 2026"). If absent, use "".
+
 Return ONLY valid JSON matching this exact structure (no other text, no markdown):
 ${JSON.stringify(extractShape, null, 2)}` }
                         ]}]
@@ -392,7 +395,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
             this.tempData = {
                 _name: name,
                 _topContent: Array.isArray(parsed.topContent) ? parsed.topContent : [],
-                _deltas: parsed.deltas || {}
+                _deltas: parsed.deltas || {},
+                _period: parsed.period || {}
             };
             platforms.forEach(p => { this.tempData[p] = metrics[p] || {}; });
             this.currentPlatforms = platforms;
@@ -427,6 +431,14 @@ ${JSON.stringify(extractShape, null, 2)}` }
             <div style="max-width:700px; margin:0 auto;">
                 <h2 style="margin-bottom:0.25rem;">Verify Audit Data</h2>
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Data is organized per platform. Edit any values, then generate the audit.</p>
+                <div class="conf-section" style="border-color:var(--border);">
+                    <div class="conf-section-head" style="cursor:default;"><span style="font-size:0.75rem;">🗓️</span> Report Details ${(d._period && (d._period.start || d._period.end)) ? '<span style="font-size:0.68rem; font-weight:600; color:var(--green); margin-left:8px; text-transform:none; letter-spacing:0;">&#10003; period auto-detected</span>' : ''}</div>
+                    <div class="conf-section-body" style="padding-top:0.5rem;"><div class="conf-field-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                        <div><label>Period Start</label><input type="text" id="rep-period-start" value="${(d._period && d._period.start) || ''}" placeholder="15 May 2026"></div>
+                        <div><label>Period End</label><input type="text" id="rep-period-end" value="${(d._period && d._period.end) || ''}" placeholder="30 Jun 2026"></div>
+                        <div><label>Channels (optional)</label><input type="text" id="rep-channels" value="" placeholder="IG @handle, FB Page…"></div>
+                    </div></div>
+                </div>
                 <div class="conf-section conf-global">
                     <div class="conf-section-head"><span style="font-size:0.75rem;">📊</span> Global Total <span style="font-size:0.7rem; font-weight:500; color:var(--text-muted); margin-left:auto;">auto-calculated</span></div>
                     <div class="global-auto-row" id="global-auto-row">${globalTiles}</div>
@@ -495,7 +507,9 @@ ${JSON.stringify(extractShape, null, 2)}` }
         }
 
         const deltas = (this.tempData && this.tempData._deltas) || {};
-        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), global, perPlatform, granular, topContent, deltas, findings: null });
+        const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+        const periodStart = gv('rep-period-start'), periodEnd = gv('rep-period-end'), channels = gv('rep-channels');
+        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, global, perPlatform, granular, topContent, deltas, findings: null });
         this.persist();
         this.view('profile', this.clients.length - 1);
     },
@@ -557,19 +571,87 @@ ${JSON.stringify(extractShape, null, 2)}` }
         return boosts;
     },
 
+    /* ══════════════════════════════════════ REPORT HELPERS (deltas, MoM, trend) */
+    prevAuditFor(i) {
+        const c = this.clients[i]; if (!c) return null;
+        const name = (c.name || '').trim().toLowerCase();
+        let prev = null;
+        for (let j = 0; j < i; j++) { if ((this.clients[j].name || '').trim().toLowerCase() === name) prev = this.clients[j]; }
+        return prev;
+    },
+    sameClientSeries(i) {
+        const c = this.clients[i]; if (!c) return [];
+        const name = (c.name || '').trim().toLowerCase();
+        const out = [];
+        for (let j = 0; j <= i; j++) { if ((this.clients[j].name || '').trim().toLowerCase() === name) out.push(this.clients[j]); }
+        return out;
+    },
+    momPct(cur, prev) {
+        if (prev === undefined || prev === null || prev === 0) return null;
+        return ((cur - prev) / Math.abs(prev)) * 100;
+    },
+    deltaChip(pct) {
+        if (pct === null || pct === undefined || !isFinite(pct)) return '';
+        const up = pct >= 0, col = up ? 'var(--green)' : 'var(--red)', bg = up ? 'var(--green-bg)' : 'var(--red-bg)';
+        return `<span style="display:inline-block; font-size:0.58rem; font-weight:700; color:${col}; background:${bg}; padding:1px 6px; border-radius:6px; margin-top:3px;">${up ? '+' : ''}${pct.toFixed(1)}% MoM</span>`;
+    },
+    deltaChipStr(str) {
+        if (!str) return '<span style="color:var(--text-muted); font-size:0.72rem;">&mdash;</span>';
+        const s = String(str).trim();
+        if (/n\/?a/i.test(s)) return `<span style="color:var(--text-muted); font-size:0.72rem;">n/a</span>`;
+        const neg = s.replace(/[^0-9.+-]/g, '').startsWith('-'), col = neg ? 'var(--red)' : 'var(--green)', bg = neg ? 'var(--red-bg)' : 'var(--green-bg)';
+        return `<span style="display:inline-block; font-size:0.68rem; font-weight:700; color:${col}; background:${bg}; padding:1px 7px; border-radius:6px;">${s}</span>`;
+    },
+    platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.clicks||0); },
+    platPosts(pd) { pd = pd || {}; return (pd.postsPublished||0)+(pd.reelsPublished||0); },
+    periodLabel(c) {
+        if (c.periodStart || c.periodEnd) return `${c.periodStart || ''}${c.periodStart && c.periodEnd ? ' &ndash; ' : ''}${c.periodEnd || ''}`;
+        return c.date || '';
+    },
+    sparkline(vals, color) {
+        const v = (vals || []).filter(x => typeof x === 'number' && isFinite(x));
+        if (v.length < 2) return '';
+        const w = 140, h = 32, pad = 3, min = Math.min(...v), max = Math.max(...v), rng = (max - min) || 1;
+        const pts = v.map((x, idx) => { const px = pad + (idx/(v.length-1))*(w-2*pad); const py = h - pad - ((x-min)/rng)*(h-2*pad); return px.toFixed(1)+','+py.toFixed(1); }).join(' ');
+        const last = v[v.length-1], lx = w - pad, ly = h - pad - ((last-min)/rng)*(h-2*pad);
+        return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.5" fill="${color}"/></svg>`;
+    },
+    renderTrendHTML(i) {
+        const series = this.sameClientSeries(i);
+        if (series.length < 2) return '';
+        const followers = series.map(a => (a.global && a.global.followers) || 0);
+        const impressions = series.map(a => (a.global && a.global.impressions) || 0);
+        const interactions = series.map(a => (a.global && a.global.totalInteractions) || 0);
+        const labels = series.map(a => a.periodEnd || a.date || '').filter(Boolean);
+        const metric = (name, vals, color) => {
+            const cur = vals[vals.length-1], prev = vals[vals.length-2], pct = this.momPct(cur, prev);
+            return `<div style="flex:1; min-width:150px;"><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">${name}</div><div style="display:flex; align-items:baseline; gap:6px; margin:2px 0 4px;"><span style="font-size:1.3rem; font-weight:800; font-family:'Cormorant Garamond',serif;">${fmt(cur)}</span>${this.deltaChip(pct)}</div>${this.sparkline(vals, color)}</div>`;
+        };
+        return `<div class="form-container"><div class="section-label">Trend &mdash; ${series.length} reports</div>
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                ${metric('Followers', followers, 'var(--primary)')}
+                ${metric('Impressions', impressions, 'var(--steel-light)')}
+                ${metric('Interactions', interactions, 'var(--green)')}
+            </div>
+            ${labels.length ? `<div style="font-size:0.65rem; color:var(--text-muted); margin-top:8px;">Oldest &rarr; newest: ${labels.join(' &middot; ')}</div>` : ''}
+        </div>`;
+    },
+
     /* ══════════════════════════════════════ PROFILE */
     renderProfile(el, i) {
         this.currentProfileIndex = i;
         const c = this.clients[i], health = this.calcHealth(c), boosts = this.getBoosts(c);
         const g = c.global || {}, gr = c.granular || {}, platforms = c.platforms || [];
 
+        const prevAudit = this.prevAuditFor(i), pg = (prevAudit && prevAudit.global) || null;
+        const md = (cur, prevVal) => pg ? this.deltaChip(this.momPct(cur, prevVal)) : '';
         const globalStats = [
-            { lbl:'Followers', val:fmt(g.followers||0) },
-            { lbl:'Net Growth', val:(g.followerBalance>=0?'+':'')+fmt(g.followerBalance||0) },
-            { lbl:'Impressions', val:fmt(g.impressions||0) },
-            { lbl:'Total Interactions', val:fmt(g.totalInteractions||0) },
-            { lbl:'Eng. Rate', val:(g.engRate||0)+'%' },
-            { lbl:'Total Content', val:g.totalContent||0 }
+            { lbl:'Followers', val:fmt(g.followers||0), delta: md(g.followers||0, pg && pg.followers||0) },
+            { lbl:'Net Growth', val:(g.followerBalance>=0?'+':'')+fmt(g.followerBalance||0), delta:'' },
+            { lbl:'Impressions', val:fmt(g.impressions||0), delta: md(g.impressions||0, pg && pg.impressions||0) },
+            { lbl:'Total Interactions', val:fmt(g.totalInteractions||0), delta: md(g.totalInteractions||0, pg && pg.totalInteractions||0) },
+            { lbl:'Eng. Rate', val:(g.engRate||0)+'%', delta: md(g.engRate||0, pg && pg.engRate||0) },
+            { lbl:'Total Content', val:g.totalContent||0, delta: md(g.totalContent||0, pg && pg.totalContent||0) }
         ];
         const interactionStats = [
             { lbl:'Likes', val:fmt(gr.likes||0) }, { lbl:'Comments', val:fmt(gr.comments||0) },
@@ -590,7 +672,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
-                    <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><span style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${c.date}</span></div>
+                    <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><div style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${this.periodLabel(c)}</div>${c.channels ? `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">${c.channels}</div>` : ''}</div>
                     <div style="display:flex; gap:8px;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm no-print" onclick="app.view('dashboard')">&larr; Back</button><button class="btn btn-primary btn-sm no-print" onclick="app.savePDF()" style="gap:6px;">&#x2193; PDF</button></div>
                 </div>
 
@@ -610,16 +692,20 @@ ${JSON.stringify(extractShape, null, 2)}` }
                     <div class="form-container">
                         <div class="section-label">Global Dashboard</div>
                         <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr);">
-                            ${globalStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}
+                            ${globalStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div>${s.delta||''}</div>`).join('')}
                         </div>
                     </div>
                 </div>
+
+                ${this.renderTrendHTML(i)}
+
+                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impressions</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${p}</td><td>${fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(pd.impressions||0)}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div></div>` : ''}
 
                 <div class="form-container" id="findings-section"><div class="section-label">Findings &amp; Analysis</div><div id="findings-body"></div></div>
 
                 <div class="form-container"><div class="section-label">Granular Interactions</div><div class="stat-grid">${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div></div>
 
-                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${p}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
+                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Per-Platform Detail</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${p}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
 
                 <div class="form-container"><div class="section-label">Boost Suggestions</div>${boostHTML}</div>
 
