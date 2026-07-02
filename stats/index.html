@@ -804,6 +804,7 @@ Dataset for the reporting period (numbers exact; deltas are period-over-period f
 ${JSON.stringify(dataForAI, null, 0)}
 
 Write a SPECIFIC analysis tailored to THIS account's exact numbers - no boilerplate, no advice that could apply to any account.
+VOICE: Write as Messick Marketing, the agency, speaking to the client as a partner. Use first-person plural - "we", "our", "us" - and take ownership of the work: "We grew...", "We recommend...", "Our top post...", "We'll focus on...". Do NOT use second-person "you/your" to hand out actions or advice (never "you should", "your posts need"). Keep it collaborative and we-led throughout clientSummary, wins, and recommendations.
 Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat their numbers as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
 
 Output ONLY compact minified JSON on a SINGLE line - no markdown, no code fences, no line breaks, no prose outside the object. Keep every string tight (one sentence where possible) so the response never gets cut off. This exact shape:
@@ -879,12 +880,12 @@ Give exactly 5 recommendations.`;
         if (top && top.impressions>0 && totalImpr>0) {
             const pct = Math.round((top.impressions/totalImpr)*100);
             keyFindings.push(`${top.p} drove the most reach: ${n(top.impressions)} impressions (${pct}% of the ${n(totalImpr)} total).`);
-            if (pct>=40) recommendations.push({title:`Lean into ${top.p}`, detail:`${top.p} delivered ${pct}% of your reach this period. Concentrate your best content and posting rhythm there while it's outperforming.`});
+            if (pct>=40) recommendations.push({title:`Lean into ${top.p}`, detail:`${top.p} delivered ${pct}% of the reach this period. We'll concentrate our best content and posting rhythm there while it's outperforming.`});
         }
         if (topPost && topPost.title) {
             const lbl = topPost.impressions ? `${n(topPost.impressions)} views` : `${n(topPost.totalEng)} interactions`;
             wins.push(`Top post "${String(topPost.title).slice(0,55)}" earned ${lbl} on ${topPost.platform}.`);
-            recommendations.push({title:'Repurpose your top post', detail:`"${String(topPost.title).slice(0,65)}" was the standout (${lbl}). Recut it into other formats and cross-post it to your other channels.`});
+            recommendations.push({title:'Repurpose our top post', detail:`"${String(topPost.title).slice(0,65)}" was the standout (${lbl}). We'll recut it into other formats and cross-post it across the other channels.`});
         }
         if (pg) {
             [['Followers',g.followers,pg.followers],['Impressions',g.impressions,pg.impressions],['Interactions',g.totalInteractions,pg.totalInteractions]].forEach(([lbl,cur,prv]) => {
@@ -898,26 +899,26 @@ Give exactly 5 recommendations.`;
         }
         newChans.forEach(x => {
             keyFindings.push(`${x.p} launched this period with ${n(x.followers)} followers and ${n(x.impressions)} views - a fresh baseline, not a shortfall.`);
-            platformNotes.push({platform:x.p, note:`Brand-new this period (${n(x.followers)} followers, all gained, none lost). Judge it on cadence, not size, for now.`});
-            recommendations.push({title:`Build cadence on your new ${x.p} channel`, detail:`${x.p} just launched (${n(x.followers)} followers, ${n(x.impressions)} views). A steady weekly rhythm now is what sets up compounding growth.`});
+            platformNotes.push({platform:x.p, note:`Brand-new this period (${n(x.followers)} followers, all gained, none lost). We'll judge it on cadence, not size, for now.`});
+            recommendations.push({title:`Build cadence on the new ${x.p} channel`, detail:`${x.p} just launched (${n(x.followers)} followers, ${n(x.impressions)} views). We'll keep a steady weekly rhythm now to set up compounding growth.`});
         });
         plats.forEach(p => {
             if (stats.find(s=>s.p===p && s.isNew)) return;
             const d = (c.deltas && c.deltas[p]) || {}; const iv = String(d.interactions||'');
-            if (iv.replace(/[^0-9.+-]/g,'').startsWith('-')) { concerns.push(`${p} interactions fell ${iv} vs the prior period.`); recommendations.push({title:`Review the ${p} content mix`, detail:`${p} interactions dropped ${iv} even while posting continued. Audit which formats underperformed and shift toward the ones that earned engagement.`}); }
+            if (iv.replace(/[^0-9.+-]/g,'').startsWith('-')) { concerns.push(`${p} interactions fell ${iv} vs the prior period.`); recommendations.push({title:`Review the ${p} content mix`, detail:`${p} interactions dropped ${iv} even while posting continued. We'll audit which formats underperformed and shift toward the ones that earned engagement.`}); }
         });
         stats.forEach(x => {
             if (x.isNew) return;
             if (x.impressions>0) platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
-            if (x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. Open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
+            if (x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. We'll open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
         });
-        if ((g.totalContent||0) > 0 && (g.totalContent||0) < 12) recommendations.push({title:'Lift posting frequency', detail:`${g.totalContent} posts this period. Building toward 3+ per week keeps reach compounding between reports.`});
+        if ((g.totalContent||0) > 0 && (g.totalContent||0) < 12) recommendations.push({title:'Lift posting frequency', detail:`${g.totalContent} posts this period. We'll build toward 3+ per week to keep reach compounding between reports.`});
         if (!wins.length && (g.impressions || g.totalInteractions)) wins.push(`${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions across ${plats.length} platform${plats.length===1?'':'s'}.`);
-        if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`Maintain your cadence and double down on ${top?top.p:'your top platform'}, your strongest channel this period.`});
+        if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`We'll maintain the cadence and double down on ${top?top.p:'the top platform'}, the strongest channel this period.`});
 
         const biggestWin = wins[0] || `${n(g.impressions)} impressions this period.`;
         const executiveSummary = `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.join(', ')||'social'} during ${this.periodLabel(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
-        const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'Your content kept the audience engaged'}, and your top post did a lot of the heavy lifting. Here's where we'd push next.`;
+        const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'The content kept the audience engaged'}, and the top post did a lot of the heavy lifting. Here's where we'll push next.`;
 
         return { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
     },
