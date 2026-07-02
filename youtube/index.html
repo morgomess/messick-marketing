@@ -1683,24 +1683,33 @@ async function generateTags() {
 
   const system = buildSystem(`You are a YouTube SEO tag strategist using 2026 best practices. Return ONLY a valid JSON object with no markdown.
 
-HOW YOUTUBE TAGS WORK IN 2026 (follow this or tags will not rank):
-- YouTube only rewards tags that are REAL search queries with actual demand. Invented keyword combinations, random adjective+noun pairs, and generic one-word tags return zero search volume and do nothing.
-- The FIRST few tags carry the most weight - lead with the exact primary search phrase.
-- Use current search behavior: autocomplete-style phrases, question phrasing ("how to", "why does", "what is"), comparison phrasing ("x vs y"), and intent phrasing ("near me", "for beginners", "at home"). Favor 2-5 word long-tail phrases people actually type.
-- Search the web to confirm how people currently search this topic and niche before choosing tags.
+YOUR ONE GOAL: every tag must be a phrase with REAL search volume (the kind VidIQ / TubeBuddy would score above zero). A tag nobody searches is wasted. When in doubt, pick the BROADER, more common phrasing a real person types - not a clever, specific, or on-brand one.
+
+HIGH-VOLUME PATTERNS - prefer these:
+- Common, general topic phrasings people actually type, 2 to 4 words (e.g. "demon possession in the Bible", "weird things in the Bible", "women in the Bible", "Bible stories you never heard").
+- Named people, places, events, products, procedures, or specific passages/titles searchers already know (e.g. "Canaanite woman and Jesus", "Matthew 15 Canaanite woman").
+- Popular curiosity + audience phrasings that are real searches (e.g. "uncomfortable Bible passages", "Bible stories for skeptics", "Bible without religion", "faith deconstruction").
+
+ZERO-VOLUME PATTERNS - never generate these (they score 0):
+- Stacked hyper-specific strings with 3+ qualifiers ("demon possessed daughter Bible", "daughter demon possession scripture", "New Testament strange stories").
+- Editorial or opinion adjectives nobody searches ("irreverent", "honest", "brutal", "raw", "unfiltered" + topic).
+- Format / production / brand-voice descriptors ("storytelling", "podcast style", "cinematic", "retold by", "narrated").
+- Full sentences or taglines ("stories that make you question faith").
+
+Search the web first to confirm real phrasings and autocomplete suggestions for this topic and niche.
 
 {
-  "primaryKeyword": "the exact primary search phrase - this becomes tag #1",
-  "exactMatch": ["4 to 6 tags: the primary keyword plus its closest real search variants"],
-  "broadMatch": ["5 to 8 tags: real related searches and adjacent topics people also query"],
-  "audienceMatch": ["4 to 6 tags: real audience/intent searches (questions, 'near me', 'for beginners', symptom or problem phrasing)"]
+  "primaryKeyword": "the broad, real, high-volume search phrase for this video - this becomes tag #1",
+  "exactMatch": ["4 to 6 tags: the primary keyword plus its closest real, commonly-searched variants"],
+  "broadMatch": ["5 to 8 tags: broader common searches and adjacent topics with real volume in this niche"],
+  "audienceMatch": ["3 to 5 tags: real audience/curiosity searches people actually type"]
 }
 
 TAG RULES:
-- 12 to 18 tags total, ordered most-important and highest-demand first.
-- HARD LIMIT: the combined length of all tags (joined by commas, the way YouTube counts them) must stay UNDER 480 characters. YouTube rejects anything past 500. Keep phrases tight and drop the weakest tags rather than exceed this.
-- Every single tag must be a phrase a real person would actually type into YouTube search. No word salad, no random combos, no generic single words with no demand.
-- Mostly 2-5 word phrases. No duplicates or near-duplicates. Ground every choice in real 2026 search behavior for this channel's niche.`);
+- 12 to 16 tags total, ordered highest search volume / most important first, primary keyword as tag #1.
+- HARD LIMIT: combined length of all tags (comma-joined, the way YouTube counts) must stay UNDER 480 characters (YouTube rejects past 500). Drop the weakest tags rather than exceed this.
+- Bias BROAD and COMMON over clever and specific. Prefer 2 to 4 word phrases that read like real search queries.
+- No duplicates or near-duplicates, no editorial adjectives, no format/brand descriptors, no full sentences, no single generic words.`);
 
   try {
     let raw;
