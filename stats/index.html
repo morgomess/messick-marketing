@@ -327,31 +327,37 @@ const app = {
 
             const perPlatShape = {};
             platforms.forEach(p => { const obj = {}; PLATFORM_FIELDS[p].forEach(f => obj[f] = 0); perPlatShape[p] = obj; });
+            const deltaShape = {};
+            platforms.forEach(p => { deltaShape[p] = { followers: '', impressions: '', interactions: '', posts: '' }; });
+            const extractShape = {
+                metrics: perPlatShape,
+                topContent: [{ title: '', platform: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
+                deltas: deltaShape
+            };
 
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     apiKey: this.apiKey,
                     payload: {
-                        model: 'claude-haiku-4-5-20251001', max_tokens: 2048,
+                        model: 'claude-haiku-4-5-20251001', max_tokens: 4096,
                         messages: [{ role: 'user', content: [
                             { type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } },
-                            { type: 'text', text: `You are extracting social media metrics from an analytics report (likely Metricool).
+                            { type: 'text', text: `You are extracting a social media analytics report (likely a Metricool export) into structured JSON.
 The report has per-platform columns (Facebook, Instagram, TikTok, YouTube, LinkedIn) and possibly a Global Total column.
-IMPORTANT: Extract data INTO EACH PLATFORM SEPARATELY. Do NOT combine platforms into one blob.
-Convert abbreviations: 1.2K=1200, 1.5M=1500000, +312 (Net)=312.
-If "Follower Growth" shows "+299", put 299 in followersGained. If it shows a net value, put it in followersGained and set followersLost to 0.
-If a metric is missing or N/A for a platform, use 0.
+Extract THREE things: (1) per-platform metrics, (2) the top-performing posts/content, (3) the period-over-period deltas.
 
+(1) METRICS — extract INTO EACH PLATFORM SEPARATELY. Do NOT combine platforms.
+Convert abbreviations: 1.2K=1200, 1.5M=1500000, +312 (Net)=312. If a metric is missing or N/A, use 0.
 Field synonyms:
 - followers = audience, community, total followers, subscriber count
-- followersGained = new followers, gained, net growth (positive number), subscribers gained
+- followersGained = new followers, gained, net growth (positive), subscribers gained
 - followersLost = lost followers, unfollowed
 - reach = unique reach, accounts reached
 - impressions = impressions/views, total impressions
 - videoViews = video views
 - watchTime = watch time (hours)
-- likes = likes, reactions, hearts, likes/reactions
+- likes = likes, reactions, hearts
 - comments = comments, replies
 - shares = shares, reposts
 - saves = saves, bookmarks
@@ -363,8 +369,12 @@ Field synonyms:
 - avgWatchTime = average watch time (seconds)
 - avgDailyReach = average daily reach
 
+(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array [].
+
+(3) deltas — the period-over-period % change the report shows for each platform (e.g. "+101.71%", "-49.39%", "n/a"). Capture the change strings verbatim (keep the sign and %). Map: followers=follower growth %, impressions=impressions %, interactions=interactions/engagement %, posts=posts %. If a platform shows no % for a metric, use "".
+
 Return ONLY valid JSON matching this exact structure (no other text, no markdown):
-${JSON.stringify(perPlatShape, null, 2)}` }
+${JSON.stringify(extractShape, null, 2)}` }
                         ]}]
                     }
                 })
@@ -378,8 +388,13 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
             if (!raw) throw new Error('AI returned invalid data format.');
 
             const parsed = JSON.parse(raw[0]);
-            this.tempData = { _name: name };
-            platforms.forEach(p => { this.tempData[p] = parsed[p] || {}; });
+            const metrics = parsed.metrics || parsed; // tolerate old flat shape
+            this.tempData = {
+                _name: name,
+                _topContent: Array.isArray(parsed.topContent) ? parsed.topContent : [],
+                _deltas: parsed.deltas || {}
+            };
+            platforms.forEach(p => { this.tempData[p] = metrics[p] || {}; });
             this.currentPlatforms = platforms;
             this.view('confirm');
         } catch (e) {
@@ -418,8 +433,9 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
                 </div>
                 ${platSections}
                 <div style="margin-top:1rem;">
-                    <label>Top Content (Optional, one per line: "Title | Platform | Likes | Comments | Shares | Reach")</label>
-                    <textarea id="content-entries" rows="4" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | 342 | 28 | 15 | 4200"></textarea>
+                    <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; auto-pulled from the report &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
+                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Format: Title | Platform | Date | Impressions | Likes | Comments | Shares | Reach</p>
+                    <textarea id="content-entries" rows="6" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | Jun 18, 2026 | 6951 | 342 | 28 | 15 | 4200">${this.topContentToLines(d._topContent)}</textarea>
                 </div>
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.25rem;">Generate Audit</button>
             </div>`;
@@ -463,14 +479,35 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
         const contentText = document.getElementById('content-entries').value.trim();
         if (contentText) {
             contentText.split('\n').forEach((line, idx) => {
+                if (!line.trim()) return;
+                // Format: Title | Platform | Date | Impressions | Likes | Comments | Shares | Reach
                 const parts = line.split('|').map(s => s.trim());
-                if (parts.length >= 2) topContent.push({ rank: idx+1, title: parts[0]||'Untitled', platform: parts[1]||platforms[0], likes: parseInt(parts[2])||0, comments: parseInt(parts[3])||0, shares: parseInt(parts[4])||0, reach: parseInt(parts[5])||0, totalEng: (parseInt(parts[2])||0)+(parseInt(parts[3])||0)+(parseInt(parts[4])||0) });
+                if (parts.length < 2) return;
+                const num = v => parseInt(String(v || '').replace(/[^0-9]/g, '')) || 0;
+                const likes = num(parts[4]), comments = num(parts[5]), shares = num(parts[6]);
+                topContent.push({
+                    rank: idx + 1, title: parts[0] || 'Untitled', platform: parts[1] || platforms[0],
+                    date: parts[2] || '', impressions: num(parts[3]),
+                    likes, comments, shares, reach: num(parts[7]),
+                    totalEng: likes + comments + shares
+                });
             });
         }
 
-        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), global, perPlatform, granular, topContent });
+        const deltas = (this.tempData && this.tempData._deltas) || {};
+        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), global, perPlatform, granular, topContent, deltas, findings: null });
         this.persist();
         this.view('profile', this.clients.length - 1);
+    },
+
+    // Render stored top-content objects back into the editable pipe-delimited textarea format
+    topContentToLines(list) {
+        if (!Array.isArray(list) || !list.length) return '';
+        const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '/');
+        return list.map(x => [
+            esc(x.title), esc(x.platform), esc(x.date || ''),
+            x.impressions || 0, x.likes || 0, x.comments || 0, x.shares || 0, x.reach || 0
+        ].join(' | ')).join('\n');
     },
 
     /* ══════════════════════════════════════ HEALTH SCORE */
@@ -540,7 +577,8 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
             { lbl:'Clicks', val:fmt(gr.clicks||0) }, { lbl:'Dislikes', val:fmt(gr.dislikes||0) }
         ].filter(s => parseFloat(String(s.val).replace(/[^0-9.]/g,'')) > 0 || s.lbl === 'Likes');
 
-        const topContent = (c.topContent||[]).sort((a,b) => b.totalEng - a.totalEng).slice(0, 10);
+        const topContent = (c.topContent||[]).slice().sort((a,b) => (b.impressions||0) - (a.impressions||0) || (b.totalEng||0) - (a.totalEng||0)).slice(0, 10);
+        const hasImpr = topContent.some(t => (t.impressions||0) > 0);
         const boostHTML = boosts.length > 0 ? boosts.map(b => `<div class="boost-box boost-${b.tier}"><span class="boost-tag boost-tag-${b.tier}">${b.tier==='asap'?'⚡ ASAP':b.tier==='week'?'📅 1-Week':'📊 4-Week'}</span><div><strong>${b.title}</strong></div><div style="margin-top:4px;">${b.desc}</div></div>`).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No critical boosts triggered.</p>';
 
         el.innerHTML = `
@@ -558,7 +596,7 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
 
                 <div class="pitch-box" id="pitch-box"><strong>Pitch Summary:</strong><br>"This ecosystem has a Health Score of ${health.total}/100 across ${platforms.join(' + ')}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"</div>
 
-                ${topContent.length > 0 ? `<div class="form-container"><div class="section-label">Top Content Ranking (Cross-Platform)</div><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Content</th><th>Platform</th><th>Likes</th><th>Comments</th><th>Shares</th><th>Reach</th><th>Total</th></tr></thead><tbody>${topContent.map((tc,idx) => `<tr><td><span class="rank-num">${idx+1}</span></td><td style="font-weight:600; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tc.title}</td><td>${tc.platform}</td><td>${fmt(tc.likes)}</td><td>${fmt(tc.comments)}</td><td>${fmt(tc.shares)}</td><td>${fmt(tc.reach)}</td><td style="font-weight:700;">${fmt(tc.totalEng)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+                ${topContent.length > 0 ? `<div class="form-container"><div class="section-label">Top Performing Content ${hasImpr ? '(by impressions)' : '(by interactions)'}</div><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Date</th><th>Platform</th><th>Content</th>${hasImpr ? '<th>Impressions</th>' : ''}<th>Likes</th><th>Comments</th><th>Shares</th><th>Interactions</th></tr></thead><tbody>${topContent.map((tc,idx) => `<tr><td><span class="rank-num">${idx+1}</span></td><td style="white-space:nowrap; color:var(--text-muted);">${tc.date||'&mdash;'}</td><td>${tc.platform}</td><td style="font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tc.title}</td>${hasImpr ? `<td style="font-weight:700;">${fmt(tc.impressions)}</td>` : ''}<td>${fmt(tc.likes)}</td><td>${fmt(tc.comments)}</td><td>${fmt(tc.shares)}</td><td style="font-weight:700;">${fmt(tc.totalEng)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
 
                 <div class="grid" style="margin-bottom:1.5rem;">
                     <div class="form-container" style="text-align:center;">
@@ -577,6 +615,8 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
                     </div>
                 </div>
 
+                <div class="form-container" id="findings-section"><div class="section-label">Findings &amp; Analysis</div><div id="findings-body"></div></div>
+
                 <div class="form-container"><div class="section-label">Granular Interactions</div><div class="stat-grid">${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div></div>
 
                 ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${p}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
@@ -594,6 +634,93 @@ ${JSON.stringify(perPlatShape, null, 2)}` }
                 </div>
             </div>`;
         if (c.perPlatform && platforms.length > 0) this.showPlatformTab(i, platforms[0]);
+        this.renderFindingsSection(i);
+    },
+
+    /* ══════════════════════════════════════ FINDINGS (AI, in-depth) */
+    renderFindingsSection(i) {
+        const c = this.clients[i];
+        const body = document.getElementById('findings-body');
+        if (!body) return;
+        if (c.findings) { body.innerHTML = this.findingsHTML(c.findings, i); return; }
+        if (!this.apiKey) {
+            body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Add your Anthropic API key in <strong>API Settings</strong> to generate an in-depth AI analysis of this audit.</p>`;
+            return;
+        }
+        // Auto-generate on first view
+        this.generateFindings(i);
+    },
+
+    async generateFindings(i, force) {
+        const c = this.clients[i];
+        const body = document.getElementById('findings-body');
+        if (!this.apiKey) { if (body) body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Add your Anthropic API key in <strong>API Settings</strong> first.</p>`; return; }
+        if (c.findings && !force) { if (body) body.innerHTML = this.findingsHTML(c.findings, i); return; }
+        if (body) body.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;"><span class="loader"></span> Analyzing the full dataset&hellip;</p>`;
+
+        // Compact, number-rich payload for the model
+        const dataForAI = {
+            client: c.name, reportDate: c.date, platforms: c.platforms,
+            globalTotals: c.global, perPlatform: c.perPlatform,
+            periodOverPeriodDeltas: c.deltas || {},
+            topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
+        };
+
+        const prompt = `You are a senior social media strategist writing the "Findings & Analysis" section of a client audit for ${c.name}.
+Here is the full dataset for the reporting period (numbers are exact; deltas are period-over-period changes from the export):
+${JSON.stringify(dataForAI, null, 1)}
+
+Write a rigorous, SPECIFIC analysis. Every point must cite actual numbers or deltas from the data. No generic advice that could apply to any account. If a platform is brand-new (near-zero prior baseline), say so rather than overstating growth. Note any data quality caveats you infer (e.g. a metric marked 0 or n/a).
+
+Return ONLY valid JSON, no markdown:
+{
+  "executiveSummary": "2-3 sentences summarizing the period with the most important numbers",
+  "keyFindings": ["6-8 specific, data-backed findings, each citing real metrics/deltas"],
+  "platformNotes": [{"platform":"Name","note":"1-2 sentences of platform-specific insight citing its numbers"}],
+  "wins": ["2-4 concrete wins with numbers"],
+  "concerns": ["2-4 concrete concerns or risks with numbers"],
+  "recommendations": ["4-6 prioritized, specific next actions tied to these findings"]
+}`;
+
+        try {
+            const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey: this.apiKey, payload: {
+                    model: 'claude-sonnet-5', max_tokens: 2048,
+                    messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }]
+                }})
+            });
+            const data = await resp.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+            const txt = data.content && data.content[0] && data.content[0].text;
+            const m = txt && txt.match(/\{[\s\S]*\}/);
+            if (!m) throw new Error('AI returned no analysis.');
+            c.findings = JSON.parse(m[0]);
+            this.persist();
+            const b2 = document.getElementById('findings-body');
+            if (b2) b2.innerHTML = this.findingsHTML(c.findings, i);
+        } catch (e) {
+            const b2 = document.getElementById('findings-body');
+            if (b2) b2.innerHTML = `<p style="color:var(--red); font-size:0.85rem;">Analysis failed: ${e.message}</p><button class="btn btn-ghost btn-sm no-print" style="margin-top:8px;" onclick="app.generateFindings(${i}, true)">Retry</button>`;
+        }
+    },
+
+    findingsHTML(f, i) {
+        if (!f) return '';
+        const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const list = (arr) => (arr || []).map(x => `<li style="margin-bottom:6px;">${esc(x)}</li>`).join('');
+        const twoCol = (title, arr, color) => (arr && arr.length) ? `<div style="flex:1; min-width:200px;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${color}; margin-bottom:6px;">${title}</div><ul style="margin:0; padding-left:1.1rem; font-size:0.85rem;">${list(arr)}</ul></div>` : '';
+        const platNotes = (f.platformNotes || []).map(pn => `<div style="margin-bottom:8px; font-size:0.85rem;"><strong>${esc(pn.platform)}:</strong> ${esc(pn.note)}</div>`).join('');
+        return `
+            ${f.executiveSummary ? `<p style="font-size:0.95rem; line-height:1.6; margin-bottom:1rem;">${esc(f.executiveSummary)}</p>` : ''}
+            ${(f.keyFindings && f.keyFindings.length) ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Key Findings</div><ul style="margin:0 0 1rem; padding-left:1.1rem; font-size:0.88rem; line-height:1.5;">${list(f.keyFindings)}</ul>` : ''}
+            ${platNotes ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">By Platform</div><div style="margin-bottom:1rem;">${platNotes}</div>` : ''}
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+                ${twoCol('Wins', f.wins, 'var(--green)')}
+                ${twoCol('Concerns', f.concerns, 'var(--red)')}
+            </div>
+            ${(f.recommendations && f.recommendations.length) ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:6px;">Recommended Next Actions</div><ol style="margin:0; padding-left:1.2rem; font-size:0.88rem; line-height:1.5;">${(f.recommendations||[]).map(x=>`<li style="margin-bottom:6px;">${esc(x)}</li>`).join('')}</ol>` : ''}
+            <button class="btn btn-ghost btn-sm no-print" style="margin-top:1rem;" onclick="app.generateFindings(${i}, true)">&#8635; Regenerate analysis</button>`;
     },
 
     showPlatformTab(auditIndex, platform, btn) {
