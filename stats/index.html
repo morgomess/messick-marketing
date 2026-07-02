@@ -98,7 +98,40 @@
         .global-auto-tile .gval { font-size: 1.2rem; font-weight: 600; font-family: 'Cormorant Garamond', serif; }
         .global-auto-tile .glbl { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        
+        /* ── SELECTABLE RECOMMENDATION CARDS ── */
+        .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin: 6px 0 4px; }
+        .rec-card { border: 2px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; user-select: none; background: var(--white); }
+        .rec-card:hover { border-color: var(--steel-light); }
+        .rec-card.on { border-color: var(--steel); background: rgba(58,107,138,0.06); }
+        .rec-check { display: none; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--steel); margin-bottom: 4px; }
+        .rec-card.on .rec-check { display: block; }
+        .rec-off { display: none; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }
+        .rec-card:not(.on) .rec-off { display: block; }
+        .rec-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 3px; }
+        .rec-detail { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+
+        /* ── CLIENT REPORT ── */
+        .cr-hero { background: linear-gradient(135deg, #1c2e3d, #3a6b8a); color: #fff; border-radius: 16px; padding: 2rem; margin-bottom: 1.25rem; }
+        .cr-hero h1 { color: #fff; font-size: 2rem; font-weight: 800; }
+        .cr-hero .cr-sub { color: rgba(255,255,255,0.72); font-size: 0.85rem; margin-top: 4px; }
+        .cr-wins { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 1.5rem; }
+        .cr-win { background: rgba(255,255,255,0.12); border-radius: 12px; padding: 1rem 1.1rem; }
+        .cr-win .cr-win-val { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 700; line-height: 1; }
+        .cr-win .cr-win-delta { font-size: 0.72rem; font-weight: 700; margin-left: 4px; }
+        .cr-win .cr-win-lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.82; margin-top: 5px; }
+        .cr-section { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.25rem; }
+        .cr-h { font-family: 'Cormorant Garamond', serif; font-size: 1.45rem; font-weight: 600; margin-bottom: 0.85rem; }
+        .cr-lead { font-size: 1rem; line-height: 1.65; }
+        .cr-highlight { display: flex; gap: 12px; align-items: flex-start; padding: 0.85rem 1rem; background: var(--green-bg); border-left: 4px solid var(--green); border-radius: 8px; margin-bottom: 8px; }
+        .cr-highlight .cr-hl-ico { font-size: 1.15rem; line-height: 1.3; }
+        .cr-highlight .cr-hl-txt { font-size: 0.92rem; line-height: 1.5; font-weight: 500; }
+        .cr-rec { display: flex; gap: 12px; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+        .cr-rec:last-child { border-bottom: none; }
+        .cr-rec-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; background: var(--primary-soft); color: var(--steel); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .cr-rec-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+        .cr-rec-detail { font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; }
+
+
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body { background: #faf8f5 !important; }
@@ -251,6 +284,7 @@ const app = {
         if (name === 'input') this.renderInput(vp);
         if (name === 'confirm') this.renderConfirm(vp);
         if (name === 'profile') this.renderProfile(vp, index);
+        if (name === 'report') this.renderClientReport(vp, index);
         window.scrollTo(0, 0);
     },
 
@@ -760,13 +794,15 @@ Write a rigorous, SPECIFIC analysis. Every point must cite actual numbers or del
 
 Return ONLY valid JSON, no markdown:
 {
-  "executiveSummary": "2-3 sentences summarizing the period with the most important numbers",
+  "executiveSummary": "2-3 sentences summarizing the period with the most important numbers (internal/strategist tone)",
+  "clientSummary": "2-3 sentences in warm, plain, jargon-free language a busy business owner would enjoy reading. Lead with the single biggest win. No marketing jargon, no acronyms, no percentages stacked on percentages - keep it human.",
   "keyFindings": ["6-8 specific, data-backed findings, each citing real metrics/deltas"],
   "platformNotes": [{"platform":"Name","note":"1-2 sentences of platform-specific insight citing its numbers"}],
-  "wins": ["2-4 concrete wins with numbers"],
-  "concerns": ["2-4 concrete concerns or risks with numbers"],
-  "recommendations": ["4-6 prioritized, specific next actions tied to these findings"]
-}`;
+  "wins": ["3-5 SHORT, punchy, client-friendly wins that each LEAD WITH THE NUMBER, e.g. 'Impressions jumped 381% to 20.5K' or '867 interactions, nearly double last period'. Plain language."],
+  "concerns": ["2-4 concrete concerns or risks with numbers (internal tone)"],
+  "recommendations": [{"title":"Short plain-language action (client-friendly, no jargon)","detail":"1-2 sentences on what to do and why it matters, in language a client understands"}]
+}
+Provide 5-7 recommendations so the strategist can pick the best ones for the client.`;
 
         try {
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
@@ -791,12 +827,36 @@ Return ONLY valid JSON, no markdown:
         }
     },
 
+    // Normalize recommendations to {title, detail} objects (tolerates old string form)
+    normalizeRecs(f) {
+        return ((f && f.recommendations) || []).map(r => typeof r === 'string' ? { title: r, detail: '' } : { title: r.title || '', detail: r.detail || '' });
+    },
+    // Which recommendation indices are selected for the client report (default: all)
+    selectedRecSet(c) {
+        const recs = this.normalizeRecs(c.findings);
+        if (!Array.isArray(c.selectedRecs)) c.selectedRecs = recs.map((_, k) => k);
+        return c.selectedRecs;
+    },
+    toggleRec(i, idx) {
+        const c = this.clients[i];
+        const sel = this.selectedRecSet(c);
+        const pos = sel.indexOf(idx);
+        if (pos >= 0) sel.splice(pos, 1); else sel.push(idx);
+        this.persist();
+        const card = document.getElementById(`rec-card-${idx}`);
+        if (card) card.classList.toggle('on');
+    },
+
     findingsHTML(f, i) {
         if (!f) return '';
+        const c = this.clients[i];
         const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const list = (arr) => (arr || []).map(x => `<li style="margin-bottom:6px;">${esc(x)}</li>`).join('');
         const twoCol = (title, arr, color) => (arr && arr.length) ? `<div style="flex:1; min-width:200px;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${color}; margin-bottom:6px;">${title}</div><ul style="margin:0; padding-left:1.1rem; font-size:0.85rem;">${list(arr)}</ul></div>` : '';
         const platNotes = (f.platformNotes || []).map(pn => `<div style="margin-bottom:8px; font-size:0.85rem;"><strong>${esc(pn.platform)}:</strong> ${esc(pn.note)}</div>`).join('');
+        const recs = this.normalizeRecs(f);
+        const sel = this.selectedRecSet(c);
+        const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}</div>`).join('');
         return `
             ${f.executiveSummary ? `<p style="font-size:0.95rem; line-height:1.6; margin-bottom:1rem;">${esc(f.executiveSummary)}</p>` : ''}
             ${(f.keyFindings && f.keyFindings.length) ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Key Findings</div><ul style="margin:0 0 1rem; padding-left:1.1rem; font-size:0.88rem; line-height:1.5;">${list(f.keyFindings)}</ul>` : ''}
@@ -805,8 +865,79 @@ Return ONLY valid JSON, no markdown:
                 ${twoCol('Wins', f.wins, 'var(--green)')}
                 ${twoCol('Concerns', f.concerns, 'var(--red)')}
             </div>
-            ${(f.recommendations && f.recommendations.length) ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:6px;">Recommended Next Actions</div><ol style="margin:0; padding-left:1.2rem; font-size:0.88rem; line-height:1.5;">${(f.recommendations||[]).map(x=>`<li style="margin-bottom:6px;">${esc(x)}</li>`).join('')}</ol>` : ''}
-            <button class="btn btn-ghost btn-sm no-print" style="margin-top:1rem;" onclick="app.generateFindings(${i}, true)">&#8635; Regenerate analysis</button>`;
+            ${recs.length ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:2px;">Recommendations</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Tap to choose which appear in the client report.</p><div class="rec-grid">${recCards}</div>` : ''}
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:1.25rem;">
+                <button class="btn btn-primary btn-sm no-print" onclick="app.view('report', ${i})">&#128196; Build Client Report &rarr;</button>
+                <button class="btn btn-ghost btn-sm no-print" onclick="app.generateFindings(${i}, true)">&#8635; Regenerate analysis</button>
+            </div>`;
+    },
+
+    /* ══════════════════════════════════════ CLIENT REPORT (polished, client-facing) */
+    renderClientReport(el, i) {
+        const c = this.clients[i];
+        if (!c) { this.view('dashboard'); return; }
+        const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const g = c.global || {}, platforms = c.platforms || [], f = c.findings;
+
+        if (!f) {
+            el.innerHTML = `<div style="max-width:760px; margin:0 auto; text-align:center; padding:3rem 1rem;">
+                <h2 style="margin-bottom:0.5rem;">Analysis needed first</h2>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">Open the audit and let the AI generate its Findings &amp; Analysis, then come back to build the client report.</p>
+                <button class="btn btn-primary" onclick="app.view('profile', ${i})">&larr; Go to audit</button></div>`;
+            return;
+        }
+
+        const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
+        const heroTiles = [
+            { lbl:'Followers', val:fmt(g.followers||0), d: pg ? this.momPct(g.followers||0, pg.followers||0) : null },
+            { lbl:'Impressions', val:fmt(g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
+            { lbl:'Interactions', val:fmt(g.totalInteractions||0), d: pg ? this.momPct(g.totalInteractions||0, pg.totalInteractions||0) : null },
+            { lbl:'Posts', val:g.totalContent||0, d: pg ? this.momPct(g.totalContent||0, pg.totalContent||0) : null }
+        ];
+        const heroHTML = heroTiles.map(t => {
+            const chip = (t.d != null && isFinite(t.d)) ? `<span class="cr-win-delta" style="color:${t.d>=0?'#8fe0b0':'#ffb3b3'}">${t.d>=0?'+':''}${t.d.toFixed(0)}%</span>` : '';
+            return `<div class="cr-win"><div class="cr-win-val">${t.val}${chip}</div><div class="cr-win-lbl">${t.lbl}</div></div>`;
+        }).join('');
+
+        const wins = (f.wins || []);
+        const winsHTML = wins.length ? wins.map(w => `<div class="cr-highlight"><span class="cr-hl-ico">&#11088;</span><span class="cr-hl-txt">${esc(w)}</span></div>`).join('') : '';
+
+        const top = (c.topContent || []).slice().sort((a,b) => (b.impressions||0)-(a.impressions||0) || (b.totalEng||0)-(a.totalEng||0)).slice(0, 5);
+        const hasImpr = top.some(t => (t.impressions||0) > 0);
+        const topHTML = top.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Post</th><th>Platform</th>${hasImpr ? '<th>Views</th>' : ''}<th>Interactions</th></tr></thead><tbody>${top.map(t => `<tr><td style="font-weight:600; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(t.title)}</td><td>${esc(t.platform)}</td>${hasImpr ? `<td style="font-weight:700;">${fmt(t.impressions)}</td>` : ''}<td>${fmt(t.totalEng)}</td></tr>`).join('')}</tbody></table></div>` : '';
+
+        const recs = this.normalizeRecs(f), sel = this.selectedRecSet(c);
+        const chosen = recs.filter((_, idx) => sel.includes(idx));
+        const recsHTML = chosen.length ? chosen.map((r, n) => `<div class="cr-rec"><div class="cr-rec-num">${n+1}</div><div><div class="cr-rec-title">${esc(r.title)}</div>${r.detail ? `<div class="cr-rec-detail">${esc(r.detail)}</div>` : ''}</div></div>`).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No recommendations selected. Pick some in the audit&rsquo;s Findings section.</p>';
+
+        const lead = f.clientSummary || f.executiveSummary || '';
+
+        el.innerHTML = `
+            <div style="max-width:760px; margin:0 auto;">
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:1rem;">
+                    <button class="btn btn-ghost btn-sm no-print" onclick="app.view('profile', ${i})">&larr; Full analysis</button>
+                    <button class="btn btn-primary btn-sm no-print" onclick="window.print()">&#x2193; Export PDF</button>
+                </div>
+
+                <div class="cr-hero">
+                    <h1>${esc(c.name)}</h1>
+                    <div class="cr-sub">Social Media Performance &middot; ${this.periodLabel(c)}</div>
+                    ${c.channels ? `<div class="cr-sub" style="margin-top:1px;">${esc(c.channels)}</div>` : ''}
+                    <div class="cr-wins">${heroHTML}</div>
+                </div>
+
+                ${lead ? `<div class="cr-section"><div class="cr-h">The Story This Period</div><p class="cr-lead">${esc(lead)}</p></div>` : ''}
+
+                ${winsHTML ? `<div class="cr-section"><div class="cr-h">Wins Worth Celebrating</div>${winsHTML}</div>` : ''}
+
+                ${topHTML ? `<div class="cr-section"><div class="cr-h">Content That Landed</div>${topHTML}</div>` : ''}
+
+                <div class="cr-section"><div class="cr-h">What We Recommend Next</div>${recsHTML}</div>
+
+                <div style="text-align:center; font-size:0.72rem; color:var(--text-muted); padding:0.5rem 0 2rem;">
+                    <span style="font-family:'Dancing Script',cursive; font-size:1.05rem; color:var(--steel);">Messick Marketing</span> &nbsp;&middot;&nbsp; Prepared for ${esc(c.name)} &nbsp;&middot;&nbsp; ${this.periodLabel(c)}
+                </div>
+            </div>`;
     },
 
     showPlatformTab(auditIndex, platform, btn) {
