@@ -368,7 +368,7 @@ const app = {
             platforms.forEach(p => { deltaShape[p] = { followers: '', impressions: '', interactions: '', posts: '' }; });
             const extractShape = {
                 metrics: perPlatShape,
-                topContent: [{ title: '', platform: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
+                topContent: [{ title: '', platform: '', format: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
                 deltas: deltaShape,
                 period: { start: '', end: '' }
             };
@@ -407,7 +407,7 @@ Field synonyms:
 - avgWatchTime = average watch time (seconds)
 - avgDailyReach = average daily reach
 
-(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array [].
+(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, format, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array []. For "format", use one of: Reel, Short, Video, Carousel, Image, Story, Text - infer it from the post type/label or the caption (e.g. a vertical video is a Reel on Instagram/Facebook or a Short on YouTube); use "" only if truly unknown.
 
 (3) deltas — the period-over-period % change the report shows for each platform (e.g. "+101.71%", "-49.39%", "n/a"). Capture the change strings verbatim (keep the sign and %). Map: followers=follower growth %, impressions=impressions %, interactions=interactions/engagement %, posts=posts %. If a platform shows no % for a metric, use "".
 
@@ -464,6 +464,11 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
         const globalTiles = GLOBAL_DISPLAY.map(f => `<div class="global-auto-tile"><div class="gval" id="gtotal-${f}">0</div><div class="glbl">${FIELD_LABELS[f]||f}</div></div>`).join('');
 
+        // Carry context + last period's goal forward from this client's most recent audit
+        const priorSame = [...this.clients].reverse().find(x => (x.name||'').trim().toLowerCase() === (d._name||'').trim().toLowerCase());
+        const prefillContext = (priorSame && priorSame.context) || '';
+        const priorGoal = (priorSame && priorSame.goal) || '';
+
         el.innerHTML = `
             <div style="max-width:700px; margin:0 auto;">
                 <h2 style="margin-bottom:0.25rem;">Verify Audit Data</h2>
@@ -476,6 +481,16 @@ ${JSON.stringify(extractShape, null, 2)}` }
                         <div><label>Channels (optional)</label><input type="text" id="rep-channels" value="" placeholder="IG @handle, FB Page…"></div>
                     </div></div>
                 </div>
+                <div class="conf-section" style="border-color:var(--border);">
+                    <div class="conf-section-head" style="cursor:default;"><span style="font-size:0.75rem;">🎯</span> Client Context &amp; Goals <span style="font-size:0.68rem; font-weight:500; color:var(--text-muted); margin-left:8px; text-transform:none; letter-spacing:0;">helps the AI recommend what the numbers can't show</span></div>
+                    <div class="conf-section-body" style="padding-top:0.5rem;">
+                        <label>Context the AI should factor in (services, campaigns, package changes, constraints)</label>
+                        <textarea id="rep-context" rows="3" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.85rem; resize:vertical;" placeholder="e.g. Upgraded from Basic to Basic + Video this month, so we can produce more short-form video. Running a fall vein-screening campaign. No paid ad budget.">${prefillContext ? String(prefillContext).replace(/</g,'&lt;') : ''}</textarea>
+                        <label style="margin-top:0.75rem;">Goal for next period (measurable target we'll grade next report)</label>
+                        <input type="text" id="rep-goal" value="" placeholder="e.g. Lift Instagram engagement from 2.1% to 3%">
+                        ${priorGoal ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:6px 10px; border-radius:6px; margin-top:6px;">Last report's goal (we'll grade it in the analysis): &ldquo;${String(priorGoal).replace(/</g,'&lt;')}&rdquo;</div>` : ''}
+                    </div>
+                </div>
                 <div class="conf-section conf-global">
                     <div class="conf-section-head"><span style="font-size:0.75rem;">📊</span> Global Total <span style="font-size:0.7rem; font-weight:500; color:var(--text-muted); margin-left:auto;">auto-calculated</span></div>
                     <div class="global-auto-row" id="global-auto-row">${globalTiles}</div>
@@ -483,7 +498,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 ${platSections}
                 <div style="margin-top:1rem;">
                     <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; auto-pulled from the report &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
-                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Format: Title | Platform | Date | Impressions | Likes | Comments | Shares | Reach</p>
+                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach</p>
                     <textarea id="content-entries" rows="6" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | Jun 18, 2026 | 6951 | 342 | 28 | 15 | 4200">${this.topContentToLines(d._topContent)}</textarea>
                 </div>
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.25rem;">Generate Audit</button>
@@ -529,15 +544,15 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (contentText) {
             contentText.split('\n').forEach((line, idx) => {
                 if (!line.trim()) return;
-                // Format: Title | Platform | Date | Impressions | Likes | Comments | Shares | Reach
+                // Columns: Title | Platform | Format | Date | Impressions | Likes | Comments | Shares | Reach
                 const parts = line.split('|').map(s => s.trim());
                 if (parts.length < 2) return;
                 const num = v => parseInt(String(v || '').replace(/[^0-9]/g, '')) || 0;
-                const likes = num(parts[4]), comments = num(parts[5]), shares = num(parts[6]);
+                const likes = num(parts[5]), comments = num(parts[6]), shares = num(parts[7]);
                 topContent.push({
                     rank: idx + 1, title: parts[0] || 'Untitled', platform: parts[1] || platforms[0],
-                    date: parts[2] || '', impressions: num(parts[3]),
-                    likes, comments, shares, reach: num(parts[7]),
+                    format: parts[2] || '', date: parts[3] || '', impressions: num(parts[4]),
+                    likes, comments, shares, reach: num(parts[8]),
                     totalEng: likes + comments + shares
                 });
             });
@@ -546,7 +561,10 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const deltas = (this.tempData && this.tempData._deltas) || {};
         const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
         const periodStart = gv('rep-period-start'), periodEnd = gv('rep-period-end'), channels = gv('rep-channels');
-        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, global, perPlatform, granular, topContent, deltas, findings: null });
+        const context = gv('rep-context'), goal = gv('rep-goal');
+        const priorSame = [...this.clients].reverse().find(x => (x.name||'').trim().toLowerCase() === (this.tempData._name||'').trim().toLowerCase());
+        const priorGoal = (priorSame && priorSame.goal) || '';
+        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, context, goal, priorGoal, global, perPlatform, granular, topContent, deltas, findings: null });
         this.persist();
         this.view('profile', this.clients.length - 1);
     },
@@ -556,7 +574,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (!Array.isArray(list) || !list.length) return '';
         const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '/');
         return list.map(x => [
-            esc(x.title), esc(x.platform), esc(x.date || ''),
+            esc(x.title), esc(x.platform), esc(x.format || ''), esc(x.date || ''),
             x.impressions || 0, x.likes || 0, x.comments || 0, x.shares || 0, x.reach || 0
         ].join(' | ')).join('\n');
     },
@@ -652,6 +670,55 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const pd = (c.perPlatform && c.perPlatform[platform]) || {};
         const foll = pd.followers || 0, gained = pd.followersGained || 0, lost = pd.followersLost || 0;
         return foll > 0 && lost === 0 && gained >= foll * 0.9;
+    },
+    // Rough 2026 median engagement-rate ranges by platform (healthcare / local-service leaning)
+    BENCH: { Instagram:{eng:[0.7,1.5],label:'0.7-1.5%'}, Facebook:{eng:[0.3,0.8],label:'0.3-0.8%'}, LinkedIn:{eng:[1.5,3.0],label:'1.5-3%'}, YouTube:{eng:[1.0,2.5],label:'1-2.5%'}, TikTok:{eng:[2.5,5.0],label:'2.5-5%'}, X:{eng:[0.3,0.9],label:'0.3-0.9%'} },
+    benchmarkNotes(c) {
+        const out = [];
+        (c.platforms||[]).forEach(p => {
+            const pd = (c.perPlatform && c.perPlatform[p]) || {}; const er = pd.engRate || 0; const b = this.BENCH[p];
+            if (er > 0 && b) { const verdict = er >= b.eng[1] ? 'above' : er >= b.eng[0] ? 'within' : 'below'; out.push(`${p} engagement ${er}% is ${verdict} the typical ${b.label} range.`); }
+        });
+        return out;
+    },
+    postFormat(t) {
+        const f = (t.format || '').trim();
+        if (f) return f.charAt(0).toUpperCase() + f.slice(1).toLowerCase();
+        const title = (t.title || '').toLowerCase(), plat = t.platform || '';
+        if (/\breel\b/.test(title)) return 'Reel';
+        if (/\bshort\b/.test(title)) return 'Short';
+        if (/\bcarousel\b/.test(title)) return 'Carousel';
+        if (/\bstory\b/.test(title)) return 'Story';
+        if (plat === 'YouTube') return 'Video';
+        return 'Post';
+    },
+    formatBreakdown(c) {
+        const groups = {};
+        (c.topContent || []).forEach(t => { const f = this.postFormat(t); if (!groups[f]) groups[f] = { n:0, impr:0, eng:0 }; groups[f].n++; groups[f].impr += (t.impressions||0); groups[f].eng += (t.totalEng||0); });
+        return Object.keys(groups).map(f => ({ format:f, count:groups[f].n, avgImpr:Math.round(groups[f].impr/groups[f].n), avgEng:Math.round(groups[f].eng/groups[f].n) })).sort((a,b) => b.avgImpr - a.avgImpr);
+    },
+    efficiency(c) {
+        const g = c.global || {}; const posts = g.totalContent || 0;
+        const reachBase = g.reach || g.impressions || 0;
+        return {
+            posts,
+            imprPerPost: posts > 0 ? Math.round((g.impressions||0)/posts) : 0,
+            engPerPost: posts > 0 ? Math.round((g.totalInteractions||0)/posts) : 0,
+            followerConv: reachBase > 0 ? +(((g.followersGained||0)/reachBase)*100).toFixed(2) : 0
+        };
+    },
+    efficiencyFormatHTML(c) {
+        const eff = this.efficiency(c);
+        if (!eff.posts) return '';
+        const tiles = [
+            { lbl:'Reach / Post', val: fmt(eff.imprPerPost) },
+            { lbl:'Interactions / Post', val: fmt(eff.engPerPost) },
+            { lbl:'Follower Conversion', val: eff.followerConv + '%' },
+            { lbl:'Total Posts', val: eff.posts }
+        ];
+        const fmts = this.formatBreakdown(c);
+        const fmtTable = fmts.length ? `<div style="margin-top:1rem; overflow-x:auto;"><table><thead><tr><th>Format</th><th>Posts</th><th>Avg Reach</th><th>Avg Interactions</th></tr></thead><tbody>${fmts.map((f,idx) => `<tr><td style="font-weight:700;">${f.format}${idx===0&&fmts.length>1?' <span style="font-size:0.6rem; color:var(--green); font-weight:700;">TOP</span>':''}</td><td>${f.count}</td><td>${fmt(f.avgImpr)}</td><td>${fmt(f.avgEng)}</td></tr>`).join('')}</tbody></table></div>` : '';
+        return `<div class="form-container"><div class="section-label">Efficiency &amp; Content Formats</div><div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));">${tiles.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div>${fmtTable}</div>`;
     },
     periodLabel(c) {
         if (c.periodStart || c.periodEnd) return `${c.periodStart || ''}${c.periodStart && c.periodEnd ? ' &ndash; ' : ''}${c.periodEnd || ''}`;
@@ -750,6 +817,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
                 ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impressions</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${p}</td><td>${fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(pd.impressions||0)}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div></div>` : ''}
 
+                ${this.efficiencyFormatHTML(c)}
+
                 <div class="form-container" id="findings-section"><div class="section-label">Findings &amp; Analysis</div><div id="findings-body"></div></div>
 
                 <div class="form-container"><div class="section-label">Granular Interactions</div><div class="stat-grid">${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div></div>
@@ -797,19 +866,31 @@ ${JSON.stringify(extractShape, null, 2)}` }
             periodOverPeriodDeltas: c.deltas || {},
             newChannelsThisPeriod: (c.platforms || []).filter(p => this.isNewChannel(c, p)),
             hasPriorReportToCompare: !!this.prevAuditFor(i),
-            topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
+            formatPerformance: this.formatBreakdown(c),
+            efficiency: this.efficiency(c),
+            platformBenchmarks: this.benchmarkNotes(c),
+            clientContext: c.context || '',
+            lastPeriodGoal: c.priorGoal || '',
+            topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, format: this.postFormat(t), date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
         };
         const prompt = `You are a senior social media strategist writing the "Findings & Analysis" for a client audit of ${c.name}.
 Dataset for the reporting period (numbers exact; deltas are period-over-period from the export):
 ${JSON.stringify(dataForAI, null, 0)}
 
 Write a SPECIFIC analysis tailored to THIS account's exact numbers - no boilerplate, no advice that could apply to any account.
-VOICE: Write as Messick Marketing, the agency, speaking to the client as a partner. Use first-person plural - "we", "our", "us" - and take ownership of the work: "We grew...", "We recommend...", "Our top post...", "We'll focus on...". Do NOT use second-person "you/your" to hand out actions or advice (never "you should", "your posts need"). Keep it collaborative and we-led throughout clientSummary, wins, and recommendations.
-Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat their numbers as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
+VOICE: Write as Messick Marketing, the agency, speaking to the client as a partner. Use first-person plural - "we", "our", "us" - and take ownership of the work: "We grew...", "We recommend...", "Our top post...", "We'll focus on...". Do NOT use second-person "you/your" to hand out actions or advice (never "you should", "your posts need"). Keep it collaborative and we-led throughout.
+Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
+USE THIS CONTEXT TO OPTIMIZE THE RECOMMENDATIONS:
+- clientContext: real-world context the numbers can't show - weight it HEAVILY (e.g. if they upgraded to a video package, recommend leaning into more video). If it's empty, ignore.
+- formatPerformance: average reach/engagement per content format - name the winning format(s) and recommend shifting the mix toward them, citing the numbers.
+- efficiency: per-post reach/engagement and follower-conversion % - use to judge whether the gap is volume (too few posts), hook (low reach/post), or CTA (low follower-conversion), and aim the fix at the weakest stage.
+- platformBenchmarks: cite these ranges so "good/underperforming" is credible, not arbitrary.
+- lastPeriodGoal: if present, GRADE it against this period's actual numbers (hit / partially met / missed) and say so in keyFindings.
+Prioritize: order recommendations by impact (High first). Each recommendation gets an "impact" (High/Medium/Low) and, where possible, a "target" (a measurable outcome). Give the 5 highest-leverage moves only.
 
 Output ONLY compact minified JSON on a SINGLE line - no markdown, no code fences, no line breaks, no prose outside the object. Keep every string tight (one sentence where possible) so the response never gets cut off. This exact shape:
-{"executiveSummary":"2 sentences, key numbers","clientSummary":"2 warm plain-language sentences, lead with the biggest win, no jargon","keyFindings":["4-5 short findings citing real metrics"],"platformNotes":[{"platform":"Name","note":"one sentence citing its numbers"}],"wins":["3-4 punchy wins each leading with the number"],"concerns":["2-3 concerns with numbers"],"recommendations":[{"title":"plain action","detail":"one sentence, why it matters"}]}
-Give exactly 5 recommendations.`;
+{"executiveSummary":"2 sentences, key numbers","clientSummary":"2 warm plain-language sentences, lead with the biggest win, no jargon","keyFindings":["4-5 short findings citing real metrics, and grade lastPeriodGoal if present"],"platformNotes":[{"platform":"Name","note":"one sentence citing its numbers vs the benchmark"}],"wins":["3-4 punchy wins each leading with the number"],"concerns":["2-3 concerns with numbers"],"recommendations":[{"title":"plain action","detail":"one sentence, why it matters","impact":"High","target":"measurable outcome or empty string"}]}
+Give exactly 5 recommendations, ordered High impact first.`;
 
         try {
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
@@ -916,6 +997,22 @@ Give exactly 5 recommendations.`;
         if (!wins.length && (g.impressions || g.totalInteractions)) wins.push(`${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions across ${plats.length} platform${plats.length===1?'':'s'}.`);
         if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`We'll maintain the cadence and double down on ${top?top.p:'the top platform'}, the strongest channel this period.`});
 
+        // Format analysis - surface the winning format and recommend shifting the mix
+        const fmts = this.formatBreakdown(c);
+        if (fmts.length >= 2 && fmts[0].avgImpr > fmts[1].avgImpr * 1.4) {
+            keyFindings.unshift(`${fmts[0].format} content led on reach (avg ${n(fmts[0].avgImpr)} vs ${n(fmts[1].avgImpr)} for ${fmts[1].format}).`);
+            recommendations.unshift({title:`Shift the mix toward ${fmts[0].format}s`, detail:`${fmts[0].format} posts averaged ${n(fmts[0].avgImpr)} reach vs ${n(fmts[1].avgImpr)} for ${fmts[1].format}, so we'll produce more of them.`, impact:'High', target:`3+ ${fmts[0].format}s per week`});
+        }
+        // Efficiency / funnel read
+        const eff = this.efficiency(c);
+        if (eff.posts > 0) keyFindings.push(`Per-post efficiency: ${n(eff.imprPerPost)} reach and ${n(eff.engPerPost)} interactions per post${eff.followerConv?`, and ${eff.followerConv}% of reach converted to a follow`:''}.`);
+        // Benchmarks - flag anything below the typical range
+        this.benchmarkNotes(c).forEach(bn => { if (/below/.test(bn)) concerns.push(bn); });
+        // Goal carryover
+        if (c.priorGoal) keyFindings.unshift(`Last period's goal: "${c.priorGoal}" - reviewed against this period's numbers above.`);
+        // Impact tags + target defaults
+        recommendations.forEach((r, idx) => { if (!r.impact) r.impact = idx === 0 ? 'High' : idx <= 2 ? 'Medium' : 'Low'; if (r.target === undefined) r.target = ''; });
+
         const biggestWin = wins[0] || `${n(g.impressions)} impressions this period.`;
         const executiveSummary = `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.join(', ')||'social'} during ${this.periodLabel(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
         const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'The content kept the audience engaged'}, and the top post did a lot of the heavy lifting. Here's where we'll push next.`;
@@ -923,9 +1020,20 @@ Give exactly 5 recommendations.`;
         return { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
     },
 
-    // Normalize recommendations to {title, detail} objects (tolerates old string form)
+    // Normalize recommendations to {title, detail, impact, target}; sort High-impact first
     normalizeRecs(f) {
-        return ((f && f.recommendations) || []).map(r => typeof r === 'string' ? { title: r, detail: '' } : { title: r.title || '', detail: r.detail || '' });
+        const rank = { high: 0, medium: 1, low: 2 };
+        return ((f && f.recommendations) || [])
+            .map(r => typeof r === 'string'
+                ? { title: r, detail: '', impact: '', target: '' }
+                : { title: r.title || '', detail: r.detail || '', impact: r.impact || '', target: r.target || '' })
+            .sort((a, b) => (rank[(a.impact||'').toLowerCase()] ?? 3) - (rank[(b.impact||'').toLowerCase()] ?? 3));
+    },
+    impactBadge(imp) {
+        const t = (imp || '').toLowerCase(); if (!t) return '';
+        const col = t === 'high' ? 'var(--red)' : t === 'medium' ? 'var(--amber)' : 'var(--text-muted)';
+        const bg = t === 'high' ? 'var(--red-bg)' : t === 'medium' ? 'var(--amber-bg)' : 'var(--bg)';
+        return `<span style="font-size:0.54rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:${col}; background:${bg}; padding:1px 6px; border-radius:6px; margin-left:6px; vertical-align:middle;">${String(imp).replace(/</g,'&lt;')}</span>`;
     },
     // Which recommendation indices are selected for the client report (default: all)
     selectedRecSet(c) {
@@ -952,7 +1060,7 @@ Give exactly 5 recommendations.`;
         const platNotes = (f.platformNotes || []).map(pn => `<div style="margin-bottom:8px; font-size:0.85rem;"><strong>${esc(pn.platform)}:</strong> ${esc(pn.note)}</div>`).join('');
         const recs = this.normalizeRecs(f);
         const sel = this.selectedRecSet(c);
-        const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}</div>`).join('');
+        const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}${this.impactBadge(r.impact)}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}${r.target ? `<div style="font-size:0.7rem; color:var(--steel); margin-top:5px; font-weight:600;">&#127919; ${esc(r.target)}</div>` : ''}</div>`).join('');
         const srcNote = (c.findingsSource === 'computed')
             ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:7px 11px; border-radius:6px; margin-bottom:12px;">Data-driven analysis${c.findingsError ? ` &middot; AI unavailable: ${esc(c.findingsError)}` : ''} &mdash; still tailored to this account&rsquo;s numbers. <span style="color:var(--steel); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="app.generateFindings(${i}, true)">Retry AI</span></div>`
             : '';
@@ -1008,7 +1116,7 @@ Give exactly 5 recommendations.`;
 
         const recs = this.normalizeRecs(f), sel = this.selectedRecSet(c);
         const chosen = recs.filter((_, idx) => sel.includes(idx));
-        const recsHTML = chosen.length ? chosen.map((r, n) => `<div class="cr-rec"><div class="cr-rec-num">${n+1}</div><div><div class="cr-rec-title">${esc(r.title)}</div>${r.detail ? `<div class="cr-rec-detail">${esc(r.detail)}</div>` : ''}</div></div>`).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No recommendations selected. Pick some in the audit&rsquo;s Findings section.</p>';
+        const recsHTML = chosen.length ? chosen.map((r, n) => `<div class="cr-rec"><div class="cr-rec-num">${n+1}</div><div><div class="cr-rec-title">${esc(r.title)}${this.impactBadge(r.impact)}</div>${r.detail ? `<div class="cr-rec-detail">${esc(r.detail)}</div>` : ''}${r.target ? `<div style="font-size:0.8rem; color:var(--steel); margin-top:3px; font-weight:600;">&#127919; Target: ${esc(r.target)}</div>` : ''}</div></div>`).join('') : '<p style="color:var(--text-muted); font-size:0.85rem;">No recommendations selected. Pick some in the audit&rsquo;s Findings section.</p>';
 
         const lead = f.clientSummary || f.executiveSummary || '';
 
