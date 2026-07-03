@@ -798,7 +798,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
                     <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><div style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${this.periodLabel(c)}</div>${c.channels ? `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">${c.channels}</div>` : ''}</div>
-                    <div style="display:flex; gap:8px;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm no-print" onclick="app.view('dashboard')">&larr; Back</button><button class="btn btn-primary btn-sm no-print" onclick="app.savePDF()" style="gap:6px;">&#x2193; PDF</button></div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm no-print" onclick="app.view('dashboard')">&larr; Back</button><button class="btn btn-ghost btn-sm no-print" onclick="app.shareLink(${i})" style="gap:6px;">&#128279; Share link</button><button class="btn btn-primary btn-sm no-print" onclick="app.savePDF()" style="gap:6px;">&#x2193; PDF</button></div>
                 </div>
 
                 <div class="pitch-box" id="pitch-box"><strong>Pitch Summary:</strong><br>"This ecosystem has a Health Score of ${health.total}/100 across ${platforms.join(' + ')}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"</div>
@@ -1053,6 +1053,54 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const bg = t === 'high' ? 'var(--red-bg)' : t === 'medium' ? 'var(--amber-bg)' : 'var(--bg)';
         return `<span style="font-size:0.54rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:${col}; background:${bg}; padding:1px 6px; border-radius:6px; margin-left:6px; vertical-align:middle;">${String(imp).replace(/</g,'&lt;')}</span>`;
     },
+
+    /* ══════════════════════════════════════ SHARE LINK (self-contained, no backend) */
+    slugify(s) { return String(s || 'client').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'client'; },
+    buildSharePayload(i) {
+        const c = this.clients[i], g = c.global || {}, f = c.findings;
+        const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
+        const md = (cur, prv) => pg ? this.momPct(cur, prv) : null;
+        const metrics = [
+            { lbl: 'Followers', val: fmt(g.followers || 0), delta: md(g.followers || 0, pg && pg.followers || 0) },
+            { lbl: 'Impressions & Views', val: fmt(g.impressions || 0), delta: md(g.impressions || 0, pg && pg.impressions || 0) },
+            { lbl: 'Interactions', val: fmt(g.totalInteractions || 0), delta: md(g.totalInteractions || 0, pg && pg.totalInteractions || 0) },
+            { lbl: 'Posts', val: String(g.totalContent || 0), delta: md(g.totalContent || 0, pg && pg.totalContent || 0) }
+        ];
+        const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 5)
+            .map(t => ({ title: t.title, platform: t.platform, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), totalEng: t.totalEng || 0 }));
+        const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
+        return {
+            name: c.name, slug: this.slugify(c.name), period: this.periodLabel(c), channels: c.channels || '',
+            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs
+        };
+    },
+    shareLink(i) {
+        const c = this.clients[i];
+        if (!c.findings) { alert('Generate the Findings & Analysis first (open the audit and let it analyze), then share.'); return; }
+        let b64;
+        try { b64 = btoa(unescape(encodeURIComponent(JSON.stringify(this.buildSharePayload(i))))); }
+        catch (e) { alert('Could not build the link.'); return; }
+        const url = 'https://messickmarketing.com/reports/view.html#' + encodeURIComponent(b64);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => this.showShare(url, true)).catch(() => this.showShare(url, false));
+        } else this.showShare(url, false);
+    },
+    showShare(url, copied) {
+        let ov = document.getElementById('share-overlay');
+        if (!ov) { ov = document.createElement('div'); ov.id = 'share-overlay'; ov.className = 'confirm-overlay'; document.body.appendChild(ov); }
+        ov.innerHTML = `<div class="confirm-dialog" style="max-width:500px; text-align:left;">
+            <h3 style="margin-bottom:0.4rem;">Client share link</h3>
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.75rem;">${copied ? '&#10003; Copied to your clipboard.' : 'Copy the link below.'} It opens a standalone, unlisted report (with the feedback form built in) &mdash; no login, nothing else on the site links to it.</p>
+            <input id="share-url" type="text" readonly value="${String(url).replace(/"/g,'&quot;')}" style="width:100%; font-size:0.78rem;" onclick="this.select()">
+            <div style="display:flex; gap:8px; margin-top:1rem;">
+                <button class="btn btn-primary" style="flex:1;" onclick="app.copyShare()">Copy link</button>
+                <a class="btn btn-ghost" style="flex:1; text-align:center; text-decoration:none;" href="${String(url).replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Open</a>
+                <button class="btn btn-ghost" onclick="document.getElementById('share-overlay').style.display='none'">Close</button>
+            </div>
+        </div>`;
+        ov.style.display = 'flex';
+    },
+    copyShare() { const el = document.getElementById('share-url'); if (!el) return; el.select(); try { navigator.clipboard.writeText(el.value); } catch (e) { try { document.execCommand('copy'); } catch (e2) {} } },
     // Which recommendation indices are selected for the client report (default: all)
     selectedRecSet(c) {
         const recs = this.normalizeRecs(c.findings);
@@ -1187,6 +1235,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
             <div style="max-width:760px; margin:0 auto;">
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:1rem;">
                     <button class="btn btn-ghost btn-sm no-print" onclick="app.view('profile', ${i})">&larr; Full analysis</button>
+                    <button class="btn btn-ghost btn-sm no-print" onclick="app.shareLink(${i})">&#128279; Share link</button>
                     <button class="btn btn-primary btn-sm no-print" onclick="window.print()">&#x2193; Export PDF</button>
                 </div>
 
