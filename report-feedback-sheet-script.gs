@@ -13,6 +13,10 @@
 
 const SHEET_NAME   = "Report Feedback";
 const NOTIFY_EMAIL = "morgan@messickmarketing.com";
+// Reading feedback (doGet) requires this key. Report pages only POST, so they never
+// carry it — only the internal viewer sends it. Set your own secret value here before
+// deploying (do NOT commit the real value to a public repo). Change it to rotate.
+const READ_KEY     = "PASTE_A_SECRET_READ_KEY_HERE";
 const COLUMNS = ["timestamp", "clientSlug", "clientName", "rating", "message", "page"];
 
 function getSheet() {
@@ -76,6 +80,15 @@ function doPost(e) {
 // can read it cross-origin from the messickmarketing.com pages (Apps Script sends
 // no CORS headers, so a plain fetch would be blocked; JSONP via <script> is not).
 function doGet(e) {
+  const p = (e && e.parameter) || {};
+  const cb = p.callback;
+  const wrap = (obj) => cb
+    ? ContentService.createTextOutput(cb + "(" + JSON.stringify(obj) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT)
+    : json(obj);
+
+  // Gate reads behind the key so a public report page can't be used to read feedback.
+  if (p.key !== READ_KEY) return wrap({ error: "unauthorized" });
+
   const data = getSheet().getDataRange().getValues();
   let rows = [];
   if (data.length > 1) {
@@ -84,12 +97,7 @@ function doGet(e) {
       const o = {}; headers.forEach((h, i) => o[h] = r[i]); return o;
     });
   }
-  const cb = e && e.parameter && e.parameter.callback;
-  if (cb) {
-    return ContentService.createTextOutput(cb + "(" + JSON.stringify(rows) + ")")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return json(rows);
+  return wrap(rows);
 }
 
 function json(obj) {

@@ -55,8 +55,10 @@
 <script>
 const app = {
   endpoint: localStorage.getItem('mm_fb_endpoint') || 'https://script.google.com/macros/s/AKfycbwg1DsRvziOZC7X0f1YOwjejCLbCnmjOyZtz_Bpz9ytXQdrkkCqYJrngvBc5-AqzXR-/exec',
+  key: localStorage.getItem('mm_fb_key') || '',
   data: [],
   filter: '',
+  loadMsg: '',
 
   init(){ if(sessionStorage.getItem('mm_fb_auth')) this.render(); else this.gate(); },
 
@@ -70,7 +72,7 @@ const app = {
   },
   check(){ if(document.getElementById('pw').value==='Messick2026'){ sessionStorage.setItem('mm_fb_auth','1'); this.render(); } else alert('Incorrect code'); },
 
-  saveEndpoint(){ this.endpoint=document.getElementById('ep').value.trim(); localStorage.setItem('mm_fb_endpoint',this.endpoint); this.load(); },
+  saveEndpoint(){ this.endpoint=document.getElementById('ep').value.trim(); this.key=document.getElementById('epkey').value.trim(); localStorage.setItem('mm_fb_endpoint',this.endpoint); localStorage.setItem('mm_fb_key',this.key); this.load(); },
 
   render(){
     const clients=[...new Set(this.data.map(r=>r.clientName||r.clientSlug).filter(Boolean))].sort();
@@ -81,11 +83,12 @@ const app = {
     document.getElementById('app').innerHTML = `
       <div class="card">
         <label>Feedback endpoint (Apps Script /exec URL)</label>
-        <div class="row">
-          <div style="flex:3"><input type="text" id="ep" value="${(this.endpoint||'').replace(/"/g,'&quot;')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
-          <div style="flex:0 0 auto"><button class="btn" onclick="app.saveEndpoint()">Load</button></div>
+        <input type="text" id="ep" value="${(this.endpoint||'').replace(/"/g,'&quot;')}" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="row" style="margin-top:.5rem">
+          <div style="flex:3"><label>Read key</label><input type="password" id="epkey" value="${(this.key||'').replace(/"/g,'&quot;')}" placeholder="access key from the script"></div>
+          <div style="flex:0 0 auto;align-self:flex-end"><button class="btn" onclick="app.saveEndpoint()">Load</button></div>
         </div>
-        <p class="muted" style="margin-top:.4rem">Saved on this device. Reads via JSONP (${this.data.length} rows loaded).</p>
+        <p class="muted" style="margin-top:.4rem">${this.loadMsg || 'Saved on this device. Reads via JSONP ('+this.data.length+' rows loaded).'}</p>
       </div>
       ${this.data.length ? `
       <div class="tiles">
@@ -119,14 +122,17 @@ const app = {
 
   load(){
     if(!this.endpoint) return;
-    const status=document.getElementById('status'); if(status) status.innerHTML='<span class="loader"></span> Loading&hellip;';
+    const st=document.getElementById('status'); if(st) st.innerHTML='<span class="loader"></span> Loading&hellip;';
     const cbName='__mmfb'+Date.now();
     const s=document.createElement('script');
     let done=false;
-    window[cbName]=(data)=>{ done=true; this.data=Array.isArray(data)?data:[]; cleanup(); this.render(); };
     const cleanup=()=>{ try{document.body.removeChild(s)}catch(e){} try{delete window[cbName]}catch(e){} };
-    s.onerror=()=>{ if(!done){ cleanup(); const st=document.getElementById('status'); if(st) st.innerHTML='<span style="color:var(--red)">Could not reach the endpoint. Check the URL and that the web app is deployed to "Anyone".</span>'; } };
-    s.src=this.endpoint+(this.endpoint.indexOf('?')>-1?'&':'?')+'callback='+cbName+'&_='+Date.now();
+    window[cbName]=(data)=>{ done=true; cleanup();
+      if(data && data.error){ this.data=[]; this.loadMsg='<span style="color:var(--red)">Access key missing or incorrect.</span>'; this.render(); return; }
+      this.data=Array.isArray(data)?data:[]; this.loadMsg=''; this.render();
+    };
+    s.onerror=()=>{ if(!done){ cleanup(); this.loadMsg='<span style="color:var(--red)">Could not reach the endpoint. Check the URL and that the web app is deployed to Anyone.</span>'; this.render(); } };
+    s.src=this.endpoint+(this.endpoint.indexOf('?')>-1?'&':'?')+'callback='+cbName+'&key='+encodeURIComponent(this.key||'')+'&_='+Date.now();
     document.body.appendChild(s);
     setTimeout(()=>{ if(!done){ s.onerror(); } }, 12000);
   }
