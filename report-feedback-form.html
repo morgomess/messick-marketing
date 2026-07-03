@@ -1,0 +1,74 @@
+<!--
+  Messick Marketing — Client Report Feedback block (drop-in)
+  Paste this near the bottom of a standalone quarterly report page.
+  Replace the 3 placeholders:
+     [FORM ENDPOINT URL]  -> your Apps Script /exec Web App URL (from report-feedback-sheet-script.gs)
+     [CLIENT-SLUG]        -> e.g. aspire-therapy
+     [CLIENT NAME]        -> e.g. ASPIRE Therapy & Wellness
+  Assumes the page already loads Cormorant Garamond + Jost from Google Fonts.
+  Saves to the Google Sheet AND emails you (handled server-side). Honeypot spam guard included.
+-->
+<section class="mm-fb" aria-labelledby="mm-fb-h">
+  <h2 id="mm-fb-h">Your turn</h2>
+  <p class="mm-fb-sub">What would you like to see more of next quarter?</p>
+  <form id="mm-fb-form" novalidate>
+    <input type="hidden" name="client_slug" value="[CLIENT-SLUG]">
+    <input type="hidden" name="client_name" value="[CLIENT NAME]">
+    <input type="hidden" name="page" value="">
+    <!-- honeypot: hidden from humans; bots that fill it are dropped server-side -->
+    <input type="text" name="company_url" class="mm-fb-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+    <div class="mm-fb-rating" role="radiogroup" aria-label="Overall rating">
+      <label><input type="radio" name="rating" value="More like this"><span>&#128077; More like this</span></label>
+      <label><input type="radio" name="rating" value="About right"><span>&#128522; About right</span></label>
+      <label><input type="radio" name="rating" value="Less of this"><span>&#128078; Less of this</span></label>
+    </div>
+
+    <textarea name="message" rows="4" placeholder="Topics, formats, platforms &mdash; tell us what you'd love more of&hellip;"></textarea>
+
+    <button type="submit" class="mm-fb-btn">Send Feedback</button>
+    <p class="mm-fb-ok" hidden>Thank you &mdash; we&rsquo;ve got your feedback and we&rsquo;ll build it into next quarter. &#127881;</p>
+    <p class="mm-fb-err" hidden>That didn&rsquo;t send &mdash; please email us at morgan@messickmarketing.com.</p>
+  </form>
+</section>
+
+<style>
+  .mm-fb{max-width:640px;margin:3rem auto;padding:2rem;background:#faf8f5;border:1px solid rgba(58,107,138,.18);border-radius:16px;font-family:'Jost',sans-serif;color:#111111}
+  .mm-fb h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;margin:0 0 .25rem;color:#111111}
+  .mm-fb-sub{color:#3a6b8a;font-weight:500;margin:0 0 1.25rem}
+  .mm-fb-rating{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+  .mm-fb-rating label{cursor:pointer;position:relative}
+  .mm-fb-rating input{position:absolute;opacity:0;pointer-events:none}
+  .mm-fb-rating span{display:inline-block;padding:.55rem 1rem;border:1.5px solid rgba(58,107,138,.35);border-radius:24px;font-size:.9rem;transition:all .15s;user-select:none}
+  .mm-fb-rating label:hover span{border-color:#5a9ab8}
+  .mm-fb-rating input:checked+span{background:#3a6b8a;border-color:#3a6b8a;color:#faf8f5}
+  .mm-fb-rating input:focus-visible+span{box-shadow:0 0 0 3px rgba(90,154,184,.3)}
+  .mm-fb textarea{width:100%;padding:.8rem 1rem;border:1.5px solid rgba(58,107,138,.25);border-radius:10px;font-family:inherit;font-size:.95rem;background:#fff;resize:vertical;margin-bottom:1rem;box-sizing:border-box;color:#111111}
+  .mm-fb textarea:focus{outline:none;border-color:#3a6b8a;box-shadow:0 0 0 3px rgba(90,154,184,.18)}
+  .mm-fb-btn{background:#3a6b8a;color:#faf8f5;border:none;border-radius:24px;padding:.7rem 1.8rem;font-family:inherit;font-weight:600;font-size:.9rem;letter-spacing:.03em;cursor:pointer;transition:background .2s}
+  .mm-fb-btn:hover{background:#5a9ab8}
+  .mm-fb-btn:disabled{opacity:.6;cursor:default}
+  .mm-fb-ok{color:#2d7a4f;font-weight:600;margin:.9rem 0 0}
+  .mm-fb-err{color:#b94040;font-weight:600;margin:.9rem 0 0}
+  .mm-fb-hp{position:absolute!important;left:-9999px!important;top:auto;width:1px;height:1px;overflow:hidden;opacity:0}
+</style>
+
+<script>
+  (function () {
+    var ENDPOINT = "[FORM ENDPOINT URL]"; // Apps Script /exec URL
+    var form = document.getElementById('mm-fb-form');
+    if (!form) return;
+    var pg = form.querySelector('[name=page]'); if (pg) pg.value = location.href;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (form.company_url && form.company_url.value) return; // honeypot tripped — silently drop
+      var btn = form.querySelector('.mm-fb-btn');
+      var ok = form.querySelector('.mm-fb-ok'), err = form.querySelector('.mm-fb-err');
+      ok.hidden = true; err.hidden = true; btn.disabled = true; btn.textContent = 'Sending…';
+      // Apps Script sends no CORS headers, so use no-cors (fire-and-forget). The write still lands.
+      fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: new FormData(form) })
+        .then(function () { form.reset(); ok.hidden = false; btn.textContent = 'Sent'; })
+        .catch(function () { err.hidden = false; btn.disabled = false; btn.textContent = 'Send Feedback'; });
+    });
+  })();
+</script>
