@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="robots" content="noindex, nofollow">
+<title>Report Feedback | Messick Marketing</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f0eeeb;--card:#faf8f5;--black:#111;--steel:#3a6b8a;--steel-lt:#5a9ab8;--muted:#5a6b74;--border:#d8d5cf;--green:#2d7a4f;--green-bg:#e6f4ec;--amber:#b07d2a;--amber-bg:#fdf3e0;--red:#b94040;--red-bg:#faeaea}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--black);font-family:'Jost',sans-serif;line-height:1.5}
+  h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:600}
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:.75rem 2rem;background:var(--black)}
+  .logo{font-family:'Dancing Script',cursive;font-weight:700;color:var(--card);font-size:1.35rem}
+  .nav-sub{color:rgba(250,248,245,.5);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase}
+  main{max-width:1000px;margin:0 auto;padding:2rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
+  label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.35rem}
+  input,select{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(90,154,184,.18)}
+  .btn{padding:.6rem 1.2rem;border-radius:8px;border:none;font-weight:600;cursor:pointer;font-size:.85rem;font-family:inherit;background:var(--steel);color:var(--card)}
+  .btn:hover{background:var(--steel-lt)}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end}
+  .row>div{flex:1;min-width:180px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:1.25rem}
+  .tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center}
+  .tile .v{font-size:1.8rem;font-family:'Cormorant Garamond',serif;font-weight:600}
+  .tile .l{font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  th{text-align:left;font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:.55rem .7rem;border-bottom:2px solid var(--border)}
+  td{padding:.6rem .7rem;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
+  .r-up{background:var(--green-bg);color:var(--green)}
+  .r-mid{background:var(--amber-bg);color:var(--amber)}
+  .r-down{background:var(--red-bg);color:var(--red)}
+  .r-none{background:var(--bg);color:var(--muted)}
+  .muted{color:var(--muted);font-size:.85rem}
+  .loader{border:2px solid #e5e7eb;border-top:2px solid var(--steel);border-radius:50%;width:16px;height:16px;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
+  @keyframes spin{100%{transform:rotate(360deg)}}
+  a{color:var(--steel)}
+  @media(max-width:600px){main{padding:1rem}.nav{padding:.75rem 1rem}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="logo">Messick Marketing</div>
+  <div class="nav-sub">Report Feedback</div>
+</nav>
+<main id="app"></main>
+
+<script>
+const app = {
+  endpoint: localStorage.getItem('mm_fb_endpoint') || '',
+  data: [],
+  filter: '',
+
+  init(){ if(sessionStorage.getItem('mm_fb_auth')) this.render(); else this.gate(); },
+
+  gate(){
+    document.getElementById('app').innerHTML = `
+      <div class="card" style="max-width:340px;margin:60px auto;text-align:center">
+        <h2 style="margin-bottom:1rem">Access</h2>
+        <input type="password" id="pw" placeholder="Access code" onkeydown="if(event.key==='Enter')app.check()">
+        <button class="btn" style="width:100%;margin-top:.75rem" onclick="app.check()">Unlock</button>
+      </div>`;
+  },
+  check(){ if(document.getElementById('pw').value==='Messick2026'){ sessionStorage.setItem('mm_fb_auth','1'); this.render(); } else alert('Incorrect code'); },
+
+  saveEndpoint(){ this.endpoint=document.getElementById('ep').value.trim(); localStorage.setItem('mm_fb_endpoint',this.endpoint); this.load(); },
+
+  render(){
+    const clients=[...new Set(this.data.map(r=>r.clientName||r.clientSlug).filter(Boolean))].sort();
+    const rows=this.data.filter(r=>!this.filter||(r.clientName||r.clientSlug)===this.filter);
+    const rClass=v=>/more like/i.test(v)?'r-up':/about right/i.test(v)?'r-mid':/less of/i.test(v)?'r-down':'r-none';
+    const count=v=>this.data.filter(r=>new RegExp(v,'i').test(r.rating||'')).length;
+    const fmtT=t=>{ if(!t)return''; const d=new Date(t); return isNaN(d)?t:d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); };
+    document.getElementById('app').innerHTML = `
+      <div class="card">
+        <label>Feedback endpoint (Apps Script /exec URL)</label>
+        <div class="row">
+          <div style="flex:3"><input type="text" id="ep" value="${(this.endpoint||'').replace(/"/g,'&quot;')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+          <div style="flex:0 0 auto"><button class="btn" onclick="app.saveEndpoint()">Load</button></div>
+        </div>
+        <p class="muted" style="margin-top:.4rem">Saved on this device. Reads via JSONP (${this.data.length} rows loaded).</p>
+      </div>
+      ${this.data.length ? `
+      <div class="tiles">
+        <div class="tile"><div class="v">${this.data.length}</div><div class="l">Total</div></div>
+        <div class="tile"><div class="v">${clients.length}</div><div class="l">Clients</div></div>
+        <div class="tile"><div class="v" style="color:var(--green)">${count('more like')}</div><div class="l">More like this</div></div>
+        <div class="tile"><div class="v" style="color:var(--amber)">${count('about right')}</div><div class="l">About right</div></div>
+        <div class="tile"><div class="v" style="color:var(--red)">${count('less of')}</div><div class="l">Less of this</div></div>
+      </div>
+      <div class="card">
+        <div class="row" style="margin-bottom:1rem">
+          <div><label>Filter by client</label>
+            <select onchange="app.filter=this.value;app.render()">
+              <option value="">All clients (${this.data.length})</option>
+              ${clients.map(c=>`<option value="${c.replace(/"/g,'&quot;')}" ${this.filter===c?'selected':''}>${esc(c)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Client</th><th>Rating</th><th>Message</th></tr></thead><tbody>
+          ${rows.length ? rows.slice().reverse().map(r=>`<tr>
+            <td style="white-space:nowrap;color:var(--muted)">${esc(fmtT(r.timestamp))}</td>
+            <td style="font-weight:600">${esc(r.clientName||r.clientSlug||'&mdash;')}</td>
+            <td><span class="pill ${rClass(r.rating||'')}">${esc(r.rating||'&mdash;')}</span></td>
+            <td>${esc(r.message||'')||'<span class="muted">(no message)</span>'}${r.page?`<div style="margin-top:3px"><a href="${esc(r.page)}" target="_blank" style="font-size:.7rem">view report &rarr;</a></div>`:''}</td>
+          </tr>`).join('') : '<tr><td colspan="4" class="muted" style="padding:1.5rem;text-align:center">No feedback for this client yet.</td></tr>'}
+        </tbody></table></div>
+      </div>` : `<div class="card"><p class="muted" id="status">Paste your endpoint above and hit Load.</p></div>`}
+    `;
+    if(this.endpoint && !this.data.length && !this._tried){ this._tried=true; this.load(); }
+  },
+
+  load(){
+    if(!this.endpoint) return;
+    const status=document.getElementById('status'); if(status) status.innerHTML='<span class="loader"></span> Loading&hellip;';
+    const cbName='__mmfb'+Date.now();
+    const s=document.createElement('script');
+    let done=false;
+    window[cbName]=(data)=>{ done=true; this.data=Array.isArray(data)?data:[]; cleanup(); this.render(); };
+    const cleanup=()=>{ try{document.body.removeChild(s)}catch(e){} try{delete window[cbName]}catch(e){} };
+    s.onerror=()=>{ if(!done){ cleanup(); const st=document.getElementById('status'); if(st) st.innerHTML='<span style="color:var(--red)">Could not reach the endpoint. Check the URL and that the web app is deployed to "Anyone".</span>'; } };
+    s.src=this.endpoint+(this.endpoint.indexOf('?')>-1?'&':'?')+'callback='+cbName+'&_='+Date.now();
+    document.body.appendChild(s);
+    setTimeout(()=>{ if(!done){ s.onerror(); } }, 12000);
+  }
+};
+function esc(s){return String(s==null?'':s).replace(/&(?!amp;|mdash;|rarr;)/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+app.init();
+</script>
+</body>
+</html>

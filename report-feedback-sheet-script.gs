@@ -72,14 +72,23 @@ function doPost(e) {
   }
 }
 
-// GET → return all feedback as JSON (handy for a future internal viewer).
-function doGet() {
+// GET → return all feedback. Supports JSONP (?callback=fn) so the internal viewer
+// can read it cross-origin from the messickmarketing.com pages (Apps Script sends
+// no CORS headers, so a plain fetch would be blocked; JSONP via <script> is not).
+function doGet(e) {
   const data = getSheet().getDataRange().getValues();
-  if (data.length <= 1) return json([]);
-  const headers = data[0];
-  const rows = data.slice(1).map(r => {
-    const o = {}; headers.forEach((h, i) => o[h] = r[i]); return o;
-  });
+  let rows = [];
+  if (data.length > 1) {
+    const headers = data[0];
+    rows = data.slice(1).map(r => {
+      const o = {}; headers.forEach((h, i) => o[h] = r[i]); return o;
+    });
+  }
+  const cb = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService.createTextOutput(cb + "(" + JSON.stringify(rows) + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return json(rows);
 }
 

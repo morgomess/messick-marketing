@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Messick Marketing | Q2 2026 Report</title>
+<!-- TEST / TEMPLATE PREVIEW: figures below are illustrative sample data for testing the
+     feedback pipeline. Replace with the real Q2 numbers before sending to any client. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--black:#111111;--warm:#faf8f5;--steel:#3a6b8a;--steel-lt:#5a9ab8;--muted:#5a6b74;--line:rgba(58,107,138,.16)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--warm);color:var(--black);font-family:'Jost',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:0 1.5rem}
+  h1,h2,h3{font-family:'Cormorant Garamond',serif;font-weight:600;line-height:1.15}
+  .accent{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic}
+  /* Header */
+  header{padding:3.5rem 0 2rem;text-align:center;border-bottom:1px solid var(--line)}
+  header .brand{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:1.5rem;color:var(--steel);letter-spacing:.06em;text-transform:uppercase}
+  header .kicker{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:1.2rem}
+  header h1{font-size:2.8rem;margin-top:.3rem}
+  header h1 span{color:var(--steel)}
+  /* Intro */
+  .intro{padding:2.25rem 0;font-size:1.12rem;color:#2a2a2a;max-width:640px;margin:0 auto;text-align:center}
+  .intro .accent{font-size:1.5rem;color:var(--steel);display:block;margin-bottom:.4rem;font-weight:500}
+  /* Metrics */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1rem 0 3rem}
+  .metric{background:var(--warm);padding:1.6rem 1rem;text-align:center}
+  .metric .n{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:600;color:var(--black);line-height:1}
+  .metric .n small{font-size:1.1rem;color:var(--steel)}
+  .metric .lbl{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.5rem;font-weight:600}
+  .metric .chg{font-size:.72rem;color:var(--steel);margin-top:.35rem;font-weight:600}
+  /* Sections */
+  section{padding:2.5rem 0;border-top:1px solid var(--line)}
+  .sec-kicker{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--steel);font-weight:700;margin-bottom:.4rem}
+  section h2{font-size:1.9rem;margin-bottom:1.25rem}
+  .wins{list-style:none;display:grid;gap:.9rem}
+  .win{display:flex;gap:.9rem;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem}
+  .win .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--steel);margin-top:.5rem}
+  .win b{font-weight:600}
+  .win p{color:var(--muted);font-size:.92rem;margin-top:.15rem}
+  .delivered{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+  .dcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.3rem;text-align:center}
+  .dcard .n{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--steel)}
+  .dcard .lbl{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+  .dcard ul{list-style:none;text-align:left;margin-top:.7rem;font-size:.82rem;color:#333}
+  .dcard li{padding:.25rem 0;border-top:1px dashed var(--line)}
+  .note{font-size:.72rem;color:var(--muted);font-style:italic;text-align:center;padding-top:.5rem}
+  footer{padding:3rem 0 4rem;text-align:center;color:var(--muted)}
+  footer .accent{font-size:1.35rem;color:var(--steel);font-style:normal;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  /* ---- Feedback block ---- */
+  .mm-fb{max-width:640px;margin:1rem auto 0;padding:2rem;background:#fff;border:1px solid var(--line);border-radius:16px;font-family:'Jost',sans-serif;color:var(--black)}
+  .mm-fb h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;margin:0 0 .25rem}
+  .mm-fb-sub{color:var(--steel);font-weight:500;margin:0 0 1.25rem}
+  .mm-fb-rating{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+  .mm-fb-rating label{cursor:pointer;position:relative}
+  .mm-fb-rating input{position:absolute;opacity:0;pointer-events:none}
+  .mm-fb-rating span{display:inline-block;padding:.55rem 1rem;border:1.5px solid rgba(58,107,138,.35);border-radius:24px;font-size:.9rem;transition:all .15s;user-select:none}
+  .mm-fb-rating label:hover span{border-color:var(--steel-lt)}
+  .mm-fb-rating input:checked+span{background:var(--steel);border-color:var(--steel);color:var(--warm)}
+  .mm-fb textarea{width:100%;padding:.8rem 1rem;border:1.5px solid rgba(58,107,138,.25);border-radius:10px;font-family:inherit;font-size:.95rem;background:var(--warm);resize:vertical;margin-bottom:1rem;color:var(--black)}
+  .mm-fb textarea:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(90,154,184,.18)}
+  .mm-fb-btn{background:var(--steel);color:var(--warm);border:none;border-radius:24px;padding:.7rem 1.8rem;font-family:inherit;font-weight:600;font-size:.9rem;letter-spacing:.03em;cursor:pointer;transition:background .2s}
+  .mm-fb-btn:hover{background:var(--steel-lt)}
+  .mm-fb-btn:disabled{opacity:.6;cursor:default}
+  .mm-fb-ok{color:#2d7a4f;font-weight:600;margin:.9rem 0 0}
+  .mm-fb-err{color:#b94040;font-weight:600;margin:.9rem 0 0}
+  .mm-fb-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden;opacity:0}
+  @media(max-width:640px){
+    header h1{font-size:2.1rem}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .delivered{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">Messick Marketing</div>
+    <div class="kicker">Performance Report</div>
+    <h1>Q2 <span>2026</span></h1>
+  </header>
+
+  <div class="intro">
+    <span class="accent">Hi Morgan &amp; team,</span>
+    Q2 was a build-and-compound quarter for Messick Marketing &mdash; steady content, a growing pipeline, and clear signal on what's resonating. Here's the quarter at a glance, then the detail behind it.
+  </div>
+
+  <!-- QUICK-GLANCE METRICS (sample figures) -->
+  <div class="metrics">
+    <div class="metric"><div class="n">4,820</div><div class="lbl">Website Visitors</div><div class="chg">+38% QoQ</div></div>
+    <div class="metric"><div class="n">31</div><div class="lbl">New Inquiries</div><div class="chg">+63% QoQ</div></div>
+    <div class="metric"><div class="n">58.4<small>K</small></div><div class="lbl">Social Impressions</div><div class="chg">+112% QoQ</div></div>
+    <div class="metric"><div class="n">2.9<small>%</small></div><div class="lbl">Avg. Engagement</div><div class="chg">above benchmark</div></div>
+  </div>
+
+  <section>
+    <div class="sec-kicker">The Highlights</div>
+    <h2>Wins worth celebrating</h2>
+    <ul class="wins">
+      <li class="win"><span class="dot"></span><div><b>Inquiries up 63% quarter over quarter</b><p>31 qualified inbound inquiries this quarter, driven largely by the healthcare service-line content and improved local search visibility.</p></div></li>
+      <li class="win"><span class="dot"></span><div><b>Social impressions more than doubled (+112%)</b><p>58.4K impressions across channels, led by short-form video &mdash; the top Reel alone reached 9.1K.</p></div></li>
+      <li class="win"><span class="dot"></span><div><b>Website traffic up 38%</b><p>4,820 visitors, with the highest-converting pages being the service-line and case-study sections.</p></div></li>
+      <li class="win"><span class="dot"></span><div><b>Engagement held above benchmark</b><p>2.9% average engagement rate across the quarter, ahead of the typical range for the niche.</p></div></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-kicker">The Work</div>
+    <h2>Content delivered this quarter</h2>
+    <div class="delivered">
+      <div class="dcard"><div class="n">18</div><div class="lbl">Social Posts</div><ul><li>9 short-form videos / Reels</li><li>5 carousels</li><li>4 static graphics</li></ul></div>
+      <div class="dcard"><div class="n">6</div><div class="lbl">Blog Articles</div><ul><li>3 service-line explainers</li><li>2 patient-education pieces</li><li>1 local SEO landing page</li></ul></div>
+      <div class="dcard"><div class="n">4</div><div class="lbl">Video Pieces</div><ul><li>2 educational shorts</li><li>1 testimonial edit</li><li>1 behind-the-scenes</li></ul></div>
+    </div>
+    <p class="note">Template preview &mdash; sample figures for testing. Replace with the real Q2 numbers before sending.</p>
+  </section>
+
+  <section style="border-top:1px solid var(--line)">
+    <div class="sec-kicker">Over To You</div>
+    <!-- ===== Feedback block (saves to Google Sheet + emails Messick) ===== -->
+    <div class="mm-fb" aria-labelledby="mm-fb-h">
+      <h2 id="mm-fb-h">Your turn</h2>
+      <p class="mm-fb-sub">What would you like to see more of next quarter?</p>
+      <form id="mm-fb-form" novalidate>
+        <input type="hidden" name="client_slug" value="messick-marketing">
+        <input type="hidden" name="client_name" value="Messick Marketing">
+        <input type="hidden" name="page" value="">
+        <input type="text" name="company_url" class="mm-fb-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="mm-fb-rating" role="radiogroup" aria-label="Overall rating">
+          <label><input type="radio" name="rating" value="More like this"><span>&#128077; More like this</span></label>
+          <label><input type="radio" name="rating" value="About right"><span>&#128522; About right</span></label>
+          <label><input type="radio" name="rating" value="Less of this"><span>&#128078; Less of this</span></label>
+        </div>
+        <textarea name="message" rows="4" placeholder="Topics, formats, platforms &mdash; tell us what you'd love more of&hellip;"></textarea>
+        <button type="submit" class="mm-fb-btn">Send Feedback</button>
+        <p class="mm-fb-ok" hidden>Thank you &mdash; we&rsquo;ve got your feedback and we&rsquo;ll build it into next quarter. &#127881;</p>
+        <p class="mm-fb-err" hidden>That didn&rsquo;t send &mdash; please email us at morgan@messickmarketing.com.</p>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="accent">Messick Marketing</div>
+    <div style="font-size:.8rem;margin-top:.3rem">Q2 2026 Report &middot; Confidential</div>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    // ▼▼▼ PASTE YOUR APPS SCRIPT /exec URL HERE (same one you use in the feedback viewer) ▼▼▼
+    var ENDPOINT = "PASTE_APPS_SCRIPT_EXEC_URL_HERE";
+    var form = document.getElementById('mm-fb-form');
+    if (!form) return;
+    var pg = form.querySelector('[name=page]'); if (pg) pg.value = location.href;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (form.company_url && form.company_url.value) return; // honeypot tripped
+      var btn = form.querySelector('.mm-fb-btn');
+      var ok = form.querySelector('.mm-fb-ok'), err = form.querySelector('.mm-fb-err');
+      ok.hidden = true; err.hidden = true; btn.disabled = true; btn.textContent = 'Sending…';
+      fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: new FormData(form) })
+        .then(function () { form.reset(); ok.hidden = false; btn.textContent = 'Sent'; })
+        .catch(function () { err.hidden = false; btn.disabled = false; btn.textContent = 'Send Feedback'; });
+    });
+  })();
+</script>
+</body>
+</html>
