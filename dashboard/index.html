@@ -85,6 +85,8 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 .td-sub{display:flex;align-items:center;gap:6px}
 .td-pill{font-size:0.58rem;font-weight:700;color:rgba(230,241,248,0.55)}
 .td-pri{width:6px;height:6px;border-radius:50%}
+.td-item.overdue{background:rgba(192,57,43,0.13);border-color:rgba(192,57,43,0.42)}
+.td-overdue{font-size:0.55rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;color:#ff9b8f;background:rgba(192,57,43,0.28);padding:1px 6px;border-radius:8px;white-space:nowrap}
 .td-pri.critical{background:var(--crit)}.td-pri.high{background:var(--hi)}.td-pri.medium{background:var(--med)}.td-pri.low{background:var(--lo)}
 .td-item[draggable="true"]{cursor:grab}
 .td-item[draggable="true"]:active{cursor:grabbing}
@@ -589,7 +591,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   <div id="today-due-section">
     <div class="td-head">
       <span class="td-dot"></span>
-      <span class="td-title">Due Today</span>
+      <span class="td-title">Due &amp; Overdue</span>
       <span class="td-count" id="td-count"></span>
     </div>
     <div class="td-list" id="td-list"></div>
@@ -1542,12 +1544,15 @@ let tdDragId=null;
 function getTodayOrder(){try{return JSON.parse(localStorage.getItem('mm_today_order_'+getTodayKey())||'[]');}catch(e){return[];}}
 function saveTodayOrder(ids){localStorage.setItem('mm_today_order_'+getTodayKey(),JSON.stringify(ids));scheduleSave();}
 function dueTodaySorted(){
-  const due=loadTodoTasks().filter(t=>!t.done&&dueStatus(t.due)==="due-today");
+  const due=loadTodoTasks().filter(t=>{const s=dueStatus(t.due);return !t.done&&(s==="due-today"||s==="overdue");});
   const order=getTodayOrder();
   const priOrder={critical:0,high:1,medium:2,low:3,none:4};
   due.sort((a,b)=>{
     const ia=order.indexOf(a.id), ib=order.indexOf(b.id);
     if(ia!==-1||ib!==-1){if(ia===-1)return 1;if(ib===-1)return -1;return ia-ib;}
+    // Not manually ordered: overdue first, then by priority
+    const sa=dueStatus(a.due)==="overdue"?0:1, sb=dueStatus(b.due)==="overdue"?0:1;
+    if(sa!==sb)return sa-sb;
     return (priOrder[a.priority||"none"]||4)-(priOrder[b.priority||"none"]||4);
   });
   return due;
@@ -1577,14 +1582,16 @@ function renderTodayDue(){
   due.forEach(t=>{
     const label=getBrandLabel(t.brand,t.nodeId);
     const pri=(t.priority&&t.priority!=="none")?`<span class="td-pri ${t.priority}"></span>`:"";
+    const overdue=dueStatus(t.due)==="overdue";
+    const dueBadge=overdue?`<span class="td-overdue">Overdue${t.due?" · "+fmtDate(t.due):""}</span>`:"";
     const el=document.createElement("div");
-    el.className="td-item";
+    el.className="td-item"+(overdue?" overdue":"");
     el.dataset.taskId=t.id;
     el.setAttribute("draggable","true");
     el.innerHTML=`<div class="td-check" title="Mark done"></div>
       <div class="td-body">
         <div class="td-text">${bEsc(t.text)}</div>
-        <div class="td-sub"><span class="td-pill">${bEsc(label)}</span>${pri}</div>
+        <div class="td-sub"><span class="td-pill">${bEsc(label)}</span>${pri}${dueBadge}</div>
       </div>`;
     el.addEventListener("click",()=>openDrawer(t.id));
     el.querySelector(".td-check").addEventListener("click",e=>{e.stopPropagation();completeTodayDue(t.id);});
