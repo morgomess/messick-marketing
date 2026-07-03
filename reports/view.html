@@ -79,7 +79,10 @@
   function decodePayload(){
     var h = location.hash ? location.hash.slice(1) : '';
     if(!h) return null;
-    try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(h))))); }
+    // URL may be #<readable-slug>/<encoded-payload> ; the payload is after the last "/"
+    var slash = h.lastIndexOf('/');
+    var enc = slash >= 0 ? h.slice(slash + 1) : h;
+    try { return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(enc))))); }
     catch(e){ return null; }
   }
 

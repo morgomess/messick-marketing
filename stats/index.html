@@ -1056,6 +1056,11 @@ Give exactly 5 recommendations, ordered High impact first.`;
 
     /* ══════════════════════════════════════ SHARE LINK (self-contained, no backend) */
     slugify(s) { return String(s || 'client').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'client'; },
+    // Slug for the share link + feedback tag: client name + report period (Stories-free of HTML entities)
+    shareSlug(c) {
+        const period = [c.periodStart, c.periodEnd].filter(Boolean).join(' ') || c.date || '';
+        return this.slugify((c.name || '') + ' ' + period).slice(0, 90).replace(/-+$/, '');
+    },
     buildSharePayload(i) {
         const c = this.clients[i], g = c.global || {}, f = c.findings;
         const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
@@ -1070,7 +1075,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
             .map(t => ({ title: t.title, platform: t.platform, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), totalEng: t.totalEng || 0 }));
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
-            name: c.name, slug: this.slugify(c.name), period: this.periodLabel(c), channels: c.channels || '',
+            name: c.name, slug: this.shareSlug(c), period: this.periodLabel(c), channels: c.channels || '',
             metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs
         };
     },
@@ -1080,7 +1085,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         let b64;
         try { b64 = btoa(unescape(encodeURIComponent(JSON.stringify(this.buildSharePayload(i))))); }
         catch (e) { alert('Could not build the link.'); return; }
-        const url = 'https://messickmarketing.com/reports/view.html#' + encodeURIComponent(b64);
+        const url = 'https://messickmarketing.com/reports/view.html#' + this.shareSlug(c) + '/' + encodeURIComponent(b64);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => this.showShare(url, true)).catch(() => this.showShare(url, false));
         } else this.showShare(url, false);
