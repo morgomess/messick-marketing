@@ -907,6 +907,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
             if (!txt) throw new Error('Empty AI response');
             const parsed = this.parseFindingsJSON(txt);
             if (!parsed || !parsed.recommendations) throw new Error('Could not parse analysis JSON');
+            this.sortRecs(parsed);
             c.findings = parsed; c.findingsSource = 'ai'; c.findingsError = ''; c.selectedRecs = null;
             this.persist();
             const b2 = document.getElementById('findings-body');
@@ -1017,17 +1018,25 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const executiveSummary = `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.join(', ')||'social'} during ${this.periodLabel(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
         const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'The content kept the audience engaged'}, and the top post did a lot of the heavy lifting. Here's where we'll push next.`;
 
-        return { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
+        const out = { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
+        this.sortRecs(out);
+        return out;
     },
 
-    // Normalize recommendations to {title, detail, impact, target}; sort High-impact first
+    // Normalize recommendations to {title, detail, impact, target} - shape only, order preserved
+    // (order is stable so selection-by-index stays valid; sorting happens once via sortRecs)
     normalizeRecs(f) {
-        const rank = { high: 0, medium: 1, low: 2 };
         return ((f && f.recommendations) || [])
             .map(r => typeof r === 'string'
                 ? { title: r, detail: '', impact: '', target: '' }
-                : { title: r.title || '', detail: r.detail || '', impact: r.impact || '', target: r.target || '' })
-            .sort((a, b) => (rank[(a.impact||'').toLowerCase()] ?? 3) - (rank[(b.impact||'').toLowerCase()] ?? 3));
+                : { title: r.title || '', detail: r.detail || '', impact: r.impact || '', target: r.target || '', custom: !!r.custom });
+    },
+    // Sort a findings object's recommendations High-impact first, in place (call once at creation)
+    sortRecs(f) {
+        const rank = { high: 0, medium: 1, low: 2 };
+        if (f && Array.isArray(f.recommendations)) {
+            f.recommendations = this.normalizeRecs(f).sort((a, b) => (rank[(a.impact||'').toLowerCase()] ?? 3) - (rank[(b.impact||'').toLowerCase()] ?? 3));
+        }
     },
     impactBadge(imp) {
         const t = (imp || '').toLowerCase(); if (!t) return '';
@@ -1051,6 +1060,47 @@ Give exactly 5 recommendations, ordered High impact first.`;
         if (card) card.classList.toggle('on');
     },
 
+    // Turn the strategist's rough note into a polished recommendation tile (AI), append it, auto-select it
+    async addCustomRec(i) {
+        const input = document.getElementById('custom-rec-input');
+        const raw = ((input && input.value) || '').trim();
+        if (!raw) return;
+        const c = this.clients[i];
+        if (!c || !c.findings) return;
+        const btn = document.getElementById('custom-rec-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span>'; }
+
+        let rec = null;
+        if (this.apiKey) {
+            try {
+                const ctx = { period: this.periodLabel(c), clientContext: c.context || '', globals: c.global || {} };
+                const prompt = `You are refining a strategist's rough note into ONE polished, client-facing recommendation for the social media audit of ${c.name}.
+Account context: ${JSON.stringify(ctx).slice(0, 700)}
+Rough note from the strategist: "${raw}"
+Write it as Messick Marketing, first-person plural ("we", "our") - never "you should". Keep it specific and tied to this account where possible.
+Output ONLY compact JSON on one line, nothing else: {"title":"short plain-language action","detail":"one sentence on what we'll do and why it matters","impact":"High|Medium|Low","target":"a measurable outcome, or empty string"}`;
+                const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey: this.apiKey, payload: { model: 'claude-haiku-4-5-20251001', max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] } })
+                });
+                const data = await resp.json();
+                const txt = data && data.content && data.content[0] && data.content[0].text;
+                const parsed = txt && this.parseFindingsJSON(txt);
+                if (parsed && parsed.title) rec = { title: parsed.title, detail: parsed.detail || '', impact: parsed.impact || 'Medium', target: parsed.target || '', custom: true };
+            } catch (e) { /* fall through to raw */ }
+        }
+        if (!rec) rec = { title: raw, detail: '', impact: 'Medium', target: '', custom: true }; // fallback: use the note as-is
+
+        if (!Array.isArray(c.findings.recommendations)) c.findings.recommendations = [];
+        c.findings.recommendations.push(rec);            // append at end -> stable index
+        const newIdx = this.normalizeRecs(c.findings).length - 1;
+        const sel = this.selectedRecSet(c);
+        if (!sel.includes(newIdx)) sel.push(newIdx);     // auto-include in the client report
+        this.persist();
+        const body = document.getElementById('findings-body');
+        if (body) body.innerHTML = this.findingsHTML(c.findings, i);
+    },
+
     findingsHTML(f, i) {
         if (!f) return '';
         const c = this.clients[i];
@@ -1060,7 +1110,11 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const platNotes = (f.platformNotes || []).map(pn => `<div style="margin-bottom:8px; font-size:0.85rem;"><strong>${esc(pn.platform)}:</strong> ${esc(pn.note)}</div>`).join('');
         const recs = this.normalizeRecs(f);
         const sel = this.selectedRecSet(c);
-        const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}${this.impactBadge(r.impact)}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}${r.target ? `<div style="font-size:0.7rem; color:var(--steel); margin-top:5px; font-weight:600;">&#127919; ${esc(r.target)}</div>` : ''}</div>`).join('');
+        const recCards = recs.map((r, idx) => `<div class="rec-card ${sel.includes(idx) ? 'on' : ''}" id="rec-card-${idx}" onclick="app.toggleRec(${i}, ${idx})"><div class="rec-check">&#10003; In client report</div><div class="rec-off">Tap to include</div><div class="rec-title">${esc(r.title)}${this.impactBadge(r.impact)}${r.custom ? '<span style="font-size:0.54rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--purple); background:var(--purple-bg); padding:1px 6px; border-radius:6px; margin-left:6px;">Yours</span>' : ''}</div>${r.detail ? `<div class="rec-detail">${esc(r.detail)}</div>` : ''}${r.target ? `<div style="font-size:0.7rem; color:var(--steel); margin-top:5px; font-weight:600;">&#127919; ${esc(r.target)}</div>` : ''}</div>`).join('');
+        const addRow = `<div style="margin-top:12px; display:flex; gap:6px; align-items:stretch;">
+            <input type="text" id="custom-rec-input" placeholder="Add your own recommendation (e.g. upsell Basic + Video for more Reels)" style="flex:1; margin:0; padding:0.55rem 0.75rem; font-size:0.82rem;" onkeydown="if(event.key==='Enter')app.addCustomRec(${i})">
+            <button class="btn btn-ghost btn-sm no-print" id="custom-rec-btn" onclick="app.addCustomRec(${i})" style="white-space:nowrap;">+ AI polish &amp; add</button>
+        </div>`;
         const srcNote = (c.findingsSource === 'computed')
             ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:7px 11px; border-radius:6px; margin-bottom:12px;">Data-driven analysis${c.findingsError ? ` &middot; AI unavailable: ${esc(c.findingsError)}` : ''} &mdash; still tailored to this account&rsquo;s numbers. <span style="color:var(--steel); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="app.generateFindings(${i}, true)">Retry AI</span></div>`
             : '';
@@ -1073,7 +1127,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
                 ${twoCol('Wins', f.wins, 'var(--green)')}
                 ${twoCol('Concerns', f.concerns, 'var(--red)')}
             </div>
-            ${recs.length ? `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:2px;">Recommendations</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Tap to choose which appear in the client report.</p><div class="rec-grid">${recCards}</div>` : ''}
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:2px;">Recommendations</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Tap to choose which appear in the client report.</p>${recs.length ? `<div class="rec-grid">${recCards}</div>` : ''}${addRow}
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:1.25rem;">
                 <button class="btn btn-primary btn-sm no-print" onclick="app.view('report', ${i})">&#128196; Build Client Report &rarr;</button>
                 <button class="btn btn-ghost btn-sm no-print" onclick="app.generateFindings(${i}, true)">&#8635; Regenerate analysis</button>
