@@ -401,8 +401,10 @@ Field synonyms:
 - saves = saves, bookmarks
 - clicks = link clicks, profile clicks
 - dislikes = dislikes, thumbs down
-- postsPublished = posts published, content count
-- reelsPublished = reels published, shorts
+- postsPublished = FEED posts only (standard grid/timeline posts). Do NOT include reels, shorts, or stories here.
+- reelsPublished = reels + shorts + short-form video published (count these here, separately from feed posts).
+- IMPORTANT: never count Stories in postsPublished or reelsPublished (Stories are excluded from the Posts total entirely).
+- videoViews = video views (YouTube/TikTok). Keep separate from impressions here; the app folds them into the Impressions total itself.
 - engRate = engagement rate % (as decimal e.g. 2.5)
 - avgWatchTime = average watch time (seconds)
 - avgDailyReach = average daily reach
@@ -528,11 +530,15 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const global = {};
         GLOBAL_SUM_FIELDS.forEach(f => { global[f] = platforms.reduce((sum, p) => sum + (perPlatform[p][f] || 0), 0); });
         global.followerBalance = (global.followersGained || 0) - (global.followersLost || 0);
+        // RULE: "Posts" = evergreen content published = feed posts + reels/shorts. Stories are excluded (never counted).
         global.totalContent = (global.postsPublished || 0) + (global.reelsPublished || 0);
         global.totalInteractions = (global.likes||0) + (global.comments||0) + (global.shares||0) + (global.saves||0) + (global.clicks||0);
+        // RULE: Impressions headline folds in video views (YouTube/TikTok), applied consistently.
+        global.videoViews = global.videoViews || 0;
+        global.impressions = (global.impressions || 0) + global.videoViews; // = "Impressions & Views"
 
         let totalImp = 0, weightedEng = 0;
-        platforms.forEach(p => { const imp = perPlatform[p].impressions || 0; const eng = perPlatform[p].engRate || 0; if (imp > 0 && eng > 0) { totalImp += imp; weightedEng += eng * imp; } });
+        platforms.forEach(p => { const imp = (perPlatform[p].impressions || 0) + (perPlatform[p].videoViews || 0); const eng = perPlatform[p].engRate || 0; if (imp > 0 && eng > 0) { totalImp += imp; weightedEng += eng * imp; } });
         global.engRate = totalImp > 0 ? parseFloat((weightedEng / totalImp).toFixed(2)) : 0;
         if (!global.engRate && global.impressions > 0) global.engRate = parseFloat(((global.totalInteractions / global.impressions) * 100).toFixed(2));
         global.avgDailyReach = platforms.reduce((sum, p) => sum + (perPlatform[p].avgDailyReach || 0), 0);
@@ -664,7 +670,10 @@ ${JSON.stringify(extractShape, null, 2)}` }
         return `<span style="display:inline-block; font-size:0.68rem; font-weight:700; color:${col}; background:${bg}; padding:1px 7px; border-radius:6px;">${s}</span>`;
     },
     platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.clicks||0); },
+    // Posts = evergreen content (feed posts + reels/shorts). Stories excluded.
     platPosts(pd) { pd = pd || {}; return (pd.postsPublished||0)+(pd.reelsPublished||0); },
+    // Impressions folds in video views (YouTube/TikTok), consistent with the headline rule.
+    platImpressions(pd) { pd = pd || {}; return (pd.impressions||0)+(pd.videoViews||0); },
     // A platform is "new this period" when almost all its followers were gained now and none were lost
     isNewChannel(c, platform) {
         const pd = (c.perPlatform && c.perPlatform[platform]) || {};
@@ -764,7 +773,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const globalStats = [
             { lbl:'Followers', val:fmt(g.followers||0), delta: md(g.followers||0, pg && pg.followers||0) },
             { lbl:'Net Growth', val:(g.followerBalance>=0?'+':'')+fmt(g.followerBalance||0), delta:'' },
-            { lbl:'Impressions', val:fmt(g.impressions||0), delta: md(g.impressions||0, pg && pg.impressions||0) },
+            { lbl:'Impressions &amp; Views', val:fmt(g.impressions||0), delta: md(g.impressions||0, pg && pg.impressions||0) },
             { lbl:'Total Interactions', val:fmt(g.totalInteractions||0), delta: md(g.totalInteractions||0, pg && pg.totalInteractions||0) },
             { lbl:'Eng. Rate', val:(g.engRate||0)+'%', delta: md(g.engRate||0, pg && pg.engRate||0) },
             { lbl:'Total Content', val:g.totalContent||0, delta: md(g.totalContent||0, pg && pg.totalContent||0) }
@@ -815,7 +824,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
                 ${this.renderTrendHTML(i)}
 
-                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impressions</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${p}</td><td>${fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(pd.impressions||0)}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div></div>` : ''}
+                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impr. &amp; Views</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${p}</td><td>${fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(this.platImpressions(pd))}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div><div style="font-size:0.66rem; color:var(--text-muted); margin-top:8px;">How we count: <strong>Posts</strong> = feed posts + reels/shorts (Stories excluded). <strong>Impressions</strong> include video views.</div></div>` : ''}
 
                 ${this.efficiencyFormatHTML(c)}
 
@@ -1152,7 +1161,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
         const heroTiles = [
             { lbl:'Followers', val:fmt(g.followers||0), d: pg ? this.momPct(g.followers||0, pg.followers||0) : null },
-            { lbl:'Impressions', val:fmt(g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
+            { lbl:'Impressions &amp; Views', val:fmt(g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
             { lbl:'Interactions', val:fmt(g.totalInteractions||0), d: pg ? this.momPct(g.totalInteractions||0, pg.totalInteractions||0) : null },
             { lbl:'Posts', val:g.totalContent||0, d: pg ? this.momPct(g.totalContent||0, pg.totalContent||0) : null }
         ];
@@ -1196,7 +1205,8 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
 
                 <div class="cr-section"><div class="cr-h">What We Recommend Next</div>${recsHTML}</div>
 
-                <div style="text-align:center; font-size:0.72rem; color:var(--text-muted); padding:0.5rem 0 2rem;">
+                <div style="text-align:center; font-size:0.66rem; color:var(--text-muted); padding:1rem 0 0.25rem;">Posts = feed posts + reels/shorts (Stories excluded). Impressions include video views.</div>
+                <div style="text-align:center; font-size:0.72rem; color:var(--text-muted); padding:0.25rem 0 2rem;">
                     <span style="font-family:'Dancing Script',cursive; font-size:1.05rem; color:var(--steel);">Messick Marketing</span> &nbsp;&middot;&nbsp; Prepared for ${esc(c.name)} &nbsp;&middot;&nbsp; ${this.periodLabel(c)}
                 </div>
             </div>`;
