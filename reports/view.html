@@ -158,10 +158,36 @@
     });
   }
 
-  var data = decodePayload();
-  if(!data){ document.getElementById('report').innerHTML = '<div class="load-err"><h2 style="margin-bottom:.5rem">Report link is incomplete</h2><p>This link is missing its report data. Ask Messick Marketing to resend the full share link.</p></div>'; }
-  else render(data);
-  window.addEventListener('hashchange', function(){ var d=decodePayload(); if(d) render(d); });
+  function showMissing(){
+    document.getElementById('report').innerHTML = '<div class="load-err"><h2 style="margin-bottom:.5rem">Report not found</h2><p>This link is missing its report, or it has not finished saving yet. Give it a moment and refresh, or ask Messick Marketing to resend it.</p></div>';
+  }
+
+  // Fetch a stored report by short id via JSONP (Apps Script sends no CORS headers).
+  function fetchReport(id, attempt){
+    attempt = attempt || 0;
+    var cbName = '__rpt' + Date.now();
+    var s = document.createElement('script');
+    var done = false;
+    var cleanup = function(){ try{document.body.removeChild(s)}catch(e){} try{delete window[cbName]}catch(e){} };
+    window[cbName] = function(data){
+      done = true; cleanup();
+      if(!data || data.error){ if(attempt < 2){ setTimeout(function(){ fetchReport(id, attempt+1); }, 1600); } else showMissing(); return; }
+      render(data);
+    };
+    s.onerror = function(){ if(!done){ cleanup(); if(attempt < 2){ setTimeout(function(){ fetchReport(id, attempt+1); }, 1600); } else showMissing(); } };
+    s.src = FEEDBACK_ENDPOINT + '?report=' + encodeURIComponent(id) + '&callback=' + cbName + '&_=' + Date.now();
+    document.body.appendChild(s);
+    setTimeout(function(){ if(!done){ s.onerror(); } }, 10000);
+  }
+
+  var params = new URLSearchParams(location.search);
+  var rid = params.get('r');
+  if(rid){ fetchReport(rid); }               // short link: ?r=<id>
+  else {
+    var data = decodePayload();               // legacy self-contained link: #<payload>
+    if(data) render(data); else showMissing();
+    window.addEventListener('hashchange', function(){ var d=decodePayload(); if(d) render(d); });
+  }
 </script>
 </body>
 </html>

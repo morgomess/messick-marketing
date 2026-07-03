@@ -248,6 +248,8 @@ function fmt(n) {
 /* ═══════════════════════════════════════════════════════════════
    APP
    ═══════════════════════════════════════════════════════════════ */
+// Apps Script web app (stores shared reports so share links stay short + collects feedback)
+const FEEDBACK_ENDPOINT = "https://script.google.com/macros/s/AKfycbwg1DsRvziOZC7X0f1YOwjejCLbCnmjOyZtz_Bpz9ytXQdrkkCqYJrngvBc5-AqzXR-/exec";
 const app = {
     clients: JSON.parse(localStorage.getItem('eb_audit_data_v3')) || [],
     apiKey: localStorage.getItem('eb_ant_key') || '',
@@ -1075,17 +1077,21 @@ Give exactly 5 recommendations, ordered High impact first.`;
             .map(t => ({ title: t.title, platform: t.platform, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), totalEng: t.totalEng || 0 }));
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
-            name: c.name, slug: this.shareSlug(c), period: this.periodLabel(c), channels: c.channels || '',
+            name: c.name, slug: this.shareSlug(c), period: ([c.periodStart, c.periodEnd].filter(Boolean).join(' – ') || c.date || ''), channels: c.channels || '',
             metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs
         };
     },
     shareLink(i) {
         const c = this.clients[i];
         if (!c.findings) { alert('Generate the Findings & Analysis first (open the audit and let it analyze), then share.'); return; }
-        let b64;
-        try { b64 = btoa(unescape(encodeURIComponent(JSON.stringify(this.buildSharePayload(i))))); }
-        catch (e) { alert('Could not build the link.'); return; }
-        const url = 'https://messickmarketing.com/reports/view.html#' + this.shareSlug(c) + '/' + encodeURIComponent(b64);
+        // Save the report to the Apps Script store so the share link can be a short id.
+        const id = this.shareSlug(c) + '-' + Math.random().toString(36).slice(2, 7);
+        const fd = new FormData();
+        fd.append('action', 'report');
+        fd.append('id', id);
+        fd.append('data', JSON.stringify(this.buildSharePayload(i)));
+        fetch(FEEDBACK_ENDPOINT, { method: 'POST', mode: 'no-cors', body: fd }).catch(() => {});
+        const url = 'https://messickmarketing.com/reports/view.html?r=' + encodeURIComponent(id);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => this.showShare(url, true)).catch(() => this.showShare(url, false));
         } else this.showShare(url, false);
