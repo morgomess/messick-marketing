@@ -361,6 +361,8 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .search-results{padding:8px 0}
 .sr-item{display:flex;align-items:flex-start;gap:8px;padding:8px 24px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer;transition:background 0.1s}
 .sr-item:hover{background:var(--blue-pale)}
+.sr-item[draggable="true"]:active{cursor:grabbing}
+.sr-item.dragging{opacity:0.35}
 .sr-crumb{font-size:0.62rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr-text{font-size:0.82rem;color:var(--black);flex:1;min-width:0}
 .sr-text mark{background:rgba(58,107,138,0.18);color:var(--blue);border-radius:2px;padding:0 1px}
@@ -1232,14 +1234,16 @@ function buildColTask(task,idx,type){
     tr.addEventListener('dragstart',e=>{
       dragState.taskId=task.id;
       dragState.sourceNodeId=task.nodeId;
+      dragState.taskType=type;
       e.dataTransfer.effectAllowed='move';
       e.dataTransfer.setData('text/plain',task.id);
-      setTimeout(()=>tr.classList.add('dragging'),0);
+      setTimeout(()=>{tr.classList.add('dragging');document.body.classList.add('td-dragging-active');},0);
     });
     tr.addEventListener('dragend',()=>{
       tr.classList.remove('dragging');
       clearDragOver();
-      dragState.taskId=null;dragState.sourceNodeId=null;
+      document.body.classList.remove('td-dragging-active');
+      dragState.taskId=null;dragState.sourceNodeId=null;dragState.taskType=null;
     });
   }
   const pri=task.priority||'none';
@@ -1363,7 +1367,7 @@ function buildTreeNode(node,depth){
   return d;
 }
 
-const dragState={taskId:null,sourceNodeId:null};
+const dragState={taskId:null,sourceNodeId:null,taskType:null};
 
 function removePlaceholder(){
   const ph=document.getElementById('drag-ph');
@@ -1490,11 +1494,13 @@ function renderFocus(){
     const slot=document.createElement('div');
     slot.className='focus-slot'+(p?' filled':'');
     slot.dataset.slot=i;
-    slot.addEventListener('dragover',e=>{if(focusDragSlot===null&&!tdDragId)return;e.preventDefault();e.dataTransfer.dropEffect='move';slot.classList.add('focus-drop');});
+    slot.addEventListener('dragover',e=>{if(focusDragSlot===null&&!tdDragId&&!dragState.taskId)return;e.preventDefault();e.dataTransfer.dropEffect='move';slot.classList.add('focus-drop');});
     slot.addEventListener('dragleave',()=>slot.classList.remove('focus-drop'));
     slot.addEventListener('drop',e=>{slot.classList.remove('focus-drop');e.preventDefault();
       // Today Bar → Top 3 drop
       if(tdDragId){const taskId=tdDragId;tdDragId=null;const tasks=loadTodoTasks();const task=tasks.find(t=>t.id===taskId);if(!task)return;const slotIdx=+slot.dataset.slot;const pn=getFocusPins();pn[slotIdx]={type:'todo',id:task.id};saveFocusPins(pn);renderColumns();return;}
+      // Column / search-result task → Top 3 drop
+      if(dragState.taskId){const taskId=dragState.taskId,type=dragState.taskType||'todo';dragState.taskId=null;dragState.sourceNodeId=null;document.body.classList.remove('td-dragging-active');const slotIdx=+slot.dataset.slot;const pn=getFocusPins();const dup=pn.findIndex(p=>p&&p.id===taskId);if(dup>-1&&dup!==slotIdx)pn[dup]=null;pn[slotIdx]={type:type,id:taskId};saveFocusPins(pn);renderColumns();return;}
       // Slot → Slot reorder
       if(focusDragSlot===null)return;const to=+slot.dataset.slot, from=focusDragSlot;if(from===to)return;const pn=getFocusPins();const tmp=pn[from];pn[from]=pn[to];pn[to]=tmp;saveFocusPins(pn);renderColumns();});
     if(p){
@@ -2034,6 +2040,9 @@ function runSearch(q){
     src.id='search-results-container';
     src.style.cssText='flex:1;overflow-y:auto;background:var(--surface)';
     cv.parentNode.insertBefore(src,cv.nextSibling);
+    // Drag a search result up into the Top 3 focus slots (delegated - items are re-rendered)
+    src.addEventListener('dragstart',e=>{const it=e.target.closest('.sr-item');if(!it||!it.dataset.taskId)return;dragState.taskId=it.dataset.taskId;dragState.sourceNodeId=null;dragState.taskType='todo';e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',it.dataset.taskId);document.body.classList.add('td-dragging-active');setTimeout(()=>it.classList.add('dragging'),0);});
+    src.addEventListener('dragend',e=>{const it=e.target.closest('.sr-item');if(it)it.classList.remove('dragging');dragState.taskId=null;dragState.sourceNodeId=null;dragState.taskType=null;document.body.classList.remove('td-dragging-active');});
   }
   cv.style.display='none';
   const countEl=document.getElementById('search-count');
@@ -2065,7 +2074,7 @@ function runSearch(q){
     const crumb=crumbFor(t.nodeId);
     const d=t.due?`<span class="t-due${ds(t.due)==='overdue'?' over':ds(t.due)==='due-today'?' today':''}">${fmtDate(t.due)}</span>`:'';
     const pri=t.priority&&t.priority!=='none'?`<span class="t-pri t-pri-${t.priority}"></span>`:'';
-    return`<div class="sr-item" onclick="openDrawer('${t.id}')">
+    return`<div class="sr-item" draggable="true" data-task-id="${t.id}" onclick="openDrawer('${t.id}')">
       <div style="flex:1;min-width:0">
         <div class="sr-text">${hl(bEsc(t.text))}</div>
         <div class="sr-crumb">${bEsc(crumb)}</div>
