@@ -1073,12 +1073,17 @@ Give exactly 5 recommendations, ordered High impact first.`;
             { lbl: 'Interactions', val: fmt(g.totalInteractions || 0), delta: md(g.totalInteractions || 0, pg && pg.totalInteractions || 0) },
             { lbl: 'Posts', val: String(g.totalContent || 0), delta: md(g.totalContent || 0, pg && pg.totalContent || 0) }
         ];
-        const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 5)
+        const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 10)
             .map(t => ({ title: t.title, platform: t.platform, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), totalEng: t.totalEng || 0 }));
+        // Per-platform reach/interactions for the client report's Platform Breakdown chart
+        const platforms = (c.platforms || []).map(p => {
+            const pd = (c.perPlatform && c.perPlatform[p]) || {};
+            return { platform: p, impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd) };
+        }).filter(x => x.impressions > 0 || x.interactions > 0);
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
             name: c.name, slug: this.shareSlug(c), period: ([c.periodStart, c.periodEnd].filter(Boolean).join(' – ') || c.date || ''), channels: c.channels || '',
-            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs
+            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms
         };
     },
     shareLink(i) {

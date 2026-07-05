@@ -43,7 +43,6 @@
   .mband{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.13);border-radius:3px;margin-top:2.4rem;overflow:hidden}
   .metric{background:var(--ink);padding:1.35rem 1.15rem 1.25rem}
   .metric-val{font-family:var(--fh);font-size:clamp(1.7rem,3.6vw,2.4rem);font-weight:700;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
-  .metric-delta{font-size:.66rem;font-weight:600;margin-left:.35rem;letter-spacing:.02em;vertical-align:middle}
   .metric-lbl{font-size:.57rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(250,248,245,.55);margin-top:.65rem}
   @media(max-width:640px){.mband{grid-template-columns:repeat(2,1fr)}}
 
@@ -59,10 +58,21 @@
   .block{padding:3rem 1.5rem}
   .block-alt{background:var(--gray)}
 
+  /* platform breakdown chart */
+  .chart-note{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.4rem}
+  .chart-row{padding:.95rem 0;border-bottom:1px solid var(--line)}
+  .chart-row:last-child{border-bottom:none}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.55rem}
+  .chart-plat{font-size:.96rem;font-weight:500;color:var(--black)}
+  .chart-val{font-size:.68rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .chart-track{height:10px;background:var(--gray-mid);border-radius:2px;overflow:hidden}
+  .chart-fill{height:100%;background:linear-gradient(90deg,var(--steel),var(--steel-lt));border-radius:2px;width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  @media(prefers-reduced-motion:reduce){.chart-fill{transition:none}}
+
   /* top content leaderboard */
   .tc-row{display:flex;align-items:center;gap:1.1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
   .tc-row:last-child{border-bottom:none}
-  .tc-rank{flex-shrink:0;width:2rem;font-family:var(--fh);font-size:1.75rem;font-weight:500;color:var(--steel);line-height:1;font-variant-numeric:tabular-nums}
+  .tc-rank{flex-shrink:0;width:2.2rem;font-family:var(--fh);font-size:1.75rem;font-weight:500;color:var(--steel);line-height:1;font-variant-numeric:tabular-nums}
   .tc-main{flex:1;min-width:0}
   .tc-title{font-size:.96rem;font-weight:500;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tc-plat{font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px}
@@ -80,21 +90,22 @@
   .imp-high{color:var(--red);background:rgba(176,73,47,.1)}
   .imp-med{color:var(--amber);background:rgba(176,125,42,.12)}
 
-  /* ── FEEDBACK ── */
-  .fb{padding:0 1.5rem 3rem}
-  .fb-in{background:#fff;border:1px solid var(--line);border-radius:4px;padding:2.2rem;max-width:840px;margin:0 auto}
-  .fb h2{font-family:var(--fh);font-size:1.8rem;font-weight:500;margin-bottom:.3rem}
-  .fb-sub{font-size:.92rem;color:var(--muted);margin-bottom:1.4rem}
+  /* ── FEEDBACK (highlighted, mid-report) ── */
+  .fb{background:var(--ink);padding:3.6rem 1.5rem;position:relative;overflow:hidden}
+  .fb::after{content:'';position:absolute;bottom:-45%;left:-12%;width:60%;height:170%;background:radial-gradient(circle,rgba(58,107,138,.28),transparent 66%);pointer-events:none}
+  .fb-in{position:relative;z-index:1;background:#fff;border-radius:6px;padding:2.5rem;max-width:680px;margin:0 auto;border-top:4px solid var(--steel);box-shadow:0 26px 64px rgba(0,0,0,.34)}
+  .fb h2{font-family:var(--fh);font-size:1.9rem;font-weight:500;margin-bottom:.35rem}
+  .fb-sub{font-size:.93rem;color:var(--muted);margin-bottom:1.5rem}
   .fb-rate{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.1rem}
   .fb-rate label{cursor:pointer;position:relative}
   .fb-rate input{position:absolute;opacity:0;pointer-events:none}
-  .fb-rate span{display:inline-block;padding:.55rem 1.1rem;border:1px solid rgba(58,107,138,.32);border-radius:2px;font-size:.78rem;font-weight:500;letter-spacing:.04em;transition:all .15s;user-select:none}
+  .fb-rate span{display:inline-block;padding:.6rem 1.15rem;border:1px solid rgba(58,107,138,.32);border-radius:2px;font-size:.78rem;font-weight:500;letter-spacing:.04em;transition:all .15s;user-select:none}
   .fb-rate label:hover span{border-color:var(--steel-lt)}
   .fb-rate input:checked+span{background:var(--steel);border-color:var(--steel);color:var(--warm)}
   .fb-rate input:focus-visible+span{outline:2px solid var(--steel-lt);outline-offset:2px}
   .fb textarea{width:100%;padding:.85rem 1rem;border:1px solid rgba(58,107,138,.24);border-radius:3px;font-family:inherit;font-size:.95rem;font-weight:300;background:var(--warm);resize:vertical;margin-bottom:1.1rem;color:var(--black)}
   .fb textarea:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(90,154,184,.16)}
-  .fb-btn{background:var(--black);color:var(--warm);border:none;border-radius:2px;padding:.8rem 2rem;font-family:inherit;font-weight:500;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+  .fb-btn{background:var(--black);color:var(--warm);border:none;border-radius:2px;padding:.85rem 2.1rem;font-family:inherit;font-weight:500;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
   .fb-btn:hover{background:#2a2a2a}
   .fb-btn:disabled{opacity:.6;cursor:default}
   .fb-ok{color:var(--green);font-weight:500;margin-top:.9rem}
@@ -112,17 +123,17 @@
 
   @media print{
     body{background:#fff}
-    .hero::after{display:none}
+    .hero::after,.fb::after{display:none}
     .rv{opacity:1;transform:none}
     .fb,.rpt-foot .fn{display:none}
-    .block,.story,.tc-row,.rec,.win{break-inside:avoid}
+    .block,.story,.tc-row,.rec,.win,.chart-row{break-inside:avoid}
+    .chart-fill{transition:none}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   }
 </style>
 </head>
 <body>
 <div id="report"></div>
-<div class="fb" id="feedback"></div>
 <footer class="rpt-foot" id="brandfoot"></footer>
 
 <script>
@@ -131,6 +142,7 @@
   var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K'; return Math.round(n).toLocaleString(); }
   function impactBadge(imp){ var t=(imp||'').toLowerCase(); if(!t) return ''; var c=t==='high'?'imp-high':t==='medium'?'imp-med':''; return c?'<span class="imp '+c+'">'+esc(imp)+'</span>':''; }
 
   function decodePayload(){
@@ -146,11 +158,25 @@
     document.title = (d.name ? d.name + ' | ' : '') + 'Report | Messick Marketing';
 
     var metrics = (d.metrics||[]).map(function(m){
-      var chip = (m.delta!=null && isFinite(m.delta)) ? '<span class="metric-delta" style="color:'+(m.delta>=0?'#8fe0b0':'#ffb3b3')+'">'+(m.delta>=0?'+':'')+Number(m.delta).toFixed(0)+'%</span>' : '';
-      return '<div class="metric"><div class="metric-val"><span class="cv" data-val="'+esc(m.val)+'">'+esc(m.val)+'</span>'+chip+'</div><div class="metric-lbl">'+esc(m.lbl)+'</div></div>';
+      return '<div class="metric"><div class="metric-val"><span class="cv" data-val="'+esc(m.val)+'">'+esc(m.val)+'</span></div><div class="metric-lbl">'+esc(m.lbl)+'</div></div>';
     }).join('');
 
     var wins = (d.wins||[]).map(function(w){ return '<div class="win"><span class="win-dot"></span><span class="win-txt">'+esc(w)+'</span></div>'; }).join('');
+
+    // Platform breakdown chart (share of reach)
+    var plats = (d.platforms||[]).filter(function(p){ return (p.impressions||0)>0; });
+    var chartHTML='';
+    if(plats.length){
+      var totalR = plats.reduce(function(s,p){ return s+(p.impressions||0); },0)||1;
+      var maxR = plats.reduce(function(m,p){ return Math.max(m,p.impressions||0); },1);
+      chartHTML = plats.slice().sort(function(a,b){ return (b.impressions||0)-(a.impressions||0); }).map(function(p){
+        var share = Math.round((p.impressions||0)/totalR*100);
+        var w = Math.max(2, Math.round((p.impressions||0)/maxR*100));
+        return '<div class="chart-row"><div class="chart-head"><span class="chart-plat">'+esc(p.platform)+'</span>'+
+          '<span class="chart-val">'+fmt(p.impressions)+' &middot; '+share+'%</span></div>'+
+          '<div class="chart-track"><div class="chart-fill" data-w="'+w+'" style="width:0"></div></div></div>';
+      }).join('');
+    }
 
     var top = d.top||[];
     var hasImpr = top.some(function(t){ return (t.impressions||0)>0; });
@@ -182,15 +208,18 @@
         (wins?'<div class="wins">'+wins+'</div>':'')+
         '</div></section>';
     }
-    if(topHTML){
-      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Top Content</p>'+topHTML+'</div></section>';
+    if(chartHTML){
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Platform Breakdown</p><p class="chart-note">Share of reach by platform this period.</p>'+chartHTML+'</div></section>';
     }
+    if(topHTML){
+      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Top Content</p>'+topHTML+'</div></section>';
+    }
+    html += '<section class="fb">'+feedbackHTML(d)+'</section>';
     if(recs){
-      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
     }
     document.getElementById('report').innerHTML = html;
 
-    document.getElementById('feedback').innerHTML = feedbackHTML(d);
     document.getElementById('brandfoot').innerHTML =
       '<img src="'+LOGO+'" alt="Messick Marketing">'+
       '<div class="fp">Prepared for '+esc(d.name||'')+(d.period?' &middot; '+esc(d.period):'')+'</div>'+
@@ -200,17 +229,19 @@
     animate();
   }
 
+  function fillCharts(scope){
+    (scope||document).querySelectorAll('.chart-fill').forEach(function(f){ f.style.width = f.getAttribute('data-w')+'%'; });
+  }
+
   function animate(){
     var els = [].slice.call(document.querySelectorAll('.rv'));
-    // Hero elements reveal immediately, staggered
     var hero = [].slice.call(document.querySelectorAll('.hero .rv'));
     hero.forEach(function(el,i){ el.style.transitionDelay = (i*0.09)+'s'; });
     requestAnimationFrame(function(){ hero.forEach(function(el){ el.classList.add('in'); }); countUp(); });
-    // The rest reveal on scroll
     var rest = els.filter(function(el){ return !el.closest('.hero'); });
-    if(REDUCE || !('IntersectionObserver' in window)){ rest.forEach(function(el){ el.classList.add('in'); }); return; }
+    if(REDUCE || !('IntersectionObserver' in window)){ rest.forEach(function(el){ el.classList.add('in'); }); fillCharts(); return; }
     var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); fillCharts(e.target); io.unobserve(e.target); } });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
     rest.forEach(function(el){ io.observe(el); });
   }
