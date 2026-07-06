@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Internal tools and private pages — not for indexing
+Disallow: /dashboard/
+Disallow: /expenses/
+Disallow: /feedback/
+Disallow: /content/
+Disallow: /stats/
+Disallow: /youtube/
+Disallow: /reports/
+Disallow: /leads.html
+Disallow: /report-feedback-form.html
+
+Sitemap: https://messickmarketing.com/sitemap.xml
