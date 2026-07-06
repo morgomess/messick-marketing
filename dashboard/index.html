@@ -2924,7 +2924,8 @@ function processRecurringTasks(){
     const nextDue=nextRecurDate(t.recur,lastGen)||addDays(lastGen,days);
     if(nextDue<=today){
       // Check a fresh copy doesn't already exist (same text + nodeId + not done)
-      const alreadyOpen=tasks.some(x=>!x.done&&x.text===t.text&&x.nodeId===t.nodeId&&x.id!==t.id);
+      const alreadyOpen=tasks.some(x=>!x.done&&x.text===t.text&&x.nodeId===t.nodeId&&x.id!==t.id)
+        ||toAdd.some(x=>x.text===t.text&&x.nodeId===t.nodeId); // also honor copies queued earlier in this same pass (prevents duplicate-template multiplication)
       if(!alreadyOpen){
         toAdd.push({
           id:uid(),text:t.text,brand:t.brand,priority:t.priority,
