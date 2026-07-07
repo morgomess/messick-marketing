@@ -302,7 +302,7 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .empire-tabs{display:flex;gap:0;border-bottom:1px solid rgba(58,107,138,0.35)}
 .emp-tab{flex:1;padding:10px;background:none;border:none;color:#4a7a9a;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.2s}
 .emp-tab.active{color:#7ab8d4;border-bottom:2px solid #5a9ab8}
-.empire-assets{padding:12px 20px;overflow-y:auto;max-height:300px}
+.empire-assets{padding:12px 20px;overflow-y:auto;max-height:300px;min-height:0}
 .empire-spend-head{font-size:0.68rem;color:#4a7a9a;margin-bottom:12px;letter-spacing:0.1em;text-transform:uppercase}
 .empire-asset{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(58,107,138,0.2)}
 .empire-asset:last-child{border-bottom:none}
@@ -350,6 +350,28 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 #empire-toast .coin{color:#e0b64a}
 #empire-toast .xp{color:#7ab8d4}
 #empire-toast.levelup{border-color:#e0b64a;background:linear-gradient(135deg,#1c2e3d,#2a1c3d)}
+/* ── EMPIRE SCENE (living vista) ── */
+.empire-scene{position:relative;width:100%;background:#0a1420;overflow:hidden;line-height:0;border-bottom:1px solid rgba(58,107,138,0.35);flex-shrink:0}
+.empire-scene svg{display:block;width:100%;height:auto;max-height:160px}
+.empire-scene-label{position:absolute;left:14px;top:9px;font-size:0.56rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,184,212,0.72);z-index:2;pointer-events:none}
+.empire-scene-empty{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-style:italic;color:rgba(152,170,182,0.55);z-index:2;pointer-events:none;transition:opacity .5s}
+@keyframes es-twinkle{0%,100%{opacity:0.15}50%{opacity:0.9}}
+@keyframes es-drift{from{transform:translateX(-70px)}to{transform:translateX(500px)}}
+@keyframes es-flick{0%,100%{opacity:0.85}45%{opacity:0.9}47%{opacity:0.25}49%{opacity:0.9}}
+@keyframes es-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes es-pulse{0%{transform:scale(0.4);opacity:0.55}100%{transform:scale(1.6);opacity:0}}
+@keyframes es-flame{0%,100%{transform:scaleY(0.8);opacity:0.8}50%{transform:scaleY(1.25);opacity:1}}
+@keyframes es-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes es-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.es-star{animation:es-twinkle 3s ease-in-out infinite}
+.es-cloud{animation:es-drift linear infinite;opacity:0.5}
+.es-win{animation:es-flick ease-in-out infinite}
+.es-rocket-body{transform-box:fill-box;transform-origin:center;animation:es-bob 2.4s ease-in-out infinite}
+.es-flame{transform-box:fill-box;transform-origin:top center;animation:es-flame 0.25s ease-in-out infinite}
+.es-signal{transform-box:fill-box;transform-origin:center;animation:es-pulse 2.2s ease-out infinite}
+.es-globe-ring{transform-box:fill-box;transform-origin:center;animation:es-spin 14s linear infinite}
+.es-grp{transition:opacity .55s ease}
+.es-grp.on{animation:es-rise .55s ease both}
 
 /* ── SEARCH BAR ── */
 #search-bar{display:flex;align-items:center;gap:8px;padding:7px 24px;background:#f5f3f0;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -722,6 +744,82 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="empire-rank-label" id="empire-rank">Freelancer</div>
       </div>
       <button class="empire-x" onclick="closeEmpire()">&#10005;</button>
+    </div>
+    <div class="empire-scene" id="empire-scene">
+      <div class="empire-scene-label" id="empire-scene-label">Chapter I &middot; The Grind</div>
+      <div class="empire-scene-empty" id="empire-scene-empty">Your empire starts here.</div>
+      <svg id="empire-scene-svg" viewBox="0 0 460 170" preserveAspectRatio="xMidYMax meet">
+        <defs>
+          <linearGradient id="es-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop id="es-sky-top" offset="0" stop-color="#0b2138"/>
+            <stop id="es-sky-bot" offset="1" stop-color="#132b3a"/>
+          </linearGradient>
+          <radialGradient id="es-moon-g" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#eaf4fb"/><stop offset="0.7" stop-color="#cfe6f2"/><stop offset="1" stop-color="#cfe6f2" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="es-ground" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0d1c26"/><stop offset="1" stop-color="#060d13"/>
+          </linearGradient>
+          <filter id="es-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect x="0" y="0" width="460" height="141" fill="url(#es-sky)"/>
+        <g id="es-stars" opacity="0.85"></g>
+        <circle cx="70" cy="40" r="20" fill="url(#es-moon-g)" opacity="0.9"/>
+        <circle cx="70" cy="40" r="10" fill="#f2f8fc"/>
+        <g fill="#1b3346" opacity="0.5">
+          <g class="es-cloud" style="animation-duration:46s"><ellipse cx="0" cy="34" rx="26" ry="7"/><ellipse cx="18" cy="30" rx="18" ry="7"/></g>
+          <g class="es-cloud" style="animation-duration:64s;animation-delay:-30s"><ellipse cx="0" cy="60" rx="22" ry="6"/><ellipse cx="16" cy="56" rx="15" ry="6"/></g>
+        </g>
+        <path id="es-far" d="M0 141 L0 108 L18 108 L18 96 L40 96 L40 112 L64 112 L64 90 L86 90 L86 104 L112 104 L112 84 L134 84 L134 108 L160 108 L160 94 L360 94 L360 82 L380 82 L380 100 L404 100 L404 88 L430 88 L430 104 L460 104 L460 141 Z" fill="#0e2230" opacity="0"/>
+        <g id="es-towers"></g>
+        <rect x="0" y="140" width="460" height="30" fill="url(#es-ground)"/>
+        <line x1="0" y1="140.5" x2="460" y2="140.5" stroke="#2a4a5c" stroke-width="0.5" opacity="0.6"/>
+        <g id="es-va" class="es-grp" opacity="0">
+          <ellipse cx="34" cy="139" rx="22" ry="3" fill="#000" opacity="0.4"/>
+          <rect x="20" y="128" width="28" height="4" rx="1" fill="#3a5568"/>
+          <rect x="23" y="132" width="3" height="7" fill="#2a4050"/><rect x="42" y="132" width="3" height="7" fill="#2a4050"/>
+          <rect x="30" y="120" width="9" height="8" rx="1" fill="#12303f" stroke="#5a9ab8" stroke-width="0.7"/>
+          <rect x="31" y="121" width="7" height="5" fill="#7ec6e6" opacity="0.9"><animate attributeName="opacity" values="0.5;0.95;0.5" dur="2.5s" repeatCount="indefinite"/></rect>
+          <circle cx="34" cy="115" r="3.4" fill="#c8a07a"/>
+          <rect x="30" y="118" width="8" height="9" rx="3" fill="#2f5068"/>
+          <g id="es-crew"></g>
+        </g>
+        <g id="es-client" class="es-grp" opacity="0">
+          <rect x="78" y="118" width="2.5" height="22" fill="#2a4050"/>
+          <rect x="66" y="104" width="28" height="16" rx="2" fill="#12303f" stroke="#5a9ab8" stroke-width="0.8"/>
+          <text x="80" y="115" font-size="9" fill="#7ab8d4" text-anchor="middle" font-family="Jost">CLIENT</text>
+          <circle cx="80" cy="107" r="1.4" fill="#e0b64a"><animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/></circle>
+        </g>
+        <g id="es-brand" class="es-grp" opacity="0">
+          <rect x="104" y="132" width="26" height="8" rx="1" fill="#1a2e3a"/>
+          <g class="es-rocket-body">
+            <path d="M117 96 C112 100 111 112 111 122 L123 122 C123 112 122 100 117 96 Z" fill="#dbe8f0"/>
+            <path d="M117 96 C114 99 113 106 113 110 L121 110 C121 106 120 99 117 96 Z" fill="#c0392b" opacity="0.85"/>
+            <circle cx="117" cy="110" r="2.6" fill="#12303f" stroke="#5a9ab8" stroke-width="0.6"/>
+            <path d="M111 122 L106 130 L111 128 Z" fill="#3a6b8a"/><path d="M123 122 L128 130 L123 128 Z" fill="#3a6b8a"/>
+            <path class="es-flame" d="M113 122 L117 138 L121 122 Z" fill="#e0b64a"/>
+            <path class="es-flame" d="M114.5 122 L117 132 L119.5 122 Z" fill="#f4d98a" style="animation-delay:-0.12s"/>
+          </g>
+        </g>
+        <g id="es-media" class="es-grp" opacity="0">
+          <path d="M356 140 L361 96 L367 96 L372 140 Z" fill="#1f3a49"/>
+          <line x1="359" y1="118" x2="369" y2="118" stroke="#2a4a5c" stroke-width="1"/>
+          <line x1="358" y1="128" x2="370" y2="128" stroke="#2a4a5c" stroke-width="1"/>
+          <rect x="362" y="86" width="4" height="12" fill="#5a9ab8"/>
+          <circle cx="364" cy="84" r="2.5" fill="#e0b64a" filter="url(#es-glow)"/>
+          <circle class="es-signal" cx="364" cy="84" r="6" fill="none" stroke="#7ab8d4" stroke-width="1.4"/>
+          <circle class="es-signal" cx="364" cy="84" r="6" fill="none" stroke="#7ab8d4" stroke-width="1.4" style="animation-delay:-1.1s"/>
+        </g>
+        <g id="es-franchise" class="es-grp" opacity="0"></g>
+        <g id="es-multi" class="es-grp" opacity="0">
+          <circle cx="418" cy="42" r="16" fill="#0f2b3d" stroke="#3a6b8a" stroke-width="1"/>
+          <path d="M402 42 h32 M418 26 v32 M406 32 q12 10 24 0 M406 52 q12 -10 24 0" stroke="#5a9ab8" stroke-width="0.7" fill="none" opacity="0.8"/>
+          <path d="M410 34 q6 8 2 16 M426 34 q-6 8 -2 16" stroke="#6fe0b8" stroke-width="0.9" fill="none" opacity="0.7"/>
+          <ellipse class="es-globe-ring" cx="418" cy="42" rx="22" ry="7" fill="none" stroke="#7ab8d4" stroke-width="0.8" opacity="0.5"/>
+        </g>
+      </svg>
     </div>
     <div class="empire-lvl-row">
       <div class="empire-lvl-top">
@@ -2610,9 +2708,99 @@ function empireToast(coins,xp,leveled,unlocked){
   void el.offsetWidth;el.classList.add('show');
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),leveled?3400:1700);
 }
+/* ── living scene ── */
+const ES_NS='http://www.w3.org/2000/svg';
+function esEl(tag,attrs){const e=document.createElementNS(ES_NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+const ES_GROUND=140;
+const ES_TOWERS=[
+  {id:'studio', x:150, w:40, minH:30, maxH:82,  cap:20, body:'#20404f', win:'#7ec6e6', roof:'#5a9ab8', door:true},
+  {id:'team',   x:196, w:34, minH:22, maxH:58,  cap:20, body:'#1b3644', win:'#6fb8dc', roof:'#3a6b8a'},
+  {id:'agency', x:236, w:40, minH:36, maxH:100, cap:20, body:'#233f4d', win:'#8fd0ee', roof:'#e0b64a', crown:true},
+  {id:'conglom',x:300, w:52, minH:44, maxH:122, cap:20, body:'#20455a', win:'#9ad8f2', roof:'#e0b64a', pillars:true},
+];
+// sky mood [top,bottom] per chapter index (matches EMPIRE_CHAPTERS length)
+const ES_MOODS=[['#123048','#1c3a48'],['#0e2a40','#183442'],['#0b2138','#132b3a'],['#0a1c30','#102636'],['#0a1628','#0e2030'],['#0b1424','#0c1a28'],['#0a1020','#0a1622'],['#0c0a1e','#120e26']];
+let esBuilt=false;
+function esBuild(){
+  const stars=document.getElementById('es-stars');
+  if(!stars)return; // scene markup not present
+  for(let i=0;i<34;i++){const x=(i*137)%460,y=(i*71)%96+4,r=(i%3)*0.3+0.5;const s=esEl('circle',{cx:x,cy:y,r:r,fill:'#dfeefb'});s.setAttribute('class','es-star');s.style.animationDelay=(-(i*0.37)%3)+'s';stars.appendChild(s);}
+  const host=document.getElementById('es-towers');host.innerHTML='';
+  ES_TOWERS.forEach(t=>{
+    const g=esEl('g',{id:'es-'+t.id,class:'es-grp',opacity:0});
+    g.appendChild(esEl('ellipse',{cx:t.x+t.w/2,cy:ES_GROUND-1,rx:t.w/2+4,ry:3,fill:'#000',opacity:0.35}));
+    g.appendChild(esEl('rect',{id:'es-body-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:t.w,height:t.minH,fill:t.body,rx:1}));
+    g.appendChild(esEl('rect',{id:'es-edge-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:2,height:t.minH,fill:'#fff',opacity:0.06}));
+    const clip=esEl('clipPath',{id:'es-clip-'+t.id});
+    clip.appendChild(esEl('rect',{id:'es-cliprect-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:t.w,height:t.minH}));
+    g.appendChild(clip);
+    const wg=esEl('g',{'clip-path':'url(#es-clip-'+t.id+')'});
+    const cols=Math.floor((t.w-6)/7),rows=Math.floor((t.maxH-8)/8);let wi=0;
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const wx=t.x+4+c*7,wy=ES_GROUND-9-r*8;
+      const w=esEl('rect',{x:wx,y:wy,width:3.4,height:4,fill:t.win,rx:0.5});
+      if((wi*7)%3===0){w.setAttribute('class','es-win');w.style.animationDuration=(2.4+(wi%5)*0.6)+'s';w.style.animationDelay=(-(wi*0.4)%4)+'s';}
+      else w.setAttribute('opacity',0.55);
+      wg.appendChild(w);wi++;
+    }
+    g.appendChild(wg);
+    g.appendChild(esEl('circle',{id:'es-roof-'+t.id,cx:t.x+t.w/2,cy:ES_GROUND-t.minH-2,r:1.6,fill:t.roof,filter:'url(#es-glow)'}));
+    if(t.crown)g.appendChild(esEl('path',{id:'es-crown-'+t.id,d:'',fill:t.roof,opacity:0.95}));
+    if(t.door)g.appendChild(esEl('rect',{x:t.x+t.w/2-3,y:ES_GROUND-10,width:6,height:10,fill:t.win,opacity:0.85,rx:0.5}));
+    host.appendChild(g);
+  });
+  const fr=document.getElementById('es-franchise');fr.innerHTML='';
+  for(let i=0;i<5;i++){const bx=380+i*16;const s=esEl('g',{id:'es-shop-'+i,opacity:0});
+    s.appendChild(esEl('rect',{x:bx,y:126,width:13,height:14,fill:'#1d3a48'}));
+    s.appendChild(esEl('path',{d:`M${bx-1} 126 L${bx+6.5} 120 L${bx+14} 126 Z`,fill:'#2a4a5c'}));
+    s.appendChild(esEl('rect',{x:bx+4,y:132,width:5,height:8,fill:'#7ec6e6',opacity:0.7}));
+    fr.appendChild(s);}
+  const crew=document.getElementById('es-crew');crew.innerHTML='';
+  const crewCol=['#3a6b8a','#5e7a4a','#d4317a','#3a6b8a'];
+  for(let i=0;i<4;i++){const cx=48+i*9;const p=esEl('g',{id:'es-crewp-'+i,opacity:0});
+    p.appendChild(esEl('circle',{cx:cx,cy:124,r:2.6,fill:'#c8a07a'}));
+    p.appendChild(esEl('rect',{x:cx-3,y:127,width:6,height:8,rx:2.5,fill:crewCol[i]}));
+    crew.appendChild(p);}
+  esBuilt=true;
+}
+function esUpdate(){
+  if(!esBuilt)esBuild();
+  if(!esBuilt)return;
+  const ci=empireChapterIdx(),ch=EMPIRE_CHAPTERS[ci];
+  const lbl=document.getElementById('es-label')||document.getElementById('empire-scene-label');
+  if(lbl)lbl.textContent=ch.tag+' · '+ch.name;
+  document.getElementById('es-sky-top').setAttribute('stop-color',ES_MOODS[ci][0]);
+  document.getElementById('es-sky-bot').setAttribute('stop-color',ES_MOODS[ci][1]);
+  document.getElementById('es-far').setAttribute('opacity',Math.min(0.9,ci*0.16));
+  ES_TOWERS.forEach(t=>{
+    const n=empireState.owned[t.id]||0,g=document.getElementById('es-'+t.id);
+    g.setAttribute('opacity',n>0?1:0);g.classList.toggle('on',n>0);
+    const H=n>0?t.minH+(t.maxH-t.minH)*Math.min(n,t.cap)/t.cap:t.minH,top=ES_GROUND-H;
+    document.getElementById('es-body-'+t.id).setAttribute('y',top);
+    document.getElementById('es-body-'+t.id).setAttribute('height',H);
+    document.getElementById('es-edge-'+t.id).setAttribute('y',top);
+    document.getElementById('es-edge-'+t.id).setAttribute('height',H);
+    document.getElementById('es-cliprect-'+t.id).setAttribute('y',top);
+    document.getElementById('es-cliprect-'+t.id).setAttribute('height',H);
+    document.getElementById('es-roof-'+t.id).setAttribute('cy',top-2);
+    if(t.crown)document.getElementById('es-crown-'+t.id).setAttribute('d',`M${t.x+t.w/2-7} ${top} L${t.x+t.w/2-4} ${top-7} L${t.x+t.w/2} ${top-2} L${t.x+t.w/2+4} ${top-7} L${t.x+t.w/2+7} ${top} Z`);
+  });
+  ['va','client','brand','media','multi'].forEach(key=>{
+    const n=empireState.owned[key]||0,g=document.getElementById('es-'+key);
+    g.setAttribute('opacity',n>0?1:0);g.classList.toggle('on',n>0);
+  });
+  for(let i=0;i<4;i++)document.getElementById('es-crewp-'+i).setAttribute('opacity',(empireState.owned['va']||0)>i+1?1:0);
+  const fn=empireState.owned['franchise']||0;
+  document.getElementById('es-franchise').setAttribute('opacity',fn>0?1:0);
+  document.getElementById('es-franchise').classList.toggle('on',fn>0);
+  for(let i=0;i<5;i++)document.getElementById('es-shop-'+i).setAttribute('opacity',fn>i?1:0);
+  const total=Object.values(empireState.owned).reduce((a,b)=>a+b,0);
+  const em=document.getElementById('empire-scene-empty');if(em)em.style.opacity=total>0?0:1;
+}
 /* ── render ── */
 function empireRender(){
   const s=empireState;
+  esUpdate();
   document.getElementById('empire-cash').textContent=empireFormat(s.coins);
   document.getElementById('empire-rate').textContent=empireFormat(empirePerSec())+' / sec';
   document.getElementById('empire-rank').textContent=empireRank();
