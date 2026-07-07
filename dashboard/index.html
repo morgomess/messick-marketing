@@ -2656,7 +2656,7 @@ function empireLoad(){
   if(s.lastSeen==null)s.lastSeen=Date.now();
   delete s.cash;
 }
-function empireSave(){try{localStorage.setItem('mm_empire',JSON.stringify(empireState));}catch(e){}}
+function empireSave(){try{localStorage.setItem('mm_empire',JSON.stringify(empireState));if(typeof scheduleSave==='function')scheduleSave();}catch(e){}}
 /* ── multipliers ── */
 function empUpg(id){return !!empireState.upgrades[id];}
 function empClickMult(){return EMPIRE_UPGRADES.filter(u=>u.type==='click'&&empUpg(u.id)).reduce((m,u)=>m*u.val,1);}
