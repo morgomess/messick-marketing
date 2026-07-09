@@ -3098,39 +3098,66 @@ function addDays(dateStr,n){
   d.setDate(d.getDate()+n);
   return d.toISOString().slice(0,10);
 }
+// A recurring task is ONE living record, not a fresh copy per cycle. Completing it sends it
+// to Done; it revives itself (same record) only once its next occurrence has actually arrived.
+// This also collapses any legacy pileup of duplicate completed copies down to a single series.
 function processRecurringTasks(){
   const tasks=loadTodoTasks();
   const today=todayStr();
   let changed=false;
-  const toAdd=[];
+
+  // Group every recurring task by series (recur + node + text). Non-recurring tasks pass through.
+  const groups={};
+  const result=[];
   tasks.forEach(t=>{
-    if(!t.recur||t.recur==='none')return;
-    if(!t.done)return; // only regenerate completed recurring tasks
-    const days=recurDaysBetween(t.recur);
-    if(!days)return;
-    const lastGen=t.recurLastGen||t.addedAt&&new Date(t.addedAt).toISOString().slice(0,10)||today;
-    const nextDue=nextRecurDate(t.recur,lastGen)||addDays(lastGen,days);
-    if(nextDue<=today){
-      // Check a fresh copy doesn't already exist (same text + nodeId + not done)
-      const alreadyOpen=tasks.some(x=>!x.done&&x.text===t.text&&x.nodeId===t.nodeId&&x.id!==t.id)
-        ||toAdd.some(x=>x.text===t.text&&x.nodeId===t.nodeId); // also honor copies queued earlier in this same pass (prevents duplicate-template multiplication)
-      if(!alreadyOpen){
-        toAdd.push({
-          id:uid(),text:t.text,brand:t.brand,priority:t.priority,
-          due:nextDue,nodeId:t.nodeId,recur:t.recur,done:false,
-          addedAt:Date.now(),subtasks:[],assignees:t.assignees||[],
-          notes:t.notes||'',recurLastGen:nextDue
-        });
-        t.recurLastGen=nextDue;
+    if(!t.recur||t.recur==='none'){result.push(t);return;}
+    const key=t.recur+'|'+(t.nodeId||'')+'|'+t.text;
+    (groups[key]||(groups[key]=[])).push(t);
+  });
+
+  Object.keys(groups).forEach(key=>{
+    const copies=groups[key];
+    if(copies.length>1)changed=true; // extra copies get collapsed away below
+    const days=recurDaysBetween(copies[0].recur)||7;
+    // Latest generation date seen anywhere in the series.
+    let lastGen=copies.reduce((m,t)=>((t.recurLastGen||'')>m?(t.recurLastGen||''):m),'');
+    if(!lastGen)lastGen=today;
+    // Keep a single record for the series: prefer an open copy (may hold in-progress notes/subtasks),
+    // otherwise the most recently generated completed copy.
+    const opens=copies.filter(t=>!t.done);
+    const pool=opens.length?opens:copies;
+    const survivor=pool.reduce((a,b)=>{
+      const ga=a.recurLastGen||'', gb=b.recurLastGen||'';
+      if(gb>ga)return b;
+      if(gb===ga&&(b.addedAt||0)>(a.addedAt||0))return b;
+      return a;
+    });
+    survivor.recurLastGen=lastGen;
+
+    if(survivor.done){
+      // Revive only once the next scheduled occurrence has arrived (never the same day it was
+      // completed), and land the due date on the most recent occurrence that is <= today so it
+      // shows as due today / genuinely overdue — never a fake future or pre-schedule date.
+      let occ=nextRecurDate(survivor.recur,lastGen)||addDays(lastGen,days);
+      if(occ<=today){
+        let guard=0;
+        while(guard++<500){
+          const step=nextRecurDate(survivor.recur,occ)||addDays(occ,days);
+          if(!step||step>today||step<=occ)break;
+          occ=step;
+        }
+        survivor.done=false;
+        survivor.due=occ;
+        survivor.recurLastGen=occ;
+        survivor.subtasks=(survivor.subtasks||[]).map(s=>({...s,done:false}));
         changed=true;
       }
     }
+    result.push(survivor);
   });
-  if(toAdd.length||changed){
-    tasks.push(...toAdd);
-    saveTodoTasks(tasks);
-  }
-  return toAdd.length;
+
+  if(changed)saveTodoTasks(result);
+  return 0;
 }
 
 function init(){
