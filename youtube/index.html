@@ -870,8 +870,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 
       <!-- Section 1: Title & Description -->
       <div class="opt-section">
-        <div class="section-title">Title &amp; Description</div>
-        <div class="section-sub">4 title variants with character count + a full YouTube description, tuned to the video format.</div>
+        <div class="section-title">Title, Description &amp; Tags</div>
+        <div class="section-sub">4 title variants with character count, a full YouTube description, and a matching tag set, all tuned to the video format.</div>
         <div class="fmt-toggle" id="title-fmt-toggle">
           <button class="fmt-btn active" data-fmt="long" onclick="setTitleFormat('long')">🎬 Long-form</button>
           <button class="fmt-btn" data-fmt="short" onclick="setTitleFormat('short')">⚡ Shorts</button>
@@ -900,19 +900,19 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
           </div>
         </div>
 
-        <button class="btn-primary" onclick="generateTitles()">Generate</button>
+        <button class="btn-primary" onclick="generateTitles()">Generate Title, Description &amp; Tags</button>
         <div class="output-area" id="titles-out"></div>
       </div>
 
       <!-- Section 2: Tags -->
       <div class="opt-section">
         <div class="section-title">Tag Builder</div>
-        <div class="section-sub">3-tier tag strategy: Exact Match, Broad Match, and Audience Match.</div>
+        <div class="section-sub">Fills in automatically when you generate above. Rebuild here to try a different topic.</div>
         <div class="form-group">
           <label class="form-label">Topic *</label>
           <input type="text" class="form-input" id="tg-topic" placeholder="e.g. minimally invasive surgery">
         </div>
-        <button class="btn-primary" onclick="generateTags()">Build Tags</button>
+        <button class="btn-primary" onclick="generateTags()">Rebuild Tags</button>
         <div class="output-area" id="tags-out"></div>
       </div>
 
@@ -1656,7 +1656,13 @@ Every title MUST include #Shorts and at least one topical hashtag. No em dashes.
   } catch (e) {
     out.innerHTML = errHtml('Generation failed. Try again.');
     console.error(e);
+    return;
   }
+
+  // Tags run off the same generate, anchored to the title's primary keyword.
+  const tagTopic = _lastPrimaryKw || topic;
+  if (tgField) tgField.value = tagTopic;
+  await generateTags({ topic: tagTopic, primaryKeyword: _lastPrimaryKw, title: _lastTitle, description: _lastDesc });
 }
 
 function renderTitlesOutput(json, out) {
@@ -1721,8 +1727,10 @@ function renderTitlesOutput(json, out) {
 // ============================================================
 // FEATURE 2: TAG BUILDER
 // ============================================================
-async function generateTags() {
-  const topic = document.getElementById('tg-topic').value.trim();
+// ctx (optional) is passed when tags are chained off Generate, so the tags stay
+// anchored to the title's primary keyword instead of drifting to their own.
+async function generateTags(ctx) {
+  const topic = (ctx && ctx.topic) || document.getElementById('tg-topic').value.trim();
   const out = document.getElementById('tags-out');
   if (!topic) { out.innerHTML = errHtml('Please enter a topic.'); return; }
   out.innerHTML = spinner('Building tag strategy...');
@@ -1757,12 +1765,17 @@ TAG RULES:
 - Bias BROAD and COMMON over clever and specific. Prefer 2 to 4 word phrases that read like real search queries.
 - No duplicates or near-duplicates, no editorial adjectives, no format/brand descriptors, no full sentences, no single generic words.`);
 
+  let userMsg = `Build a 2026 YouTube tag strategy grounded in real search demand for: ${topic}`;
+  if (ctx && ctx.primaryKeyword) userMsg += `\n\nUse this exact phrase as the primaryKeyword and as tag #1: "${ctx.primaryKeyword}"`;
+  if (ctx && ctx.title) userMsg += `\n\nThe video's title is: "${ctx.title}"`;
+  if (ctx && ctx.description) userMsg += `\n\nThe video's description:\n${ctx.description}`;
+
   try {
     let raw;
     try {
-      raw = await callAI(system, `Build a 2026 YouTube tag strategy grounded in real search demand for: ${topic}`, { tools: [{ type: 'web_search_20250305', name: 'web_search' }] });
+      raw = await callAI(system, userMsg, { tools: [{ type: 'web_search_20250305', name: 'web_search' }] });
     } catch (e) {
-      raw = await callAI(system, `Build a 2026 YouTube tag strategy grounded in real search demand for: ${topic}`);
+      raw = await callAI(system, userMsg);
     }
     renderTagsOutput(parseJSON(raw), out);
   } catch (e) {
