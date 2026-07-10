@@ -927,6 +927,25 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     document.getElementById(id).style.display = visible ? 'block' : 'none';
   }
 
+  // Claude sometimes returns script/prompt fields as a nested object or array
+  // instead of a flat string. Coerce anything into readable multi-line text so
+  // the output card never shows "[object Object]".
+  function asText(val) {
+    if (val == null) return '';
+    if (typeof val === 'string') return val;
+    if (Array.isArray(val)) return val.map(asText).filter(Boolean).join('\n');
+    if (typeof val === 'object') {
+      return Object.entries(val)
+        .map(([k, v]) => {
+          const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          const text = asText(v);
+          return text.includes('\n') ? `${label}:\n${text}` : `${label}: ${text}`;
+        })
+        .join('\n');
+    }
+    return String(val);
+  }
+
   function getFormData() {
     return {
       brandName: document.getElementById('brand-name').value.trim(),
@@ -1110,8 +1129,10 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         throw new Error('Could not parse AI response. Try again.');
       }
 
-      document.getElementById('caption-output').textContent = parsed.caption || '';
-      document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
+      document.getElementById('caption-output').textContent = asText(parsed.caption);
+      document.getElementById('hashtags-output').textContent = Array.isArray(parsed.hashtags)
+        ? parsed.hashtags.join(' ')
+        : asText(parsed.hashtags);
 
       const isReel = selectedType === 'reel';
       const isGraphic = selectedType === 'graphic';
@@ -1148,8 +1169,8 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         const titles = videoTitles[selectedVideoType] || videoTitles.reel;
         document.getElementById('reel-script-title').textContent = titles[0];
         document.getElementById('reel-prompt-title').textContent = titles[1];
-        document.getElementById('reel-script-output').textContent = parsed.reel_script || '';
-        document.getElementById('reel-prompt-output').textContent = parsed.reel_video_prompt || '';
+        document.getElementById('reel-script-output').textContent = asText(parsed.reel_script);
+        document.getElementById('reel-prompt-output').textContent = asText(parsed.reel_video_prompt);
       } else if (isGraphic || isCover) {
         document.getElementById('image-card-title').textContent = isCover ? coverLabel : 'Generated Graphic';
         document.getElementById('edit-graphic-btn').style.display = '';
