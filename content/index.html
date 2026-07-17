@@ -153,8 +153,8 @@
     background: var(--surface); display: flex; align-items: center; justify-content: center;
     position: relative;
   }
-  /* 4:5 social graphic */
-  .image-slot.ratio-45 { aspect-ratio: 4/5; width: 100%; max-width: 340px; }
+  /* 3:4 social graphic (Gemini-supported portrait ratio) */
+  .image-slot.ratio-45 { aspect-ratio: 3/4; width: 100%; max-width: 340px; }
   /* 9:16 vertical cover (Reels/Stories/Shorts) — constrain width so it doesn't blow out */
   .image-slot.ratio-916 { aspect-ratio: 9/16; width: 100%; max-width: 260px; }
   /* 16:9 horizontal cover (YouTube/landscape) — full width, natural height from ratio */
@@ -982,7 +982,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       talking:   { label: 'Talking Head Video', ratio: '9:16 vertical' },
     };
     const vMeta = videoMeta[selectedVideoType] || videoMeta.reel;
-    const ratio = selectedType === 'reel' ? vMeta.ratio : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '4:5';
+    const ratio = selectedType === 'reel' ? vMeta.ratio : selectedType === 'cover' ? (selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical') : '3:4';
 
     const imgRules = `Imagen 4 image generation rules:
 TEXT (critical — Imagen renders text poorly at scale):
@@ -1053,7 +1053,7 @@ Required JSON keys:
 ${hashtagsOnly || visualOnly ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags. Never use em dashes (—) in the caption — use a regular hyphen (-) if a dash is needed.'}
 ${captionOnly || visualOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
 ${selectedType === 'reel' ? videoSpec : ''}
-${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 4:5 social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}
+${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 portrait social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}
 ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'}). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'landscape' ? 'Landscape cover rules: bold high-contrast visuals, key elements centered and clear at full width, nothing critical near edges, visually engaging at a glance.' : 'Reel/Story cover rules: bold high-contrast vertical composition, single strong hero subject optimized for 9:16, eye-catching thumbnail feel, important elements centered away from top/bottom edges.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}`;
   }
 
@@ -1190,7 +1190,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         const styleNote = d.brandStyle ? ` Visual style: ${parseStyleForImage(d.brandStyle)}.` : '';
         const suffix = isCover
           ? ` ${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'} aspect ratio. High quality production-ready ${coverLabel}.` + styleNote
-          : ' 4:5 aspect ratio. High quality production-ready social media graphic.' + styleNote;
+          : ' 3:4 portrait aspect ratio. High quality production-ready social media graphic.' + styleNote;
 
         if (false) {  // carousel removed
           const slides = typeof parsed.carousel_slides === 'string' ? JSON.parse(parsed.carousel_slides) : parsed.carousel_slides;
@@ -1345,7 +1345,8 @@ Rules:
   }
 
   // Returns aspect config for the current content type + cover format.
-  // ratio is always sent to the worker as aspectRatio. Graphic = 4:5, Cover = 9:16 or 16:9.
+  // ratio is always sent to the worker as aspectRatio. Graphic = 3:4, Cover = 9:16 or 16:9.
+  // (Gemini/Imagen only supports 1:1, 9:16, 16:9, 4:3, 3:4 — 4:5 is rejected, so use 3:4 for portrait graphics.)
   function getImageAspect() {
     if (selectedType === 'cover') {
       if (selectedCoverFormat === 'landscape') {
@@ -1364,9 +1365,9 @@ Rules:
       };
     }
     return {
-      ratio: '4:5',
+      ratio: '3:4',
       slotClass: 'ratio-45',
-      suffix: ' 4:5 aspect ratio. High quality production-ready social media graphic.',
+      suffix: ' 3:4 portrait aspect ratio. High quality production-ready social media graphic.',
       footerNoun: 'social media graphic'
     };
   }
@@ -1434,7 +1435,7 @@ Rules for the rewritten prompt:
     applyBtn.textContent = 'Generating...';
 
     try {
-      const imgBody = { prompt: editedPrompt + suffix, count: 1, aspectRatio: asp.ratio || '4:5' };
+      const imgBody = { prompt: editedPrompt + suffix, count: 1, aspectRatio: asp.ratio || '3:4' };
       const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
@@ -1512,7 +1513,7 @@ Rules for the rewritten prompt:
     document.getElementById('edit-graphic-btn').style.display = '';
 
     try {
-      const imgBody = { prompt: imagePrompt + suffix, count: 1, aspectRatio: asp.ratio || '4:5' };
+      const imgBody = { prompt: imagePrompt + suffix, count: 1, aspectRatio: asp.ratio || '3:4' };
       const imgResult = await callWorker('imagen', imgBody);
       const pred = (imgResult.predictions || [])[0];
       const slot = grid.querySelector('.image-slot');
