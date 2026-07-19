@@ -2997,10 +2997,61 @@ function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(pushState,1500);
 }
+/* ── AGENT INBOX ──
+   Tasks pushed into dashboard/agent-inbox.json by the automated Morning Brief
+   (or any agent that can commit to the repo) get imported here on boot.
+   Same-origin fetch of a repo file — no token, no CORS. Idempotent: every
+   entry id is recorded in mm_inbox_seen, so completing/deleting an imported
+   task on the board never causes it to reappear, and re-runs never duplicate.
+*/
+async function importAgentInbox(){
+  try{
+    const resp=await fetch('agent-inbox.json?_='+Date.now(),{cache:'no-store'});
+    if(!resp.ok)return;
+    const inbox=await resp.json();
+    const items=Array.isArray(inbox)?inbox:(inbox&&inbox.tasks)||[];
+    if(!items.length)return;
+    const seen=JSON.parse(localStorage.getItem('mm_inbox_seen')||'[]');
+    const seenSet=new Set(seen);
+    const tasks=loadTodoTasks();
+    const existingIds=new Set(tasks.map(t=>t.id));
+    let added=0;
+    items.forEach(it=>{
+      if(!it||!it.id)return;
+      if(seenSet.has(it.id)){return;}
+      seenSet.add(it.id);
+      if(existingIds.has(it.id))return;
+      const nodeId=it.nodeId||'personal-misc';
+      tasks.push({
+        id:it.id,
+        text:String(it.text||'').slice(0,300),
+        nodeId:nodeId,
+        brand:getNodeBrand(nodeId),
+        priority:it.priority||'none',
+        due:it.due||null,
+        recur:'none',
+        done:false,
+        addedAt:Date.now(),
+        subtasks:[],
+        assignees:[],
+        notes:it.notes||'',
+        recurLastGen:todayStr(),
+        src:it.src||'agent-inbox'
+      });
+      added++;
+    });
+    localStorage.setItem('mm_inbox_seen',JSON.stringify([...seenSet]));
+    if(added){
+      saveTodoTasks(tasks);
+      pushState();
+    }
+  }catch(e){/* inbox is best-effort; never block boot */}
+}
 async function bootApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
   await pullState();
+  await importAgentInbox();
   init();
   // Do NOT push on boot - only pull. Push happens only when user makes a change.
   startSyncLoop();
