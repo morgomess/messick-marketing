@@ -1405,9 +1405,23 @@ function getNodeBrand(nodeId){
     if(id==='mm-root'||(brainMap[id]&&brainMap[id].type&&brainMap[id].type.startsWith('mm')))return'messick';
     if(id==='personal-root')return'other';
     const n=brainMap[id];if(!n)break;
+    /* Any OTHER top-level area (added via "+ Add area") is its own thing, not
+       Messick. Without this the fallback below silently branded it 'messick',
+       so a new area's tasks wore Messick's colour and label everywhere. */
+    if(n.parent===null)return'other';
     id=n.parent;
   }
   return'messick';
+}
+
+/* the top-level area a node belongs to */
+function rootOf(nodeId){
+  let id=nodeId,guard=0;
+  while(id&&brainMap[id]&&guard++<20){
+    if(brainMap[id].parent===null)return brainMap[id];
+    id=brainMap[id].parent;
+  }
+  return null;
 }
 
 function getColBrand(nodeId){
@@ -1653,22 +1667,15 @@ function buildColumn(colIdx,parentId){
     addBtn.addEventListener('click',()=>{
       const name=prompt('Area name:');
       if(!name||!name.trim())return;
-      /* An "area" is a child of a ROOT, so it never appears in this (root)
-         column — which made the button look broken: the node was created, just
-         somewhere you weren't looking. Two fixes: honour the root you have
-         open instead of guessing from the name (which made Personal areas
-         impossible to create), and navigate to the new node so the click
-         visibly does something. */
-      const ROOTS=['mm-root','ve-root','personal-root'];
-      let rootId=ROOTS.indexOf(navPath[0])>-1?navPath[0]:null;
-      if(!rootId){
-        const n=name.toLowerCase();
-        rootId=n.includes('virtueasy')?'ve-root':(n.includes('personal')?'personal-root':'mm-root');
-      }
-      const TYPE={'ve-root':'ve-client','personal-root':'personal-item','mm-root':'mm-client'};
-      const nn={id:'b'+bIdCounter++,label:name.trim(),type:TYPE[rootId]||'mm-client',parent:rootId,status:'todo',done:false,x:0,y:0};
+      /* "+ Add area" lives in the ROOT column, so it creates a TOP-LEVEL area —
+         a peer of Messick Marketing / Virtueasy / Personal (roots are simply
+         parent:null). It used to file the new node under a root instead, which
+         is why adding "Doggy See, Doggy Do" buried it inside Messick.
+         Use "+ Add section" inside a column to nest something. */
+      const nn={id:'b'+bIdCounter++,label:name.trim(),type:'custom-root',parent:null,
+                status:'todo',done:false,x:0,y:0,order:brainNodes.filter(n=>n.parent===null).length};
       brainNodes.push(nn);brainMap[nn.id]=nn;brainSave();
-      navPath=[rootId];
+      navPath=[];
       renderColumns();
       revealNewNode(nn.id);
     });
@@ -2087,7 +2094,12 @@ function getClientProject(brand,nodeId){
 
 function getBrandLabel(brand,nodeId){
   if(brand==='virtueasy')return'Virtueasy';
-  if(brand==='other')return'Other';
+  if(brand==='other'){
+    /* 'other' covers Personal AND every custom top-level area, so name the
+       actual area rather than labelling everything "Other". */
+    const r=rootOf(nodeId);
+    return r&&r.id!=='personal-root'?r.label:'Personal';
+  }
   // For Messick tasks, resolve client name from nodeId if available
   if(brand==='messick'||!brand){
     if(nodeId&&nodeId!=='mm-root'&&nodeId!=='mm-cat-clients'&&nodeId!=='mm-cat-team'){
@@ -2997,12 +3009,12 @@ function renderOverview(){
     </div>`).join('');
 
   /* ── load by brand ── */
-  const BRANDS=[
-    {id:'mm-root',       label:'Messick Marketing', color:'var(--blue)'},
-    {id:'ve-root',       label:'Virtueasy',         color:'var(--ve)'},
-    {id:'personal-root', label:'Personal',          color:'var(--personal)'}
-  ];
-  const rolls=BRANDS.map(b=>({...b,...nodeDueRollup(b.id)}));
+  /* Enumerate top-level areas rather than hardcoding three, so anything added
+     via "+ Add area" shows up here instead of being silently uncounted. */
+  const KNOWN={'mm-root':'var(--blue)','ve-root':'var(--ve)','personal-root':'var(--personal)'};
+  const rolls=brainNodes.filter(n=>n.parent===null)
+    .sort((a,b)=>(a.order||0)-(b.order||0))
+    .map(n=>({id:n.id,label:n.label,color:KNOWN[n.id]||'var(--blue-lt)',...nodeDueRollup(n.id)}));
   const max=Math.max(1,...rolls.map(r=>r.open));
   document.getElementById('ov-bars').innerHTML=rolls.map(r=>`
     <div class="ov-bar-row">
