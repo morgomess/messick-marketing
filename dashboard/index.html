@@ -374,6 +374,46 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .es-grp.on{animation:es-rise .55s ease both}
 
 /* ── SEARCH BAR ── */
+/* ── CALENDAR VIEW ── */
+#calendar-view{display:none;flex:1;flex-direction:column;overflow:hidden;background:var(--surface)}
+.cal-toolbar{display:flex;align-items:center;gap:10px;padding:10px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.cal-month{font-size:1.05rem;font-weight:700;letter-spacing:0.01em;min-width:190px}
+.cal-nav{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.85rem;line-height:1;padding:6px 10px;cursor:pointer;border-radius:3px;transition:all 0.15s}
+.cal-nav:hover{border-color:var(--border-s);color:var(--black)}
+.cal-today-btn{font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:7px 13px}
+.cal-legend{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)}
+.cal-legend span{display:flex;align-items:center;gap:5px}
+.cal-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.cal-scroll{flex:1;overflow:auto}
+.cal-body{min-width:660px;display:flex;flex-direction:column;height:100%}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface-2)}
+.cal-dow div{padding:7px 10px;font-size:0.63rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:left}
+.cal-grid{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(104px,1fr)}
+.cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px 6px 7px;display:flex;flex-direction:column;gap:3px;overflow:hidden;transition:background 0.12s}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.out{background:#fbfaf8}
+.cal-cell.out .cal-daynum{color:var(--light)}
+.cal-cell.drop{background:var(--blue-pale);box-shadow:inset 0 0 0 2px var(--blue-lt)}
+.cal-daynum{font-size:0.72rem;font-weight:700;color:var(--muted);padding:1px 3px;flex-shrink:0}
+.cal-cell.today .cal-daynum{background:var(--blue);color:#fff;border-radius:11px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0}
+.cal-chips{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
+.cal-chip{display:flex;align-items:center;gap:4px;font-size:0.7rem;line-height:1.25;padding:3px 5px 3px 6px;border-left:3px solid var(--muted);border-radius:0 3px 3px 0;background:var(--surface-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;transition:filter 0.12s}
+.cal-chip:hover{filter:brightness(0.95)}
+.cal-chip.dragging{opacity:0.4}
+.cal-chip i{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.cal-chip b{overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.cal-chip.b-messick{border-left-color:var(--blue);background:var(--blue-pale)}
+.cal-chip.b-virtueasy{border-left-color:var(--ve);background:var(--ve-pale)}
+.cal-chip.b-other{border-left-color:var(--personal);background:var(--personal-pale)}
+.cal-chip.over{border-left-color:var(--crit);background:rgba(192,57,43,0.1);color:var(--crit)}
+.cal-chip.done{opacity:0.45;text-decoration:line-through}
+.cal-empty{font-size:0.72rem;color:var(--light);padding:20px 24px}
+@media(max-width:760px){
+  .cal-toolbar{padding:9px 14px;gap:7px}
+  .cal-month{font-size:0.9rem;min-width:0;flex:1}
+  .cal-legend{display:none}
+  .cal-grid{grid-auto-rows:minmax(88px,1fr)}
+}
 #search-bar{display:flex;align-items:center;gap:8px;padding:7px 24px;background:#f5f3f0;border-bottom:1px solid var(--border);flex-shrink:0}
 #search-bar.hidden{display:none}
 .srch-icon{color:var(--muted);font-size:0.9rem;flex-shrink:0}
@@ -597,6 +637,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <span class="h-date" id="today-date"></span>
       <div class="h-tabs">
         <button class="h-tab active" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
+        <button class="h-tab" id="tab-calendar" onclick="switchMainTab('calendar')">🗓 Calendar</button>
         <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
       </div>
     </div>
@@ -648,6 +689,27 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   </div>
 
   <div id="col-view"></div>
+
+  <div id="calendar-view">
+    <div class="cal-toolbar">
+      <button class="cal-nav" onclick="calShift(-1)" title="Previous month">‹</button>
+      <button class="cal-nav" onclick="calShift(1)" title="Next month">›</button>
+      <button class="cal-nav cal-today-btn" onclick="calToday()">Today</button>
+      <div class="cal-month" id="cal-month-label"></div>
+      <div class="cal-legend">
+        <span><i style="background:var(--blue)"></i>Messick</span>
+        <span><i style="background:var(--ve)"></i>Virtueasy</span>
+        <span><i style="background:var(--personal)"></i>Personal</span>
+        <span><i style="background:var(--crit)"></i>Overdue</span>
+      </div>
+    </div>
+    <div class="cal-scroll">
+      <div class="cal-body">
+        <div class="cal-dow"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="clients-view">
     <div class="clients-header">
@@ -2451,14 +2513,95 @@ function showPraise(msg){
    TAB SWITCHING
 ═══════════════════════════════════════════ */
 function switchMainTab(tab){
-  const isClients=tab==='clients';
-  document.getElementById('focus-section').style.display=isClients?'none':'block';
+  const isClients=tab==='clients', isCal=tab==='calendar', isBrain=!isClients&&!isCal;
+  document.getElementById('focus-section').style.display=isBrain?'block':'none';
+  document.getElementById('today-due-section').style.display=isCal?'none':'block';
   document.getElementById('quick-add-bar').style.display=isClients?'none':'flex';
-  document.getElementById('col-view').style.display=isClients?'none':'flex';
+  document.getElementById('col-view').style.display=isBrain?'flex':'none';
+  document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
-  document.getElementById('tab-brain').classList.toggle('active',!isClients);
+  document.getElementById('tab-brain').classList.toggle('active',isBrain);
+  document.getElementById('tab-calendar').classList.toggle('active',isCal);
   document.getElementById('tab-clients').classList.toggle('active',isClients);
-  if(isClients){renderClients();}
+  if(isClients)renderClients();
+  if(isCal)renderCalendar();
+}
+
+/* ═══════════════════════════════════════════
+   CALENDAR VIEW
+═══════════════════════════════════════════ */
+const CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+let calYear=null, calMonth=null, calDragId=null;
+
+function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();renderCalendar()}
+function calShift(delta){
+  if(calYear===null)return calToday();
+  calMonth+=delta;
+  while(calMonth<0){calMonth+=12;calYear--}
+  while(calMonth>11){calMonth-=12;calYear++}
+  renderCalendar();
+}
+function calVisible(){const b=document.getElementById('tab-calendar');return !!b&&b.classList.contains('active')}
+function calYmd(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+
+function renderCalendar(){
+  const grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  if(calYear===null){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth()}
+  document.getElementById('cal-month-label').textContent=`${CAL_MONTHS[calMonth]} ${calYear}`;
+
+  // Bucket every dated task by its due day
+  const byDay={};
+  loadTodoTasks().forEach(t=>{if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t)}});
+  Object.keys(byDay).forEach(k=>byDay[k].sort((a,b)=>
+    (a.done?1:0)-(b.done?1:0) || (PRIORITY_ORDER[a.priority]??4)-(PRIORITY_ORDER[b.priority]??4)
+  ));
+
+  const today=todayStr();
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const rows=Math.ceil((firstDow+daysInMonth)/7);
+  const pri={critical:'var(--crit)',high:'var(--hi)',medium:'var(--med)',low:'var(--lo)'};
+
+  let html='';
+  for(let i=0;i<rows*7;i++){
+    const d=new Date(calYear,calMonth,1-firstDow+i);
+    const key=calYmd(d);
+    const cls=[(d.getMonth()!==calMonth?'out':''),(key===today?'today':'')].filter(Boolean).join(' ');
+    const chips=(byDay[key]||[]).map(t=>{
+      const over=!t.done&&key<today;
+      const dot=pri[t.priority]?`<i style="background:${pri[t.priority]}"></i>`:'';
+      return`<div class="cal-chip b-${bEsc(t.brand||'other')}${t.done?' done':''}${over?' over':''}" draggable="true" data-task-id="${t.id}" title="${bEsc(t.text)}">${dot}<b>${bEsc(t.text)}</b></div>`;
+    }).join('');
+    html+=`<div class="cal-cell${cls?' '+cls:''}" data-date="${key}"><div class="cal-daynum">${d.getDate()}</div><div class="cal-chips">${chips}</div></div>`;
+  }
+  grid.innerHTML=html;
+
+  grid.querySelectorAll('.cal-chip').forEach(el=>{
+    const id=el.dataset.taskId;
+    el.addEventListener('click',()=>openDrawer(id));
+    el.addEventListener('dragstart',e=>{calDragId=id;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    el.addEventListener('dragend',()=>{calDragId=null;el.classList.remove('dragging');});
+  });
+  grid.querySelectorAll('.cal-cell').forEach(cell=>{
+    cell.addEventListener('dragover',e=>{if(!calDragId)return;e.preventDefault();e.dataTransfer.dropEffect='move';cell.classList.add('drop');});
+    cell.addEventListener('dragleave',()=>cell.classList.remove('drop'));
+    cell.addEventListener('drop',e=>{
+      e.preventDefault();cell.classList.remove('drop');
+      const id=calDragId; calDragId=null;   // cleared first: the re-render below drops the node dragend would fire on
+      if(id)calReschedule(id,cell.dataset.date);
+    });
+  });
+}
+
+function calReschedule(taskId,date){
+  const tasks=loadTodoTasks();
+  const t=tasks.find(x=>x.id===taskId);
+  if(!t||t.due===date)return;
+  t.due=date;
+  saveTodoTasks(tasks);
+  renderAll();
+  if(typeof renderTodayDue==='function')renderTodayDue();
 }
 
 /* ═══════════════════════════════════════════
@@ -2990,6 +3133,7 @@ function applyRemoteAndRender(){
   if(typeof renderFocus==='function')renderFocus();
   const cv=document.getElementById('clients-view');
   if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
+  if(typeof calVisible==='function'&&calVisible())renderCalendar();
   if(typeof empireLoad==='function')empireLoad();
 }
 let saveTimer=null;
@@ -3081,6 +3225,7 @@ function setDate(){
 ═══════════════════════════════════════════ */
 function renderAll(){
   renderColumns();
+  if(typeof calVisible==='function'&&calVisible())renderCalendar();
 }
 
 /* ═══════════════════════════════════════════
