@@ -2697,7 +2697,12 @@ function recordKpiSnapshot(open,doneToday){
   h[k]={open,done:doneToday};
   const keys=Object.keys(h).sort();
   while(keys.length>30)delete h[keys.shift()];
-  try{localStorage.setItem('mm_kpi_history',JSON.stringify(h));scheduleSave();}catch(e){}
+  /* DELIBERATELY no scheduleSave() here. This runs on every Overview render,
+     and pushState() uploads whatever is in localStorage right now. If a device
+     ever renders with an unsynced/empty board, a write from a *view* would
+     publish that emptiness over good remote state. Viewing must never write.
+     The snapshot rides along with the next real mutation instead. */
+  try{localStorage.setItem('mm_kpi_history',JSON.stringify(h));}catch(e){}
 }
 function ovYesterdayKey(){const d=new Date();d.setDate(d.getDate()-1);return ovDayKey(d)}
 /* lowerIsBetter: for open/overdue counts a DROP is good, so the arrow colour flips */
