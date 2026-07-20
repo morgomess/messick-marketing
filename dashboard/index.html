@@ -20,19 +20,26 @@
      small dots and left edges (see the BRAND ACCENT layer at the end of this
      sheet) — everything else is monochrome so the eye has one thing to follow.
      --black is the primary TEXT token (19/19 uses are `color:`), hence the flip. */
-  --bg:#0a151d; --surface:#0f1e28; --black:#e6f1f8;
-  --blue:#4fa8d0; --blue-lt:#7fc9e8;
-  --blue-pale:rgba(79,168,208,0.13); --ve:#e0699f; --ve-pale:rgba(224,105,159,0.13);
+  /* NEUTRAL base. The accent must not also be the background — borders and
+     recessive text are white-alpha / neutral slate, NOT cyan-alpha, so the
+     five or so genuinely cyan elements per screen actually read as accent. */
+  /* Surface ladder, solved so cards never invert against the ground:
+       bg #081319  ·  card #172831 (1.24:1 over bg)  ·  well #1e3039
+     The ground stays DARK — the lift at the top of the page comes from the
+     radial glow, not from a bright gradient. A bright gradient was making the
+     ground lighter than the cards sitting on it. */
+  --bg:#081319; --surface:#172831; --black:#e8f0f4;
+  --blue:#4fa8d0; --blue-lt:#7ec8e3;
+  --blue-pale:rgba(79,168,208,0.14); --ve:#e0699f; --ve-pale:rgba(224,105,159,0.13);
   --personal:#7fb886; --personal-pale:rgba(127,184,134,0.13);
-  --border:rgba(127,201,232,0.10); --border-s:rgba(127,201,232,0.20);
+  --border:rgba(255,255,255,0.07); --border-s:rgba(255,255,255,0.15);
   /* Two recessive tones, both solved against --surface-2 (the LIGHTEST ground
-     either one lands on) so 0.6rem uppercase clears WCAG AA everywhere:
-       --light  eyebrows/hints  4.63:1 on surface-2, 5.50:1 on bg
-       --muted  secondary text  6.15:1 on surface-2, 7.31:1 on bg
-     Do not darken either without re-checking both grounds. */
-  --muted:#93abb8; --light:#76909f; --surface-2:#16262f;
-  --crit:#e8695c; --hi:#e3a15c; --med:#5aa6d8; --lo:#6cc39a; --teal:#4fa8d0;
-  --glow:rgba(79,168,208,0.09);
+     either lands on) so 0.6rem uppercase clears WCAG AA everywhere.
+     Near-neutral on purpose: only a trace of blue so they read as grey. */
+  --muted:#aab5bc; --light:#8b98a1; --surface-2:#1e3039;
+  --crit:#e2685f; --hi:#e0a05f; --med:#5aa6d8; --lo:#4ec9a0; --teal:#4fa8d0;
+  --glow:rgba(79,168,208,0.20);
+  --chip:rgba(255,255,255,0.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--black);height:100vh;overflow:hidden}
@@ -166,7 +173,7 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .col-hdr{padding:10px 14px 9px;border-bottom:1px solid var(--border);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .col-body{flex:1;overflow-y:auto;overflow-x:hidden}
 .col-sec-label{padding:8px 14px 3px;font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--light)}
-.col-item{display:flex;align-items:center;padding:9px 14px;cursor:pointer;gap:6px;border-bottom:1px solid rgba(127,201,232,0.06);transition:background 0.1s;min-height:38px}
+.col-item{display:flex;align-items:center;padding:9px 14px;cursor:pointer;gap:6px;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.1s;min-height:38px}
 .col-item:hover{background:var(--blue-pale)}
 .col-item.sel{background:var(--blue-pale);border-left:2px solid var(--blue);padding-left:12px}
 .col-ve .col-item.sel{background:var(--ve-pale);border-left-color:var(--ve)}
@@ -177,8 +184,8 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .col-badge.today{background:rgba(211,84,0,0.12);color:var(--hi)}
 .col-chev{color:var(--light);font-size:1rem;flex-shrink:0}
 /* Task items in columns */
-.col-task{display:flex;align-items:flex-start;padding:8px 14px;gap:6px;border-bottom:1px solid rgba(127,201,232,0.06);transition:background 0.1s}
-.col-task:hover{background:rgba(127,201,232,0.045)}
+.col-task{display:flex;align-items:flex-start;padding:8px 14px;gap:6px;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.1s}
+.col-task:hover{background:rgba(255,255,255,0.04)}
 .col-task.done .t-text{text-decoration:line-through;opacity:0.45}
 .t-check{width:15px;height:15px;border:1.5px solid rgba(58,107,138,0.3);border-radius:50%;flex-shrink:0;cursor:pointer;margin-top:2px;transition:all 0.15s;display:flex;align-items:center;justify-content:center}
 .t-check:hover{border-color:var(--blue)}
@@ -346,7 +353,7 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 #search-clear{background:none;border:none;color:var(--light);cursor:pointer;font-size:1rem;padding:0 2px;line-height:1}
 #search-clear:hover{color:var(--crit)}
 .search-results{padding:8px 0}
-.sr-item{display:flex;align-items:flex-start;gap:8px;padding:8px 24px;border-bottom:1px solid rgba(127,201,232,0.06);cursor:pointer;transition:background 0.1s}
+.sr-item{display:flex;align-items:flex-start;gap:8px;padding:8px 24px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:background 0.1s}
 .sr-item:hover{background:var(--blue-pale)}
 .sr-item[draggable="true"]:active{cursor:grabbing}
 .sr-item.dragging{opacity:0.35}
@@ -533,20 +540,26 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 /* ── 1. THE GROUND ──
    Grid is drawn on a fixed pseudo-element rather than body-background so it
    never scrolls with content and costs nothing to repaint. */
-body{position:relative;background:var(--bg)}
+/* Three stacked layers make the depth: a vertical wash that lifts the top of
+   the page toward teal, a legible grid, and one broad glow. Earlier pass had
+   grid at 0.03 and glow at 0.09 — both invisible in practice. */
+body{position:relative;
+  background:linear-gradient(180deg,#0a1a22 0%,#091620 40%,var(--bg) 100%);
+  background-attachment:fixed;
+}
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(127,201,232,0.030) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(127,201,232,0.030) 1px,transparent 1px);
-  background-size:52px 52px;
-  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 0%,transparent 78%);
-          mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 0%,transparent 78%);
+  background-image:linear-gradient(rgba(255,255,255,0.055) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.055) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(ellipse 95% 60% at 50% -5%,#000 0%,rgba(0,0,0,0.35) 45%,transparent 80%);
+          mask-image:radial-gradient(ellipse 95% 60% at 50% -5%,#000 0%,rgba(0,0,0,0.35) 45%,transparent 80%);
 }
 /* the glow behind the top of the page, as in the reference hero */
 body::after{
-  content:'';position:fixed;left:50%;top:-340px;width:1100px;height:620px;z-index:0;
+  content:'';position:fixed;left:50%;top:-420px;width:1500px;height:820px;z-index:0;
   transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(ellipse at center,var(--glow) 0%,transparent 68%);
+  background:radial-gradient(ellipse at center,var(--glow) 0%,rgba(79,168,208,0.06) 42%,transparent 70%);
 }
 /* Lift the app above the ground layer. NOTE: #login-screen must NOT be in this
    selector — it is position:fixed;z-index:1000 and this rule would clobber both,
@@ -588,9 +601,17 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 #focus-section{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 26px 22px}
 #today-due-section{background:rgba(227,161,92,0.05);border-bottom:1px solid rgba(227,161,92,0.16);padding:14px 26px}
 #quick-add-bar{background:var(--surface);padding:12px 26px}
-.col{background:transparent;border-right:1px solid var(--border);width:252px;min-width:252px}
+/* Columns are CARDS, not slices: discrete rounded panels sitting on the ground
+   with air between them. This is the structural half of the reference look —
+   hairline dividers alone never read as a dashboard. */
+#col-view{padding:16px 18px;gap:14px;background:transparent}
+.col{background:var(--surface);border:1px solid var(--border);border-right:1px solid var(--border);
+     border-radius:12px;width:256px;min-width:256px;overflow:hidden;
+     box-shadow:0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.18)}
+.col:last-child{border-right:1px solid var(--border)}
 .col-body{padding-bottom:8px}
-.col-foot{border-top:1px solid var(--border);padding:10px 16px}
+.col-foot{border-top:1px solid var(--border);padding:10px 16px;background:rgba(0,0,0,0.15)}
+.col-hdr{background:rgba(255,255,255,0.02)}
 .col-item,.col-task{padding-left:16px;padding-right:16px}
 #calendar-view,.cal-toolbar{background:transparent}
 .cal-toolbar{border-bottom:1px solid var(--border);padding:12px 26px}
@@ -641,7 +662,7 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
    Per the brief: monochrome base, brand hue only as a thin edge or a dot.
    Pills and badges lose their coloured fills and become neutral chips. */
 .fs-pill,.fs-pill.ve,.fs-pill.fs-pill-proj,.t-assignee,.col-badge,.at-due,.t-due{
-  background:rgba(127,201,232,0.08);color:var(--muted);border:1px solid var(--border);
+  background:var(--chip);color:var(--muted);border:1px solid var(--border);
   font-weight:600;letter-spacing:0.08em;border-radius:5px;
 }
 /* status still earns colour — overdue and due-today are real signals */
@@ -659,8 +680,8 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .cal-chip.b-virtueasy{background:var(--surface-2);border-left-color:var(--ve)}
 .cal-chip.b-other{background:var(--surface-2);border-left-color:var(--personal)}
 .cal-chip.over{background:rgba(232,105,92,0.10);border-left-color:var(--crit);color:var(--crit)}
-.cal-chip:hover{filter:none;background:rgba(127,201,232,0.10)}
-.service-tag{background:rgba(127,201,232,0.07);border:1px solid var(--border);color:var(--muted);border-radius:5px}
+.cal-chip:hover{filter:none;background:rgba(255,255,255,0.09)}
+.service-tag{background:var(--chip);border:1px solid var(--border);color:var(--muted);border-radius:5px}
 .client-industry{background:transparent;border:none;padding:0;margin-top:6px}
 
 /* ── 7. TYPE ── all sans, per brief; the wordmark stays script (it is a logo) */
@@ -675,7 +696,7 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .cal-month{color:var(--black);font-weight:600;letter-spacing:-0.01em}
 .focus-slot{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
 .focus-slot.filled{background:var(--surface-2);border-color:rgba(127,201,232,0.28)}
-.focus-slot:hover{background:rgba(127,201,232,0.07)}
+.focus-slot:hover{background:rgba(255,255,255,0.055)}
 .fs-num{background:var(--blue-pale);color:var(--blue-lt)}
 .focus-slot.filled .fs-num{background:var(--blue);color:#06131b}
 .focus-hint,.focus-sub{color:var(--light)}
