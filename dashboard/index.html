@@ -805,6 +805,10 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
   .ov-table-wrap{margin:0 -18px;padding:0 18px}
 }
 
+/* brief confirmation flash on a freshly created area/section */
+@keyframes just-added{0%{background:rgba(79,168,208,0.35)}100%{background:transparent}}
+.col-item.just-added{animation:just-added 1.6s ease-out}
+
 /* ═══ NOTES / REPURPOSE PANEL ═══ */
 #pad-backdrop{display:none;position:fixed;inset:0;z-index:599;background:rgba(4,10,15,0.55);backdrop-filter:blur(2px)}
 #pad-backdrop.open{display:block}
@@ -1433,6 +1437,18 @@ function nodeDueRollup(nodeId){
   return{overdue,today,soon,open};
 }
 
+/* Scroll a freshly created node into view and flash it, so creating something
+   is visibly confirmed rather than silently succeeding off-screen. */
+function revealNewNode(nodeId){
+  setTimeout(()=>{
+    const el=document.querySelector(`.col-item[data-node-id="${nodeId}"]`);
+    if(!el)return;
+    el.scrollIntoView({block:'nearest',behavior:'smooth'});
+    el.classList.add('just-added');
+    setTimeout(()=>el.classList.remove('just-added'),1600);
+  },40);
+}
+
 function tileDelete(id){
   const remove=[];
   (function walk(nid){remove.push(nid);brainNodes.filter(n=>n.parent===nid).forEach(c=>walk(c.id));})(id);
@@ -1529,6 +1545,7 @@ function buildColumn(colIdx,parentId){
     children.forEach(child=>{
       const item=document.createElement('div');
       item.className='col-item'+(child.id===selectedId?' sel':'');
+      item.dataset.nodeId=child.id;   // lets revealNewNode() find a just-created node
       const dr=nodeDueRollup(child.id);
       let badge='';
       if(dr.overdue>0)badge=`<span class="col-badge over">${dr.open}</span>`;
@@ -1625,6 +1642,7 @@ function buildColumn(colIdx,parentId){
       if(name&&name.trim()){
         const nn={id:'b'+bIdCounter++,label:name.trim(),type:childTypeFor(brainMap[parentId]||{}),parent:parentId,status:'todo',done:false,x:0,y:0};
         brainNodes.push(nn);brainMap[nn.id]=nn;brainSave();renderColumns();
+        revealNewNode(nn.id);
       }
     });
     foot.appendChild(addSec);
@@ -1634,12 +1652,25 @@ function buildColumn(colIdx,parentId){
     addBtn.textContent='+ Add area';
     addBtn.addEventListener('click',()=>{
       const name=prompt('Area name:');
-      if(name&&name.trim()){
-        const isVe=name.toLowerCase().includes('virtueasy');
-        const rootId=isVe?'ve-root':'mm-root';
-        const nn={id:'b'+bIdCounter++,label:name.trim(),type:isVe?'ve-client':'mm-client',parent:rootId,status:'todo',done:false,x:0,y:0};
-        brainNodes.push(nn);brainMap[nn.id]=nn;brainSave();renderColumns();
+      if(!name||!name.trim())return;
+      /* An "area" is a child of a ROOT, so it never appears in this (root)
+         column — which made the button look broken: the node was created, just
+         somewhere you weren't looking. Two fixes: honour the root you have
+         open instead of guessing from the name (which made Personal areas
+         impossible to create), and navigate to the new node so the click
+         visibly does something. */
+      const ROOTS=['mm-root','ve-root','personal-root'];
+      let rootId=ROOTS.indexOf(navPath[0])>-1?navPath[0]:null;
+      if(!rootId){
+        const n=name.toLowerCase();
+        rootId=n.includes('virtueasy')?'ve-root':(n.includes('personal')?'personal-root':'mm-root');
       }
+      const TYPE={'ve-root':'ve-client','personal-root':'personal-item','mm-root':'mm-client'};
+      const nn={id:'b'+bIdCounter++,label:name.trim(),type:TYPE[rootId]||'mm-client',parent:rootId,status:'todo',done:false,x:0,y:0};
+      brainNodes.push(nn);brainMap[nn.id]=nn;brainSave();
+      navPath=[rootId];
+      renderColumns();
+      revealNewNode(nn.id);
     });
     foot.appendChild(addBtn);
   }
