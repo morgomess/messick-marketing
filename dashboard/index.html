@@ -2646,6 +2646,7 @@ async function pullState(){
   }catch(e){return false;}
 }
 function applyRemoteAndRender(){
+  purgeDeadKeys();   // a pull can re-introduce dead keys from an older device
   brainLoad();
   renderColumns();
   if(typeof renderFocus==='function')renderFocus();
@@ -2873,7 +2874,27 @@ function processRecurringTasks(){
   return 0;
 }
 
+/* Drop keys nothing reads any more. Without this they'd live forever:
+   collectState() uploads every mm_* key it finds, so a stale key in
+   localStorage gets pushed straight back after any server-side cleanup.
+   The dated focus/order keys are live for TODAY only — never purge those. */
+const DEAD_KEY_RE=/^(mm_empire$|mm_recur_rolled_|mm_auto_daily_|mm_monthly_)/;
+function purgeDeadKeys(){
+  const today=getTodayKey(), doomed=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||k.indexOf('mm_')!==0)continue;
+    if(DEAD_KEY_RE.test(k)) doomed.push(k);
+    else if(k.indexOf('mm_focus_')===0 && k!=='mm_focus_'+today) doomed.push(k);
+    else if(k.indexOf('mm_today_order_')===0 && k!=='mm_today_order_'+today) doomed.push(k);
+  }
+  doomed.forEach(k=>localStorage.removeItem(k));
+  if(doomed.length)scheduleSave();   // push the slimmed-down state up
+  return doomed.length;
+}
+
 function init(){
+  purgeDeadKeys();
   brainLoad();
   setDate();
   initServicesChecklist();
