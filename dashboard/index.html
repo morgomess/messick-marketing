@@ -59,7 +59,6 @@ header{background:#111111;padding:0 24px;height:56px;display:flex;align-items:ce
 #completion-stat.all-done{background:rgba(39,174,96,0.2);color:#6fe0b8;border-color:rgba(111,224,184,0.3)}
 .h-btn{display:flex;align-items:center;gap:5px;background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;padding:5px 12px;cursor:pointer;transition:all 0.2s;border-radius:4px}
 .h-btn:hover{border-color:var(--blue-lt);color:#fff}
-.h-btn.empire:hover{border-color:#7ab8d4;color:#7ab8d4}
 .h-btn.spin{background:var(--teal);border-color:var(--teal);color:#fff}
 .h-btn.spin:hover{background:#1a9089}
 .h-btn.todo{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
@@ -281,97 +280,6 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .picker-accept-btn:hover{background:#2a5570;color:#fff}
 .picker-respin-btn,.picker-close-btn{padding:11px 18px;background:none;border:1px solid rgba(58,107,138,0.4);color:#5a9ab8;font-family:'Jost',sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.2s;border-radius:4px}
 .picker-respin-btn:hover,.picker-close-btn:hover{border-color:#3a6b8a;color:#fff}
-
-/* ── EMPIRE MODAL ── */
-#empire-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(5,8,12,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center}
-#empire-overlay.open{display:flex}
-.empire-modal{background:#111111;border:1.5px solid #3a6b8a;border-radius:18px;width:min(480px,95vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(58,107,138,0.2)}
-.empire-header{padding:20px 24px 16px;background:linear-gradient(135deg,#111111,#1c2e3d);border-bottom:1px solid #3a6b8a;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.empire-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:#e6f1f8;letter-spacing:0.04em}
-.empire-rank-label{font-size:0.62rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:#5a9ab8;margin-top:3px}
-.empire-x{background:none;border:none;color:#4a7a9a;font-size:1.1rem;cursor:pointer;padding:2px 6px;line-height:1}
-.empire-x:hover{color:#e6f1f8}
-.empire-cash-area{padding:18px 24px 14px;text-align:center;border-bottom:1px solid rgba(58,107,138,0.35)}
-.empire-cash{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:#e6f1f8;letter-spacing:0.02em}
-.empire-rate{font-size:0.68rem;color:#4a7a9a;margin-top:3px;letter-spacing:0.08em}
-.empire-hustle-btn{display:block;margin:12px auto 0;padding:10px 28px;background:linear-gradient(135deg,#3a6b8a,#5a9ab8);border:1px solid #5a9ab8;color:#fff;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;border-radius:4px}
-.empire-hustle-btn:hover{background:linear-gradient(135deg,#5a9ab8,#3a6b8a);color:#fff}
-@keyframes empire-pop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-.empire-hustle-pop{animation:empire-pop 0.2s ease}
-.empire-offline{padding:6px 24px;font-size:0.72rem;color:#6fe0b8;text-align:center;display:none;background:rgba(111,224,184,0.08)}
-.empire-tabs{display:flex;gap:0;border-bottom:1px solid rgba(58,107,138,0.35)}
-.emp-tab{flex:1;padding:10px;background:none;border:none;color:#4a7a9a;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.2s}
-.emp-tab.active{color:#7ab8d4;border-bottom:2px solid #5a9ab8}
-.empire-assets{padding:12px 20px;overflow-y:auto;max-height:300px;min-height:0}
-.empire-spend-head{font-size:0.68rem;color:#4a7a9a;margin-bottom:12px;letter-spacing:0.1em;text-transform:uppercase}
-.empire-asset{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(58,107,138,0.2)}
-.empire-asset:last-child{border-bottom:none}
-.empire-asset.owned-lux{opacity:0.55}
-.empire-asset-ic{width:36px;height:36px;border-radius:10px;background:#1c2e3d;border:1px solid rgba(58,107,138,0.4);display:flex;align-items:center;justify-content:center;color:#5a9ab8;font-size:1rem;flex-shrink:0}
-.empire-asset-info{flex:1;min-width:0}
-.empire-asset-name{font-size:0.79rem;font-weight:700;color:#c8dce8}
-.empire-asset-sub{font-size:0.65rem;color:#4a7a9a;margin-top:1px}
-.empire-buy-btn{padding:6px 13px;background:#3a6b8a;border:1px solid #5a9ab8;border-radius:20px;color:#fff;font-family:'Jost',sans-serif;font-size:0.67rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.empire-buy-btn:hover:not(:disabled){background:#5a9ab8;color:#fff}
-.empire-buy-btn:disabled{opacity:0.28;cursor:not-allowed}
-.empire-buy-btn.owned{background:#143a2a;border-color:#1d6e4a;color:#6fe0b8;opacity:1;cursor:default}
-/* Empire Quest: level / xp */
-.empire-lvl-row{padding:12px 24px 6px}
-.empire-lvl-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-.empire-lvl-num{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#7ab8d4}
-.empire-lvl-ch{font-size:0.68rem;color:#8fb3c8;text-align:right}
-.empire-xp-bar{height:7px;background:#0c1a24;border:1px solid rgba(58,107,138,0.4);border-radius:6px;overflow:hidden}
-.empire-xp-fill{height:100%;background:linear-gradient(90deg,#3a6b8a,#7ab8d4);width:0;transition:width 0.3s}
-.empire-xp-sub{font-size:0.6rem;color:#4a7a9a;margin-top:3px;text-align:right}
-.empire-quest{margin:10px 20px 2px;padding:9px 12px;background:rgba(58,107,138,0.12);border:1px solid rgba(58,107,138,0.3);border-radius:8px;display:flex;gap:9px;align-items:center}
-.empire-quest .qi{color:#e0b64a;font-size:0.95rem;flex-shrink:0}
-.empire-quest-txt{font-size:0.68rem;color:#c8dce8;line-height:1.4}
-/* locks */
-.empire-asset.locked{opacity:0.6}
-.empire-lock-tag{font-size:0.6rem;color:#c07a3a;margin-top:1px}
-/* prestige */
-.empire-prestige{margin:10px 0 4px;padding:13px;border:1px dashed #b06fd4;border-radius:10px;background:rgba(176,111,212,0.08);text-align:center}
-.empire-prestige-btn{margin-top:9px;padding:9px 20px;background:linear-gradient(135deg,#7a3a8a,#b06fd4);border:none;border-radius:6px;color:#fff;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;font-size:0.7rem;cursor:pointer;font-family:'Jost',sans-serif}
-.empire-prestige-btn:hover{background:linear-gradient(135deg,#b06fd4,#7a3a8a)}
-/* map */
-.empire-chapter{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(58,107,138,0.18)}
-.empire-chapter:last-child{border-bottom:none}
-.empire-ch-badge{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.78rem}
-.empire-ch-badge.done{background:#143a2a;color:#6fe0b8;border:1px solid #1d6e4a}
-.empire-ch-badge.cur{background:linear-gradient(135deg,#3a6b8a,#7ab8d4);color:#fff}
-.empire-ch-badge.lock{background:#151f28;color:#4a5a68;border:1px solid #29323c}
-.empire-ch-name{font-size:0.8rem;font-weight:700;color:#c8dce8}
-.empire-ch-name.lock{color:#5a6a76}
-.empire-ch-story{font-size:0.64rem;color:#6a8394;margin-top:2px;line-height:1.35}
-.empire-ch-req{font-size:0.6rem;color:#c07a3a;margin-top:2px;font-weight:600}
-/* reward toast */
-#empire-toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(20px);z-index:9999;background:#111;border:1px solid #5a9ab8;border-radius:10px;padding:10px 18px;color:#e6f1f8;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:all 0.35s;display:flex;align-items:center;gap:10px}
-#empire-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#empire-toast .coin{color:#e0b64a}
-#empire-toast .xp{color:#7ab8d4}
-#empire-toast.levelup{border-color:#e0b64a;background:linear-gradient(135deg,#1c2e3d,#2a1c3d)}
-/* ── EMPIRE SCENE (living vista) ── */
-.empire-scene{position:relative;width:100%;background:#0a1420;overflow:hidden;line-height:0;border-bottom:1px solid rgba(58,107,138,0.35);flex-shrink:0}
-.empire-scene svg{display:block;width:100%;height:auto;max-height:160px}
-.empire-scene-label{position:absolute;left:14px;top:9px;font-size:0.56rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,184,212,0.72);z-index:2;pointer-events:none}
-.empire-scene-empty{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-style:italic;color:rgba(152,170,182,0.55);z-index:2;pointer-events:none;transition:opacity .5s}
-@keyframes es-twinkle{0%,100%{opacity:0.15}50%{opacity:0.9}}
-@keyframes es-drift{from{transform:translateX(-70px)}to{transform:translateX(500px)}}
-@keyframes es-flick{0%,100%{opacity:0.85}45%{opacity:0.9}47%{opacity:0.25}49%{opacity:0.9}}
-@keyframes es-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes es-pulse{0%{transform:scale(0.4);opacity:0.55}100%{transform:scale(1.6);opacity:0}}
-@keyframes es-flame{0%,100%{transform:scaleY(0.8);opacity:0.8}50%{transform:scaleY(1.25);opacity:1}}
-@keyframes es-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes es-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.es-star{animation:es-twinkle 3s ease-in-out infinite}
-.es-cloud{animation:es-drift linear infinite;opacity:0.5}
-.es-win{animation:es-flick ease-in-out infinite}
-.es-rocket-body{transform-box:fill-box;transform-origin:center;animation:es-bob 2.4s ease-in-out infinite}
-.es-flame{transform-box:fill-box;transform-origin:top center;animation:es-flame 0.25s ease-in-out infinite}
-.es-signal{transform-box:fill-box;transform-origin:center;animation:es-pulse 2.2s ease-out infinite}
-.es-globe-ring{transform-box:fill-box;transform-origin:center;animation:es-spin 14s linear infinite}
-.es-grp{transition:opacity .55s ease}
-.es-grp.on{animation:es-rise .55s ease both}
 
 /* ── SEARCH BAR ── */
 /* ── CALENDAR VIEW ── */
@@ -646,7 +554,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="h-btn todo" onclick="openAllTasks()">📋 To-Do</button>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
-      <button class="h-btn empire" onclick="openEmpire()">⚡ Empire</button>
       <button class="h-btn" onclick="logout()">⎋ Log out</button>
     </div>
   </header>
@@ -797,123 +704,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   </div>
 </div>
 
-<!-- Empire -->
-<div id="empire-overlay">
-  <div class="empire-modal">
-    <div class="empire-header">
-      <div>
-        <div class="empire-title">Empire Quest</div>
-        <div class="empire-rank-label" id="empire-rank">Freelancer</div>
-      </div>
-      <button class="empire-x" onclick="closeEmpire()">&#10005;</button>
-    </div>
-    <div class="empire-scene" id="empire-scene">
-      <div class="empire-scene-label" id="empire-scene-label">Chapter I &middot; The Grind</div>
-      <div class="empire-scene-empty" id="empire-scene-empty">Your empire starts here.</div>
-      <svg id="empire-scene-svg" viewBox="0 0 460 170" preserveAspectRatio="xMidYMax meet">
-        <defs>
-          <linearGradient id="es-sky" x1="0" y1="0" x2="0" y2="1">
-            <stop id="es-sky-top" offset="0" stop-color="#0b2138"/>
-            <stop id="es-sky-bot" offset="1" stop-color="#132b3a"/>
-          </linearGradient>
-          <radialGradient id="es-moon-g" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0" stop-color="#eaf4fb"/><stop offset="0.7" stop-color="#cfe6f2"/><stop offset="1" stop-color="#cfe6f2" stop-opacity="0"/>
-          </radialGradient>
-          <linearGradient id="es-ground" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#0d1c26"/><stop offset="1" stop-color="#060d13"/>
-          </linearGradient>
-          <filter id="es-glow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <rect x="0" y="0" width="460" height="141" fill="url(#es-sky)"/>
-        <g id="es-stars" opacity="0.85"></g>
-        <circle cx="70" cy="40" r="20" fill="url(#es-moon-g)" opacity="0.9"/>
-        <circle cx="70" cy="40" r="10" fill="#f2f8fc"/>
-        <g fill="#1b3346" opacity="0.5">
-          <g class="es-cloud" style="animation-duration:46s"><ellipse cx="0" cy="34" rx="26" ry="7"/><ellipse cx="18" cy="30" rx="18" ry="7"/></g>
-          <g class="es-cloud" style="animation-duration:64s;animation-delay:-30s"><ellipse cx="0" cy="60" rx="22" ry="6"/><ellipse cx="16" cy="56" rx="15" ry="6"/></g>
-        </g>
-        <path id="es-far" d="M0 141 L0 108 L18 108 L18 96 L40 96 L40 112 L64 112 L64 90 L86 90 L86 104 L112 104 L112 84 L134 84 L134 108 L160 108 L160 94 L360 94 L360 82 L380 82 L380 100 L404 100 L404 88 L430 88 L430 104 L460 104 L460 141 Z" fill="#0e2230" opacity="0"/>
-        <g id="es-towers"></g>
-        <rect x="0" y="140" width="460" height="30" fill="url(#es-ground)"/>
-        <line x1="0" y1="140.5" x2="460" y2="140.5" stroke="#2a4a5c" stroke-width="0.5" opacity="0.6"/>
-        <g id="es-va" class="es-grp" opacity="0">
-          <ellipse cx="34" cy="139" rx="22" ry="3" fill="#000" opacity="0.4"/>
-          <rect x="20" y="128" width="28" height="4" rx="1" fill="#3a5568"/>
-          <rect x="23" y="132" width="3" height="7" fill="#2a4050"/><rect x="42" y="132" width="3" height="7" fill="#2a4050"/>
-          <rect x="30" y="120" width="9" height="8" rx="1" fill="#12303f" stroke="#5a9ab8" stroke-width="0.7"/>
-          <rect x="31" y="121" width="7" height="5" fill="#7ec6e6" opacity="0.9"><animate attributeName="opacity" values="0.5;0.95;0.5" dur="2.5s" repeatCount="indefinite"/></rect>
-          <circle cx="34" cy="115" r="3.4" fill="#c8a07a"/>
-          <rect x="30" y="118" width="8" height="9" rx="3" fill="#2f5068"/>
-          <g id="es-crew"></g>
-        </g>
-        <g id="es-client" class="es-grp" opacity="0">
-          <rect x="78" y="118" width="2.5" height="22" fill="#2a4050"/>
-          <rect x="66" y="104" width="28" height="16" rx="2" fill="#12303f" stroke="#5a9ab8" stroke-width="0.8"/>
-          <text x="80" y="115" font-size="9" fill="#7ab8d4" text-anchor="middle" font-family="Jost">CLIENT</text>
-          <circle cx="80" cy="107" r="1.4" fill="#e0b64a"><animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/></circle>
-        </g>
-        <g id="es-brand" class="es-grp" opacity="0">
-          <rect x="104" y="132" width="26" height="8" rx="1" fill="#1a2e3a"/>
-          <g class="es-rocket-body">
-            <path d="M117 96 C112 100 111 112 111 122 L123 122 C123 112 122 100 117 96 Z" fill="#dbe8f0"/>
-            <path d="M117 96 C114 99 113 106 113 110 L121 110 C121 106 120 99 117 96 Z" fill="#c0392b" opacity="0.85"/>
-            <circle cx="117" cy="110" r="2.6" fill="#12303f" stroke="#5a9ab8" stroke-width="0.6"/>
-            <path d="M111 122 L106 130 L111 128 Z" fill="#3a6b8a"/><path d="M123 122 L128 130 L123 128 Z" fill="#3a6b8a"/>
-            <path class="es-flame" d="M113 122 L117 138 L121 122 Z" fill="#e0b64a"/>
-            <path class="es-flame" d="M114.5 122 L117 132 L119.5 122 Z" fill="#f4d98a" style="animation-delay:-0.12s"/>
-          </g>
-        </g>
-        <g id="es-media" class="es-grp" opacity="0">
-          <path d="M356 140 L361 96 L367 96 L372 140 Z" fill="#1f3a49"/>
-          <line x1="359" y1="118" x2="369" y2="118" stroke="#2a4a5c" stroke-width="1"/>
-          <line x1="358" y1="128" x2="370" y2="128" stroke="#2a4a5c" stroke-width="1"/>
-          <rect x="362" y="86" width="4" height="12" fill="#5a9ab8"/>
-          <circle cx="364" cy="84" r="2.5" fill="#e0b64a" filter="url(#es-glow)"/>
-          <circle class="es-signal" cx="364" cy="84" r="6" fill="none" stroke="#7ab8d4" stroke-width="1.4"/>
-          <circle class="es-signal" cx="364" cy="84" r="6" fill="none" stroke="#7ab8d4" stroke-width="1.4" style="animation-delay:-1.1s"/>
-        </g>
-        <g id="es-franchise" class="es-grp" opacity="0"></g>
-        <g id="es-multi" class="es-grp" opacity="0">
-          <circle cx="418" cy="42" r="16" fill="#0f2b3d" stroke="#3a6b8a" stroke-width="1"/>
-          <path d="M402 42 h32 M418 26 v32 M406 32 q12 10 24 0 M406 52 q12 -10 24 0" stroke="#5a9ab8" stroke-width="0.7" fill="none" opacity="0.8"/>
-          <path d="M410 34 q6 8 2 16 M426 34 q-6 8 -2 16" stroke="#6fe0b8" stroke-width="0.9" fill="none" opacity="0.7"/>
-          <ellipse class="es-globe-ring" cx="418" cy="42" rx="22" ry="7" fill="none" stroke="#7ab8d4" stroke-width="0.8" opacity="0.5"/>
-        </g>
-      </svg>
-    </div>
-    <div class="empire-lvl-row">
-      <div class="empire-lvl-top">
-        <span class="empire-lvl-num" id="empire-level">Level 1</span>
-        <span class="empire-lvl-ch" id="empire-chapter-label">Chapter I &middot; The Grind</span>
-      </div>
-      <div class="empire-xp-bar"><div class="empire-xp-fill" id="empire-xp-fill"></div></div>
-      <div class="empire-xp-sub" id="empire-xp-sub">0 / 35 XP</div>
-    </div>
-    <div class="empire-cash-area">
-      <div class="empire-cash" id="empire-cash">$0</div>
-      <div class="empire-rate" id="empire-rate">$0 / sec</div>
-      <button class="empire-hustle-btn" id="empire-hustle-btn" onclick="empireHustle()">&#9889; Hustle</button>
-    </div>
-    <div class="empire-quest" id="empire-quest">
-      <span class="qi"><i class="ti ti-flag"></i></span>
-      <span class="empire-quest-txt" id="empire-quest-txt"></span>
-    </div>
-    <div class="empire-offline" id="empire-offline"></div>
-    <div class="empire-tabs">
-      <button id="emp-tab-build" class="emp-tab active" onclick="empireSetTab('build')">Build</button>
-      <button id="emp-tab-upgrades" class="emp-tab" onclick="empireSetTab('upgrades')">Upgrades</button>
-      <button id="emp-tab-spend" class="emp-tab" onclick="empireSetTab('spend')">Rewards</button>
-      <button id="emp-tab-map" class="emp-tab" onclick="empireSetTab('map')">Map</button>
-    </div>
-    <div class="empire-assets" id="empire-assets"></div>
-    <div class="empire-assets" id="empire-upgrades" style="display:none"></div>
-    <div class="empire-assets" id="empire-spend" style="display:none"></div>
-    <div class="empire-assets" id="empire-map" style="display:none"></div>
-  </div>
-</div>
-
 <canvas id="confetti-canvas"></canvas>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
@@ -997,7 +787,7 @@ function toggleTask(type,taskId){
   const task=tasks.find(x=>x.id===taskId); if(!task)return;
   const was=task.done; task.done=!task.done;
   saveTasks(t,tasks);
-  if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();if(typeof empireAwardTask==='function')empireAwardTask(task.priority);}
+  if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();}
 }
 
 function deleteTask(type,taskId){
@@ -1630,7 +1420,6 @@ function toggleFocusDone(slot){
     saveTasks(p.type,tasks);
     if(!wasDone){
       fireConfetti();
-      if(typeof empireAwardTask==='function')empireAwardTask(task.priority);
       // Clear the slot immediately so it can be refilled
       pins[slot]=null;
       saveFocusPins(pins);
@@ -1772,7 +1561,6 @@ function completeTodayDue(taskId){
   task.done=true;
   saveTodoTasks(tasks);
   if(typeof fireConfetti==="function")fireConfetti();
-  if(!wasDone&&typeof empireAwardTask==='function')empireAwardTask(task.priority);
   renderColumns();
 }
 
@@ -2124,7 +1912,6 @@ function drawerToggleSub(subIdx){
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task||!task.subtasks[subIdx])return;
   task.subtasks[subIdx].done=!task.subtasks[subIdx].done;
-  if(task.subtasks[subIdx].done&&typeof empireAwardTask==='function')empireAwardTask(null,true);
   saveTodoTasks(tasks);
   renderDrawer();renderColumns();
 }
@@ -2728,363 +2515,6 @@ function renderClients(){
 }
 
 /* ═══════════════════════════════════════════
-   EMPIRE GAME
-═══════════════════════════════════════════ */
-/* ── Adventure structure: chapters gate assets & upgrades by level ── */
-const EMPIRE_CHAPTERS=[
-  {lvl:1, tag:'Chapter I',   name:'The Grind',         story:'Just you, a laptop, and relentless hustle.'},
-  {lvl:4, tag:'Chapter II',  name:'First Hires',       story:"You can't do it all alone anymore."},
-  {lvl:8, tag:'Chapter III', name:'Open for Business', story:'A real studio with your name on the door.'},
-  {lvl:14,tag:'Chapter IV',  name:'Building a Brand',  story:'Your name starts to mean something.'},
-  {lvl:22,tag:'Chapter V',   name:'The Acquisition',   story:'Buy out the competition.'},
-  {lvl:32,tag:'Chapter VI',  name:'Media Empire',      story:'You own the channels now.'},
-  {lvl:45,tag:'Chapter VII', name:'Global Player',     story:'Continents, not cities.'},
-  {lvl:60,tag:'Finale',      name:'Legacy',            story:'Decide what you leave behind.'},
-];
-const EMPIRE_ASSETS_DEF=[
-  {id:'va',       name:'Hire a VA',         icon:'ti-user-plus',     base:15,          income:0.3,       ch:0},
-  {id:'client',   name:'Land a Client',     icon:'ti-briefcase',     base:120,         income:2,         ch:0},
-  {id:'team',     name:'Build a Team',      icon:'ti-users',         base:1200,        income:18,        ch:1},
-  {id:'studio',   name:'Open a Studio',     icon:'ti-building',      base:13000,       income:140,       ch:2},
-  {id:'brand',    name:'Launch a Brand',    icon:'ti-rocket',        base:140000,      income:1100,      ch:3},
-  {id:'agency',   name:'Acquire an Agency', icon:'ti-crown',         base:1500000,     income:8000,      ch:4},
-  {id:'franchise',name:'Franchise It',      icon:'ti-affiliate',     base:18000000,    income:90000,     ch:4},
-  {id:'media',    name:'Media Network',     icon:'ti-broadcast',     base:220000000,   income:1100000,   ch:5},
-  {id:'conglom',  name:'Conglomerate',      icon:'ti-building-bank', base:3000000000,  income:14000000,  ch:5},
-  {id:'multi',    name:'Go Multinational',  icon:'ti-world',         base:40000000000, income:180000000, ch:6},
-];
-const EMPIRE_UPGRADES=[
-  {id:'hustle2', name:'Sharper Hustle',    icon:'ti-bolt',        desc:'Hustle click ×2',     cost:800,     ch:0, type:'click', val:2},
-  {id:'focus1',  name:'Deep Work Ritual',  icon:'ti-target',      desc:'Task payouts +50%',        cost:5000,    ch:1, type:'task',  val:0.5},
-  {id:'hustle3', name:'Caffeine Protocol', icon:'ti-coffee',      desc:'Hustle click ×3',     cost:12000,   ch:1, type:'click', val:3},
-  {id:'auto1',   name:'Ops Automation',    icon:'ti-robot',       desc:'All income ×2',       cost:60000,   ch:2, type:'inc',   val:2},
-  {id:'offline1',name:'Overnight Empire',  icon:'ti-moon',        desc:'Offline earnings ×3', cost:150000,  ch:3, type:'off',   val:3},
-  {id:'focus2',  name:'Flow State',        icon:'ti-flame',       desc:'Task payouts +100%',       cost:400000,  ch:3, type:'task',  val:1},
-  {id:'auto2',   name:'Scaling Engine',    icon:'ti-trending-up', desc:'All income ×2',       cost:5000000, ch:4, type:'inc',   val:2},
-];
-const EMPIRE_LUXURIES=[
-  {id:'desk',name:'Dream Standing Desk',icon:'ti-armchair',cost:500,blurb:'For the home office.'},
-  {id:'espresso',name:'Pro Espresso Machine',icon:'ti-coffee',cost:2500,blurb:'No more drip coffee.'},
-  {id:'dogbeds',name:'Designer Dog Beds',icon:'ti-dog',cost:6000,blurb:'The pups deserve it.'},
-  {id:'studio',name:'Full Podcast Studio Kit',icon:'ti-microphone-2',cost:15000,blurb:'Cameras, lights, the works.'},
-  {id:'gym',name:'Home Gym Buildout',icon:'ti-barbell',cost:35000,blurb:'Skip the commute.'},
-  {id:'ev',name:'New EV in the Driveway',icon:'ti-car',cost:130000,blurb:'Fully loaded.'},
-  {id:'beach',name:'Beach House',icon:'ti-beach',cost:850000,blurb:'Coast-adjacent.'},
-  {id:'yacht',name:'A Modest Yacht',icon:'ti-sailboat',cost:12000000,blurb:'Modest, sure.'},
-  {id:'jet',name:'Private Jet',icon:'ti-plane',cost:60000000,blurb:'No more layovers.'},
-  {id:'island',name:'Private Island',icon:'ti-map-pin',cost:400000000,blurb:'Your own zip code.'},
-  {id:'tower',name:'Name a Tower After Yourself',icon:'ti-building-skyscraper',cost:250000000000,blurb:'Messick Tower.'},
-];
-const EMPIRE_RANKS=[[0,'Freelancer'],[1000,'Solo Operator'],[10000,'Agency Owner'],[100000,'Power Player'],[1000000,'Mogul'],[10000000,'Empire Builder'],[1e8,'Tycoon'],[1e10,'Legend']];
-/* task -> reward weighting by priority */
-const EMP_TASK_W ={critical:2,   high:1.4, medium:1,  low:0.6, none:0.9, sub:0.3};
-const EMP_TASK_XP={critical:45,  high:30,  medium:20, low:12,  none:16,  sub:6};
-
-let empireState=null,empireTick=null,empireTab='build';
-function empireLoad(){
-  try{empireState=JSON.parse(localStorage.getItem('mm_empire'))||null;}catch(e){}
-  if(!empireState)empireState={};
-  const s=empireState;
-  if(s.coins==null)s.coins=(s.cash!=null?s.cash:0);   // migrate old cash -> coins
-  if(s.totalEarned==null)s.totalEarned=s.coins||0;
-  if(s.perClick==null)s.perClick=1;
-  if(!s.owned)s.owned={};
-  if(!s.luxuries)s.luxuries={};
-  if(!s.upgrades)s.upgrades={};
-  if(s.boosts==null)s.boosts=0;
-  if(s.legacy==null)s.legacy=0;
-  if(s.xp==null)s.xp=0;
-  if(s.level==null)s.level=1;
-  if(s.tasksDone==null)s.tasksDone=0;
-  if(s.lastSeen==null)s.lastSeen=Date.now();
-  delete s.cash;
-}
-function empireSave(){try{localStorage.setItem('mm_empire',JSON.stringify(empireState));if(typeof scheduleSave==='function')scheduleSave();}catch(e){}}
-/* ── multipliers ── */
-function empUpg(id){return !!empireState.upgrades[id];}
-function empClickMult(){return EMPIRE_UPGRADES.filter(u=>u.type==='click'&&empUpg(u.id)).reduce((m,u)=>m*u.val,1);}
-function empTaskMult(){const add=EMPIRE_UPGRADES.filter(u=>u.type==='task'&&empUpg(u.id)).reduce((s,u)=>s+u.val,0);return (1+add)*(1+empireState.legacy*0.05);}
-function empIncomeMult(){let m=EMPIRE_UPGRADES.filter(u=>u.type==='inc'&&empUpg(u.id)).reduce((mm,u)=>mm*u.val,1);m*=Math.pow(1.5,empireState.boosts);m*=(1+empireState.legacy*0.1);return m;}
-function empOfflineMult(){return EMPIRE_UPGRADES.filter(u=>u.type==='off'&&empUpg(u.id)).reduce((m,u)=>m*u.val,1);}
-function assetMilestone(n){if(n>=100)return 10;if(n>=50)return 5;if(n>=25)return 3;if(n>=10)return 2;return 1;}
-function assetNextMilestone(n){if(n<10)return 10;if(n<25)return 25;if(n<50)return 50;if(n<100)return 100;return null;}
-function empirePerSec(){return EMPIRE_ASSETS_DEF.reduce((s,a)=>{const n=empireState.owned[a.id]||0;return s+n*a.income*assetMilestone(n);},0)*empIncomeMult();}
-function empireCost(a){return Math.ceil(a.base*Math.pow(1.15,empireState.owned[a.id]||0));}
-function empireClickVal(){return empireState.perClick*empClickMult();}
-function empireBoostCost(){return Math.ceil(500000*Math.pow(6,empireState.boosts));}
-/* ── levels / chapters ── */
-function xpForLevel(l){return Math.floor(35*Math.pow(l,1.05));}
-function empireChapterIdx(){let idx=0;for(let i=0;i<EMPIRE_CHAPTERS.length;i++)if(empireState.level>=EMPIRE_CHAPTERS[i].lvl)idx=i;return idx;}
-function empireAssetUnlocked(a){return empireState.level>=EMPIRE_CHAPTERS[a.ch].lvl;}
-function empireUpgUnlocked(u){return empireState.level>=EMPIRE_CHAPTERS[u.ch].lvl;}
-function empireRank(){for(let i=EMPIRE_RANKS.length-1;i>=0;i--)if(empireState.totalEarned>=EMPIRE_RANKS[i][0])return EMPIRE_RANKS[i][1];return'Freelancer';}
-function empireFormat(n){if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.floor(n);}
-function empirePrestigeGain(){return Math.floor(Math.pow(empireState.totalEarned/1e7,0.5));}
-/* ── reward from completing a REAL dashboard task ── */
-function empireAwardTask(priority,isSub){
-  empireLoad();
-  const key=isSub?'sub':(EMP_TASK_W[priority]!=null?priority:'none');
-  const w=EMP_TASK_W[key],xpGain=EMP_TASK_XP[key];
-  const base=Math.max(40,empirePerSec()*15);
-  const coins=Math.max(1,Math.round(base*w*empTaskMult()));
-  empireState.coins+=coins;empireState.totalEarned+=coins;
-  if(!isSub)empireState.tasksDone++;
-  let leveled=false,unlocked='';
-  empireState.xp+=xpGain;
-  while(empireState.xp>=xpForLevel(empireState.level)){
-    empireState.xp-=xpForLevel(empireState.level);empireState.level++;leveled=true;
-    const ch=EMPIRE_CHAPTERS.find(c=>c.lvl===empireState.level);
-    if(ch)unlocked=ch.tag+': '+ch.name;
-  }
-  empireSave();
-  empireToast(coins,xpGain,leveled,unlocked);
-  const ov=document.getElementById('empire-overlay');
-  if(ov&&ov.classList.contains('open'))empireRender();
-}
-function empireToast(coins,xp,leveled,unlocked){
-  let el=document.getElementById('empire-toast');
-  if(!el){el=document.createElement('div');el.id='empire-toast';document.body.appendChild(el);}
-  el.className=leveled?'levelup':'';
-  el.innerHTML=leveled
-    ? `<span><i class="ti ti-arrow-big-up-lines"></i></span><span>Level ${empireState.level}!${unlocked?' <span class="xp">'+unlocked+' unlocked</span>':''}</span><span class="coin">+${empireFormat(coins)}</span>`
-    : `<span class="coin">+${empireFormat(coins)}</span><span class="xp">+${xp} XP</span>`;
-  void el.offsetWidth;el.classList.add('show');
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),leveled?3400:1700);
-}
-/* ── living scene ── */
-const ES_NS='http://www.w3.org/2000/svg';
-function esEl(tag,attrs){const e=document.createElementNS(ES_NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
-const ES_GROUND=140;
-const ES_TOWERS=[
-  {id:'studio', x:150, w:40, minH:30, maxH:82,  cap:20, body:'#20404f', win:'#7ec6e6', roof:'#5a9ab8', door:true},
-  {id:'team',   x:196, w:34, minH:22, maxH:58,  cap:20, body:'#1b3644', win:'#6fb8dc', roof:'#3a6b8a'},
-  {id:'agency', x:236, w:40, minH:36, maxH:100, cap:20, body:'#233f4d', win:'#8fd0ee', roof:'#e0b64a', crown:true},
-  {id:'conglom',x:300, w:52, minH:44, maxH:122, cap:20, body:'#20455a', win:'#9ad8f2', roof:'#e0b64a', pillars:true},
-];
-// sky mood [top,bottom] per chapter index (matches EMPIRE_CHAPTERS length)
-const ES_MOODS=[['#123048','#1c3a48'],['#0e2a40','#183442'],['#0b2138','#132b3a'],['#0a1c30','#102636'],['#0a1628','#0e2030'],['#0b1424','#0c1a28'],['#0a1020','#0a1622'],['#0c0a1e','#120e26']];
-let esBuilt=false;
-function esBuild(){
-  const stars=document.getElementById('es-stars');
-  if(!stars)return; // scene markup not present
-  for(let i=0;i<34;i++){const x=(i*137)%460,y=(i*71)%96+4,r=(i%3)*0.3+0.5;const s=esEl('circle',{cx:x,cy:y,r:r,fill:'#dfeefb'});s.setAttribute('class','es-star');s.style.animationDelay=(-(i*0.37)%3)+'s';stars.appendChild(s);}
-  const host=document.getElementById('es-towers');host.innerHTML='';
-  ES_TOWERS.forEach(t=>{
-    const g=esEl('g',{id:'es-'+t.id,class:'es-grp',opacity:0});
-    g.appendChild(esEl('ellipse',{cx:t.x+t.w/2,cy:ES_GROUND-1,rx:t.w/2+4,ry:3,fill:'#000',opacity:0.35}));
-    g.appendChild(esEl('rect',{id:'es-body-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:t.w,height:t.minH,fill:t.body,rx:1}));
-    g.appendChild(esEl('rect',{id:'es-edge-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:2,height:t.minH,fill:'#fff',opacity:0.06}));
-    const clip=esEl('clipPath',{id:'es-clip-'+t.id});
-    clip.appendChild(esEl('rect',{id:'es-cliprect-'+t.id,x:t.x,y:ES_GROUND-t.minH,width:t.w,height:t.minH}));
-    g.appendChild(clip);
-    const wg=esEl('g',{'clip-path':'url(#es-clip-'+t.id+')'});
-    const cols=Math.floor((t.w-6)/7),rows=Math.floor((t.maxH-8)/8);let wi=0;
-    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
-      const wx=t.x+4+c*7,wy=ES_GROUND-9-r*8;
-      const w=esEl('rect',{x:wx,y:wy,width:3.4,height:4,fill:t.win,rx:0.5});
-      if((wi*7)%3===0){w.setAttribute('class','es-win');w.style.animationDuration=(2.4+(wi%5)*0.6)+'s';w.style.animationDelay=(-(wi*0.4)%4)+'s';}
-      else w.setAttribute('opacity',0.55);
-      wg.appendChild(w);wi++;
-    }
-    g.appendChild(wg);
-    g.appendChild(esEl('circle',{id:'es-roof-'+t.id,cx:t.x+t.w/2,cy:ES_GROUND-t.minH-2,r:1.6,fill:t.roof,filter:'url(#es-glow)'}));
-    if(t.crown)g.appendChild(esEl('path',{id:'es-crown-'+t.id,d:'',fill:t.roof,opacity:0.95}));
-    if(t.door)g.appendChild(esEl('rect',{x:t.x+t.w/2-3,y:ES_GROUND-10,width:6,height:10,fill:t.win,opacity:0.85,rx:0.5}));
-    host.appendChild(g);
-  });
-  const fr=document.getElementById('es-franchise');fr.innerHTML='';
-  for(let i=0;i<5;i++){const bx=380+i*16;const s=esEl('g',{id:'es-shop-'+i,opacity:0});
-    s.appendChild(esEl('rect',{x:bx,y:126,width:13,height:14,fill:'#1d3a48'}));
-    s.appendChild(esEl('path',{d:`M${bx-1} 126 L${bx+6.5} 120 L${bx+14} 126 Z`,fill:'#2a4a5c'}));
-    s.appendChild(esEl('rect',{x:bx+4,y:132,width:5,height:8,fill:'#7ec6e6',opacity:0.7}));
-    fr.appendChild(s);}
-  const crew=document.getElementById('es-crew');crew.innerHTML='';
-  const crewCol=['#3a6b8a','#5e7a4a','#d4317a','#3a6b8a'];
-  for(let i=0;i<4;i++){const cx=48+i*9;const p=esEl('g',{id:'es-crewp-'+i,opacity:0});
-    p.appendChild(esEl('circle',{cx:cx,cy:124,r:2.6,fill:'#c8a07a'}));
-    p.appendChild(esEl('rect',{x:cx-3,y:127,width:6,height:8,rx:2.5,fill:crewCol[i]}));
-    crew.appendChild(p);}
-  esBuilt=true;
-}
-function esUpdate(){
-  if(!esBuilt)esBuild();
-  if(!esBuilt)return;
-  const ci=empireChapterIdx(),ch=EMPIRE_CHAPTERS[ci];
-  const lbl=document.getElementById('es-label')||document.getElementById('empire-scene-label');
-  if(lbl)lbl.textContent=ch.tag+' · '+ch.name;
-  document.getElementById('es-sky-top').setAttribute('stop-color',ES_MOODS[ci][0]);
-  document.getElementById('es-sky-bot').setAttribute('stop-color',ES_MOODS[ci][1]);
-  document.getElementById('es-far').setAttribute('opacity',Math.min(0.9,ci*0.16));
-  ES_TOWERS.forEach(t=>{
-    const n=empireState.owned[t.id]||0,g=document.getElementById('es-'+t.id);
-    g.setAttribute('opacity',n>0?1:0);g.classList.toggle('on',n>0);
-    const H=n>0?t.minH+(t.maxH-t.minH)*Math.min(n,t.cap)/t.cap:t.minH,top=ES_GROUND-H;
-    document.getElementById('es-body-'+t.id).setAttribute('y',top);
-    document.getElementById('es-body-'+t.id).setAttribute('height',H);
-    document.getElementById('es-edge-'+t.id).setAttribute('y',top);
-    document.getElementById('es-edge-'+t.id).setAttribute('height',H);
-    document.getElementById('es-cliprect-'+t.id).setAttribute('y',top);
-    document.getElementById('es-cliprect-'+t.id).setAttribute('height',H);
-    document.getElementById('es-roof-'+t.id).setAttribute('cy',top-2);
-    if(t.crown)document.getElementById('es-crown-'+t.id).setAttribute('d',`M${t.x+t.w/2-7} ${top} L${t.x+t.w/2-4} ${top-7} L${t.x+t.w/2} ${top-2} L${t.x+t.w/2+4} ${top-7} L${t.x+t.w/2+7} ${top} Z`);
-  });
-  ['va','client','brand','media','multi'].forEach(key=>{
-    const n=empireState.owned[key]||0,g=document.getElementById('es-'+key);
-    g.setAttribute('opacity',n>0?1:0);g.classList.toggle('on',n>0);
-  });
-  for(let i=0;i<4;i++)document.getElementById('es-crewp-'+i).setAttribute('opacity',(empireState.owned['va']||0)>i+1?1:0);
-  const fn=empireState.owned['franchise']||0;
-  document.getElementById('es-franchise').setAttribute('opacity',fn>0?1:0);
-  document.getElementById('es-franchise').classList.toggle('on',fn>0);
-  for(let i=0;i<5;i++)document.getElementById('es-shop-'+i).setAttribute('opacity',fn>i?1:0);
-  const total=Object.values(empireState.owned).reduce((a,b)=>a+b,0);
-  const em=document.getElementById('empire-scene-empty');if(em)em.style.opacity=total>0?0:1;
-}
-/* ── render ── */
-function empireRender(){
-  const s=empireState;
-  esUpdate();
-  document.getElementById('empire-cash').textContent=empireFormat(s.coins);
-  document.getElementById('empire-rate').textContent=empireFormat(empirePerSec())+' / sec';
-  document.getElementById('empire-rank').textContent=empireRank();
-  document.getElementById('empire-level').textContent='Level '+s.level;
-  const ch=EMPIRE_CHAPTERS[empireChapterIdx()];
-  document.getElementById('empire-chapter-label').textContent=ch.tag+' · '+ch.name;
-  const need=xpForLevel(s.level);
-  document.getElementById('empire-xp-fill').style.width=Math.min(100,(s.xp/need)*100)+'%';
-  document.getElementById('empire-xp-sub').textContent=Math.floor(s.xp)+' / '+need+' XP';
-  document.getElementById('empire-quest-txt').innerHTML=empireQuestText();
-  document.getElementById('empire-hustle-btn').innerHTML='&#9889; Hustle <span style="opacity:.7">+'+empireFormat(empireClickVal())+'</span>';
-  renderEmpireBuild();renderEmpireUpgrades();renderEmpireSpend();renderEmpireMap();
-}
-function empireQuestText(){
-  const ci=empireChapterIdx(),next=EMPIRE_CHAPTERS[ci+1];
-  if(next){
-    const togo=next.lvl-empireState.level;
-    return `Complete tasks to earn coins &amp; XP. <b style="color:#e6f1f8">${togo} level${togo>1?'s':''}</b> to unlock <b style="color:#7ab8d4">${next.tag}: ${next.name}</b>.`;
-  }
-  const gain=empirePrestigeGain();
-  return gain>0?`You've reached the Finale. Retire in <b style="color:#c8dce8">Upgrades</b> to bank <b style="color:#d9b8ec">${gain} Legacy</b> and start New Game+.`
-              :`You've reached the Finale — keep building toward your first Legacy point.`;
-}
-function renderEmpireBuild(){
-  const host=document.getElementById('empire-assets');if(!host)return;
-  host.innerHTML=EMPIRE_ASSETS_DEF.map(a=>{
-    if(!empireAssetUnlocked(a)){
-      const req=EMPIRE_CHAPTERS[a.ch];
-      return `<div class="empire-asset locked"><div class="empire-asset-ic"><i class="ti ti-lock"></i></div><div class="empire-asset-info"><div class="empire-asset-name" style="color:#5a6a76">${a.name}</div><div class="empire-lock-tag">Unlocks at Level ${req.lvl} · ${req.tag}</div></div><button class="empire-buy-btn" disabled><i class="ti ti-lock"></i></button></div>`;
-    }
-    const owned=empireState.owned[a.id]||0,cost=empireCost(a),ok=empireState.coins>=cost,mult=assetMilestone(owned),nx=assetNextMilestone(owned);
-    const multTag=mult>1?` <span style="color:#e0b64a">×${mult}</span>`:'';
-    const nextTag=nx?` · ×${mult<10?mult+1:'?'} bonus at ${nx} owned`:' · max bonus';
-    return `<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ${a.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${a.name}${owned?' <span style="color:#5a9ab8">x'+owned+'</span>':''}${multTag}</div><div class="empire-asset-sub">+${empireFormat(a.income*mult)}/sec each${nextTag}</div></div><button class="empire-buy-btn" onclick="empireBuy('${a.id}')" ${ok?'':'disabled'}>${empireFormat(cost)}</button></div>`;
-  }).join('');
-}
-function empireBuy(id){
-  const a=EMPIRE_ASSETS_DEF.find(x=>x.id===id);if(!a||!empireAssetUnlocked(a))return;
-  const cost=empireCost(a);if(empireState.coins<cost)return;
-  empireState.coins-=cost;empireState.owned[id]=(empireState.owned[id]||0)+1;
-  empireRender();empireSave();
-}
-function renderEmpireUpgrades(){
-  const host=document.getElementById('empire-upgrades');if(!host)return;
-  let html=EMPIRE_UPGRADES.map(u=>{
-    const owned=empUpg(u.id),unlocked=empireUpgUnlocked(u),ok=empireState.coins>=u.cost;
-    let btn;
-    if(owned)btn=`<button class="empire-buy-btn owned" disabled><i class="ti ti-check"></i> Owned</button>`;
-    else if(!unlocked){const req=EMPIRE_CHAPTERS[u.ch];btn=`<button class="empire-buy-btn" disabled>Lvl ${req.lvl}</button>`;}
-    else btn=`<button class="empire-buy-btn" onclick="empireBuyUpg('${u.id}')" ${ok?'':'disabled'}>${empireFormat(u.cost)}</button>`;
-    return `<div class="empire-asset${owned?' owned-lux':''}${!unlocked&&!owned?' locked':''}"><div class="empire-asset-ic"><i class="ti ${u.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${u.name}</div><div class="empire-asset-sub">${u.desc}</div></div>${btn}</div>`;
-  }).join('');
-  const bc=empireBoostCost(),bok=empireState.coins>=bc;
-  html+=`<div class="empire-asset"><div class="empire-asset-ic"><i class="ti ti-rocket"></i></div><div class="empire-asset-info"><div class="empire-asset-name">Global Boost <span style="color:#5a9ab8">×1.5</span>${empireState.boosts?' <span style="color:#5a9ab8">('+empireState.boosts+')</span>':''}</div><div class="empire-asset-sub">Multiplies ALL income · repeatable</div></div><button class="empire-buy-btn" onclick="empireBuyBoost()" ${bok?'':'disabled'}>${empireFormat(bc)}</button></div>`;
-  const gain=empirePrestigeGain();
-  if(gain>0||empireState.legacy>0){
-    html+=`<div class="empire-prestige"><div style="font-size:0.8rem;font-weight:800;color:#d9b8ec;letter-spacing:0.06em">RETIRE &amp; PASS THE TORCH</div><div style="font-size:0.66rem;color:#b593c9;margin-top:6px;line-height:1.45">Reset your empire, assets, upgrades &amp; level to bank <b style="color:#e6c6ff">${gain} Legacy</b>.<br>Each Legacy: +10% income &amp; +5% task payouts, forever.${empireState.legacy?'<br>Current Legacy: <b style="color:#e6c6ff">'+empireState.legacy+'</b>':''}</div>${gain>0?`<button class="empire-prestige-btn" onclick="empirePrestige()">Retire for ${gain} Legacy</button>`:`<div style="font-size:0.62rem;color:#8a6fa0;margin-top:8px">Earn more to bank your first Legacy point.</div>`}</div>`;
-  }
-  host.innerHTML=html;
-}
-function empireBuyUpg(id){
-  const u=EMPIRE_UPGRADES.find(x=>x.id===id);
-  if(!u||empUpg(id)||!empireUpgUnlocked(u)||empireState.coins<u.cost)return;
-  empireState.coins-=u.cost;empireState.upgrades[id]=1;fireConfetti();empireRender();empireSave();
-}
-function empireBuyBoost(){
-  const c=empireBoostCost();if(empireState.coins<c)return;
-  empireState.coins-=c;empireState.boosts++;empireRender();empireSave();
-}
-function empirePrestige(){
-  const gain=empirePrestigeGain();if(gain<=0)return;
-  if(!confirm('Retire your empire for '+gain+' Legacy?\n\nYour coins, assets and upgrades reset — but your Level, chapter progress, Rewards and Legacy bonus are kept forever.'))return;
-  const s=empireState;
-  s.legacy+=gain;
-  s.coins=0;s.totalEarned=0;s.owned={};s.upgrades={};s.boosts=0;s.perClick=1;
-  s.lastSeen=Date.now();
-  fireConfetti();empireRender();empireSave();
-}
-function empireSetTab(t){
-  empireTab=t;
-  [['build','empire-assets'],['upgrades','empire-upgrades'],['spend','empire-spend'],['map','empire-map']].forEach(([k,id])=>{
-    const pane=document.getElementById(id);if(pane)pane.style.display=(k===t?'block':'none');
-    const btn=document.getElementById('emp-tab-'+k);if(btn)btn.classList.toggle('active',k===t);
-  });
-}
-function renderEmpireSpend(){
-  const host=document.getElementById('empire-spend');if(!host)return;
-  const ownedCount=EMPIRE_LUXURIES.filter(l=>empireState.luxuries[l.id]).length;
-  let html=`<div class="empire-spend-head">${ownedCount} / ${EMPIRE_LUXURIES.length} rewards unlocked</div>`;
-  html+=EMPIRE_LUXURIES.map(l=>{
-    const owned=!!empireState.luxuries[l.id],ok=empireState.coins>=l.cost;
-    const btn=owned?`<button class="empire-buy-btn owned" disabled><i class="ti ti-check"></i> Owned</button>`:`<button class="empire-buy-btn" onclick="empireBuyLux('${l.id}')" ${ok?'':'disabled'}>${empireFormat(l.cost)}</button>`;
-    return`<div class="empire-asset${owned?' owned-lux':''}"><div class="empire-asset-ic"><i class="ti ${l.icon}"></i></div><div class="empire-asset-info"><div class="empire-asset-name">${l.name}</div><div class="empire-asset-sub">${l.blurb}</div></div>${btn}</div>`;
-  }).join('');
-  host.innerHTML=html;
-}
-function empireBuyLux(id){
-  const x=EMPIRE_LUXURIES.find(l=>l.id===id);if(!x)return;
-  if(empireState.luxuries[id])return;
-  if(empireState.coins<x.cost)return;
-  empireState.coins-=x.cost;empireState.luxuries[id]=1;
-  fireConfetti();empireRender();empireSave();
-}
-function renderEmpireMap(){
-  const host=document.getElementById('empire-map');if(!host)return;
-  const ci=empireChapterIdx();
-  host.innerHTML=EMPIRE_CHAPTERS.map((c,i)=>{
-    const state=i<ci?'done':i===ci?'cur':'lock';
-    const badge=`<div class="empire-ch-badge ${state}">${state==='done'?'<i class="ti ti-check"></i>':state==='lock'?'<i class="ti ti-lock"></i>':(i+1)}</div>`;
-    const here=state==='cur'?' <span style="color:#7ab8d4;font-size:0.6rem">◆ HERE</span>':'';
-    const req=state==='lock'?`<div class="empire-ch-req">Reach Level ${c.lvl}</div>`:'';
-    return `<div class="empire-chapter">${badge}<div><div class="empire-ch-name${state==='lock'?' lock':''}">${c.tag} · ${c.name}${here}</div><div class="empire-ch-story">${c.story}</div>${req}</div></div>`;
-  }).join('');
-}
-function empireHustle(){
-  const v=empireClickVal();
-  empireState.coins+=v;empireState.totalEarned+=v;
-  const b=document.getElementById('empire-hustle-btn');
-  b.classList.remove('empire-hustle-pop');void b.offsetWidth;b.classList.add('empire-hustle-pop');
-  empireRender();empireSave();
-}
-function openEmpire(){
-  empireLoad();
-  const elapsed=(Date.now()-(empireState.lastSeen||Date.now()))/1000,offEarn=elapsed*empirePerSec()*empOfflineMult();
-  if(offEarn>0.5){
-    empireState.coins+=offEarn;empireState.totalEarned+=offEarn;
-    const n=document.getElementById('empire-offline');
-    n.textContent='While you were working, your empire earned '+empireFormat(offEarn)+'!';
-    n.style.display='block';setTimeout(()=>{n.style.display='none';},4500);
-  }
-  empireState.lastSeen=Date.now();
-  document.getElementById('empire-overlay').classList.add('open');
-  empireRender();empireSetTab(empireTab);clearInterval(empireTick);
-  empireTick=setInterval(()=>{const ps=empirePerSec();if(ps>0){empireState.coins+=ps/5;empireState.totalEarned+=ps/5;empireRender();}},200);
-}
-function closeEmpire(){
-  clearInterval(empireTick);if(empireState){empireState.lastSeen=Date.now();empireSave();}
-  document.getElementById('empire-overlay').classList.remove('open');
-}
-
-/* ═══════════════════════════════════════════
    SYNC (background)
 ═══════════════════════════════════════════ */
 /* GLOBAL SYNC (cross-device via Cloudflare KV) */
@@ -3134,7 +2564,6 @@ function applyRemoteAndRender(){
   const cv=document.getElementById('clients-view');
   if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
   if(typeof calVisible==='function'&&calVisible())renderCalendar();
-  if(typeof empireLoad==='function')empireLoad();
 }
 let saveTimer=null;
 function scheduleSave(){
@@ -3374,9 +2803,7 @@ if(localStorage.getItem('mm_auth')==='1'){
   bootApp();
 }
 
-// Empire overlay click-outside to close
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('empire-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeEmpire();});
   document.getElementById('picker-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closePicker();});
 });
 </script>
