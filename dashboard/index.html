@@ -709,6 +709,90 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .td-pill,.td-count{color:var(--muted)}
 .td-overdue{background:rgba(232,105,92,0.16);color:var(--crit);border-radius:4px;letter-spacing:0.1em}
 
+/* ═══════════════════════════════════════════════════════════════
+   OVERVIEW — the command-center view
+   Big quiet numbers, eyebrow-led cards, one accent. Every figure is
+   computed from real task data; nothing here is decorative filler.
+═══════════════════════════════════════════════════════════════ */
+#overview-view{display:none;flex:1;overflow-y:auto;padding:26px 26px 40px;flex-direction:column;gap:18px}
+.ov-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ov-eyebrow{font-size:0.6rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--light)}
+.ov-title{font-size:1.6rem;font-weight:600;letter-spacing:-0.025em;color:var(--black);margin-top:6px}
+.ov-sync{display:flex;align-items:center;gap:7px;font-size:0.62rem;font-weight:600;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--light)}
+.ov-dot{width:6px;height:6px;border-radius:50%;background:var(--lo);box-shadow:0 0 8px var(--lo)}
+.ov-dot.stale{background:var(--hi);box-shadow:0 0 8px var(--hi)}
+
+/* KPI row — the single biggest "command center" signal */
+.ov-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.ov-kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.18);min-width:0}
+.ov-kpi-label{font-size:0.58rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--light)}
+.ov-kpi-row{display:flex;align-items:baseline;gap:10px;margin-top:14px;flex-wrap:wrap}
+.ov-kpi-num{font-size:2.1rem;font-weight:600;letter-spacing:-0.04em;color:var(--black);line-height:1;
+  font-variant-numeric:tabular-nums}
+.ov-kpi-delta{font-size:0.68rem;font-weight:600;white-space:nowrap}
+.ov-kpi-delta.up{color:var(--lo)}
+.ov-kpi-delta.down{color:var(--crit)}
+.ov-kpi-delta.flat{color:var(--light)}
+.ov-kpi-sub{font-size:0.68rem;color:var(--light);margin-top:9px;line-height:1.35}
+.ov-kpi.alert .ov-kpi-num{color:var(--crit)}
+
+/* cards */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.18);min-width:0}
+.ov-card-eyebrow{font-size:0.58rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--light)}
+.ov-card-title{font-size:1.05rem;font-weight:600;letter-spacing:-0.02em;color:var(--black);margin:6px 0 18px}
+
+/* load bars — thin, one accent, figures right-aligned */
+.ov-bars{display:flex;flex-direction:column;gap:15px}
+.ov-bar-row{display:flex;flex-direction:column;gap:7px}
+.ov-bar-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ov-bar-name{font-size:0.82rem;color:var(--black);display:flex;align-items:center;gap:8px;min-width:0}
+.ov-bar-name i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ov-bar-fig{font-size:0.7rem;color:var(--light);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ov-bar-fig b{color:var(--black);font-weight:600}
+.ov-bar-track{height:5px;border-radius:3px;background:rgba(0,0,0,0.35);overflow:hidden}
+.ov-bar-fill{height:100%;border-radius:3px;background:var(--blue);transition:width 0.4s cubic-bezier(0.16,0.84,0.25,1)}
+.ov-bar-fill.over{background:var(--crit)}
+
+/* assignee monograms */
+.ov-people{display:flex;flex-direction:column;gap:12px}
+.ov-person{display:flex;align-items:center;gap:11px}
+.ov-person-fig{margin-left:auto;font-size:0.72rem;color:var(--light);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ov-person-fig b{color:var(--black);font-weight:600}
+.ov-person-name{font-size:0.84rem;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mono{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:0.64rem;font-weight:700;letter-spacing:0.03em;color:#06131b;flex-shrink:0}
+
+/* portfolio table */
+.ov-card-wide{padding-bottom:8px}
+.ov-table-wrap{overflow-x:auto;margin:0 -22px;padding:0 22px}
+.ov-table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:520px}
+.ov-table th{text-align:left;font-size:0.56rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--light);padding:0 12px 11px 0;border-bottom:1px solid var(--border);white-space:nowrap}
+.ov-table th.num,.ov-table td.num{text-align:right;padding-right:0;font-variant-numeric:tabular-nums}
+.ov-table td{padding:13px 12px 13px 0;border-bottom:1px solid rgba(255,255,255,0.045);color:var(--black);
+  vertical-align:middle}
+.ov-table tr:last-child td{border-bottom:none}
+.ov-table tbody tr{cursor:pointer;transition:background 0.1s}
+.ov-table tbody tr:hover{background:rgba(255,255,255,0.035)}
+.ov-cell-name{display:flex;align-items:center;gap:11px;min-width:0}
+.ov-cell-name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-muted{color:var(--light)}
+.ov-zero{color:var(--light);opacity:0.55}
+.ov-flag{color:var(--crit);font-weight:600}
+.ov-empty{padding:30px 0;text-align:center;color:var(--light);font-size:0.85rem;font-style:italic}
+@media(max-width:768px){
+  #overview-view{padding:16px 14px 32px}
+  .ov-title{font-size:1.3rem}
+  .ov-kpi{padding:16px 18px}
+  .ov-kpi-num{font-size:1.8rem}
+  .ov-card{padding:18px}
+  .ov-table-wrap{margin:0 -18px;padding:0 18px}
+}
+
 /* ── 9. MOBILE ── keep the accordion legible against the new ground */
 @media (max-width:768px){
   .acc{background:transparent;border-bottom-color:var(--border)}
@@ -759,6 +843,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       </div>
       <span class="h-date" id="today-date"></span>
       <div class="h-tabs">
+        <button class="h-tab" id="tab-overview" onclick="switchMainTab('overview')">◈ Overview</button>
         <button class="h-tab active" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
         <button class="h-tab" id="tab-calendar" onclick="switchMainTab('calendar')">🗓 Calendar</button>
         <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
@@ -829,6 +914,43 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <div class="cal-body">
         <div class="cal-dow"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
         <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OVERVIEW (CEO command center) ──
+       Every number here is derived from real task data. Nothing is seeded or
+       simulated: KPIs from mm_tasks_todo, load bars and the portfolio table
+       from nodeDueRollup() over the brain tree. -->
+  <div id="overview-view">
+    <div class="ov-head">
+      <div>
+        <div class="ov-eyebrow" id="ov-eyebrow">Command center</div>
+        <div class="ov-title">Where things stand</div>
+      </div>
+      <div class="ov-sync"><span class="ov-dot" id="ov-sync-dot"></span><span id="ov-sync-text">Synced</span></div>
+    </div>
+
+    <div class="ov-kpis" id="ov-kpis"></div>
+
+    <div class="ov-grid">
+      <div class="ov-card">
+        <div class="ov-card-eyebrow">Open load by brand</div>
+        <div class="ov-card-title">Where the work sits</div>
+        <div class="ov-bars" id="ov-bars"></div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-eyebrow">By assignee</div>
+        <div class="ov-card-title">Who is carrying what</div>
+        <div class="ov-people" id="ov-people"></div>
+      </div>
+    </div>
+
+    <div class="ov-card ov-card-wide">
+      <div class="ov-card-eyebrow">Client portfolio</div>
+      <div class="ov-card-title">Open work by client</div>
+      <div class="ov-table-wrap">
+        <table class="ov-table" id="ov-portfolio"></table>
       </div>
     </div>
   </div>
@@ -1033,6 +1155,10 @@ function toggleTask(type,taskId){
   const tasks=loadTasks(t);
   const task=tasks.find(x=>x.id===taskId); if(!task)return;
   const was=task.done; task.done=!task.done;
+  /* Stamp the completion time. Nothing before this build recorded one, so the
+     Overview's "completed today" and any future trend chart only have truthful
+     data from here forward — old completions stay uncounted rather than guessed. */
+  task.doneAt=task.done?Date.now():null;
   saveTasks(t,tasks);
   if(!was){if(typeof showPraise==='function')showPraise('');fireConfetti();}
 }
@@ -2522,6 +2648,8 @@ function updateCompletionStat(){
   const txt=document.getElementById('stat-text');
   if(txt)txt.textContent=open+' open task'+(open!==1?'s':'');
   if(el)el.classList.toggle('all-done',todo.length>0&&open===0);
+  // keep the command center live without paying for it on every other view
+  if(typeof ovVisible==='function'&&ovVisible())renderOverview();
 }
 
 /* ═══════════════════════════════════════════
@@ -2546,19 +2674,208 @@ function showPraise(msg){
 /* ═══════════════════════════════════════════
    TAB SWITCHING
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   OVERVIEW (command center)
+
+   Rule for this whole section: never render a number we cannot derive from
+   real task data. Two consequences worth knowing:
+     - "Completed today" needs a completion timestamp, which did not exist
+       before this build. toggleTask now stamps doneAt, so this reads 0 until
+       the first task is ticked and is accurate from then on.
+     - Day-over-day deltas need history, so we snapshot open/done counts once
+       per day into mm_kpi_history (30-day ring). Deltas show "first day
+       tracked" until there is a prior day to compare against, rather than
+       inventing a percentage.
+═══════════════════════════════════════════ */
+function ovDayKey(d){d=d||new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function loadKpiHistory(){try{return JSON.parse(localStorage.getItem('mm_kpi_history')||'{}')}catch(e){return{}}}
+function recordKpiSnapshot(open,doneToday){
+  const h=loadKpiHistory();
+  const k=ovDayKey();
+  const prev=h[k];
+  if(prev&&prev.open===open&&prev.done===doneToday)return; // no churn, no sync
+  h[k]={open,done:doneToday};
+  const keys=Object.keys(h).sort();
+  while(keys.length>30)delete h[keys.shift()];
+  try{localStorage.setItem('mm_kpi_history',JSON.stringify(h));scheduleSave();}catch(e){}
+}
+function ovYesterdayKey(){const d=new Date();d.setDate(d.getDate()-1);return ovDayKey(d)}
+/* lowerIsBetter: for open/overdue counts a DROP is good, so the arrow colour flips */
+function ovDelta(cur,prev,lowerIsBetter){
+  if(prev===undefined||prev===null)return{cls:'flat',txt:'first day tracked'};
+  const d=cur-prev;
+  if(d===0)return{cls:'flat',txt:'no change vs yesterday'};
+  const up=d>0, good=lowerIsBetter?!up:up;
+  return{cls:good?'up':'down',txt:(up?'↑ +':'↓ ')+Math.abs(d)+' vs yesterday'};
+}
+function ovNodeOpenTasks(nodeId){
+  const out=[];
+  (function walk(id){
+    tasksForNode(id).forEach(t=>{if(!t.done)out.push(t)});
+    brainNodes.filter(n=>n.parent===id).forEach(c=>walk(c.id));
+  })(nodeId);
+  return out;
+}
+/* TEAM_MEMBERS still carry the pre-restyle (dark) brand colours, so a fixed
+   dark foreground gave dark-on-dark initials at 2.3:1. Pick the foreground from
+   the chip's own luminance instead — works for any colour added later. */
+function ovReadableOn(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length<6)return'#e8f0f4';
+  const c=[0,2,4].map(i=>parseInt(h.substr(i,2),16)/255)
+    .map(v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4));
+  const L=0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
+  /* 0.198 is the crossover where dark and light foregrounds contrast equally
+     against this background — solved from (L+0.05)/(Ldark+0.05) = (Llight+0.05)/(L+0.05).
+     A higher cutoff picks light text on mid-tones and fails AA (Jacob's teal hit 2.53:1). */
+  return L>0.198?'#06131b':'#e8f0f4';
+}
+function ovMonogram(name,color){
+  const initials=String(name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+  return`<span class="mono" style="background:${color};color:${ovReadableOn(color)}">${bEsc(initials)}</span>`;
+}
+function ovVisible(){const b=document.getElementById('tab-overview');return!!b&&b.classList.contains('active')}
+
+function renderOverview(){
+  const view=document.getElementById('overview-view');
+  if(!view)return;
+  const today=todayStr();
+  const tasks=loadTodoTasks();
+  const open=tasks.filter(t=>!t.done);
+  const dueToday=open.filter(t=>t.due===today).length;
+  const overdue=open.filter(t=>t.due&&t.due<today).length;
+  const sod=new Date();sod.setHours(0,0,0,0);
+  const doneToday=tasks.filter(t=>t.done&&t.doneAt&&t.doneAt>=sod.getTime()).length;
+
+  recordKpiSnapshot(open.length,doneToday);
+  const hist=loadKpiHistory(), y=hist[ovYesterdayKey()];
+
+  const mn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now=new Date();
+  const eb=document.getElementById('ov-eyebrow');
+  if(eb)eb.textContent=`Command center · ${mn[now.getMonth()]} ${now.getFullYear()}`;
+
+  /* ── KPIs ── */
+  const dOpen=ovDelta(open.length,y&&y.open,true);
+  const dDone=ovDelta(doneToday,y&&y.done,false);
+  const pct=tasks.length?Math.round((tasks.length-open.length)/tasks.length*100):0;
+  const kpis=[
+    {label:'Open tasks',   num:open.length, delta:dOpen, sub:`${tasks.length} total on the board`},
+    {label:'Due today',    num:dueToday,    sub:dueToday?'landing before midnight':'nothing due today'},
+    {label:'Overdue',      num:overdue,     sub:overdue?'past their due date':'all clear', alert:overdue>0},
+    {label:'Completed today',num:doneToday, delta:dDone, sub:`${pct}% of the board is done`}
+  ];
+  document.getElementById('ov-kpis').innerHTML=kpis.map(k=>`
+    <div class="ov-kpi${k.alert?' alert':''}">
+      <div class="ov-kpi-label">${bEsc(k.label)}</div>
+      <div class="ov-kpi-row">
+        <span class="ov-kpi-num">${k.num}</span>
+        ${k.delta?`<span class="ov-kpi-delta ${k.delta.cls}">${bEsc(k.delta.txt)}</span>`:''}
+      </div>
+      <div class="ov-kpi-sub">${bEsc(k.sub)}</div>
+    </div>`).join('');
+
+  /* ── load by brand ── */
+  const BRANDS=[
+    {id:'mm-root',       label:'Messick Marketing', color:'var(--blue)'},
+    {id:'ve-root',       label:'Virtueasy',         color:'var(--ve)'},
+    {id:'personal-root', label:'Personal',          color:'var(--personal)'}
+  ];
+  const rolls=BRANDS.map(b=>({...b,...nodeDueRollup(b.id)}));
+  const max=Math.max(1,...rolls.map(r=>r.open));
+  document.getElementById('ov-bars').innerHTML=rolls.map(r=>`
+    <div class="ov-bar-row">
+      <div class="ov-bar-top">
+        <span class="ov-bar-name"><i style="background:${r.color}"></i>${bEsc(r.label)}</span>
+        <span class="ov-bar-fig"><b>${r.open}</b> open${r.overdue?` · <span class="ov-flag">${r.overdue} overdue</span>`:''}</span>
+      </div>
+      <div class="ov-bar-track">
+        <div class="ov-bar-fill${r.overdue&&r.open&&r.overdue/r.open>0.5?' over':''}" style="width:${Math.round(r.open/max*100)}%"></div>
+      </div>
+    </div>`).join('');
+
+  /* ── by assignee ── */
+  const counts={};
+  open.forEach(t=>{
+    const a=(t.assignees&&t.assignees.length)?t.assignees:['_none'];
+    a.forEach(id=>{counts[id]=(counts[id]||0)+1});
+  });
+  const people=TEAM_MEMBERS.map(m=>({name:m.name,color:m.color,n:counts[m.id]||0}))
+    .concat(counts._none?[{name:'Unassigned',color:'#3d5260',n:counts._none}]:[])
+    .sort((a,b)=>b.n-a.n);
+  document.getElementById('ov-people').innerHTML=people.length?people.map(p=>`
+    <div class="ov-person">
+      ${ovMonogram(p.name,p.color)}
+      <span class="ov-person-name">${bEsc(p.name)}</span>
+      <span class="ov-person-fig"><b>${p.n}</b> open</span>
+    </div>`).join(''):'<div class="ov-empty">No open tasks.</div>';
+
+  /* ── client portfolio ──
+     Built from the BRAIN TREE (where tasks actually live), not the mm_clients
+     contacts directory — the two stores share no id, so joining them on name
+     would produce plausible-looking wrong numbers. */
+  const clientNodes=brainNodes.filter(n=>n.parent==='mm-cat-clients');
+  const rows=clientNodes.map(n=>{
+    const roll=nodeDueRollup(n.id);
+    const opens=ovNodeOpenTasks(n.id).filter(t=>t.due).map(t=>t.due).sort();
+    return{name:n.label,...roll,next:opens[0]||null};
+  }).sort((a,b)=>b.overdue-a.overdue||b.open-a.open||a.name.localeCompare(b.name));
+  const tbl=document.getElementById('ov-portfolio');
+  if(!rows.length){
+    tbl.innerHTML='<tbody><tr><td class="ov-empty">No client nodes under Messick → Clients yet.</td></tr></tbody>';
+  }else{
+    tbl.innerHTML=`
+      <thead><tr>
+        <th>Client</th><th class="num">Open</th><th class="num">Overdue</th>
+        <th class="num">This week</th><th class="num">Next due</th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`
+        <tr onclick="ovOpenClient('${bEsc(r.name).replace(/'/g,"\\'")}')">
+          <td><span class="ov-cell-name">${ovMonogram(r.name,'#4fa8d0')}<span>${bEsc(r.name)}</span></span></td>
+          <td class="num">${r.open||'<span class="ov-zero">0</span>'}</td>
+          <td class="num">${r.overdue?`<span class="ov-flag">${r.overdue}</span>`:'<span class="ov-zero">0</span>'}</td>
+          <td class="num">${(r.today+r.soon)||'<span class="ov-zero">0</span>'}</td>
+          <td class="num ov-muted">${r.next?bEsc(fmtDate(r.next)):'—'}</td>
+        </tr>`).join('')}</tbody>`;
+  }
+
+  /* ── sync freshness ── */
+  const dot=document.getElementById('ov-sync-dot'), st=document.getElementById('ov-sync-text');
+  if(dot&&st){
+    if(!lastSyncV){st.textContent='Local only';dot.classList.add('stale');}
+    else{
+      const mins=Math.max(0,Math.round((Date.now()-lastSyncV)/60000));
+      st.textContent=mins<1?'Live · synced just now':`Live · synced ${mins}m ago`;
+      dot.classList.toggle('stale',mins>10);
+    }
+  }
+}
+
+function ovOpenClient(name){
+  const n=brainNodes.find(x=>x.parent==='mm-cat-clients'&&x.label===name);
+  if(!n)return;
+  switchMainTab('brain');
+  navPath=['mm-cat-clients',n.id];
+  renderColumns();
+}
+
 function switchMainTab(tab){
-  const isClients=tab==='clients', isCal=tab==='calendar', isBrain=!isClients&&!isCal;
+  const isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
+  const isBrain=!isClients&&!isCal&&!isOv;
   document.getElementById('focus-section').style.display=isBrain?'block':'none';
-  document.getElementById('today-due-section').style.display=isCal?'none':'block';
-  document.getElementById('quick-add-bar').style.display=isClients?'none':'flex';
+  document.getElementById('today-due-section').style.display=(isCal||isOv)?'none':'block';
+  document.getElementById('quick-add-bar').style.display=(isClients||isOv)?'none':'flex';
   document.getElementById('col-view').style.display=isBrain?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
+  document.getElementById('overview-view').style.display=isOv?'flex':'none';
+  document.getElementById('tab-overview').classList.toggle('active',isOv);
   document.getElementById('tab-brain').classList.toggle('active',isBrain);
   document.getElementById('tab-calendar').classList.toggle('active',isCal);
   document.getElementById('tab-clients').classList.toggle('active',isClients);
   if(isClients)renderClients();
   if(isCal)renderCalendar();
+  if(isOv)renderOverview();
 }
 
 /* ═══════════════════════════════════════════
