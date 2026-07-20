@@ -713,7 +713,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 /* ═══════════════════════════════════════════
    CONSTANTS
 ═══════════════════════════════════════════ */
-const PASSWORD = 'Messick2026';
 const WORKER   = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
 const PICKER_PHRASES = [
   'The universe has spoken...','Your mission, should you choose to accept it...',
@@ -747,15 +746,48 @@ function dueStatus(due){
 /* ═══════════════════════════════════════════
    AUTH
 ═══════════════════════════════════════════ */
-function doLogin(){
-  if(document.getElementById('pw-input').value===PASSWORD){
-    localStorage.setItem('mm_auth','1');
+/* The password is verified by the worker, never held in this page.
+   A successful login returns a signed token; mm_auth holds it and is
+   excluded from sync so it never leaves this device. */
+function authToken(){
+  try{
+    const a=JSON.parse(localStorage.getItem('mm_auth')||'null');
+    if(a&&a.t&&a.exp&&Date.now()<a.exp)return a.t;
+  }catch(e){}
+  return null;
+}
+async function doLogin(){
+  const inp=document.getElementById('pw-input');
+  const err=document.getElementById('login-error');
+  const btn=document.querySelector('.login-card button');
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Checking…';
+  try{
+    const resp=await fetch(WORKER+'/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:inp.value})
+    });
+    if(!resp.ok){
+      const b=await resp.json().catch(()=>({}));
+      err.textContent = resp.status===429 ? 'Too many attempts. Try again in 15 minutes.'
+        : b.error==='auth not configured' ? 'Login is not set up on the server yet.'
+        : 'Incorrect password. Try again.';
+      err.style.display='block';
+      return;
+    }
+    const b=await resp.json();
+    localStorage.setItem('mm_auth',JSON.stringify({t:b.token,exp:b.exp}));
+    inp.value='';
     bootApp();
-  } else {
-    document.getElementById('login-error').style.display='block';
+  }catch(e){
+    err.textContent='Could not reach the server. Check your connection.';
+    err.style.display='block';
+  }finally{
+    btn.disabled=false; btn.textContent='Enter Dashboard';
   }
 }
 function logout(){localStorage.removeItem('mm_auth');location.reload()}
+function sessionExpired(){localStorage.removeItem('mm_auth');location.reload()}
 
 /* ═══════════════════════════════════════════
    TASK STORAGE
@@ -2606,9 +2638,7 @@ function renderClients(){
    SYNC (background)
 ═══════════════════════════════════════════ */
 /* GLOBAL SYNC (cross-device via Cloudflare KV) */
-const STATE_SECRET = 'Bwv7nJNlHpeIT0QIEjGwA-BI6RJYH8vXz6zq9UX5'; // must match STATE_KEY env var on the worker
 let lastSyncV = 0, syncEnabled = true, syncLoopStarted = false;
-if(String(STATE_SECRET).indexOf('REPLACE')===0)syncEnabled=false;
 
 function collectState(){
   const data={};
@@ -2620,20 +2650,24 @@ function collectState(){
 }
 async function pushState(){
   if(!syncEnabled)return;
+  const tok=authToken(); if(!tok)return;
   try{
     const v=Date.now();
     const resp=await fetch(WORKER+'/state',{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-MM-Key':STATE_SECRET},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
       body:JSON.stringify({v,data:collectState()})
     });
+    if(resp.status===401)return sessionExpired();
     if(resp.ok)lastSyncV=v;
   }catch(e){/* offline: stays on localStorage */}
 }
 async function pullState(){
   if(!syncEnabled)return false;
+  const tok=authToken(); if(!tok)return false;
   try{
-    const resp=await fetch(WORKER+'/state',{headers:{'X-MM-Key':STATE_SECRET}});
+    const resp=await fetch(WORKER+'/state',{headers:{'Authorization':'Bearer '+tok}});
+    if(resp.status===401){sessionExpired();return false;}
     if(!resp.ok)return false;
     const body=await resp.json();
     if(!body||!body.data||Object.keys(body.data).length===0)return false;
@@ -2907,8 +2941,8 @@ function init(){
   if(changed)saveTodoTasks(tasks);
 }
 
-// Auto-login if session active
-if(localStorage.getItem('mm_auth')==='1'){
+// Auto-login if a valid, unexpired token is on this device
+if(authToken()){
   bootApp();
 }
 
