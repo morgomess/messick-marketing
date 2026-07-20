@@ -772,7 +772,11 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .ov-table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:520px}
 .ov-table th{text-align:left;font-size:0.56rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
   color:var(--light);padding:0 12px 11px 0;border-bottom:1px solid var(--border);white-space:nowrap}
-.ov-table th.num,.ov-table td.num{text-align:right;padding-right:0;font-variant-numeric:tabular-nums}
+/* Keep the numeric columns gathered on the right instead of letting the name
+   column stretch and strand them ~700px away, which breaks row tracking. */
+.ov-table th.num,.ov-table td.num{text-align:right;padding-right:0;font-variant-numeric:tabular-nums;width:120px}
+.ov-table th:first-child,.ov-table td:first-child{width:auto;max-width:0}
+.ov-table td:first-child .ov-cell-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ov-table td{padding:13px 12px 13px 0;border-bottom:1px solid rgba(255,255,255,0.045);color:var(--black);
   vertical-align:middle}
 .ov-table tr:last-child td{border-bottom:none}
@@ -792,6 +796,52 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
   .ov-card{padding:18px}
   .ov-table-wrap{margin:0 -18px;padding:0 18px}
 }
+
+/* ═══ NOTES / REPURPOSE PANEL ═══ */
+#pad-backdrop{display:none;position:fixed;inset:0;z-index:599;background:rgba(4,10,15,0.55);backdrop-filter:blur(2px)}
+#pad-backdrop.open{display:block}
+#pad-panel{position:fixed;right:0;top:0;bottom:0;width:420px;max-width:100vw;background:var(--surface);
+  border-left:1px solid var(--border-s);z-index:600;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.22s cubic-bezier(0.16,0.84,0.25,1);
+  box-shadow:-12px 0 40px rgba(0,0,0,0.5)}
+#pad-panel.open{transform:translateX(0)}
+.pad-header{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.pad-tabs{display:flex;gap:4px}
+.pad-tab{background:none;border:1px solid transparent;color:var(--light);font-family:'Jost',sans-serif;
+  font-size:0.66rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;
+  padding:7px 13px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.pad-tab:hover{color:var(--black)}
+.pad-tab.active{color:var(--blue-lt);background:var(--blue-pale);border-color:rgba(127,201,232,0.28)}
+.pad-body{flex:1;display:flex;flex-direction:column;min-height:0}
+.pad-scroll{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+#pad-text{flex:1;width:100%;resize:none;border:none;outline:none;background:transparent;color:var(--black);
+  font-family:'Jost',sans-serif;font-size:0.88rem;line-height:1.65;padding:18px}
+#pad-text::placeholder{color:var(--light)}
+.pad-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;
+  padding:10px 18px;border-top:1px solid var(--border);font-size:0.62rem;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--light)}
+.pad-clear{background:none;border:1px solid var(--border-s);color:var(--light);font-family:'Jost',sans-serif;
+  font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;padding:5px 11px;border-radius:6px;cursor:pointer}
+.pad-clear:hover{border-color:var(--crit);color:var(--crit)}
+/* repurpose */
+.rep-drop{border:1px dashed var(--border-s);border-radius:10px;padding:26px 18px;text-align:center;
+  cursor:pointer;transition:all 0.15s;background:rgba(0,0,0,0.18)}
+.rep-drop:hover,.rep-drop.over{border-color:var(--blue);background:var(--blue-pale)}
+.rep-drop-title{font-size:0.82rem;color:var(--black);font-weight:500}
+.rep-drop-sub{font-size:0.68rem;color:var(--light);margin-top:5px}
+.rep-drop img{max-width:100%;max-height:190px;border-radius:8px;display:block;margin:0 auto}
+.pad-run{background:var(--blue);color:#06131b;border:none;border-radius:6px;padding:11px;cursor:pointer;
+  font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+  transition:background 0.15s}
+.pad-run:hover:not(:disabled){background:var(--blue-lt)}
+.pad-run:disabled{opacity:0.5;cursor:not-allowed}
+.rep-out{font-size:0.84rem;line-height:1.6;color:var(--black);white-space:pre-wrap;word-break:break-word}
+.rep-out:empty{display:none}
+.rep-out h4{font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--light);
+  margin:16px 0 7px;font-weight:600}
+.rep-err{color:var(--crit);font-size:0.8rem}
+@media(max-width:768px){#pad-panel{width:100%}}
 
 /* ── 9. MOBILE ── keep the accordion legible against the new ground */
 @media (max-width:768px){
@@ -854,6 +904,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="h-btn todo" onclick="openAllTasks()">📋 To-Do</button>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
+      <button class="h-btn" onclick="openPad()">✎ Notes</button>
       <button class="h-btn" onclick="logout()">⎋ Log out</button>
     </div>
   </header>
@@ -1037,6 +1088,44 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="picker-accept-btn" onclick="pickerAccept()">⚡ Pin to Top 3</button>
       <button class="picker-respin-btn" onclick="pickerSpin()">↻ Respin</button>
       <button class="picker-close-btn" onclick="closePicker()">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTES / REPURPOSE PANEL ──
+     One slide-out, two tabs. Notes autosaves to mm_scratchpad; Repurpose sends
+     a screenshot (and optional context) to the worker's /claude route, which
+     already accepts images, so no worker change was needed. -->
+<div id="pad-backdrop" onclick="closePad()"></div>
+<div id="pad-panel">
+  <div class="pad-header">
+    <div class="pad-tabs">
+      <button class="pad-tab active" id="pad-tab-notes" onclick="padSwitch('notes')">Notes</button>
+      <button class="pad-tab" id="pad-tab-rep" onclick="padSwitch('rep')">Repurpose</button>
+    </div>
+    <button class="drawer-close" onclick="closePad()">✕</button>
+  </div>
+
+  <div class="pad-body" id="pad-body-notes">
+    <textarea id="pad-text" placeholder="Scratchpad — ideas, call notes, anything. Saves as you type and syncs across your devices."></textarea>
+    <div class="pad-foot"><span id="pad-status">Saved</span><button class="pad-clear" onclick="padClear()">Clear</button></div>
+  </div>
+
+  <div class="pad-body" id="pad-body-rep" style="display:none">
+    <div class="pad-scroll">
+      <div class="rep-drop" id="rep-drop" onclick="document.getElementById('rep-file').click()">
+        <input type="file" id="rep-file" accept="image/*" hidden onchange="repPickFile(this.files[0])">
+        <div class="rep-drop-inner" id="rep-drop-inner">
+          <div class="rep-drop-title">Drop a screenshot or mockup</div>
+          <div class="rep-drop-sub">Click to browse, or paste with Ctrl+V</div>
+        </div>
+      </div>
+      <div class="drawer-field">
+        <label>Context (optional)</label>
+        <textarea id="rep-context" rows="2" placeholder="e.g. this is the JVI blog hero — where else can we use it?"></textarea>
+      </div>
+      <button class="pad-run" id="rep-run" onclick="repRun()">Get recommendations</button>
+      <div class="rep-out" id="rep-out"></div>
     </div>
   </div>
 </div>
@@ -2675,6 +2764,94 @@ function showPraise(msg){
    TAB SWITCHING
 ═══════════════════════════════════════════ */
 /* ═══════════════════════════════════════════
+   NOTES + REPURPOSE PANEL
+   Notes autosave to mm_scratchpad (a real mutation, so scheduleSave is correct
+   here — unlike the Overview snapshot, which must never write from a render).
+═══════════════════════════════════════════ */
+let padSaveTimer=null, repImage=null;
+
+function openPad(){
+  document.getElementById('pad-panel').classList.add('open');
+  document.getElementById('pad-backdrop').classList.add('open');
+  const t=document.getElementById('pad-text');
+  t.value=localStorage.getItem('mm_scratchpad')||'';
+  setTimeout(()=>t.focus(),180);
+}
+function closePad(){
+  padFlush();
+  document.getElementById('pad-panel').classList.remove('open');
+  document.getElementById('pad-backdrop').classList.remove('open');
+}
+function padSwitch(which){
+  const isNotes=which==='notes';
+  document.getElementById('pad-body-notes').style.display=isNotes?'flex':'none';
+  document.getElementById('pad-body-rep').style.display=isNotes?'none':'flex';
+  document.getElementById('pad-tab-notes').classList.toggle('active',isNotes);
+  document.getElementById('pad-tab-rep').classList.toggle('active',!isNotes);
+}
+function padFlush(){
+  clearTimeout(padSaveTimer);
+  const t=document.getElementById('pad-text');
+  if(!t)return;
+  if((localStorage.getItem('mm_scratchpad')||'')===t.value)return;
+  localStorage.setItem('mm_scratchpad',t.value);
+  scheduleSave();
+  const s=document.getElementById('pad-status'); if(s)s.textContent='Saved';
+}
+function padClear(){
+  const t=document.getElementById('pad-text');
+  if(!t.value.trim())return;
+  if(!confirm('Clear the scratchpad? This cannot be undone.'))return;
+  t.value=''; padFlush();
+}
+
+/* ── repurpose ── */
+function repSetImage(dataUrl,mediaType,base64){
+  repImage={media_type:mediaType,data:base64};
+  document.getElementById('rep-drop-inner').innerHTML=
+    `<img src="${dataUrl}" alt="attached screenshot"><div class="rep-drop-sub" style="margin-top:9px">Click to replace</div>`;
+}
+function repPickFile(file){
+  if(!file||!/^image\//.test(file.type))return;
+  if(file.size>4.5*1024*1024){document.getElementById('rep-out').innerHTML='<div class="rep-err">That image is over 4.5MB — the API will reject it. Try a smaller screenshot.</div>';return;}
+  const fr=new FileReader();
+  fr.onload=()=>{const url=fr.result;repSetImage(url,file.type,String(url).split(',')[1]);};
+  fr.readAsDataURL(file);
+}
+async function repRun(){
+  const btn=document.getElementById('rep-run'), out=document.getElementById('rep-out');
+  const ctx=document.getElementById('rep-context').value.trim();
+  if(!repImage&&!ctx){out.innerHTML='<div class="rep-err">Add a screenshot or some context first.</div>';return;}
+  btn.disabled=true; btn.textContent='Thinking…'; out.textContent='';
+  const system=`You are a content strategist at Messick Marketing, a healthcare marketing agency. Morgan runs it. Clients are interventional radiology, vascular/vein, women's health, brain health and PT/OT practices. She also runs Virtueasy, a brand for virtual assistants.
+
+The user shows you a piece of content, a screenshot, or a mockup. Recommend concrete ways to REPURPOSE it across channels.
+
+Rules:
+- Be specific to what you actually see. Never give generic advice that would apply to any image.
+- Give 4-6 recommendations, each: the channel, the exact angle, and the first line or hook.
+- Respect her voice: plain, direct, no hype, no em dashes, roughly 5 hashtags when hashtags apply.
+- Healthcare content is patient-facing and must stay clinically careful. No outcome guarantees.
+- Use short "## Heading" lines to separate recommendations. No preamble, no sign-off.`;
+  const prompt=(repImage?'Here is the content to repurpose.':'Content to repurpose (described below).')+(ctx?`\n\nContext from Morgan: ${ctx}`:'');
+  try{
+    const body={prompt,system};
+    if(repImage)body.image=repImage;
+    const resp=await fetch(WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await resp.json();
+    if(data.error){out.innerHTML=`<div class="rep-err">${bEsc(data.error)}</div>`;}
+    else{
+      out.innerHTML=bEsc(data.text||'')
+        .replace(/^##\s*(.+)$/gm,'<h4>$1</h4>')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+      try{localStorage.setItem('mm_repurpose_last',data.text||'');scheduleSave();}catch(e){}
+    }
+  }catch(e){
+    out.innerHTML='<div class="rep-err">Could not reach the AI worker. Check your connection and try again.</div>';
+  }finally{ btn.disabled=false; btn.textContent='Get recommendations'; }
+}
+
+/* ═══════════════════════════════════════════
    OVERVIEW (command center)
 
    Rule for this whole section: never render a number we cannot derive from
@@ -3462,8 +3639,45 @@ function purgeDeadKeys(){
   return doomed.length;
 }
 
+function padBind(){
+  const t=document.getElementById('pad-text');
+  if(t&&!t.dataset.bound){
+    t.dataset.bound='1';
+    t.addEventListener('input',()=>{
+      const s=document.getElementById('pad-status'); if(s)s.textContent='Saving…';
+      clearTimeout(padSaveTimer); padSaveTimer=setTimeout(padFlush,600);
+    });
+  }
+  const drop=document.getElementById('rep-drop');
+  if(drop&&!drop.dataset.bound){
+    drop.dataset.bound='1';
+    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+    drop.addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)repPickFile(f)});
+  }
+  if(!document.body.dataset.padKeys){
+    document.body.dataset.padKeys='1';
+    // paste a screenshot straight into the panel
+    document.addEventListener('paste',e=>{
+      const panel=document.getElementById('pad-panel');
+      if(!panel||!panel.classList.contains('open'))return;
+      if(document.getElementById('pad-body-rep').style.display==='none')return;
+      const items=(e.clipboardData||{}).items||[];
+      for(const it of items){
+        if(it.type&&it.type.indexOf('image/')===0){const f=it.getAsFile();if(f){e.preventDefault();repPickFile(f);}return;}
+      }
+    });
+    document.addEventListener('keydown',e=>{
+      if(e.key!=='Escape')return;
+      const panel=document.getElementById('pad-panel');
+      if(panel&&panel.classList.contains('open'))closePad();
+    });
+  }
+}
+
 function init(){
   purgeDeadKeys();
+  padBind();
   brainLoad();
   setDate();
   initServicesChecklist();
