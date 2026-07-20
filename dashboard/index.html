@@ -305,9 +305,11 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .cal-daynum{font-size:0.72rem;font-weight:700;color:var(--muted);padding:1px 3px;flex-shrink:0}
 .cal-cell.today .cal-daynum{background:var(--blue);color:#fff;border-radius:11px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0}
 .cal-chips{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
-.cal-chip{display:flex;align-items:center;gap:4px;font-size:0.7rem;line-height:1.25;padding:3px 5px 3px 6px;border-left:3px solid var(--muted);border-radius:0 3px 3px 0;background:var(--surface-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;transition:filter 0.12s}
+.cal-chip{display:flex;align-items:center;gap:4px;font-size:0.7rem;line-height:1.25;padding:3px 5px 3px 6px;border-left:3px solid var(--muted);border-radius:0 3px 3px 0;background:var(--surface-2);cursor:grab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;transition:filter 0.12s;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .cal-chip:hover{filter:brightness(0.95)}
-.cal-chip.dragging{opacity:0.4}
+.cal-chip.dragging{opacity:0.3}
+/* the element that follows the cursor/finger while dragging */
+.cal-chip-ghost{position:fixed;z-index:9999;pointer-events:none;cursor:grabbing;box-shadow:0 8px 22px rgba(0,0,0,0.28);transform:scale(1.05);opacity:0.96;max-width:200px}
 .cal-chip i{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .cal-chip b{overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .cal-chip.b-messick{border-left-color:var(--blue);background:var(--blue-pale)}
@@ -2318,7 +2320,11 @@ function switchMainTab(tab){
    CALENDAR VIEW
 ═══════════════════════════════════════════ */
 const CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-let calYear=null, calMonth=null, calDragId=null;
+let calYear=null, calMonth=null;
+let calDrag=null, calDragBound=false, calJustDragged=false;
+const CAL_HOLD_MS=280;   // touch: hold this long before a drag starts, so swipes still scroll
+const CAL_MOUSE_SLOP=4;  // mouse: pixels of movement before it counts as a drag
+const CAL_SCROLL_SLOP=12;// touch: moving this far before the hold fires means "scroll", not "drag"
 
 function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();renderCalendar()}
 function calShift(delta){
@@ -2358,27 +2364,109 @@ function renderCalendar(){
     const chips=(byDay[key]||[]).map(t=>{
       const over=!t.done&&key<today;
       const dot=pri[t.priority]?`<i style="background:${pri[t.priority]}"></i>`:'';
-      return`<div class="cal-chip b-${bEsc(t.brand||'other')}${t.done?' done':''}${over?' over':''}" draggable="true" data-task-id="${t.id}" title="${bEsc(t.text)}">${dot}<b>${bEsc(t.text)}</b></div>`;
+      return`<div class="cal-chip b-${bEsc(t.brand||'other')}${t.done?' done':''}${over?' over':''}" data-task-id="${t.id}" title="${bEsc(t.text)}">${dot}<b>${bEsc(t.text)}</b></div>`;
     }).join('');
     html+=`<div class="cal-cell${cls?' '+cls:''}" data-date="${key}"><div class="cal-daynum">${d.getDate()}</div><div class="cal-chips">${chips}</div></div>`;
   }
   grid.innerHTML=html;
 
-  grid.querySelectorAll('.cal-chip').forEach(el=>{
-    const id=el.dataset.taskId;
-    el.addEventListener('click',()=>openDrawer(id));
-    el.addEventListener('dragstart',e=>{calDragId=id;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    el.addEventListener('dragend',()=>{calDragId=null;el.classList.remove('dragging');});
+  calBindDrag();
+}
+
+/* Drag-to-reschedule, on Pointer Events so it works with a mouse and on
+   touch. HTML5 drag-and-drop is not an option: iOS ignores it entirely.
+   Listeners are delegated to #cal-grid and bound once, so re-rendering the
+   grid on every change doesn't stack duplicates. */
+function calBindDrag(){
+  if(calDragBound)return;
+  const grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  calDragBound=true;
+
+  grid.addEventListener('pointerdown',e=>{
+    if(e.button)return;                       // primary button / touch only
+    const chip=e.target.closest('.cal-chip');
+    if(!chip)return;
+    calJustDragged=false;                     // a fresh interaction begins
+    const isTouch = e.pointerType!=='mouse';
+    calDrag={id:chip.dataset.taskId,chip,x0:e.clientX,y0:e.clientY,pid:e.pointerId,
+             isTouch,active:false,ghost:null,cell:null,timer:null};
+    // On touch, wait out a hold; a swipe that moves first is a scroll, not a drag.
+    if(isTouch)calDrag.timer=setTimeout(()=>calDragStart(e.clientX,e.clientY),CAL_HOLD_MS);
   });
-  grid.querySelectorAll('.cal-cell').forEach(cell=>{
-    cell.addEventListener('dragover',e=>{if(!calDragId)return;e.preventDefault();e.dataTransfer.dropEffect='move';cell.classList.add('drop');});
-    cell.addEventListener('dragleave',()=>cell.classList.remove('drop'));
-    cell.addEventListener('drop',e=>{
-      e.preventDefault();cell.classList.remove('drop');
-      const id=calDragId; calDragId=null;   // cleared first: the re-render below drops the node dragend would fire on
-      if(id)calReschedule(id,cell.dataset.date);
-    });
+
+  window.addEventListener('pointermove',e=>{
+    const d=calDrag;
+    if(!d||e.pointerId!==d.pid)return;
+    const moved=Math.hypot(e.clientX-d.x0,e.clientY-d.y0);
+    if(!d.active){
+      if(d.isTouch){ if(moved>CAL_SCROLL_SLOP)calDragAbort(); return; }
+      if(moved<=CAL_MOUSE_SLOP)return;
+      calDragStart(e.clientX,e.clientY);
+    }
+    calDragOver(e.clientX,e.clientY);
   });
+
+  window.addEventListener('pointerup',e=>{ if(calDrag&&e.pointerId===calDrag.pid)calDragDrop(); });
+  window.addEventListener('pointercancel',e=>{ if(calDrag&&e.pointerId===calDrag.pid)calDragAbort(); });
+
+  // Suppress the page scrolling only once a drag is genuinely underway.
+  document.addEventListener('touchmove',e=>{ if(calDrag&&calDrag.active)e.preventDefault(); },{passive:false});
+
+  // Tap/click opens the task, unless a drag just finished on it.
+  grid.addEventListener('click',e=>{
+    const chip=e.target.closest('.cal-chip');
+    if(!chip)return;
+    if(calJustDragged){calJustDragged=false;return;}  // consume exactly the drag's own click
+    openDrawer(chip.dataset.taskId);
+  });
+}
+
+function calDragStart(x,y){
+  const d=calDrag; if(!d||d.active)return;
+  d.active=true;
+  const r=d.chip.getBoundingClientRect();
+  const ghost=d.chip.cloneNode(true);
+  ghost.classList.add('cal-chip-ghost');
+  ghost.style.width=r.width+'px';
+  d.offX=x-r.left; d.offY=y-r.top;
+  document.body.appendChild(ghost);
+  d.ghost=ghost;
+  d.chip.classList.add('dragging');
+  if(d.isTouch&&navigator.vibrate)navigator.vibrate(10);
+}
+
+function calDragOver(x,y){
+  const d=calDrag; if(!d||!d.active)return;
+  d.ghost.style.left=(x-d.offX)+'px';
+  d.ghost.style.top=(y-d.offY)+'px';
+  // hide the ghost so it isn't what's under the pointer
+  d.ghost.style.visibility='hidden';
+  const under=document.elementFromPoint(x,y);
+  d.ghost.style.visibility='';
+  const cell=under&&under.closest?under.closest('.cal-cell'):null;
+  if(cell!==d.cell){
+    if(d.cell)d.cell.classList.remove('drop');
+    d.cell=cell;
+    if(cell)cell.classList.add('drop');
+  }
+}
+
+function calDragCleanup(){
+  const d=calDrag; calDrag=null;
+  if(!d)return null;
+  clearTimeout(d.timer);
+  if(d.ghost)d.ghost.remove();
+  if(d.chip)d.chip.classList.remove('dragging');
+  if(d.cell)d.cell.classList.remove('drop');
+  return d;
+}
+function calDragAbort(){ const d=calDragCleanup(); if(d&&d.active)calJustDragged=true; }
+function calDragDrop(){
+  const d=calDragCleanup();
+  if(!d||!d.active)return;                    // a plain tap: let the click open the task
+  calJustDragged=true;
+  if(d.cell&&d.cell.dataset.date)calReschedule(d.id,d.cell.dataset.date);
 }
 
 function calReschedule(taskId,date){
