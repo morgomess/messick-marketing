@@ -548,7 +548,10 @@ body::after{
   transform:translateX(-50%);pointer-events:none;
   background:radial-gradient(ellipse at center,var(--glow) 0%,transparent 68%);
 }
-#app,#login-screen{position:relative;z-index:1}
+/* Lift the app above the ground layer. NOTE: #login-screen must NOT be in this
+   selector — it is position:fixed;z-index:1000 and this rule would clobber both,
+   dropping the login overlay out of fixed positioning and behind the app. */
+#app{position:relative;z-index:1}
 
 /* ── 2. HEADER ── sits on the ground, separated by a hairline, not a slab */
 header{background:transparent;border-bottom:1px solid var(--border);height:62px;padding:0 26px}
