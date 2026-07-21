@@ -2991,7 +2991,7 @@ function ovLoadJSON(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]')
 function ovMoney(n){return '$'+Math.round(n||0).toLocaleString('en-US');}
 function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */
-function ovStatusClass(s){return /\b(clos|won|passed?|lost|dead|declin|dropp|cold)/i.test(String(s||''))?'closed':'active';}
+function ovStatusClass(s){return /\b(clos|won|passed?|lost|dead|declin|dropp|cold|not\s?interest)/i.test(String(s||''))?'closed':'active';}
 
 function renderOverview(){
   const view=document.getElementById('overview-view');
