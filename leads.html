@@ -985,9 +985,31 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     if (location.hash === '#leads') switchView('leads');
   }
 
+  // Accept either the app's camelCase or the Sheet's PascalCase (ID/PracticeName/…),
+  // and guarantee an id so a lead is always deletable. Prevents "ghost" leads.
+  function normalizeLead(r) {
+    r = r || {};
+    return {
+      id:            r.id || r.ID || r.Id || uid(),
+      practiceName:  r.practiceName || r.PracticeName || '',
+      website:       r.website || r.Website || '',
+      location:      r.location || r.Location || '',
+      email:         r.email || r.Email || '',
+      status:        r.status || r.Status || 'Emailed',
+      savedAt:       r.savedAt || r.SavedAt || new Date().toISOString(),
+      pitchSnapshot: r.pitchSnapshot || r.PitchSnapshot || '',
+      notes:         r.notes || r.Notes || ''
+    };
+  }
+
   function loadLeadsLocal() {
-    try { leads = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]'); }
-    catch { leads = []; }
+    let raw = [];
+    try { raw = JSON.parse(localStorage.getItem(LEADS_KEY) || '[]'); } catch { raw = []; }
+    if (!Array.isArray(raw)) raw = [];
+    const before = JSON.stringify(raw);
+    leads = raw.map(normalizeLead);
+    // Heal a foreign shape in place (e.g. PascalCase written by a Sheet round-trip)
+    if (JSON.stringify(leads) !== before) localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
   }
 
   function persistLeads() {
@@ -1020,16 +1042,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       const res = await fetch(LEADS_SHEETS_WEBHOOK_URL);
       const rows = await res.json();
       if (Array.isArray(rows) && rows.length) {
-        leads = rows.map(r => ({
-          id: r.id || uid(),
-          practiceName: r.practiceName || '',
-          website: r.website || '',
-          location: r.location || '',
-          email: r.email || '',
-          status: r.status || 'Emailed',
-          savedAt: r.savedAt || new Date().toISOString(),
-          pitchSnapshot: r.pitchSnapshot || ''
-        }));
+        leads = rows.map(normalizeLead);
         localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
         toast('Restored ' + leads.length + ' leads from Sheets', 'success');
       }

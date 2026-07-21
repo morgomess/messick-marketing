@@ -3013,6 +3013,22 @@ function ovOpenApp(url){window.location.href=url;}
 /* Pull the two app-owned keys straight from their canonical stores, independent
    of the dashboard's KV. Returns true if either changed. Fails soft — an
    unreachable source just leaves the cached copy in place. */
+/* The leads Sheet returns PascalCase keys (ID/PracticeName/…); the apps use
+   camelCase. Normalize to the app's shape and accept either casing, so the
+   dashboard never writes a foreign shape into the shared mm_leads key. */
+function ovNormalizeLeads(rows){
+  return rows.map(r=>({
+    id:            r.id||r.ID||r.Id||'',
+    practiceName:  r.practiceName||r.PracticeName||'',
+    website:       r.website||r.Website||'',
+    location:      r.location||r.Location||'',
+    email:         r.email||r.Email||'',
+    status:        r.status||r.Status||'Emailed',
+    savedAt:       r.savedAt||r.SavedAt||'',
+    pitchSnapshot: r.pitchSnapshot||r.PitchSnapshot||'',
+    notes:         r.notes||r.Notes||''
+  })).filter(l=>l.practiceName);
+}
 let ovSyncing=false;
 async function ovSyncExternal(){
   if(ovSyncing)return false;
@@ -3021,14 +3037,17 @@ async function ovSyncExternal(){
   try{
     const r=await fetch(LEADS_SHEETS_URL,{cache:'no-store'});
     if(r.ok){const rows=await r.json();
-      if(Array.isArray(rows) && JSON.stringify(rows)!==localStorage.getItem('mm_leads')){
-        localStorage.setItem('mm_leads',JSON.stringify(rows)); changed=true;}}
+      // Only overwrite from a NON-EMPTY response — an empty read must never wipe local.
+      if(Array.isArray(rows) && rows.length){
+        const js=JSON.stringify(ovNormalizeLeads(rows));
+        if(js!==localStorage.getItem('mm_leads')){localStorage.setItem('mm_leads',js); changed=true;}}}
   }catch(e){}
   try{
     const r=await fetch(EXPENSES_SYNC_URL,{cache:'no-store'});
     if(r.ok){const j=await r.json(); const rows=j&&j.expenses;
-      if(Array.isArray(rows) && JSON.stringify(rows)!==localStorage.getItem('mm_expenses')){
-        localStorage.setItem('mm_expenses',JSON.stringify(rows)); changed=true;}}
+      if(Array.isArray(rows) && rows.length){
+        const js=JSON.stringify(rows);
+        if(js!==localStorage.getItem('mm_expenses')){localStorage.setItem('mm_expenses',js); changed=true;}}}
   }catch(e){}
   ovSyncing=false;
   return changed;
