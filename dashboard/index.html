@@ -3161,7 +3161,7 @@ function renderOverview(){
   }
 
   /* ── new-business pipeline (from mm_leads) ── */
-  const leads=ovLoadJSON('mm_leads');
+  const leads=ovNormalizeLeads(ovLoadJSON('mm_leads'));  // tolerate PascalCase/legacy shapes on read
   const active=leads.filter(l=>ovStatusClass(l.status)==='active');
   const stCounts={};
   leads.forEach(l=>{const k=l.status||'Untracked';stCounts[k]=(stCounts[k]||0)+1;});
