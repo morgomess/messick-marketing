@@ -795,6 +795,41 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 
 /* portfolio table */
 .ov-card-wide{padding-bottom:8px}
+/* ── PROJECT BOARD (self-contained; mm_projects, no Brain link) ── */
+.pb-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.pb-add-btn{background:var(--blue);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.pb-add-btn:hover{background:var(--blue-lt)}
+.pb-form{display:none;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:15px;margin-bottom:18px}
+.pb-form.open{display:grid}
+.pb-form input,.pb-form select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--black);font-family:'Jost',sans-serif;font-size:0.82rem;outline:none;transition:border-color .15s}
+.pb-form input:focus,.pb-form select:focus{border-color:var(--blue)}
+.pb-notes-input{grid-column:1/-1}
+.pb-form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.pb-cancel,.pb-save{font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.04em;padding:8px 15px;border-radius:6px;cursor:pointer;border:1px solid var(--border)}
+.pb-cancel{background:none;color:var(--muted)}
+.pb-cancel:hover{color:var(--black);border-color:var(--border-s)}
+.pb-save{background:var(--blue);border-color:var(--blue);color:#fff}
+.pb-save:hover{background:var(--blue-lt)}
+.pb-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pb-col{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:70px}
+.pb-col-head{display:flex;align-items:center;justify-content:space-between;font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--light);margin-bottom:11px;padding:0 2px}
+.pb-count{background:var(--chip);border-radius:10px;padding:1px 8px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.pb-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 12px;margin-bottom:9px}
+.pb-card:last-child{margin-bottom:0}
+.pb-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.pb-card-name{font-size:0.85rem;font-weight:500;color:var(--black);line-height:1.3;word-break:break-word}
+.pb-badge{font-size:0.53rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.pb-badge-monthly{background:var(--blue-pale);color:var(--blue-lt)}
+.pb-badge-oneoff{background:rgba(224,160,95,0.16);color:var(--hi)}
+.pb-card-meta{font-size:0.66rem;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.pb-card-notes{font-size:0.72rem;color:var(--light);margin-top:6px;line-height:1.4}
+.pb-card-foot{display:flex;align-items:center;gap:6px;margin-top:10px}
+.pb-move{flex:1;min-width:0;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.63rem;cursor:pointer;outline:none}
+.pb-move:focus{border-color:var(--blue)}
+.pb-icon{background:none;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-family:'Jost',sans-serif;font-size:0.62rem;padding:4px 8px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.pb-icon:hover{color:var(--black);border-color:var(--border-s)}
+.pb-del:hover{color:var(--crit);border-color:var(--crit)}
+.pb-empty{font-size:0.72rem;color:var(--light);text-align:center;padding:10px 0}
 .ov-table-wrap{overflow-x:auto;margin:0 -22px;padding:0 22px}
 .ov-table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:520px}
 .ov-table th{text-align:left;font-size:0.56rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
@@ -1039,12 +1074,27 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       </div>
     </div>
 
-    <div class="ov-card ov-card-wide">
-      <div class="ov-card-eyebrow">Client portfolio</div>
-      <div class="ov-card-title">Open work by client</div>
-      <div class="ov-table-wrap">
-        <table class="ov-table" id="ov-portfolio"></table>
+    <div class="ov-card ov-card-wide" id="ov-projects-card">
+      <div class="pb-head">
+        <div>
+          <div class="ov-card-eyebrow">Projects</div>
+          <div class="ov-card-title">Monthly &amp; one-off work</div>
+        </div>
+        <button class="pb-add-btn" onclick="pbToggleForm()">+ Add project</button>
       </div>
+      <div class="pb-form" id="pb-form">
+        <input type="text" id="pb-name" placeholder="Project name" onkeydown="if(event.key==='Enter')pbSubmit()">
+        <select id="pb-type"><option value="monthly">Monthly</option><option value="oneoff">One-off</option></select>
+        <select id="pb-status"><option value="active">Active</option><option value="hold">On Hold</option><option value="done">Done</option></select>
+        <input type="text" id="pb-client" placeholder="Client (optional)">
+        <input type="date" id="pb-due" title="Due date (optional)">
+        <input type="text" id="pb-notes" class="pb-notes-input" placeholder="Notes (optional)">
+        <div class="pb-form-actions">
+          <button class="pb-cancel" onclick="pbCloseForm()">Cancel</button>
+          <button class="pb-save" id="pb-save-btn" onclick="pbSubmit()">Save project</button>
+        </div>
+      </div>
+      <div class="pb-cols" id="pb-cols"></div>
     </div>
   </div>
 
@@ -3054,6 +3104,82 @@ async function ovSyncExternal(){
   ovSyncing=false;
   return changed;
 }
+
+/* ═══════════════════════════════════════════
+   PROJECT BOARD  (mm_projects — its own store, syncs via KV like tasks,
+   completely independent of the Brain tree)
+═══════════════════════════════════════════ */
+const PB_STATUSES=[{k:'active',label:'Active'},{k:'hold',label:'On Hold'},{k:'done',label:'Done'}];
+let pbEditingId=null;
+function loadProjects(){try{const a=JSON.parse(localStorage.getItem('mm_projects')||'[]');return Array.isArray(a)?a:[];}catch(e){return[];}}
+function saveProjects(a){localStorage.setItem('mm_projects',JSON.stringify(a));scheduleSave();}
+
+function pbToggleForm(){document.getElementById('pb-form').classList.contains('open')?pbCloseForm():pbOpenForm();}
+function pbOpenForm(edit){
+  pbEditingId=(edit&&edit.id)||null;
+  document.getElementById('pb-name').value=edit?edit.name:'';
+  document.getElementById('pb-type').value=edit?edit.type:'monthly';
+  document.getElementById('pb-status').value=edit?edit.status:'active';
+  document.getElementById('pb-client').value=edit?(edit.client||''):'';
+  document.getElementById('pb-due').value=edit?(edit.due||''):'';
+  document.getElementById('pb-notes').value=edit?(edit.notes||''):'';
+  document.getElementById('pb-save-btn').textContent=edit?'Save changes':'Save project';
+  document.getElementById('pb-form').classList.add('open');
+  document.getElementById('pb-name').focus();
+}
+function pbCloseForm(){document.getElementById('pb-form').classList.remove('open');pbEditingId=null;}
+function pbSubmit(){
+  const name=document.getElementById('pb-name').value.trim();
+  if(!name){document.getElementById('pb-name').focus();return;}
+  const fields={
+    name,
+    type:document.getElementById('pb-type').value,
+    status:document.getElementById('pb-status').value,
+    client:document.getElementById('pb-client').value.trim(),
+    due:document.getElementById('pb-due').value,
+    notes:document.getElementById('pb-notes').value.trim()
+  };
+  const arr=loadProjects();
+  if(pbEditingId){const p=arr.find(x=>x.id===pbEditingId);if(p)Object.assign(p,fields);}
+  else arr.unshift({id:uid(),...fields,createdAt:Date.now()});
+  saveProjects(arr);
+  pbCloseForm();
+  renderProjects();
+}
+function pbSetStatus(id,status){const arr=loadProjects();const p=arr.find(x=>x.id===id);if(!p)return;p.status=status;saveProjects(arr);renderProjects();}
+function pbDelete(id){saveProjects(loadProjects().filter(x=>x.id!==id));renderProjects();}
+function pbEdit(id){const p=loadProjects().find(x=>x.id===id);if(p)pbOpenForm(p);}
+
+function renderProjects(){
+  const host=document.getElementById('pb-cols');
+  if(!host)return;
+  const projects=loadProjects();
+  host.innerHTML=PB_STATUSES.map(s=>{
+    const list=projects.filter(p=>p.status===s.k);
+    const cards=list.map(p=>{
+      const typeLabel=p.type==='oneoff'?'One-off':'Monthly';
+      const meta=[p.client&&bEsc(p.client),p.due&&bEsc(fmtDate(p.due))].filter(Boolean).join(' · ');
+      const opts=PB_STATUSES.map(o=>`<option value="${o.k}"${o.k===p.status?' selected':''}>${o.label}</option>`).join('');
+      return`<div class="pb-card">
+        <div class="pb-card-top">
+          <span class="pb-card-name">${bEsc(p.name)}</span>
+          <span class="pb-badge pb-badge-${p.type==='oneoff'?'oneoff':'monthly'}">${typeLabel}</span>
+        </div>
+        ${meta?`<div class="pb-card-meta">${meta}</div>`:''}
+        ${p.notes?`<div class="pb-card-notes">${bEsc(p.notes)}</div>`:''}
+        <div class="pb-card-foot">
+          <select class="pb-move" onchange="pbSetStatus('${p.id}',this.value)" title="Move to status">${opts}</select>
+          <button class="pb-icon" onclick="pbEdit('${p.id}')" title="Edit project">Edit</button>
+          <button class="pb-icon pb-del" onclick="pbDelete('${p.id}')" title="Delete project">✕</button>
+        </div>
+      </div>`;
+    }).join('')||`<div class="pb-empty">Nothing here</div>`;
+    return`<div class="pb-col">
+      <div class="pb-col-head"><span>${s.label}</span><span class="pb-count">${list.length}</span></div>
+      ${cards}
+    </div>`;
+  }).join('');
+}
 function ovMoney(n){return '$'+Math.round(n||0).toLocaleString('en-US');}
 function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */
@@ -3191,34 +3317,8 @@ function renderOverview(){
         </div>`).join('')}</div>`:''}`;
   }
 
-  /* ── client portfolio ──
-     Built from the BRAIN TREE (where tasks actually live), not the mm_clients
-     contacts directory — the two stores share no id, so joining them on name
-     would produce plausible-looking wrong numbers. */
-  const clientNodes=brainNodes.filter(n=>n.parent==='mm-cat-clients');
-  const rows=clientNodes.map(n=>{
-    const roll=nodeDueRollup(n.id);
-    const opens=ovNodeOpenTasks(n.id).filter(t=>t.due).map(t=>t.due).sort();
-    return{name:n.label,...roll,next:opens[0]||null};
-  }).sort((a,b)=>b.overdue-a.overdue||b.open-a.open||a.name.localeCompare(b.name));
-  const tbl=document.getElementById('ov-portfolio');
-  if(!rows.length){
-    tbl.innerHTML='<tbody><tr><td class="ov-empty">No client nodes under Messick → Clients yet.</td></tr></tbody>';
-  }else{
-    tbl.innerHTML=`
-      <thead><tr>
-        <th>Client</th><th class="num">Open</th><th class="num">Overdue</th>
-        <th class="num">This week</th><th class="num">Next due</th>
-      </tr></thead>
-      <tbody>${rows.map(r=>`
-        <tr onclick="ovOpenClient('${bEsc(r.name).replace(/'/g,"\\'")}')">
-          <td><span class="ov-cell-name">${ovMonogram(r.name,'#4fa8d0')}<span>${bEsc(r.name)}</span></span></td>
-          <td class="num">${r.open||'<span class="ov-zero">0</span>'}</td>
-          <td class="num">${r.overdue?`<span class="ov-flag">${r.overdue}</span>`:'<span class="ov-zero">0</span>'}</td>
-          <td class="num">${(r.today+r.soon)||'<span class="ov-zero">0</span>'}</td>
-          <td class="num ov-muted">${r.next?bEsc(fmtDate(r.next)):'—'}</td>
-        </tr>`).join('')}</tbody>`;
-  }
+  /* ── project board (self-contained, not derived from the Brain) ── */
+  renderProjects();
 
   /* ── sync freshness ── */
   const dot=document.getElementById('ov-sync-dot'), st=document.getElementById('ov-sync-text');
