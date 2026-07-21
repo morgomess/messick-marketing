@@ -924,8 +924,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       </div>
       <span class="h-date" id="today-date"></span>
       <div class="h-tabs">
-        <button class="h-tab" id="tab-overview" onclick="switchMainTab('overview')">◈ Overview</button>
-        <button class="h-tab active" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
+        <button class="h-tab active" id="tab-overview" onclick="switchMainTab('overview')">◈ Overview</button>
+        <button class="h-tab" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
         <button class="h-tab" id="tab-calendar" onclick="switchMainTab('calendar')">🗓 Calendar</button>
         <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
       </div>
@@ -1180,6 +1180,13 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
    CONSTANTS
 ═══════════════════════════════════════════ */
 const WORKER   = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+/* mm_leads and mm_expenses are owned by other apps and live in their OWN cloud
+   stores (leads → a Google Sheet, expenses → its own worker). The dashboard
+   reads them straight from source and must NOT sync them through its own KV —
+   otherwise a 30s KV pull overwrites a freshly-added lead with a stale copy. */
+const LEADS_SHEETS_URL  = 'https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec';
+const EXPENSES_SYNC_URL = 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses';
+const OV_EXTERNAL_KEYS  = ['mm_leads','mm_expenses'];
 const PICKER_PHRASES = [
   'The universe has spoken...','Your mission, should you choose to accept it...',
   "Today's spotlight task is...",'A little magic says this is next...',
@@ -3002,6 +3009,30 @@ function ovVisible(){const b=document.getElementById('tab-overview');return!!b&&
 function ovLoadJSON(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
 /* Launch a sibling app (paths are relative to /dashboard/). Same tab — back returns here. */
 function ovOpenApp(url){window.location.href=url;}
+
+/* Pull the two app-owned keys straight from their canonical stores, independent
+   of the dashboard's KV. Returns true if either changed. Fails soft — an
+   unreachable source just leaves the cached copy in place. */
+let ovSyncing=false;
+async function ovSyncExternal(){
+  if(ovSyncing)return false;
+  ovSyncing=true;
+  let changed=false;
+  try{
+    const r=await fetch(LEADS_SHEETS_URL,{cache:'no-store'});
+    if(r.ok){const rows=await r.json();
+      if(Array.isArray(rows) && JSON.stringify(rows)!==localStorage.getItem('mm_leads')){
+        localStorage.setItem('mm_leads',JSON.stringify(rows)); changed=true;}}
+  }catch(e){}
+  try{
+    const r=await fetch(EXPENSES_SYNC_URL,{cache:'no-store'});
+    if(r.ok){const j=await r.json(); const rows=j&&j.expenses;
+      if(Array.isArray(rows) && JSON.stringify(rows)!==localStorage.getItem('mm_expenses')){
+        localStorage.setItem('mm_expenses',JSON.stringify(rows)); changed=true;}}
+  }catch(e){}
+  ovSyncing=false;
+  return changed;
+}
 function ovMoney(n){return '$'+Math.round(n||0).toLocaleString('en-US');}
 function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */
@@ -3204,7 +3235,7 @@ function switchMainTab(tab){
   document.getElementById('tab-clients').classList.toggle('active',isClients);
   if(isClients)renderClients();
   if(isCal)renderCalendar();
-  if(isOv)renderOverview();
+  if(isOv){renderOverview(); ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});}
 }
 
 /* ═══════════════════════════════════════════
@@ -3503,7 +3534,7 @@ function collectState(){
   const data={};
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i);
-    if(k && k.indexOf('mm_')===0 && k!=='mm_auth') data[k]=localStorage.getItem(k);
+    if(k && k.indexOf('mm_')===0 && k!=='mm_auth' && !OV_EXTERNAL_KEYS.includes(k)) data[k]=localStorage.getItem(k);
   }
   return data;
 }
@@ -3532,7 +3563,7 @@ async function pullState(){
     if(!body||!body.data||Object.keys(body.data).length===0)return false;
     if(body.v && body.v<=lastSyncV)return false;
     Object.keys(body.data).forEach(k=>{
-      if(k.indexOf('mm_')===0 && k!=='mm_auth')localStorage.setItem(k,body.data[k]);
+      if(k.indexOf('mm_')===0 && k!=='mm_auth' && !OV_EXTERNAL_KEYS.includes(k))localStorage.setItem(k,body.data[k]);
     });
     lastSyncV=body.v||Date.now();
     return true;
@@ -3546,6 +3577,7 @@ function applyRemoteAndRender(){
   const cv=document.getElementById('clients-view');
   if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
   if(typeof calVisible==='function'&&calVisible())renderCalendar();
+  if(typeof ovVisible==='function'&&ovVisible())renderOverview();
 }
 let saveTimer=null;
 function scheduleSave(){
@@ -3835,6 +3867,22 @@ function init(){
   const tasks=loadTodoTasks();let changed=false;
   tasks.forEach(t=>{if(!t.id){t.id=uid();changed=true;}if(!t.subtasks){t.subtasks=[];changed=true;}if(!t.assignees){t.assignees=[];changed=true;}if(t.notes===undefined){t.notes='';changed=true;}});
   if(changed)saveTodoTasks(tasks);
+  ovBindAutoSync();
+  switchMainTab('overview');   // Overview is the go-to landing page
+}
+
+/* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
+   (the leads or expenses app) fires a storage event, and refocusing the tab
+   re-pulls from source. Bound once. */
+let ovAutoSyncBound=false;
+function ovBindAutoSync(){
+  if(ovAutoSyncBound)return; ovAutoSyncBound=true;
+  window.addEventListener('storage',e=>{
+    if((e.key==='mm_leads'||e.key==='mm_expenses')&&ovVisible())renderOverview();
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&ovVisible())ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});
+  });
 }
 
 // Auto-login if a valid, unexpired token is on this device
