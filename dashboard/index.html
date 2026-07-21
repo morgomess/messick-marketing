@@ -750,6 +750,12 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
 .ov-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;
   box-shadow:0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.18);min-width:0}
+/* cards that launch their underlying app on click */
+.ov-card-link{position:relative;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.ov-card-link:hover{transform:translateY(-2px);border-color:var(--blue);box-shadow:0 2px 4px rgba(0,0,0,0.45),0 14px 34px rgba(0,0,0,0.30)}
+.ov-card-link:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.ov-card-open{position:absolute;top:20px;right:20px;font-size:0.56rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--light);transition:color .16s ease}
+.ov-card-link:hover .ov-card-open,.ov-card-link:focus-visible .ov-card-open{color:var(--blue-lt)}
 .ov-card-eyebrow{font-size:0.58rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--light)}
 .ov-card-title{font-size:1.05rem;font-weight:600;letter-spacing:-0.02em;color:var(--black);margin:6px 0 18px}
 
@@ -1015,12 +1021,18 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="ov-card-title">Where the work sits</div>
         <div class="ov-bars" id="ov-bars"></div>
       </div>
-      <div class="ov-card">
+      <div class="ov-card ov-card-link" role="link" tabindex="0" title="Open the expense tracker"
+           onclick="ovOpenApp('../expenses/index.html')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ovOpenApp('../expenses/index.html');}">
+        <span class="ov-card-open">Open ↗</span>
         <div class="ov-card-eyebrow">Money</div>
         <div class="ov-card-title">Cash out this month</div>
         <div id="ov-money"></div>
       </div>
-      <div class="ov-card">
+      <div class="ov-card ov-card-link" role="link" tabindex="0" title="Open the leads pipeline"
+           onclick="ovOpenApp('../leads.html#leads')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ovOpenApp('../leads.html#leads');}">
+        <span class="ov-card-open">Open ↗</span>
         <div class="ov-card-eyebrow">New business</div>
         <div class="ov-card-title">Pipeline</div>
         <div id="ov-pipeline"></div>
@@ -2988,6 +3000,8 @@ function ovMonogram(name,color){
 function ovVisible(){const b=document.getElementById('tab-overview');return!!b&&b.classList.contains('active')}
 
 function ovLoadJSON(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
+/* Launch a sibling app (paths are relative to /dashboard/). Same tab — back returns here. */
+function ovOpenApp(url){window.location.href=url;}
 function ovMoney(n){return '$'+Math.round(n||0).toLocaleString('en-US');}
 function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */

@@ -981,6 +981,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     }
     updateLeadsBadge();
     if (!LEADS_SHEETS_WEBHOOK_URL) setLeadsSyncStatus('none');
+    // Deep-link: the dashboard's Pipeline widget links here with #leads
+    if (location.hash === '#leads') switchView('leads');
   }
 
   function loadLeadsLocal() {
