@@ -766,13 +766,26 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .ov-bar-fill.over{background:var(--crit)}
 
 /* assignee monograms */
-.ov-people{display:flex;flex-direction:column;gap:12px}
-.ov-person{display:flex;align-items:center;gap:11px}
-.ov-person-fig{margin-left:auto;font-size:0.72rem;color:var(--light);font-variant-numeric:tabular-nums;white-space:nowrap}
-.ov-person-fig b{color:var(--black);font-weight:600}
-.ov-person-name{font-size:0.84rem;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mono{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;
   font-size:0.64rem;font-weight:700;letter-spacing:0.03em;color:#06131b;flex-shrink:0}
+
+/* money + pipeline widgets */
+.ov-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.ov-stat-label{font-size:0.55rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--light)}
+.ov-stat-num{font-size:1.55rem;font-weight:600;letter-spacing:-0.04em;color:var(--black);line-height:1;margin-top:9px;font-variant-numeric:tabular-nums}
+.ov-stat-sub{font-size:0.62rem;color:var(--light);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-money-cats{margin-bottom:16px}
+.ov-money-foot{font-size:0.66rem;color:var(--muted);padding-top:13px;border-top:1px solid var(--border);font-variant-numeric:tabular-nums}
+.ov-money-foot b{color:var(--black);font-weight:600}
+.ov-pipe-chips{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.ov-pipe-chip{font-size:0.6rem;font-weight:500;letter-spacing:0.04em;padding:4px 8px;border-radius:5px;background:var(--chip);border:1px solid var(--border);color:var(--muted);white-space:nowrap;line-height:1.4;font-variant-numeric:tabular-nums}
+.ov-pipe-chip b{color:var(--black);font-weight:700}
+.ov-pipe-list{display:flex;flex-direction:column;gap:10px;padding-top:15px;border-top:1px solid var(--border)}
+.ov-pipe-row{display:flex;align-items:center;gap:10px}
+.ov-pipe-name{font-size:0.82rem;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ov-pipe-status{margin-left:auto;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted);white-space:nowrap;flex-shrink:0}
+.ov-pipe-status.s-closed{background:rgba(79,194,125,0.14);color:var(--lo)}
+.ov-pipe-status.s-active{background:var(--blue-pale);color:var(--blue-lt)}
 
 /* portfolio table */
 .ov-card-wide{padding-bottom:8px}
@@ -1003,9 +1016,14 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="ov-bars" id="ov-bars"></div>
       </div>
       <div class="ov-card">
-        <div class="ov-card-eyebrow">By assignee</div>
-        <div class="ov-card-title">Who is carrying what</div>
-        <div class="ov-people" id="ov-people"></div>
+        <div class="ov-card-eyebrow">Money</div>
+        <div class="ov-card-title">Cash out this month</div>
+        <div id="ov-money"></div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-eyebrow">New business</div>
+        <div class="ov-card-title">Pipeline</div>
+        <div id="ov-pipeline"></div>
       </div>
     </div>
 
@@ -2969,6 +2987,12 @@ function ovMonogram(name,color){
 }
 function ovVisible(){const b=document.getElementById('tab-overview');return!!b&&b.classList.contains('active')}
 
+function ovLoadJSON(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
+function ovMoney(n){return '$'+Math.round(n||0).toLocaleString('en-US');}
+function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+/* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */
+function ovStatusClass(s){return /\b(clos|won|passed?|lost|dead|declin|dropp|cold)/i.test(String(s||''))?'closed':'active';}
+
 function renderOverview(){
   const view=document.getElementById('overview-view');
   if(!view)return;
@@ -3027,21 +3051,79 @@ function renderOverview(){
       </div>
     </div>`).join('');
 
-  /* ── by assignee ── */
-  const counts={};
-  open.forEach(t=>{
-    const a=(t.assignees&&t.assignees.length)?t.assignees:['_none'];
-    a.forEach(id=>{counts[id]=(counts[id]||0)+1});
-  });
-  const people=TEAM_MEMBERS.map(m=>({name:m.name,color:m.color,n:counts[m.id]||0}))
-    .concat(counts._none?[{name:'Unassigned',color:'#3d5260',n:counts._none}]:[])
-    .sort((a,b)=>b.n-a.n);
-  document.getElementById('ov-people').innerHTML=people.length?people.map(p=>`
-    <div class="ov-person">
-      ${ovMonogram(p.name,p.color)}
-      <span class="ov-person-name">${bEsc(p.name)}</span>
-      <span class="ov-person-fig"><b>${p.n}</b> open</span>
-    </div>`).join(''):'<div class="ov-empty">No open tasks.</div>';
+  /* ── money snapshot (from mm_expenses; managed by the expense tool) ── */
+  const expenses=ovLoadJSON('mm_expenses');
+  const ym=today.slice(0,7), yr=today.slice(0,4);
+  // month-to-date: dated this month and not in the future (recurring rows can be forward-dated)
+  const monthEx=expenses.filter(e=>e.date&&e.date.slice(0,7)===ym&&e.date<=today);
+  const sum=arr=>arr.reduce((s,e)=>s+(+e.amount||0),0);
+  const monthTotal=sum(monthEx);
+  const mmTotal=sum(monthEx.filter(e=>e.business==='Messick Marketing'));
+  const veTotal=sum(monthEx.filter(e=>e.business==='Virtueasy'));
+  const dedYtd=sum(expenses.filter(e=>e.taxDeductible&&e.date&&e.date.slice(0,4)===yr&&e.date<=today));
+  const catMap={};
+  monthEx.forEach(e=>{const k=e.category||'Other';catMap[k]=(catMap[k]||0)+(+e.amount||0);});
+  const topCats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const catMax=Math.max(1,...topCats.map(c=>c[1]));
+  const nextCharge=expenses
+    .filter(e=>e.recurring&&e.recurringNextDue&&e.recurringNextDue>=today)
+    .sort((a,b)=>a.recurringNextDue.localeCompare(b.recurringNextDue))[0];
+  const moneyEl=document.getElementById('ov-money');
+  if(!expenses.length){
+    moneyEl.innerHTML='<div class="ov-empty">No expenses logged yet.</div>';
+  }else{
+    moneyEl.innerHTML=`
+      <div class="ov-stat-row">
+        <div>
+          <div class="ov-stat-label">Month to date</div>
+          <div class="ov-stat-num">${ovMoney(monthTotal)}</div>
+          <div class="ov-stat-sub">MM ${ovMoney(mmTotal)} · VE ${ovMoney(veTotal)}</div>
+        </div>
+        <div>
+          <div class="ov-stat-label">Deductible YTD</div>
+          <div class="ov-stat-num">${ovMoney(dedYtd)}</div>
+          <div class="ov-stat-sub">${yr} write-offs</div>
+        </div>
+      </div>
+      ${topCats.length?`<div class="ov-bars ov-money-cats">${topCats.map(([name,amt])=>`
+        <div class="ov-bar-row">
+          <div class="ov-bar-top">
+            <span class="ov-bar-name">${bEsc(name)}</span>
+            <span class="ov-bar-fig"><b>${ovMoney(amt)}</b></span>
+          </div>
+          <div class="ov-bar-track"><div class="ov-bar-fill" style="width:${Math.round(amt/catMax*100)}%"></div></div>
+        </div>`).join('')}</div>`:'<div class="ov-empty" style="padding:8px 0 16px">Nothing spent yet this month.</div>'}
+      ${nextCharge?`<div class="ov-money-foot">Next charge · <b>${bEsc(nextCharge.merchant||'Recurring')}</b> ${ovMoney2(+nextCharge.amount||0)} on ${bEsc(fmtDate(nextCharge.recurringNextDue))}</div>`:''}`;
+  }
+
+  /* ── new-business pipeline (from mm_leads) ── */
+  const leads=ovLoadJSON('mm_leads');
+  const active=leads.filter(l=>ovStatusClass(l.status)==='active');
+  const stCounts={};
+  leads.forEach(l=>{const k=l.status||'Untracked';stCounts[k]=(stCounts[k]||0)+1;});
+  const statuses=Object.entries(stCounts).sort((a,b)=>b[1]-a[1]);
+  const recent=[...leads].sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||''))).slice(0,3);
+  const pipeEl=document.getElementById('ov-pipeline');
+  if(!leads.length){
+    pipeEl.innerHTML='<div class="ov-empty">No leads saved yet. Prospects you track show up here.</div>';
+  }else{
+    pipeEl.innerHTML=`
+      <div class="ov-stat-row">
+        <div>
+          <div class="ov-stat-label">Active leads</div>
+          <div class="ov-stat-num">${active.length}</div>
+          <div class="ov-stat-sub">${leads.length} tracked total</div>
+        </div>
+        <div class="ov-pipe-chips">
+          ${statuses.map(([s,n])=>`<span class="ov-pipe-chip"><b>${n}</b> ${bEsc(s)}</span>`).join('')}
+        </div>
+      </div>
+      ${recent.length?`<div class="ov-pipe-list">${recent.map(l=>`
+        <div class="ov-pipe-row">
+          <span class="ov-pipe-name">${bEsc(l.practiceName||'Untitled lead')}</span>
+          <span class="ov-pipe-status s-${ovStatusClass(l.status)}">${bEsc(l.status||'—')}</span>
+        </div>`).join('')}</div>`:''}`;
+  }
 
   /* ── client portfolio ──
      Built from the BRAIN TREE (where tasks actually live), not the mm_clients
