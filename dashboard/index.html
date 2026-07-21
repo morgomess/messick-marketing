@@ -1962,6 +1962,7 @@ function toggleFocusDone(slot){
   if(task){
     const wasDone=task.done;
     task.done=!task.done;
+    task.doneAt=task.done?Date.now():null;   // stamp so "Completed today" counts focus-slot completions
     saveTasks(p.type,tasks);
     if(!wasDone){
       fireConfetti();
@@ -2104,6 +2105,7 @@ function completeTodayDue(taskId){
   if(!task)return;
   const wasDone=task.done;
   task.done=true;
+  if(!wasDone)task.doneAt=Date.now();   // stamp so "Completed today" counts Due-strip completions
   saveTodoTasks(tasks);
   if(typeof fireConfetti==="function")fireConfetti();
   renderColumns();
@@ -2270,7 +2272,7 @@ Always return one JSON object with an "action" of either "create" or "update".`;
         if('priority' in ch && ch.priority){task.priority=ch.priority;lastMsg='Priority: '+ch.priority;}
         if('assignees' in ch && Array.isArray(ch.assignees)){task.assignees=ch.assignees;lastMsg='Reassigned';}
         if('recur' in ch && ch.recur){task.recur=ch.recur;}
-        if('done' in ch){task.done=!!ch.done;if(ch.done)lastMsg='Marked done';}
+        if('done' in ch){task.done=!!ch.done;task.doneAt=ch.done?Date.now():null;if(ch.done)lastMsg='Marked done';}
         changed++;
       });
       let kept=t2;
