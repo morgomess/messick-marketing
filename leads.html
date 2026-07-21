@@ -117,6 +117,12 @@
     outline: none; transition: border-color 0.2s, box-shadow 0.2s;
   }
   .field input:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: white; }
+  .field-select {
+    width: 100%; padding: 13px 15px; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Jost', sans-serif; font-size: 15px; color: var(--black); background: var(--warm);
+    outline: none; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-select:focus { border-color: var(--steel); box-shadow: 0 0 0 3px rgba(58,107,138,0.1); background: white; }
 
   /* ── BUTTONS ── */
   .btn-primary {
@@ -726,9 +732,12 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
           <h2 style="font-family:'Cormorant Garamond'; font-size:32px; font-weight:600;">Leads</h2>
           <div style="font-size:13px; color:var(--muted); margin-top:2px;">Track prospects you've contacted and follow up on.</div>
         </div>
-        <div class="sync-bar">
-          <div class="sync-dot" id="leads-sync-dot"></div>
-          <span id="leads-sync-text">No sync configured</span>
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <button class="btn-primary" onclick="openAddLead()">+ Add Lead</button>
+          <div class="sync-bar">
+            <div class="sync-dot" id="leads-sync-dot"></div>
+            <span id="leads-sync-text">No sync configured</span>
+          </div>
         </div>
       </div>
 
@@ -868,10 +877,55 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <div class="ldp-row"><div class="ldp-label">Email</div><div class="ldp-val" id="ldp-email">—</div></div>
       <div class="ldp-row"><div class="ldp-label">Status</div><div class="ldp-val" id="ldp-status">—</div></div>
       <div class="ldp-row"><div class="ldp-label">Saved</div><div class="ldp-val" id="ldp-saved">—</div></div>
-      <div style="margin-top:16px;">
+      <div id="ldp-notes-wrap" style="margin-top:16px; display:none;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px;">Notes</div>
+        <div class="ldp-pitch" id="ldp-notes" style="font-style:normal;">—</div>
+      </div>
+      <div id="ldp-pitch-wrap" style="margin-top:16px;">
         <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px;">Pitch Snapshot</div>
         <div class="ldp-pitch" id="ldp-pitch">—</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="confirm-overlay" id="addlead-overlay" onclick="if(event.target===this)closeAddLead()">
+  <div class="confirm-box" style="text-align:left; max-width:440px; padding:28px;">
+    <h3 style="margin-bottom:4px;">Add a lead</h3>
+    <p style="margin-bottom:22px;">Drop a prospect straight into the pipeline — no pitch needed.</p>
+    <div class="field">
+      <label>Practice / Business name</label>
+      <input type="text" id="al-name" placeholder="e.g. Summit Orthopedics" onkeydown="if(event.key==='Enter')document.getElementById('al-loc').focus()">
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <div class="field" style="flex:1; min-width:150px;">
+        <label>Location</label>
+        <input type="text" id="al-loc" placeholder="City, State">
+      </div>
+      <div class="field" style="flex:1; min-width:150px;">
+        <label>Status</label>
+        <select id="al-status" class="field-select">
+          <option>Emailed</option><option>Followed Up</option><option>Responded</option><option>Closed</option><option>Not Interested</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Website</label>
+      <input type="text" id="al-web" placeholder="https:// (optional)">
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="text" id="al-email" placeholder="name@practice.com (optional)">
+    </div>
+    <div class="field" style="margin-bottom:8px;">
+      <label>Notes</label>
+      <input type="text" id="al-notes" placeholder="Where they came from, context… (optional)">
+    </div>
+    <div id="al-error" style="display:none; color:#c0392b; font-size:13px; margin-bottom:14px;"></div>
+    <div class="confirm-btns" style="justify-content:flex-end; margin-top:20px;">
+      <button class="btn-ghost" onclick="closeAddLead()">Cancel</button>
+      <button class="btn-primary" onclick="submitAddLead()">Add to Pipeline</button>
     </div>
   </div>
 </div>
@@ -1129,12 +1183,67 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     document.getElementById('ldp-email').innerHTML = l.email ? `<a href="mailto:${esc(l.email)}" style="color:var(--steel);">${esc(l.email)}</a>` : '—';
     document.getElementById('ldp-status').textContent = l.status;
     document.getElementById('ldp-saved').textContent = new Date(l.savedAt).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-    document.getElementById('ldp-pitch').textContent = l.pitchSnapshot ? l.pitchSnapshot + (l.pitchSnapshot.length >= 300 ? '...' : '') : 'No pitch snapshot saved.';
+    // Notes: only shown for leads that have them (manually-added ones)
+    const notesWrap = document.getElementById('ldp-notes-wrap');
+    if (l.notes) { document.getElementById('ldp-notes').textContent = l.notes; notesWrap.style.display = 'block'; }
+    else { notesWrap.style.display = 'none'; }
+    // Pitch snapshot: hide the section entirely when there's no pitch (manual leads)
+    const pitchWrap = document.getElementById('ldp-pitch-wrap');
+    if (l.pitchSnapshot) {
+      document.getElementById('ldp-pitch').textContent = l.pitchSnapshot + (l.pitchSnapshot.length >= 300 ? '...' : '');
+      pitchWrap.style.display = 'block';
+    } else {
+      pitchWrap.style.display = l.notes ? 'none' : 'block';
+      document.getElementById('ldp-pitch').textContent = 'No pitch snapshot — added manually.';
+    }
     document.getElementById('lead-detail-overlay').classList.add('open');
   }
 
   function closeLeadDetail() {
     document.getElementById('lead-detail-overlay').classList.remove('open');
+  }
+
+  // ── ADD LEAD MANUALLY ──
+  // A direct path into the pipeline that skips the pitch wizard. Writes the same
+  // lead shape and goes through persistLeads(), so Sheets sync + badge come free.
+  function openAddLead() {
+    ['al-name','al-loc','al-web','al-email','al-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('al-status').value = 'Emailed';
+    document.getElementById('al-error').style.display = 'none';
+    document.getElementById('addlead-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('al-name').focus(), 50);
+  }
+
+  function closeAddLead() {
+    document.getElementById('addlead-overlay').classList.remove('open');
+  }
+
+  function submitAddLead() {
+    const name = document.getElementById('al-name').value.trim();
+    const err = document.getElementById('al-error');
+    if (!name) {
+      err.textContent = 'A practice or business name is required.';
+      err.style.display = 'block';
+      document.getElementById('al-name').focus();
+      return;
+    }
+    const notes = document.getElementById('al-notes').value.trim();
+    const lead = {
+      id: uid(),
+      practiceName: name,
+      website: document.getElementById('al-web').value.trim(),
+      location: document.getElementById('al-loc').value.trim(),
+      email: document.getElementById('al-email').value.trim(),
+      status: document.getElementById('al-status').value,
+      savedAt: new Date().toISOString(),
+      pitchSnapshot: '',
+      notes: notes
+    };
+    leads.unshift(lead);
+    persistLeads();
+    renderLeadsTable();
+    closeAddLead();
+    toast(name + ' added to pipeline', 'success');
   }
 
   // ── DELETE ──
