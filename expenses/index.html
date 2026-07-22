@@ -187,6 +187,10 @@ tbody td{padding:11px 14px;vertical-align:middle}
 .csv-preview{max-height:380px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:3px}
 .csv-preview table{font-size:.78rem}
 .csv-preview thead th{background:var(--gray-100);position:sticky;top:0;font-size:.66rem}
+.csv-preview td{padding:4px 6px;vertical-align:middle}
+.pv-in{width:100%;font-size:.76rem;padding:3px 5px;border:1px solid var(--gray-200);border-radius:3px;background:var(--warm-white);color:var(--black);font-family:inherit}
+.pv-in:focus{outline:none;border-color:var(--gray-400)}
+select.pv-in{cursor:pointer}
 
 /* TOAST */
 .toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
@@ -1299,16 +1303,16 @@ async function processCSV(rows) {
 
   document.getElementById("preview-tbody").innerHTML = parsed.map((e, i) => `
     <tr>
-      <td>${e.date}</td>
+      <td><input class="pv-in" style="width:112px" value="${esc(e.date)}" onchange="editPreview(${i},'date',this.value)"></td>
       <td>
-        ${esc(e.merchant)}
+        <input class="pv-in" value="${esc(e.merchant)}" onchange="editPreview(${i},'merchant',this.value)">
         ${e._detectedRecurring && !e._recurringTemplate ? `<span class="badge badge-recur" style="margin-left:4px;opacity:.55">↻ ${capFirst(e._detectedFreq)}</span>` : ""}
       </td>
-      <td class="text-right">${fmt(e.amount)}</td>
-      <td>${esc(e.category)}</td>
-      <td>${esc(e.business)}</td>
-      <td>${e.taxDeductible ? "✓" : "—"}</td>
-      <td style="color:var(--gray-500)">${esc(e.note||"—")}</td>
+      <td><input class="pv-in" style="width:80px;text-align:right" value="${e.amount}" onchange="editPreview(${i},'amount',this.value)"></td>
+      <td><select class="pv-in" onchange="editPreview(${i},'category',this.value)">${optionList(CATS, e.category)}</select></td>
+      <td><select class="pv-in" onchange="editPreview(${i},'business',this.value)">${optionList(BIZ, e.business)}</select></td>
+      <td style="text-align:center"><input type="checkbox" ${e.taxDeductible ? "checked" : ""} onchange="editPreview(${i},'taxDeductible',this.checked)" style="accent-color:var(--warn);width:14px;height:14px;cursor:pointer"></td>
+      <td><input class="pv-in" value="${esc(e.note||"")}" placeholder="—" onchange="editPreview(${i},'note',this.value)"></td>
       <td style="text-align:center">
         ${e._recurringTemplate
           ? `<label style="display:flex;align-items:center;justify-content:center;gap:4px;font-size:.72rem;cursor:pointer">
@@ -1342,6 +1346,24 @@ function confirmImport() {
   document.getElementById("csv-input").value = "";
   toast(count + " expenses imported", "success");
   navigateTo("expenses");
+}
+
+// Editable import-preview cells write straight back to pendingImport, which
+// confirmImport() reads — so any change made here is what gets saved.
+const BIZ  = ["Messick Marketing","Virtueasy"];  // CATS is already defined above
+function optionList(vals, sel) {
+  const has = vals.includes(sel);
+  return vals.map(v => `<option${v === sel ? " selected" : ""}>${esc(v)}</option>`).join("")
+    + (has ? "" : `<option selected>${esc(sel || "Other")}</option>`);
+}
+function editPreview(idx, field, value) {
+  const e = pendingImport[idx];
+  if (!e) return;
+  if (field === "amount") e.amount = parseAmt(value);
+  else if (field === "taxDeductible") e.taxDeductible = !!value;
+  else if (field === "date") e.date = parseDateStr(value);
+  else e[field] = value;
+  e.aiCategorized = false; // a hand-edited row is no longer purely AI-assigned
 }
 
 function cancelImport() {
