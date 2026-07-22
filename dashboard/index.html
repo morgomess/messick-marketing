@@ -781,6 +781,8 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .ov-stat-num{font-size:1.55rem;font-weight:600;letter-spacing:-0.04em;color:var(--black);line-height:1;margin-top:9px;font-variant-numeric:tabular-nums}
 .ov-stat-sub{font-size:0.62rem;color:var(--light);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ov-money-cats{margin-bottom:16px}
+.ov-money-net{font-size:0.72rem;color:var(--muted);margin:2px 0 16px;padding-bottom:14px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.ov-money-net b{font-weight:700}
 .ov-money-foot{font-size:0.66rem;color:var(--muted);padding-top:13px;border-top:1px solid var(--border);font-variant-numeric:tabular-nums}
 .ov-money-foot b{color:var(--black);font-weight:600}
 .ov-pipe-chips{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
@@ -1236,6 +1238,9 @@ const WORKER   = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
    otherwise a 30s KV pull overwrites a freshly-added lead with a stale copy. */
 const LEADS_SHEETS_URL  = 'https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec';
 const EXPENSES_SYNC_URL = 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses';
+/* Collected revenue ("money in") — accumulated from Moxie's PaymentReceived webhook
+   by the dashboard worker; GET returns {thisMonth,ytd,total,byMonth,updatedAt}. */
+const REVENUE_SYNC_URL  = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/revenue';
 const OV_EXTERNAL_KEYS  = ['mm_leads','mm_expenses'];
 const PICKER_PHRASES = [
   'The universe has spoken...','Your mission, should you choose to accept it...',
@@ -3101,9 +3106,18 @@ async function ovSyncExternal(){
         const js=JSON.stringify(rows);
         if(js!==localStorage.getItem('mm_expenses')){localStorage.setItem('mm_expenses',js); changed=true;}}}
   }catch(e){}
+  try{
+    const r=await fetch(REVENUE_SYNC_URL,{cache:'no-store'});
+    if(r.ok){const j=await r.json();
+      // Store even when zero — the money-in figure is a total, not a list.
+      if(j && typeof j.thisMonth==='number'){
+        const js=JSON.stringify(j);
+        if(js!==localStorage.getItem('mm_revenue')){localStorage.setItem('mm_revenue',js); changed=true;}}}
+  }catch(e){}
   ovSyncing=false;
   return changed;
 }
+function ovLoadRevenue(){try{const v=JSON.parse(localStorage.getItem('mm_revenue')||'null');return (v&&typeof v==='object'&&!Array.isArray(v))?v:null;}catch(e){return null;}}
 
 /* ═══════════════════════════════════════════
    PROJECT BOARD  (mm_projects — its own store, syncs via KV like tasks,
@@ -3260,23 +3274,29 @@ function renderOverview(){
   const nextCharge=expenses
     .filter(e=>e.recurring&&e.recurringNextDue&&e.recurringNextDue>=today)
     .sort((a,b)=>a.recurringNextDue.localeCompare(b.recurringNextDue))[0];
+  // ── money in: collected revenue (from Moxie PaymentReceived webhook) ──
+  const revenue=ovLoadRevenue();
+  const inMonth=revenue?(+revenue.thisMonth||0):0;
+  const inYtd=revenue?(+revenue.ytd||0):0;
+  const net=inMonth-monthTotal;
   const moneyEl=document.getElementById('ov-money');
-  if(!expenses.length){
-    moneyEl.innerHTML='<div class="ov-empty">No expenses logged yet.</div>';
+  if(!expenses.length && !revenue){
+    moneyEl.innerHTML='<div class="ov-empty">No money data yet.</div>';
   }else{
     moneyEl.innerHTML=`
       <div class="ov-stat-row">
         <div>
-          <div class="ov-stat-label">Month to date</div>
+          <div class="ov-stat-label">In · month to date</div>
+          <div class="ov-stat-num" style="color:#1f9d55">${ovMoney(inMonth)}</div>
+          <div class="ov-stat-sub">${revenue?('YTD '+ovMoney(inYtd)):'Awaiting first payment'}</div>
+        </div>
+        <div>
+          <div class="ov-stat-label">Out · month to date</div>
           <div class="ov-stat-num">${ovMoney(monthTotal)}</div>
           <div class="ov-stat-sub">MM ${ovMoney(mmTotal)} · VE ${ovMoney(veTotal)}</div>
         </div>
-        <div>
-          <div class="ov-stat-label">Deductible YTD</div>
-          <div class="ov-stat-num">${ovMoney(dedYtd)}</div>
-          <div class="ov-stat-sub">${yr} write-offs</div>
-        </div>
       </div>
+      <div class="ov-money-net">Net this month <b style="color:${net>=0?'#1f9d55':'#c0392b'}">${net<0?'−':''}${ovMoney(Math.abs(net))}</b> · Deductible YTD ${ovMoney(dedYtd)}</div>
       ${topCats.length?`<div class="ov-bars ov-money-cats">${topCats.map(([name,amt])=>`
         <div class="ov-bar-row">
           <div class="ov-bar-top">
