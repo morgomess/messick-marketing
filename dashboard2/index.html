@@ -111,6 +111,14 @@
   .trow .tag.done{color:var(--good)}
   .add-btn{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--card-2);color:var(--dim);cursor:pointer;display:grid;place-items:center;font-size:18px;line-height:1}
   .add-btn:hover{color:var(--ink)}
+  .quick-add{margin-top:14px}
+  .quick-add input{width:100%;background:var(--card-2);border:1px solid var(--line-2);border-radius:12px;color:var(--ink);padding:10px 14px;font-family:inherit;font-size:13.5px;outline:none}
+  .quick-add input:focus{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+  .quick-add input::placeholder{color:var(--faint)}
+  .trow .del,.loop .del{opacity:0;background:transparent;border:0;color:var(--faint);cursor:pointer;font-size:17px;line-height:1;padding:0 2px;flex:0 0 auto;transition:.15s}
+  .trow:hover .del,.loop:hover .del{opacity:1}
+  .trow .del:hover,.loop .del:hover{color:var(--bad)}
+  .empty{font-size:13px;color:var(--faint);padding:12px 0}
 
   /* weekly */
   .bars{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:130px;padding-top:22px}
@@ -292,7 +300,7 @@
             <div>
               <div class="greet">Good morning,</div>
               <h1>Morgan</h1>
-              <div class="sub">Here's your day, calmly laid out. Four things need you.</div>
+              <div class="sub">Here's your day at a glance.</div>
             </div>
             <div class="time-pill" id="clock">7:45 AM</div>
           </div>
@@ -308,21 +316,22 @@
           <div class="card-h"><span class="title">Productivity</span><span class="meta">Today</span></div>
           <div class="prod">
             <div class="prod-left">
-              <div class="prod-pct">78%</div>
-              <div class="prod-note">Great progress</div>
+              <div class="prod-pct" id="prod-pct">0%</div>
+              <div class="prod-note" id="prod-note">&mdash;</div>
               <div class="prod-stats">
-                <div class="s"><div class="k">Tasks completed</div><div class="v">14</div></div>
-                <div class="s"><div class="k">Total tasks</div><div class="v">18</div></div>
+                <div class="s"><div class="k">Completed</div><div class="v" id="prod-done">0</div></div>
+                <div class="s"><div class="k">Total</div><div class="v" id="prod-total">0</div></div>
               </div>
             </div>
-            <div class="ring-wrap"><span class="ring" data-pct="78" data-grad="prod"></span><span class="rc">78%</span></div>
+            <div class="ring-wrap"><span id="prod-ring"></span><span class="rc" id="prod-rc">0%</span></div>
           </div>
         </section>
 
         <!-- TASKS -->
         <section class="card">
-          <div class="card-h"><span class="title">Tasks</span><button class="add-btn" data-toast="Opened new task input">+</button></div>
+          <div class="card-h"><span class="title">Tasks</span><button class="add-btn" id="task-add-btn" title="Add task">+</button></div>
           <div class="tlist" id="tlist"></div>
+          <div class="quick-add"><input id="task-input" placeholder="Add a task, press Enter" autocomplete="off"/></div>
         </section>
 
         <!-- SHORTCUTS -->
@@ -356,9 +365,9 @@
           <div class="date-big" id="date-big">July 26, 2026</div>
           <div class="day" id="date-day">Sunday</div>
           <div class="money">
-            <div class="row1"><span class="amt">$18,400</span><span class="up">+12%</span></div>
+            <div class="row1"><span class="amt" id="mon-amt">$0</span></div>
             <div class="lbl">Collected this month</div>
-            <div class="due"><span class="dot warn"></span>Money due &middot; not paid <b>$3,250</b></div>
+            <div class="due"><span class="dot good"></span>Year to date <b id="mon-ytd-v" style="color:var(--soft)">$0</b></div>
           </div>
         </section>
 
@@ -377,16 +386,6 @@
           </div>
         </section>
 
-        <!-- TIME BY TYPE -->
-        <section class="card">
-          <div class="card-h"><span class="title">Time by type</span><span class="meta">This week</span></div>
-          <div class="donut-row">
-            <div class="donut-wrap"><svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)" id="donut"></svg><div class="c"><div><div class="h" id="donut-total">37h</div><div class="u">tracked</div></div></div></div>
-            <div class="legend" id="legend"></div>
-          </div>
-          <div class="chips" id="brand-chips"><span class="chip on" data-brand="all">All</span><span class="chip" data-brand="messick">Messick</span><span class="chip" data-brand="virtueasy">Virtueasy</span><span class="chip" data-brand="personal">Personal</span></div>
-        </section>
-
         <!-- AUTOMATIONS -->
         <section class="card">
           <div class="card-h"><span class="title">Automations</span><span class="meta"><span class="dot good"></span>6 of 7 running</span></div>
@@ -402,13 +401,9 @@
 
     <!-- OPEN LOOPS (full width) -->
     <section class="card">
-      <div class="card-h"><span class="title">Open loops</span><span class="meta">Quietly waiting until closed</span></div>
-      <div class="loops-grid">
-        <div class="loop"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><div><div class="type">Unbilled</div><div class="t">ECCO brush shower invoice</div></div></div>
-        <div class="loop"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><div><div class="type">Waiting on reply</div><div class="t">OEIS PDF source assets</div></div></div>
-        <div class="loop"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><div><div class="type">Idea</div><div class="t">BBS shorts cover A/B test</div></div></div>
-        <div class="loop"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><div><div class="type">Reminder</div><div class="t">Renew doggyseedoggydo.com</div></div></div>
-      </div>
+      <div class="card-h"><span class="title">Open loops</span><button class="add-btn" id="loop-add-btn" title="Add loop">+</button></div>
+      <div class="loops-grid" id="loops-grid"></div>
+      <div class="quick-add"><input id="loop-input" placeholder="Add an open loop, press Enter" autocomplete="off"/></div>
     </section>
   </div>
 </div>
@@ -455,64 +450,126 @@
   document.querySelectorAll('[data-toast]').forEach(function(b){b.addEventListener('click',function(){showToast(b.getAttribute('data-toast'));});});
   document.querySelectorAll('.rail button[data-nav]').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.rail button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');showToast(b.getAttribute('data-nav'));});});
 
-  /* productivity ring */
-  document.querySelectorAll('.ring').forEach(function(el){
-    var pct=+el.getAttribute('data-pct');var size=116,r=size/2-7,c=2*Math.PI*r,cx=size/2,off=c*(1-pct/100);
-    el.innerHTML='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" style="transform:rotate(-90deg)"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient></defs><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="var(--line)" stroke-width="9"/><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="url(#pg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'"/></svg>';
-  });
+  /* ---- persistence (isolated, this device) ---- */
+  function load(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}}
+  function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  function uid(){return 't'+String(Date.now()).slice(-7)+Math.floor(Math.random()*1000);}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function money(n){n=+n||0;return '$'+Math.round(n).toLocaleString('en-US');}
 
-  /* donut */
-  var TYPES={'Video Editing':'var(--c-video)','Meetings':'var(--c-meet)','Design':'var(--c-design)','Sales':'var(--c-sales)','Admin':'var(--c-admin)'};
-  var DATA={all:{'Video Editing':11,'Meetings':9.5,'Design':7,'Sales':5.5,'Admin':4},messick:{'Meetings':6,'Design':5,'Sales':4,'Admin':2.5,'Video Editing':1.5},virtueasy:{'Meetings':2,'Sales':1.5,'Design':1.5,'Admin':1,'Video Editing':1},personal:{'Video Editing':8.5,'Design':1,'Admin':0.5}};
-  var currentBrand='all';
-  var donut=document.getElementById('donut'),legend=document.getElementById('legend'),totalEl=document.getElementById('donut-total');
-  var R=52,C=2*Math.PI*R;
-  function renderAlloc(brand){
-    var set=DATA[brand];var entries=Object.keys(TYPES).filter(function(k){return set[k];}).map(function(k){return[k,set[k]];});
-    entries.sort(function(a,b){return b[1]-a[1];});
-    var total=entries.reduce(function(s,e){return s+e[1];},0);
-    totalEl.textContent=(Math.round(total*10)/10)+'h';
-    donut.innerHTML='<circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="13"/>';
-    var off=0;
-    entries.forEach(function(e){var len=e[1]/total*C;var c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',60);c.setAttribute('cy',60);c.setAttribute('r',R);c.setAttribute('fill','none');c.setAttribute('stroke',TYPES[e[0]]);c.setAttribute('stroke-width','13');c.setAttribute('stroke-dasharray',(len-2)+' '+(C-len+2));c.setAttribute('stroke-dashoffset',-off);c.setAttribute('stroke-linecap','round');donut.appendChild(c);off+=len;});
-    legend.innerHTML='';
-    entries.forEach(function(e){var row=document.createElement('div');row.className='row';row.innerHTML='<span class="sw" style="background:'+TYPES[e[0]]+'"></span><span class="k">'+e[0]+'</span><span class="v">'+e[1]+'h</span>';legend.appendChild(row);});
+  /* ---- tasks (persistent) ---- */
+  var DEFAULT_TASKS=[
+    {id:'t1',n:'ECCO reel edit',tag:'Today',hi:true,done:false},
+    {id:'t2',n:'BBS Ep. 12 finishing pass',tag:'Today',hi:true,done:false},
+    {id:'t3',n:'Aspire blog #3 draft',tag:'Tomorrow',hi:false,done:false},
+    {id:'t4',n:'OEIS explainer PDF',tag:'Sep 15',hi:false,done:false},
+    {id:'t5',n:'JVI July captions',tag:'',hi:false,done:true}
+  ];
+  var tasks=load('d2_tasks',DEFAULT_TASKS);
+  var tlist=document.getElementById('tlist');
+  function saveTasks(){save('d2_tasks',tasks);}
+  function renderTasks(){
+    tlist.innerHTML='';
+    if(!tasks.length){tlist.innerHTML='<div class="empty">No tasks yet - add one below.</div>';return;}
+    tasks.slice().sort(function(a,b){return (a.done?1:0)-(b.done?1:0);}).forEach(function(t){
+      var row=document.createElement('div');row.className='trow'+(t.done?' done':'');
+      var tag=t.done?'<span class="tag done">Done</span>':(t.tag?'<span class="tag'+(t.hi?' hi':'')+'">'+esc(t.tag)+'</span>':'');
+      row.innerHTML='<span class="rad"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><span class="nm">'+esc(t.n)+'</span>'+tag+'<button class="del" title="Delete">&times;</button>';
+      row.querySelector('.rad').addEventListener('click',function(){t.done=!t.done;saveTasks();renderTasks();updateProd();});
+      row.querySelector('.del').addEventListener('click',function(){tasks=tasks.filter(function(x){return x.id!==t.id;});saveTasks();renderTasks();updateProd();});
+      tlist.appendChild(row);
+    });
   }
-  renderAlloc('all');
-  document.getElementById('brand-chips').addEventListener('click',function(ev){var chip=ev.target.closest('.chip');if(!chip)return;this.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});chip.classList.add('on');currentBrand=chip.getAttribute('data-brand');renderAlloc(currentBrand);});
+  function addTask(text,tag,hi){text=(text||'').trim();if(!text)return null;var t={id:uid(),n:text,tag:tag||'',hi:!!hi,done:false};tasks.push(t);saveTasks();renderTasks();updateProd();return t;}
+  renderTasks();
+  var taskInput=document.getElementById('task-input');
+  taskInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&taskInput.value.trim()){addTask(taskInput.value);taskInput.value='';}});
+  document.getElementById('task-add-btn').addEventListener('click',function(){taskInput.focus();});
+
+  /* ---- productivity (derived from tasks) ---- */
+  var prodRing=document.getElementById('prod-ring'),prodRc=document.getElementById('prod-rc'),prodPct=document.getElementById('prod-pct'),prodNote=document.getElementById('prod-note'),prodDone=document.getElementById('prod-done'),prodTot=document.getElementById('prod-total');
+  function updateProd(){
+    var total=tasks.length,done=tasks.filter(function(t){return t.done;}).length,pct=total?Math.round(done/total*100):0;
+    prodPct.textContent=pct+'%';prodRc.textContent=pct+'%';prodDone.textContent=done;prodTot.textContent=total;
+    prodNote.textContent=pct>=80?'Great progress':pct>=50?'On track':pct>0?'Keep going':'Fresh start';
+    var size=116,r=size/2-7,c=2*Math.PI*r,off=c*(1-pct/100),cx=size/2;
+    prodRing.innerHTML='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" style="transform:rotate(-90deg)"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent-2)"/></linearGradient></defs><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="var(--line)" stroke-width="9"/><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="url(#pg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'"/></svg>';
+  }
+  updateProd();
+
+  /* ---- open loops (persistent) ---- */
+  var DEFAULT_LOOPS=[
+    {id:'l1',type:'Unbilled',t:'ECCO brush shower invoice',done:false},
+    {id:'l2',type:'Waiting on reply',t:'OEIS PDF source assets',done:false},
+    {id:'l3',type:'Idea',t:'BBS shorts cover A/B test',done:false},
+    {id:'l4',type:'Reminder',t:'Renew doggyseedoggydo.com',done:false}
+  ];
+  var loops=load('d2_loops',DEFAULT_LOOPS);
+  var loopsGrid=document.getElementById('loops-grid');
+  function saveLoops(){save('d2_loops',loops);}
+  function renderLoops(){
+    loopsGrid.innerHTML='';
+    if(!loops.length){loopsGrid.innerHTML='<div class="empty">No open loops - add one below.</div>';return;}
+    loops.forEach(function(l){
+      var el=document.createElement('div');el.className='loop'+(l.done?' done':'');
+      el.innerHTML='<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><div style="flex:1;min-width:0"><div class="type">'+esc(l.type)+'</div><div class="t">'+esc(l.t)+'</div></div><button class="del" title="Delete">&times;</button>';
+      el.querySelector('.box').addEventListener('click',function(){l.done=!l.done;saveLoops();renderLoops();if(l.done)showToast('Closed loop');});
+      el.querySelector('.del').addEventListener('click',function(){loops=loops.filter(function(x){return x.id!==l.id;});saveLoops();renderLoops();});
+      loopsGrid.appendChild(el);
+    });
+  }
+  function addLoop(text){text=(text||'').trim();if(!text)return null;var l={id:uid(),type:'Reminder',t:text,done:false};loops.push(l);saveLoops();renderLoops();return l;}
+  renderLoops();
+  var loopInput=document.getElementById('loop-input');
+  loopInput.addEventListener('keydown',function(e){if(e.key==='Enter'&&loopInput.value.trim()){addLoop(loopInput.value);loopInput.value='';}});
+  document.getElementById('loop-add-btn').addEventListener('click',function(){loopInput.focus();});
+
+  /* ---- money in (real, public /revenue endpoint) ---- */
+  var REVENUE_URL='https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/revenue';
+  var monAmt=document.getElementById('mon-amt'),monYtd=document.getElementById('mon-ytd-v');
+  function renderMoney(rev){if(rev&&typeof rev==='object'){if(rev.thisMonth!=null)monAmt.textContent=money(rev.thisMonth);if(rev.ytd!=null)monYtd.textContent=money(rev.ytd);}}
+  renderMoney(load('d2_revenue',null));
+  fetch(REVENUE_URL,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(js){if(js){save('d2_revenue',js);renderMoney(js);}}).catch(function(){});
+
+  /* time-by-type donut removed - no data source without the tracker/calendar */
 
   /* (time tracker removed - replaced by Upcoming Events / Google Calendar) */
 
-  /* tasks */
-  var TASKS=[{n:'JVI July captions',tag:'Done',cls:'done',done:true},{n:'ECCO reel edit',tag:'Today',cls:'hi',done:false},{n:'BBS Ep. 12 finishing pass',tag:'Today',cls:'hi',done:false},{n:'Aspire blog #3 draft',tag:'Tomorrow',cls:'',done:false},{n:'OEIS explainer PDF',tag:'Sep 15',cls:'',done:false}];
-  var tlist=document.getElementById('tlist');
-  TASKS.forEach(function(t){var row=document.createElement('div');row.className='trow'+(t.done?' done':'');row.innerHTML='<span class="rad"><svg viewBox="0 0 24 24" fill="none" stroke="#07211a" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></span><span class="nm">'+t.n+'</span><span class="tag '+t.cls+'">'+t.tag+'</span>';
-    row.querySelector('.rad').addEventListener('click',function(){row.classList.toggle('done');});tlist.appendChild(row);});
-
-  /* open loops */
-  document.querySelectorAll('.loop').forEach(function(l){l.addEventListener('click',function(){l.classList.toggle('done');if(l.classList.contains('done'))showToast('Closed loop &middot; '+l.querySelector('.t').textContent);});});
+  /* tasks & open loops handled above (persistent) */
 
   /* Mo floating panel */
   var fab=document.getElementById('mo-fab'),panel=document.getElementById('mo-panel');
   fab.addEventListener('click',function(){panel.hidden=false;setTimeout(function(){document.getElementById('chat-in').focus();},60);});
   document.getElementById('mo-close').addEventListener('click',function(){panel.hidden=true;});
 
-  /* chat */
+  /* ---- Mo chat: real task actions + task/revenue answers ---- */
   var log=document.getElementById('log'),input=document.getElementById('chat-in');
-  var ACTION=/\b(move|change|reschedule|push|bump|close|mark|add|delete|remove|set|rename|send|invoice|approve|snooze|due|make)\b/i;
-  function scroll(){log.scrollTop=log.scrollHeight;}
-  function addMsg(who,text){var m=document.createElement('div');m.className='msg '+who;m.innerHTML=(who==='ai'?'<div class="av">'+moMini()+'</div>':'')+'<div class="bubble">'+text+'</div>';log.appendChild(m);scroll();return m;}
-  function typing(){var m=document.createElement('div');m.className='msg ai typing';m.innerHTML='<div class="av">'+moMini()+'</div><div class="bubble"><i></i><i></i><i></i></div>';log.appendChild(m);scroll();return m;}
+  function scrollLog(){log.scrollTop=log.scrollHeight;}
+  function addMsg(who,text){var m=document.createElement('div');m.className='msg '+who;m.innerHTML=(who==='ai'?'<div class="av">'+moMini()+'</div>':'')+'<div class="bubble">'+text+'</div>';log.appendChild(m);scrollLog();return m;}
+  function typing(){var m=document.createElement('div');m.className='msg ai typing';m.innerHTML='<div class="av">'+moMini()+'</div><div class="bubble"><i></i><i></i><i></i></div>';log.appendChild(m);scrollLog();return m;}
+  function findTask(q){q=q.toLowerCase().trim();var best=null;tasks.forEach(function(t){if(!t.done&&t.n.toLowerCase().indexOf(q)>-1&&(!best||t.n.length<best.n.length))best=t;});return best;}
+  function findLoop(q){q=q.toLowerCase().trim();var best=null;loops.forEach(function(l){if(!l.done&&l.t.toLowerCase().indexOf(q)>-1&&(!best||l.t.length<best.t.length))best=l;});return best;}
+  function parseAction(q){var m;
+    if(m=q.match(/^\s*(?:add|create|new)\s+(?:a\s+)?(?:task|todo)?\s*:?\s*(.+)/i)){var text=m[1].replace(/\s+to (?:my )?(?:tasks|list|to-?dos?)\s*$/i,'').trim();if(text)return{label:'Add task: '+esc(text),run:function(){addTask(text);}};}
+    if(m=q.match(/\b(?:complete|finish|finished|done with|mark(?: off)?|check off|tick off)\b\s+(?:the\s+)?(.+)/i)){var q1=m[1].replace(/\bas done\b/i,'').trim();var t=findTask(q1);if(t)return{label:'Mark complete: '+esc(t.n),run:function(){t.done=true;saveTasks();renderTasks();updateProd();}};return{miss:'a task matching "'+esc(q1)+'"'};}
+    if(m=q.match(/\b(?:move|reschedule|push|bump|set|change)\b\s+(.+?)\s+(?:to|for|due)\s+(.+)/i)){var t2=findTask(m[1].trim());var when=m[2].trim();if(t2)return{label:'Reschedule '+esc(t2.n)+' to '+esc(when),run:function(){t2.tag=when;t2.hi=/today|tonight|tomorrow/i.test(when);saveTasks();renderTasks();}};return{miss:'a task matching "'+esc(m[1].trim())+'"'};}
+    if(m=q.match(/\b(?:close|clear|resolve)\b\s+(?:the\s+)?(?:loop\s+)?(.+)/i)){var l=findLoop(m[1].trim());if(l)return{label:'Close loop: '+esc(l.t),run:function(){l.done=true;saveLoops();renderLoops();}};}
+    if(m=q.match(/\b(?:delete|remove|drop)\b\s+(?:the\s+)?(.+)/i)){var t3=findTask(m[1].trim());if(t3)return{label:'Delete task: '+esc(t3.n),run:function(){tasks=tasks.filter(function(x){return x.id!==t3.id;});saveTasks();renderTasks();updateProd();}};return{miss:'a task matching "'+esc(m[1].trim())+'"'};}
+    return null;
+  }
   function answer(q){var s=q.toLowerCase();
-    if(s.indexOf('collect')>-1||s.indexOf('revenue')>-1||s.indexOf('money')>-1)return "You've collected <b>$18,400</b> in July, up 12% from June. <b>$3,250</b> is still due &mdash; ECCO ($1,450) and Aspire ($1,800).";
-    if(s.indexOf('friday')>-1)return "Nothing's hard-due Friday. Closest: <b>Aspire blog #3</b> (tomorrow). Want me to pull anything forward?";
-    return "This is a prototype, so I'm answering from the demo data on screen. Live, I'd pull from your tasks, calendar, invoices and worker logs.";
+    if(/collect|revenue|money|made|income|earn/.test(s)){var rev=load('d2_revenue',null);return rev?('Collected <b>'+money(rev.thisMonth)+'</b> this month, <b>'+money(rev.ytd)+'</b> YTD - live from your revenue worker.'):'I could not reach the revenue feed just now - try again in a moment.';}
+    var openT=tasks.filter(function(t){return !t.done;});
+    if(/today/.test(s)){var td=openT.filter(function(t){return /today|tonight/i.test(t.tag);});return td.length?('Due today: '+td.map(function(t){return '<b>'+esc(t.n)+'</b>';}).join(', ')+'.'):'Nothing marked due today.';}
+    if(/friday|this week|upcoming|due|left|next|open/.test(s)){return openT.length?('You have '+openT.length+' open: '+openT.slice(0,4).map(function(t){return '<b>'+esc(t.n)+'</b>'+(t.tag?' ('+esc(t.tag)+')':'');}).join(', ')+(openT.length>4?' and more.':'.')):'All clear - no open tasks.';}
+    if(/how many|count|remaining/.test(s)){return 'You have <b>'+openT.length+'</b> open task'+(openT.length===1?'':'s')+' and <b>'+loops.filter(function(l){return !l.done;}).length+'</b> open loops.';}
+    return 'I can add, complete, reschedule or delete tasks and close loops (I always ask before changing anything), and answer about your tasks &amp; revenue. Deeper research needs the AI connection, which lives behind your dashboard login.';
   }
-  function pending(q){var card=document.createElement('div');card.className='action-card';card.innerHTML='<div class="ac-h"><span class="dot warn"></span>Pending change &middot; needs your OK</div><div class="ac-b"><div class="what">I\'ll make this change:</div><div class="detail">'+q.replace(/</g,'&lt;')+'</div></div><div class="ac-f"><button class="btn-approve">Approve</button><button class="btn-dismiss">Dismiss</button></div><div class="ac-result"></div>';log.appendChild(card);scroll();
-    card.querySelector('.btn-approve').addEventListener('click',function(){card.classList.add('resolved');var r=card.querySelector('.ac-result');r.className='ac-result ok';r.textContent=String.fromCharCode(10003)+' Done — updated and synced.';showToast('Change applied');});
-    card.querySelector('.btn-dismiss').addEventListener('click',function(){card.classList.add('resolved');var r=card.querySelector('.ac-result');r.className='ac-result no';r.textContent='Dismissed — nothing changed.';});
+  function pending(act){var card=document.createElement('div');card.className='action-card';card.innerHTML='<div class="ac-h"><span class="dot warn"></span>Needs your OK</div><div class="ac-b"><div class="what">'+act.label+'</div></div><div class="ac-f"><button class="btn-approve">Approve</button><button class="btn-dismiss">Dismiss</button></div><div class="ac-result"></div>';log.appendChild(card);scrollLog();
+    card.querySelector('.btn-approve').addEventListener('click',function(){try{act.run();}catch(e){}card.classList.add('resolved');var r=card.querySelector('.ac-result');r.className='ac-result ok';r.textContent=String.fromCharCode(10003)+' Done.';showToast('Done');});
+    card.querySelector('.btn-dismiss').addEventListener('click',function(){card.classList.add('resolved');var r=card.querySelector('.ac-result');r.className='ac-result no';r.textContent='Dismissed.';});
   }
-  function handle(q){if(!q.trim())return;addMsg('me',q.replace(/</g,'&lt;'));var t=typing();setTimeout(function(){t.remove();if(ACTION.test(q)){addMsg('ai','Got it &mdash; that changes your board, so here it is to confirm:');setTimeout(function(){pending(q);},200);}else{addMsg('ai',answer(q));}},600);}
+  function handle(q){if(!q.trim())return;addMsg('me',esc(q));var t=typing();setTimeout(function(){t.remove();var act=parseAction(q);if(act&&act.label){addMsg('ai','Got it - confirm and I will do it:');setTimeout(function(){pending(act);},170);}else if(act&&act.miss){addMsg('ai','I could not find '+act.miss+'. Try wording it like the task name, or "add ..." to create it.');}else{addMsg('ai',answer(q));}},520);}
   document.getElementById('send').addEventListener('click',function(){handle(input.value);input.value='';});
   input.addEventListener('keydown',function(e){if(e.key==='Enter'){handle(input.value);input.value='';}});
   document.getElementById('sugg').addEventListener('click',function(ev){var s=ev.target.closest('.sugg');if(!s)return;handle(s.textContent);});
