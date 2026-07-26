@@ -920,6 +920,61 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
   .col{border-bottom:1px solid var(--border)}
   header{height:auto}
 }
+
+/* ===== CALM HOME (added) ===== */
+#home-view{display:none;flex:1;overflow-y:auto;padding:26px 26px 40px;flex-direction:column}
+.hm-wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;max-width:1200px;margin:0 auto;width:100%}
+.hm-col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.hm-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px}
+.hm-card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.hm-card-h .t{font-size:0.95rem;font-weight:500;color:var(--muted)}
+.hm-card-h .m{font-size:0.76rem;color:var(--light)}
+.hm-hero{position:relative}
+.hm-hero-time{position:absolute;top:22px;right:24px;font-size:0.78rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 13px;border-radius:999px}
+.hm-greet{font-size:0.95rem;color:var(--muted)}
+.hm-name{font-size:2rem;font-weight:600;letter-spacing:-0.01em;margin:2px 0 7px}
+.hm-sub{font-size:0.85rem;color:var(--muted)}
+.hm-prod{display:flex;align-items:center;gap:22px}
+.hm-prod .l{flex:1}
+.hm-pct{font-size:2.6rem;font-weight:600;line-height:1}
+.hm-note{font-size:0.82rem;color:var(--lo);margin:6px 0 16px}
+.hm-stats{display:flex;gap:28px}
+.hm-stats .k{font-size:0.72rem;color:var(--light)}
+.hm-stats .v{font-size:1.35rem;font-weight:600;margin-top:2px}
+.hm-ring{position:relative;width:110px;height:110px;flex:0 0 auto;display:grid;place-items:center}
+.hm-ring .rc{position:absolute;inset:0;display:grid;place-items:center;font-size:0.85rem;font-weight:600;color:var(--muted)}
+.hm-tlist{display:flex;flex-direction:column}
+.hm-trow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.hm-trow:last-child{border-bottom:0}
+.hm-rad{width:19px;height:19px;border-radius:50%;border:2px solid var(--light);flex:0 0 auto;cursor:pointer;transition:0.15s}
+.hm-rad:hover{border-color:var(--blue)}
+.hm-trow.done .hm-rad{background:var(--lo);border-color:var(--lo)}
+.hm-nm{flex:1;font-size:0.88rem}
+.hm-tag{font-size:0.75rem;color:var(--light)}
+.hm-tag.hi{color:var(--hi)}
+.hm-empty{font-size:0.82rem;color:var(--light);padding:10px 0}
+.hm-qa{margin-top:14px}
+.hm-qa input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--black);padding:10px 14px;font-family:inherit;font-size:0.85rem;outline:none}
+.hm-qa input:focus{border-color:var(--blue)}
+.hm-sc{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.hm-scitem{display:flex;flex-direction:column;align-items:center;gap:9px;padding:15px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);text-decoration:none;color:var(--muted);transition:0.15s}
+.hm-scitem:hover{border-color:var(--blue);transform:translateY(-2px)}
+.hm-scitem .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,0.05)}
+.hm-scitem .ic svg{width:24px;height:24px}
+.hm-scitem .lbl{font-size:0.75rem}
+.hm-money .amt{font-size:1.95rem;font-weight:600}
+.hm-money .lbl{font-size:0.8rem;color:var(--light);margin-top:2px}
+.hm-money .ytd{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:0.8rem;color:var(--muted)}
+.hm-money .ytd b{color:var(--black);font-weight:600}
+.hm-ev{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid var(--border)}
+.hm-ev:last-child{border-bottom:0}
+.hm-ev .d{width:44px;text-align:center;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:6px 0;flex:0 0 auto}
+.hm-ev .d .dd{font-size:1.05rem;font-weight:600;line-height:1}
+.hm-ev .d .mm{font-size:0.6rem;color:var(--light);text-transform:uppercase;margin-top:2px}
+.hm-ev .eb{flex:1;min-width:0}
+.hm-ev .eb .et{font-size:0.85rem}
+.hm-ev .eb .es{font-size:0.75rem;color:var(--light);text-transform:capitalize}
+@media(max-width:900px){.hm-wrap{grid-template-columns:1fr}.hm-sc{grid-template-columns:repeat(2,1fr)}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -961,7 +1016,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       </div>
       <span class="h-date" id="today-date"></span>
       <div class="h-tabs">
-        <button class="h-tab active" id="tab-overview" onclick="switchMainTab('overview')">◈ Overview</button>
+        <button class="h-tab active" id="tab-home" onclick="switchMainTab('home')">⌂ Home</button>
+        <button class="h-tab" id="tab-overview" onclick="switchMainTab('overview')">◈ Overview</button>
         <button class="h-tab" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
         <button class="h-tab" id="tab-calendar" onclick="switchMainTab('calendar')">🗓 Calendar</button>
         <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
@@ -1041,6 +1097,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
        Every number here is derived from real task data. Nothing is seeded or
        simulated: KPIs from mm_tasks_todo, load bars and the portfolio table
        from nodeDueRollup() over the brain tree. -->
+  <div id="home-view"></div>
+
   <div id="overview-view">
     <div class="ov-head">
       <div>
@@ -3199,6 +3257,48 @@ function ovMoney2(n){return '$'+(n||0).toLocaleString('en-US',{minimumFractionDi
 /* A lead counts as "active" unless its status reads as ended. Unknown statuses default to active. */
 function ovStatusClass(s){return /\b(clos|won|passed?|lost|dead|declin|dropp|cold|not\s?interest)/i.test(String(s||''))?'closed':'active';}
 
+/* ===== CALM HOME (added) ===== */
+var HM_SHORTCUTS='<a class="hm-scitem" href="https://airtable.com" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><polygon points="12,3.8 21,8.2 12,12.6 3,8.2" fill="#FFCF3A"/><polygon points="3,9.2 11.2,13.4 11.2,20.4 3,16.2" fill="#33C4F0"/><polygon points="21,9.2 12.8,13.4 12.8,20.4 21,16.2" fill="#F95E58"/></svg></span><span class="lbl">Airtable</span></a>'+
+'<a class="hm-scitem" href="https://app.slack.com" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><rect x="8.4" y="2.5" width="3.2" height="19" rx="1.6" fill="#E01E5A"/><rect x="12.4" y="2.5" width="3.2" height="19" rx="1.6" fill="#2EB67D"/><rect x="2.5" y="8.4" width="19" height="3.2" rx="1.6" fill="#36C5F0"/><rect x="2.5" y="12.4" width="19" height="3.2" rx="1.6" fill="#ECB22E"/></svg></span><span class="lbl">Slack</span></a>'+
+'<a class="hm-scitem" href="https://drive.google.com" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><polygon points="12,4 4,18 12,18" fill="#2684FC"/><polygon points="12,4 20,18 12,18" fill="#FFBA00"/><polygon points="4,18 20,18 17,22 7,22" fill="#00AC47"/></svg></span><span class="lbl">Drive</span></a>'+
+'<a class="hm-scitem" href="https://claude.ai" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><g stroke="#D97757" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="3.5" x2="12" y2="20.5"/><line x1="12" y1="3.5" x2="12" y2="20.5" transform="rotate(30 12 12)"/><line x1="12" y1="3.5" x2="12" y2="20.5" transform="rotate(60 12 12)"/><line x1="12" y1="3.5" x2="12" y2="20.5" transform="rotate(90 12 12)"/><line x1="12" y1="3.5" x2="12" y2="20.5" transform="rotate(120 12 12)"/><line x1="12" y1="3.5" x2="12" y2="20.5" transform="rotate(150 12 12)"/></g></svg></span><span class="lbl">Claude</span></a>';
+function hmEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hmParse(due){var p=String(due||'').split('-');var mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return {day:String((+p[2])||''),mon:mons[((+p[1])-1)]||''};}
+function hmDue(due){var d=hmParse(due);return (d.mon+' '+d.day).trim();}
+function hmAddTask(text){try{var tasks=loadTodoTasks();tasks.push({id:uid(),text:text,nodeId:'personal-root',brand:'other',priority:'none',due:null,recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',recurLastGen:(typeof todayStr==='function'?todayStr():'')});saveTodoTasks(tasks);}catch(e){}}
+function renderHome(){
+  var view=document.getElementById('home-view'); if(!view)return;
+  var tasks=(typeof loadTodoTasks==='function')?loadTodoTasks():[];
+  var open=tasks.filter(function(t){return !t.done;});
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var total=tasks.length, pct=total?Math.round(done/total*100):0;
+  var st=document.getElementById('stat-text'); if(st)st.textContent=done+' of '+total+' done';
+  var h=new Date().getHours(), greet=h<12?'Good morning,':(h<18?'Good afternoon,':'Good evening,');
+  var timeStr=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  var r=48,c=2*Math.PI*r,off=c*(1-pct/100);
+  var ring='<svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg)"><defs><linearGradient id="hmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--blue)"/><stop offset="1" stop-color="var(--blue-lt)"/></linearGradient></defs><circle cx="55" cy="55" r="'+r+'" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="55" cy="55" r="'+r+'" fill="none" stroke="url(#hmg)" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'"/></svg>';
+  var pOrd={critical:0,high:1,medium:2,low:3,none:4};
+  var shown=open.slice().sort(function(a,b){return (pOrd[a.priority]==null?4:pOrd[a.priority])-(pOrd[b.priority]==null?4:pOrd[b.priority]);}).slice(0,6);
+  var tRows=shown.length?shown.map(function(t){var hi=(t.priority==='high'||t.priority==='critical');var tag=t.due?hmDue(t.due):((t.priority&&t.priority!=='none')?t.priority:'');return '<div class="hm-trow"><span class="hm-rad" data-id="'+t.id+'"></span><span class="hm-nm">'+hmEsc(t.text)+'</span>'+(tag?'<span class="hm-tag'+(hi?' hi':'')+'">'+hmEsc(tag)+'</span>':'')+'</div>';}).join(''):'<div class="hm-empty">All clear - no open tasks.</div>';
+  var up=open.filter(function(t){return t.due;}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,4);
+  var evRows=up.length?up.map(function(t){var d=hmParse(t.due);return '<div class="hm-ev"><div class="d"><div class="dd">'+d.day+'</div><div class="mm">'+d.mon+'</div></div><div class="eb"><div class="et">'+hmEsc(t.text)+'</div><div class="es">'+hmEsc(t.brand||'')+'</div></div></div>';}).join(''):'<div class="hm-empty">Nothing scheduled by due date.</div>';
+  var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
+  var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
+  var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
+  view.innerHTML='<div class="hm-wrap"><div class="hm-col">'+
+    '<section class="hm-card hm-hero"><span class="hm-hero-time">'+timeStr+'</span><div class="hm-greet">'+greet+'</div><div class="hm-name">Morgan</div><div class="hm-sub">'+open.length+' open task'+(open.length===1?'':'s')+' right now.</div></section>'+
+    '<section class="hm-card"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">All tasks</span></div><div class="hm-prod"><div class="l"><div class="hm-pct">'+pct+'%</div><div class="hm-note">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div><div class="hm-stats"><div><div class="k">Completed</div><div class="v">'+done+'</div></div><div><div class="k">Total</div><div class="v">'+total+'</div></div></div></div><div class="hm-ring">'+ring+'<span class="rc">'+pct+'%</span></div></div></section>'+
+    '<section class="hm-card"><div class="hm-card-h"><span class="t">Tasks</span><span class="m">'+open.length+' open</span></div><div class="hm-tlist">'+tRows+'</div><div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, press Enter" autocomplete="off"></div></section>'+
+    '<section class="hm-card"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc">'+HM_SHORTCUTS+'</div></section>'+
+    '</div><div class="hm-col">'+
+    '<section class="hm-card hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="amt">'+amt+'</div><div class="lbl">Collected this month</div><div class="ytd">Year to date <b>'+ytd+'</b></div></section>'+
+    '<section class="hm-card"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due date</span></div>'+evRows+'</section>'+
+    '</div></div>';
+  view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
+  var qi=document.getElementById('hm-task-input');
+  if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
+  if(!rev&&typeof ovSyncExternal==='function'){ovSyncExternal().then(function(){var tb=document.getElementById('tab-home');if(tb&&tb.classList.contains('active'))renderHome();}).catch(function(){});}
+}
 function renderOverview(){
   const view=document.getElementById('overview-view');
   if(!view)return;
@@ -3362,19 +3462,22 @@ function ovOpenClient(name){
 }
 
 function switchMainTab(tab){
-  const isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
-  const isBrain=!isClients&&!isCal&&!isOv;
+  const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
+  const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
   document.getElementById('focus-section').style.display=isBrain?'block':'none';
-  document.getElementById('today-due-section').style.display=(isCal||isOv)?'none':'block';
-  document.getElementById('quick-add-bar').style.display=(isClients||isOv)?'none':'flex';
+  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
+  document.getElementById('quick-add-bar').style.display=(isClients||isOv||isHome)?'none':'flex';
   document.getElementById('col-view').style.display=isBrain?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
   document.getElementById('overview-view').style.display=isOv?'flex':'none';
+  document.getElementById('home-view').style.display=isHome?'flex':'none';
   document.getElementById('tab-overview').classList.toggle('active',isOv);
+  document.getElementById('tab-home').classList.toggle('active',isHome);
   document.getElementById('tab-brain').classList.toggle('active',isBrain);
   document.getElementById('tab-calendar').classList.toggle('active',isCal);
   document.getElementById('tab-clients').classList.toggle('active',isClients);
+  if(isHome)renderHome();
   if(isClients)renderClients();
   if(isCal)renderCalendar();
   if(isOv){renderOverview(); ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});}
@@ -4010,7 +4113,7 @@ function init(){
   tasks.forEach(t=>{if(!t.id){t.id=uid();changed=true;}if(!t.subtasks){t.subtasks=[];changed=true;}if(!t.assignees){t.assignees=[];changed=true;}if(t.notes===undefined){t.notes='';changed=true;}});
   if(changed)saveTodoTasks(tasks);
   ovBindAutoSync();
-  switchMainTab('overview');   // Overview is the go-to landing page
+  switchMainTab('home');   // calm Home is the landing page
 }
 
 /* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
