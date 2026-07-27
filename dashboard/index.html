@@ -1278,6 +1278,77 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
 .mo2-card{overflow:visible}
 .mo2-card .f{flex-wrap:wrap}
 .mo2-card button{min-height:34px}
+
+/* ===== MOBILE (iPhone PWA) ===== */
+#tab-bar{display:none}
+@media (max-width:768px){
+  /* left rail out, bottom tab bar in */
+  #side-rail{display:none}
+  #app{padding-left:0}
+  #tab-bar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:905;
+    background:rgba(8,16,28,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tb-btn{flex:1;background:none;border:0;color:var(--light);font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;cursor:pointer}
+  .tb-btn.on{color:var(--blue)}
+  .tb-ic{height:22px;display:grid;place-items:center}
+  .tb-ic svg{width:22px;height:22px}
+  .tb-lbl{font-size:0.6rem;letter-spacing:0.01em}
+
+  /* header down to one compact row */
+  header{height:auto;min-height:52px;padding:0 12px;flex-wrap:nowrap;gap:8px}
+  .h-logo img{height:30px}
+  .h-date{display:none}
+  #completion-stat{display:none}
+  .h-right{gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .h-right::-webkit-scrollbar{display:none}
+  .h-btn{padding:5px 9px;font-size:0.62rem;white-space:nowrap;flex:0 0 auto}
+
+  /* keep content clear of the tab bar */
+  #home-view,#calendar-view,#clients-view,#overview-view{
+    padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+  body.home-drawer #home-view{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+
+  /* board drawer sits ABOVE the tab bar, and clears the home indicator */
+  #board-handle{left:0;bottom:calc(58px + env(safe-area-inset-bottom));height:44px}
+  body.home-drawer #col-view{left:0;bottom:calc(102px + env(safe-area-inset-bottom))}
+  body.home-drawer.drawer-open #col-view{height:52vh}
+
+  /* Mo: full-screen tab instead of a floating bubble */
+  .mo2-fab{display:none}
+  .mo2-panel{
+    left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));top:52px;
+    width:auto;height:auto;max-height:none;max-width:none;border-radius:0;border-left:0;border-right:0;
+    display:none}
+  body.mo-tab .mo2-panel{display:flex}
+  body.mo-tab .mo2-panel.hidden{display:flex}      /* the tab owns visibility */
+  body.mo-tab #board-handle{display:none}
+  .mo2-head .x{display:none}                        /* no close button in tab mode */
+  .mo2-log{padding:14px 13px}
+  .mo2-msg{font-size:0.9rem;max-width:88%}
+  .mo2-in{padding:10px 12px calc(10px + env(safe-area-inset-bottom)/3)}
+  .mo2-in input{font-size:16px}                     /* 16px stops iOS zoom-on-focus */
+  .mo2-in button{width:46px}
+  .mo2-card button{min-height:40px;font-size:0.85rem}
+
+  /* bento: two-up for the small cards so Home is not a mile long */
+  .hm-grid{grid-template-columns:repeat(2,1fr);gap:11px}
+  .hm-hero3{grid-column:1/-1}
+  .hm-moneybar{grid-column:1/-1}
+  .hm-card{padding:13px 14px}
+  .hm-sc2{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-width:768px) and (display-mode:standalone){
+  header{padding-top:env(safe-area-inset-top);min-height:calc(52px + env(safe-area-inset-top))}
+  .mo2-panel{top:calc(52px + env(safe-area-inset-top))}
+}
+@media (max-width:359px){
+  .tb-lbl{font-size:0.56rem}
+  .hm-grid{grid-template-columns:1fr}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3978,9 +4049,32 @@ var SR_ICON={
  overview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
  brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="9" r="2.5"/><circle cx="10" cy="17" r="2.5"/><path d="M8.7 8.4 15 8.6M9 15 15.5 11"/></svg>',
  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+ mo:'<svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="6" width="18" height="14" rx="6"/><circle cx="10" cy="13" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.6" fill="currentColor" stroke="none"/><path d="M13 2.5V6"/></svg>',
  brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
  clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.3a3 3 0 0 1 0 5.4"/><path d="M17.5 20a5 5 0 0 0-2.6-4.4"/></svg>'
 };
+function MM_IS_PHONE(){try{return window.matchMedia('(max-width:768px)').matches;}catch(e){return false;}}
+var MM_TABS=[['mo','Mo'],['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients']];
+function buildTabBar(){
+  if(document.getElementById('tab-bar'))return;
+  var bar=document.createElement('nav');bar.id='tab-bar';
+  bar.innerHTML=MM_TABS.map(function(it){
+    return '<button class="tb-btn" data-tab="'+it[0]+'"><span class="tb-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="tb-lbl">'+it[1]+'</span></button>';
+  }).join('');
+  document.body.appendChild(bar);
+  bar.addEventListener('click',function(ev){
+    var b=ev.target.closest('.tb-btn'); if(!b)return;
+    var t=b.getAttribute('data-tab');
+    switchMainTab(t);
+    mmSyncTabs(t);
+  });
+}
+function mmSyncTabs(active){
+  var bar=document.getElementById('tab-bar');
+  if(bar)bar.querySelectorAll('.tb-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});
+  var rail=document.getElementById('side-rail');
+  if(rail)rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});
+}
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
   var items=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients']];
@@ -3988,7 +4082,7 @@ function buildSideRail(){
   rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
   document.body.appendChild(rail);
   function sync(active){rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});}
-  rail.querySelectorAll('.sr-btn').forEach(function(b){b.addEventListener('click',function(){var tab=b.getAttribute('data-tab');switchMainTab(tab);sync(tab);});});
+  rail.querySelectorAll('.sr-btn').forEach(function(b){b.addEventListener('click',function(){var tab=b.getAttribute('data-tab');switchMainTab(tab);mmSyncTabs(tab);});});
   sync('home');
 }
 
@@ -4312,8 +4406,14 @@ function ovOpenClient(name){
 }
 
 function switchMainTab(tab){
+  const isMo=tab==='mo';
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
-  const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
+  const isBrain=!isMo&&!isHome&&!isClients&&!isCal&&!isOv;
+  document.body.classList.toggle('mo-tab',isMo);
+  if(isMo){
+    var mp=document.getElementById('mo2-panel');
+    if(mp){mp.classList.remove('hidden');var mi=document.getElementById('mo2-input');if(mi&&!MM_IS_PHONE())mi.focus();}
+  }
   document.getElementById('focus-section').style.display='none';
   document.getElementById('today-due-section').style.display=(isCal||isOv||isHome||isClients)?'none':'block';
   document.getElementById('quick-add-bar').style.display='none';
@@ -4322,6 +4422,7 @@ function switchMainTab(tab){
   document.getElementById('clients-view').style.display=isClients?'block':'none';
   document.getElementById('overview-view').style.display=isOv?'flex':'none';
   document.getElementById('home-view').style.display=isHome?'flex':'none';
+  if(isMo){document.getElementById('home-view').style.display='none';document.getElementById('col-view').style.display='none';}
   document.body.classList.toggle('home-drawer',isHome);
   var _bh=document.getElementById('board-handle'); if(_bh)_bh.style.display=isHome?'flex':'none';
   document.getElementById('tab-overview').classList.toggle('active',isOv);
@@ -4973,9 +5074,13 @@ function init(){
   tasks.forEach(t=>{if(!t.id){t.id=uid();changed=true;}if(!t.subtasks){t.subtasks=[];changed=true;}if(!t.assignees){t.assignees=[];changed=true;}if(t.notes===undefined){t.notes='';changed=true;}});
   if(changed)saveTodoTasks(tasks);
   ovBindAutoSync();
-  switchMainTab('home');   // calm Home is the landing page
   try{initMo();}catch(e){}
   try{buildSideRail();}catch(e){}
+  try{buildTabBar();}catch(e){}
+  try{buildBoardHandle();}catch(e){}   /* must exist before the first switchMainTab */
+  var mmLanding=MM_IS_PHONE()?'mo':'home';   // phone: Mo first, it is the capture tool
+  switchMainTab(mmLanding);
+  mmSyncTabs(mmLanding);
   try{buildBoardHandle();}catch(e){}
   try{
     document.addEventListener('dblclick',function(ev){
