@@ -1095,6 +1095,41 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 /* ===== tidy pass (added) ===== */
 .hm-hero3 .hm-date-day{font-size:0.76rem;color:var(--light);margin-top:3px}
 .hm-money2{margin-top:0;padding-top:0;border-top:0}
+
+/* ===== loops split (added) ===== */
+.hm-age{margin-left:7px;font-size:0.62rem;font-weight:700;color:var(--light);background:var(--surface-2);border:1px solid var(--border);padding:1px 6px;border-radius:999px}
+.hm-age.warn{color:var(--hi);border-color:rgba(224,160,95,0.45)}
+.hm-age.crit{color:var(--crit);border-color:rgba(226,104,95,0.5)}
+.hm-loop{align-items:center}
+.hm-lb{flex:1;min-width:0}
+.hm-prom{opacity:0;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;width:24px;height:24px;cursor:pointer;font-size:0.85rem;line-height:1;flex:0 0 auto;transition:0.15s}
+.hm-loop:hover .hm-prom{opacity:1}
+.hm-prom:hover{color:var(--blue);border-color:var(--blue)}
+.hm-loopadd{display:flex;gap:6px}
+.hm-loopadd select{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);border-radius:9px;padding:8px 6px;font-family:inherit;font-size:0.68rem;outline:none;max-width:118px}
+.hm-loopadd input{flex:1;min-width:0}
+.hm-moneybar{grid-column:1/-1;display:flex;align-items:baseline;gap:14px;padding:13px 20px}
+.hm-moneybar .t{font-size:0.8rem;color:var(--muted)}
+.hm-moneybar .amt2{font-size:1.3rem;font-weight:600}
+.hm-moneybar .ytd2{font-size:0.75rem;color:var(--light)}
+.hm-moneybar .m{margin-left:auto;font-size:0.7rem;color:var(--light)}
+
+/* ===== collapsible overview (added) ===== */
+#home-view{padding:12px 26px 0}
+.hm-slim{display:flex;align-items:center;gap:9px;flex-wrap:wrap;max-width:1280px;margin:0 auto;width:100%;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.hm-sgreet{font-size:0.84rem;color:var(--muted)}
+.hm-sgreet b{color:var(--black);font-weight:600}
+.hm-schip{font-size:0.69rem;padding:3px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+.hm-schip.warn{color:var(--hi);border-color:rgba(224,160,95,0.4)}
+.hm-schip.crit{color:var(--crit);border-color:rgba(226,104,95,0.4)}
+.hm-smoney{font-size:0.8rem;font-weight:600;color:var(--lo)}
+.hm-stime{margin-left:auto;font-size:0.73rem;color:var(--light)}
+.hm-toggle{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:0.69rem;padding:5px 11px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.hm-toggle:hover{color:var(--black);border-color:var(--blue)}
+.hm-caret{display:inline-block;transition:transform 0.2s}
+#home-view .hm-grid{display:none;margin-top:13px}
+#home-view.hm-open .hm-grid{display:grid}
+#home-view.hm-open .hm-caret{transform:rotate(180deg)}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3387,9 +3422,16 @@ function hmParse(due){var p=String(due||'').split('-');var mons=['Jan','Feb','Ma
 function hmDue(due){var d=hmParse(due);return (d.mon+' '+d.day).trim();}
 function hmAddTask(text){try{var tasks=loadTodoTasks();tasks.push({id:uid(),text:text,nodeId:'personal-root',brand:'other',priority:'none',due:null,recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',recurLastGen:(typeof todayStr==='function'?todayStr():'')});saveTodoTasks(tasks);}catch(e){}}
 /* ===== OPEN LOOPS store (added, syncs via mm_loops) ===== */
-function hmLoadLoops(){try{var a=JSON.parse(localStorage.getItem('mm_loops')||'null');return Array.isArray(a)?a:[{id:'l1',type:'Unbilled',t:'ECCO brush shower invoice',done:false},{id:'l2',type:'Waiting on reply',t:'OEIS PDF source assets',done:false},{id:'l3',type:'Idea',t:'BBS shorts cover A/B test',done:false}];}catch(e){return [];}}
+var HM_PARK_TYPES=['idea','reminder','note','thought'];
+function hmLoopNorm(a){var now=Date.now(),ch=false;a.forEach(function(l){if(!l.bucket){l.bucket=(HM_PARK_TYPES.indexOf(String(l.type||'').toLowerCase())>-1)?'park':'loop';ch=true;}if(!l.at){l.at=now;ch=true;}});return ch;}
+function hmLoadLoops(){try{var a=JSON.parse(localStorage.getItem('mm_loops')||'null');
+  if(!Array.isArray(a))a=[{id:'l1',type:'Unbilled',t:'ECCO brush shower invoice',done:false,bucket:'loop',at:Date.now()},{id:'l2',type:'Waiting on client',t:'OEIS PDF source assets',done:false,bucket:'loop',at:Date.now()},{id:'l3',type:'Idea',t:'BBS shorts cover A/B test',done:false,bucket:'park',at:Date.now()}];
+  if(hmLoopNorm(a))hmSaveLoops(a);
+  return a;}catch(e){return [];}}
+function hmAge(at){return Math.max(0,Math.floor((Date.now()-(at||Date.now()))/86400000));}
+function hmAgeCls(d){return d>=14?'crit':(d>=7?'warn':'');}
 function hmSaveLoops(a){try{localStorage.setItem('mm_loops',JSON.stringify(a));if(typeof scheduleSave==='function')scheduleSave();}catch(e){}}
-function hmAddLoop(text){var a=hmLoadLoops();a.push({id:'lp'+Date.now()+Math.floor(Math.random()*1000),type:'Reminder',t:text,done:false});hmSaveLoops(a);}
+function hmAddLoop(text,type,bucket){var a=hmLoadLoops();a.push({id:'lp'+Date.now()+Math.floor(Math.random()*1000),type:type||'Reminder',t:text,done:false,bucket:bucket||'park',at:Date.now()});hmSaveLoops(a);}
 
 /* ===== MO floating assistant (added) ===== */
 var MO_WORKER=(typeof WORKER!=='undefined')?WORKER:'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
@@ -3479,7 +3521,12 @@ function renderHome(){
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
   var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
   var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
-  var loops=hmLoadLoops();var openLoops=loops.filter(function(l){return !l.done;});
+  var loops=hmLoadLoops();
+  var openLoops=loops.filter(function(l){return !l.done&&l.bucket!=='park';});
+  var parkItems=loops.filter(function(l){return !l.done&&l.bucket==='park';});
+  var agedCount=openLoops.filter(function(l){return hmAge(l.at)>=7;}).length;
+  function hmRow(l,showAge){var d=hmAge(l.at),cls=hmAgeCls(d);
+    return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+(showAge?'<span class="hm-age '+cls+'">'+d+'d</span>':'')+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div><button class="hm-prom" data-id="'+l.id+'" title="Turn into a task">&rarr;</button></div>';}
   var _mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var _now=new Date();
   var dateBig=_mons[_now.getMonth()]+' '+_now.getDate()+', '+_now.getFullYear();
@@ -3495,23 +3542,48 @@ function renderHome(){
   try{var hist=(typeof loadKpiHistory==='function')?loadKpiHistory():{};var hk=Object.keys(hist).sort().slice(-7);var hv=hk.map(function(k){return (hist[k]&&hist[k].open)||0;});
     if(hv.length>1){var mx=Math.max.apply(null,hv.concat([1]));var pts=hv.map(function(v,ii){return (Math.round(ii*(200/(hv.length-1))))+','+(Math.round(34-(v/mx*26)));}).join(' L');
     spark='<svg class="hm-spark" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M'+pts+'" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}}catch(e){}
-  var loopRows=openLoops.length?openLoops.map(function(l){return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div></div>';}).join(''):'<div class="hm-empty">No open loops.</div>';
-  view.innerHTML='<div class="hm-grid">'+
+  var loopRows=openLoops.length?openLoops.map(function(l){return hmRow(l,true);}).join(''):'<div class="hm-empty">Nothing waiting on anyone.</div>';
+  var parkRows=parkItems.length?parkItems.map(function(l){return hmRow(l,false);}).join(''):'<div class="hm-empty">Nothing parked.</div>';
+  var slimHTML='<div class="hm-slim">'+
+    '<span class="hm-sgreet">'+greet+' <b>Morgan</b></span>'+
+    '<span class="hm-schip">'+open.length+' open</span>'+
+    (dueToday?'<span class="hm-schip warn">'+dueToday+' today</span>':'')+
+    (overdue?'<span class="hm-schip crit">'+overdue+' overdue</span>':'')+
+    (agedCount?'<span class="hm-schip warn">'+agedCount+' aging</span>':'')+
+    '<span class="hm-schip">'+pct+'% done</span>'+
+    '<span class="hm-smoney">'+amt+'</span>'+
+    '<span class="hm-stime">'+timeStr+'</span>'+
+    '<button class="hm-toggle" id="hm-toggle">Overview <span class="hm-caret">&#9662;</span></button>'+
+    '</div>';
+  view.innerHTML=slimHTML+'<div class="hm-grid">'+
     '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-date-day">'+dateDay+', '+dateBig+'</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
     '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+'/'+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Work split</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add a loop, press Enter" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-c2 hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="hm-money2"><span class="amt2">'+amt+'</span><span class="ytd2">YTD '+ytd+'</span></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+(agedCount?' &middot; <span style="color:var(--hi)">'+agedCount+' aging</span>':'')+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Parking lot</span><span class="m">'+parkItems.length+'</span></div><div class="hm-loops">'+parkRows+'</div><div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div></section>'+
+    '<section class="hm-card hm-money hm-moneybar"><span class="t">Money in</span><span class="amt2">'+amt+'</span><span class="ytd2">this month &middot; YTD '+ytd+'</span><span class="m">Moxie</span></section>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
   if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
   view.querySelectorAll('.hm-lbox').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');var a=hmLoadLoops();var f=a.filter(function(x){return x.id===id;})[0];if(f){f.done=!f.done;hmSaveLoops(a);renderHome();}});});
-  var li=document.getElementById('hm-loop-input');
-  if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim());li.value='';renderHome();}});
+  view.querySelectorAll('.hm-prom').forEach(function(el){el.addEventListener('click',function(ev){ev.stopPropagation();
+    var id=el.getAttribute('data-id'),a=hmLoadLoops(),idx=-1;
+    for(var k=0;k<a.length;k++){if(a[k].id===id)idx=k;}
+    if(idx<0)return; var item=a[idx];
+    hmAddTask(item.t); a.splice(idx,1); hmSaveLoops(a);
+    renderHome(); if(typeof renderColumns==='function')renderColumns();
+  });});
+  var li=document.getElementById('hm-loop-input'),lt=document.getElementById('hm-loop-type');
+  if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim(),lt?lt.value:'Waiting on client','loop');li.value='';renderHome();}});
+  var pi=document.getElementById('hm-park-input');
+  if(pi)pi.addEventListener('keydown',function(e){if(e.key==='Enter'&&pi.value.trim()){hmAddLoop(pi.value.trim(),'Idea','park');pi.value='';renderHome();}});
+  view.classList.toggle('hm-open',localStorage.getItem('mm_home_open')==='1');
+  var tg=document.getElementById('hm-toggle');
+  if(tg)tg.addEventListener('click',function(){var nowOpen=!view.classList.contains('hm-open');view.classList.toggle('hm-open',nowOpen);try{localStorage.setItem('mm_home_open',nowOpen?'1':'0');}catch(e){}});
   if(!rev&&typeof ovSyncExternal==='function'){ovSyncExternal().then(function(){var tb=document.getElementById('tab-home');if(tb&&tb.classList.contains('active'))renderHome();}).catch(function(){});}
 }
 function renderOverview(){
