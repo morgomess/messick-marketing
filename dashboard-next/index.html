@@ -1061,6 +1061,36 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 #focus-section{background:transparent}
 @media(max-width:1000px){.hm-strip{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.hm-strip{grid-template-columns:1fr}}
+
+/* ===== BENTO HOME (added) ===== */
+.hm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1280px;margin:0 auto;width:100%}
+.hm-hero3{grid-column:span 2;overflow:hidden}
+.hm-hrow{display:flex;justify-content:space-between;align-items:flex-start}
+.hm-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.hm-chip{font-size:0.72rem;padding:4px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+.hm-chip.warn{color:var(--hi);border-color:rgba(224,160,95,0.4)}
+.hm-chip.crit{color:var(--crit);border-color:rgba(226,104,95,0.4)}
+.hm-spark{width:100%;height:40px;margin-top:10px;display:block;opacity:0.9}
+.hm-date-big{font-size:1.12rem;font-weight:600}
+.hm-date-day{font-size:0.78rem;color:var(--light)}
+.hm-money2{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.amt2{font-size:1.35rem;font-weight:600}
+.ytd2{font-size:0.72rem;color:var(--light)}
+.hm-bars2{display:flex;flex-direction:column;gap:9px}
+.hm-brow{display:flex;align-items:center;gap:8px}
+.hm-bname{display:flex;align-items:center;gap:6px;font-size:0.74rem;color:var(--muted);width:78px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-bname i{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
+.hm-btrack{flex:1;height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.hm-bfill{height:100%;border-radius:5px}
+.hm-bfig{font-size:0.72rem;color:var(--muted);width:40px;text-align:right;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.hm-bfig b{color:var(--crit);font-weight:700}
+.hm-week{display:flex;align-items:flex-end;gap:7px;height:74px}
+.hm-wcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
+.hm-wbar{width:100%;max-width:13px;border-radius:6px;background:linear-gradient(var(--blue-lt),var(--blue));min-height:4px}
+.hm-wbar.peak{background:linear-gradient(#a5dcff,var(--blue-lt))}
+.hm-wcol span{font-size:0.6rem;color:var(--light)}
+@media(max-width:1000px){.hm-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.hm-grid{grid-template-columns:1fr}.hm-hero3{grid-column:auto}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3379,7 +3409,7 @@ function initMo(){
   var fab=document.createElement('button');fab.id='mo2-fab';fab.className='mo2-fab';fab.setAttribute('aria-label','Open Mo');fab.innerHTML=moMiniSvg();
   var panel=document.createElement('section');panel.className='mo2-panel hidden';panel.id='mo2-panel';
   panel.innerHTML='<div class="mo2-head">'+moMiniSvg()+'<div><div class="nm">Hi, I\'m <b>Mo</b></div><div class="s">Ask anything &middot; changes need your OK</div></div><button class="x" id="mo2-x">&times;</button></div>'+
-    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. I can answer questions and tidy your board - tell me to add or complete a task, or close a loop, and I\'ll ask before changing anything.</div></div>'+
+    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. Brain-dump in shorthand (\'JVI blog fri high\', \'ECCO reel done\') and I\'ll file it through the AI Sorter, or ask me anything - I always confirm before changing your board.</div></div>'+
     '<div class="mo2-in"><input id="mo2-input" placeholder="Ask Mo, or tell me to change something..." autocomplete="off"><button id="mo2-send">&#8594;</button></div>';
   document.body.appendChild(fab);document.body.appendChild(panel);
   var log=panel.querySelector('#mo2-log'),input=panel.querySelector('#mo2-input');
@@ -3390,12 +3420,13 @@ function initMo(){
     c.querySelector('.mo2-ok').addEventListener('click',function(){try{act.run();}catch(e){}c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.textContent='\u2713 Done.';});
     c.querySelector('.mo2-no').addEventListener('click',function(){c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.style.color='var(--light)';r.textContent='Dismissed.';});
   }
+  function isQuestion(q){var s=q.trim().toLowerCase();return /\?$/.test(s)||/^(what|when|where|who|why|how|which|did|do|does|is|are|am|can|could|should|will|would|tell me|show me|summar|status|update)/.test(s);}
   function handle(q){if(!q.trim())return;addMsg('me',q);
     var act=moParse(q);
     if(act&&act.label){addMsg('ai','Got it - confirm and I\'ll do it:');pending(act);return;}
-    if(act&&act.miss){addMsg('ai','I couldn\'t find an open task matching "'+act.miss+'". Say "add '+act.miss+'" to create it.');return;}
-    var thinking=addMsg('ai','...');
-    moAsk(q).then(function(ans){thinking.textContent=ans;scrollLog();}).catch(function(){thinking.textContent='I could not reach the model just now.';});
+    if(isQuestion(q)){var thinking=addMsg('ai','...');moAsk(q).then(function(ans){thinking.textContent=ans;scrollLog();}).catch(function(){thinking.textContent='I could not reach the model just now.';});return;}
+    addMsg('ai','Running that through the AI Sorter (it speaks shorthand) - confirm:');
+    pending({label:'AI Sorter: '+hmEsc(q),run:function(){var qa=document.getElementById('quick-add-input');if(qa&&typeof quickAddTask==='function'){qa.value=q;quickAddTask();}else{hmAddTask(q);}}});
   }
   fab.addEventListener('click',function(){panel.classList.toggle('hidden');if(!panel.classList.contains('hidden'))input.focus();});
   panel.querySelector('#mo2-x').addEventListener('click',function(){panel.classList.add('hidden');});
@@ -3445,13 +3476,34 @@ function renderHome(){
   var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
   var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
   var loops=hmLoadLoops();var openLoops=loops.filter(function(l){return !l.done;});
+  var _mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var _now=new Date();
+  var dateBig=_mons[_now.getMonth()]+' '+_now.getDate()+', '+_now.getFullYear();
+  var dateDay=_now.toLocaleDateString('en-US',{weekday:'long'});
+  var wk=[];(function(){for(var i=6;i>=0;i--){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);var e=new Date(d);e.setDate(e.getDate()+1);var n=tasks.filter(function(t){return t.done&&t.doneAt&&t.doneAt>=d.getTime()&&t.doneAt<e.getTime();}).length;wk.push({l:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()],n:n});}})();
+  var wkMax=Math.max.apply(null,wk.map(function(x){return x.n;}).concat([1]));
+  var wkBars=wk.map(function(x){return '<div class="hm-wcol"><div class="hm-wbar'+(x.n===wkMax&&x.n>0?' peak':'')+'" style="height:'+Math.max(8,Math.round(x.n/wkMax*100))+'%"></div><span>'+x.l+'</span></div>';}).join('');
+  var brandBars='';
+  try{if(typeof nodeDueRollup==='function'&&typeof brainNodes!=='undefined'&&brainNodes.length){
+    var KN={'mm-root':'var(--blue)','ve-root':'var(--ve)','personal-root':'var(--personal)'};
+    var rolls=brainNodes.filter(function(n){return n.parent===null;}).map(function(n){var r=nodeDueRollup(n.id)||{};return{label:n.label,color:KN[n.id]||'var(--blue-lt)',open:r.open||0,overdue:r.overdue||0};});
+    var bm=Math.max.apply(null,rolls.map(function(r){return r.open;}).concat([1]));
+    brandBars=rolls.map(function(r){return '<div class="hm-brow"><span class="hm-bname"><i style="background:'+r.color+'"></i>'+hmEsc(r.label)+'</span><div class="hm-btrack"><div class="hm-bfill" style="width:'+Math.max(4,Math.round(r.open/bm*100))+'%;background:'+r.color+'"></div></div><span class="hm-bfig">'+r.open+(r.overdue?' <b>!'+r.overdue+'</b>':'')+'</span></div>';}).join('');
+  }}catch(e){}
+  var spark='';
+  try{var hist=(typeof loadKpiHistory==='function')?loadKpiHistory():{};var hk=Object.keys(hist).sort().slice(-7);var hv=hk.map(function(k){return (hist[k]&&hist[k].open)||0;});
+    if(hv.length>1){var mx=Math.max.apply(null,hv.concat([1]));var pts=hv.map(function(v,ii){return (Math.round(ii*(200/(hv.length-1))))+','+(Math.round(34-(v/mx*26)));}).join(' L');
+    spark='<svg class="hm-spark" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M'+pts+'" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}}catch(e){}
   var loopRows=openLoops.length?openLoops.map(function(l){return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div></div>';}).join(''):'<div class="hm-empty">No open loops.</div>';
-  view.innerHTML='<div class="hm-strip">'+
-    '<section class="hm-card hm-hero2"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-sub">'+open.length+' open'+(dueToday?' &middot; '+dueToday+' due today':'')+(overdue?' &middot; <span style="color:var(--crit)">'+overdue+' overdue</span>':'')+'</div></div><div class="hm-time2">'+timeStr+'</div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+' of '+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
-    '<section class="hm-card hm-c2 hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="amt">'+amt+'</div><div class="lbl">this month &middot; YTD <b>'+ytd+'</b></div></section>'+
+  view.innerHTML='<div class="hm-grid">'+
+    '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
+    '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
+    '<section class="hm-card hm-c2"><div class="hm-date-big">'+dateBig+'</div><div class="hm-date-day">'+dateDay+'</div><div class="hm-money2"><span class="amt2">'+amt+'</span><span class="ytd2">YTD '+ytd+'</span></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+'/'+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Client load</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Weekly activity</span><span class="m">done/day</span></div><div class="hm-week">'+wkBars+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+' open</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add a loop, press Enter" autocomplete="off"></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add a loop, press Enter" autocomplete="off"></div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
@@ -3628,7 +3680,7 @@ function switchMainTab(tab){
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
   const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
   document.getElementById('focus-section').style.display=(isBrain||isHome)?'block':'none';
-  document.getElementById('today-due-section').style.display=(isCal||isOv)?'none':'block';
+  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
   document.getElementById('quick-add-bar').style.display=(isClients||isOv)?'none':'flex';
   document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
