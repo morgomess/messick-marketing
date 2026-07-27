@@ -260,6 +260,31 @@
   }
   .custom-fields-note.visible { display: block; }
 
+  /* Brand kit manager */
+  .kit-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+  .kit-btn {
+    font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    background: #fff; border: 1px solid var(--border); color: var(--steel);
+    padding: 6px 11px; border-radius: 5px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .kit-btn:hover { border-color: var(--steel); background: #eef4f8; }
+  .kit-btn.danger { color: #b3261e; }
+  .kit-btn.danger:hover { border-color: #b3261e; background: #fdeceb; }
+  .kit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .kit-btn:disabled:hover { border-color: var(--border); background: #fff; }
+  .kit-actions select {
+    width: auto; font-size: 11px; padding: 6px 8px; border-radius: 5px;
+  }
+  .kit-restore {
+    font-size: 11px; color: var(--steel); text-decoration: underline;
+    cursor: pointer; background: none; border: none; font-family: inherit; padding: 0;
+  }
+  .kit-saved-flash {
+    font-size: 11px; color: #1a7f37; font-weight: 600; opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .kit-saved-flash.show { opacity: 1; }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: minmax(0, 1fr); }
     .panel-left, .panel-right { min-width: 0; }
@@ -382,26 +407,19 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
             <label>Brand Kit <span class="kit-badge">Presets</span></label>
             <select id="brand-kit-select" onchange="applyBrandKit(this.value)">
               <option value="">— Select a brand kit —</option>
-              <optgroup label="Messick Marketing Clients">
-                <option value="ecco">ECCO Medical</option>
-                <option value="jvi">Joint &amp; Vascular Institute (JVI)</option>
-                <option value="tvi">Texas Vascular Institute (TVI)</option>
-                <option value="svv">Sound Vascular &amp; Vein (SVV)</option>
-                <option value="desert">Desert Cardiovascular Consultants</option>
-                <option value="drkelli">Dr. Kelli - Medical SLP</option>
-                <option value="braintalk">Brain Talk Foundation</option>
-                <option value="obl">OBL Marketing</option>
-                <option value="aspire">Aspire Therapy &amp; Wellness</option>
-                <option value="oeis">OEIS (Outpatient Endovascular &amp; Interventional Society)</option>
-              </optgroup>
-              <optgroup label="My Brands">
-                <option value="messick">Messick Marketing</option>
-                <option value="virtueasy">Virtueasy</option>
-              </optgroup>
-              <option value="custom">✏️ Custom / New Brand</option>
             </select>
           </div>
-          <div class="custom-fields-note" id="custom-note">Fields are editable — fill in your custom brand details below.</div>
+          <div class="kit-actions">
+            <select id="kit-group" title="Which group a saved kit lands in">
+              <option value="clients">Client</option>
+              <option value="mine">My brand</option>
+            </select>
+            <button type="button" class="kit-btn" id="kit-save-btn" onclick="saveCurrentKit()">💾 Save brand kit</button>
+            <button type="button" class="kit-btn danger" id="kit-remove-btn" onclick="removeSelectedKit()" disabled>🗑 Remove</button>
+            <button type="button" class="kit-restore" id="kit-restore-btn" onclick="restoreHiddenKits()" style="display:none;"></button>
+            <span class="kit-saved-flash" id="kit-flash"></span>
+          </div>
+          <div class="custom-fields-note" id="custom-note">Fields are editable — fill in your custom brand details below. Hit <strong>Save brand kit</strong> to keep it in the dropdown.</div>
 
           <!-- Brand fields (auto-filled by kit or manually editable) -->
           <div class="form-row">
@@ -692,6 +710,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     },
     jvi: {
       name: 'Joint & Vascular Institute',
+      label: 'Joint & Vascular Institute (JVI)',
       voice: 'Reassuring, expert, approachable',
       style: 'Deep navy #0c2044, muted rose #9b4848, warm taupe #665f59, white #ffffff — modern clinical warmth, Didact Gothic',
       logo: '',
@@ -701,6 +720,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     },
     tvi: {
       name: 'Texas Vascular Institute',
+      label: 'Texas Vascular Institute (TVI)',
       voice: 'Confident, knowledgeable, caring',
       style: 'Dark navy-teal #004976, light blue-gray #bfced6, white #ffffff, black #000000 — bold and modern, League Spartan / Bebas Neue',
       logo: '',
@@ -710,6 +730,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     },
     svv: {
       name: 'Sound Vascular & Vein',
+      label: 'Sound Vascular & Vein (SVV)',
       voice: 'Friendly, expert, community-focused',
       style: 'Steel blue #104e85, off-white #fefefe, slate gray #6c6e71 — clean and trustworthy, Inter',
       logo: '',
@@ -782,6 +803,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     },
     oeis: {
       name: 'OEIS - Outpatient Endovascular & Interventional Society',
+      label: 'OEIS (Outpatient Endovascular & Interventional Society)',
       voice: 'Authoritative and collegial — clinical precision with a peer-to-peer tone. Positions OEIS as the leading voice for outpatient IR and vascular practice. Advocacy-forward, education-driven, and practice-focused.',
       style: 'Light blue #62a1d7, black #000000, white #ffffff, dark navy #171d4b, deep blue #013366 — clean and professional with a medical society feel, Canva Sans or similar clean sans-serif',
       logo: '',
@@ -791,8 +813,159 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     }
   };
 
+  // ─── Brand Kit Manager (add / edit / remove without touching code) ────────
+  // Presets above are the shipped defaults. Anything Morgan saves or removes in
+  // the UI lives in localStorage and is layered on top of them, so the built-in
+  // list stays intact and a hidden preset can always be restored.
+  const KIT_STORE_KEY = 'mm_content_kits_v1';
+  const MY_BRAND_KEYS = ['messick', 'virtueasy'];
+
+  function loadKitStore() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KIT_STORE_KEY));
+      if (!s || typeof s !== 'object') throw 0;
+      return { custom: s.custom || {}, hidden: Array.isArray(s.hidden) ? s.hidden : [] };
+    } catch (e) { return { custom: {}, hidden: [] }; }
+  }
+  function saveKitStore(s) { localStorage.setItem(KIT_STORE_KEY, JSON.stringify(s)); }
+
+  // Custom entries override a built-in of the same key, so a preset can be edited too
+  function allKits() {
+    const store = loadKitStore();
+    const merged = {};
+    Object.keys(BRAND_KITS).forEach(k => { if (!store.hidden.includes(k)) merged[k] = BRAND_KITS[k]; });
+    Object.keys(store.custom).forEach(k => { merged[k] = store.custom[k]; });
+    return merged;
+  }
+  function kitGroup(key, kit) {
+    if (kit && kit.group) return kit.group;
+    return MY_BRAND_KEYS.includes(key) ? 'mine' : 'clients';
+  }
+  function kitKeyFromName(name) {
+    return String(name || '').trim().toLowerCase()
+      .replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  }
+
+  function renderKitOptions(selectKey) {
+    const sel = document.getElementById('brand-kit-select');
+    if (!sel) return;
+    const keep = selectKey !== undefined ? selectKey : sel.value;
+    const kits = allKits();
+    const store = loadKitStore();
+    const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const groupHTML = (label, keys) => keys.length
+      ? `<optgroup label="${esc(label)}">${keys.map(k => `<option value="${esc(k)}">${esc(kits[k].label || kits[k].name || k)}${store.custom[k] ? ' •' : ''}</option>`).join('')}</optgroup>`
+      : '';
+    const byName = (a, b) => String(kits[a].name || a).localeCompare(String(kits[b].name || b));
+    const keys = Object.keys(kits);
+    const clientKeys = keys.filter(k => kitGroup(k, kits[k]) === 'clients').sort(byName);
+    const mineKeys   = keys.filter(k => kitGroup(k, kits[k]) === 'mine').sort(byName);
+
+    sel.innerHTML = '<option value="">— Select a brand kit —</option>'
+      + groupHTML('Messick Marketing Clients', clientKeys)
+      + groupHTML('My Brands', mineKeys)
+      + '<option value="custom">✏️ Custom / New Brand</option>';
+
+    sel.value = (keep && (keep === 'custom' || kits[keep])) ? keep : '';
+    updateKitControls();
+  }
+
+  function updateKitControls() {
+    const sel = document.getElementById('brand-kit-select');
+    const removeBtn = document.getElementById('kit-remove-btn');
+    const restoreBtn = document.getElementById('kit-restore-btn');
+    if (!sel) return;
+    const key = sel.value;
+    if (removeBtn) {
+      const removable = !!key && key !== 'custom';
+      removeBtn.disabled = !removable;
+      removeBtn.title = removable ? 'Remove this brand kit from the dropdown' : 'Select a saved brand kit to remove it';
+    }
+    const hidden = loadKitStore().hidden;
+    if (restoreBtn) {
+      restoreBtn.style.display = hidden.length ? 'inline' : 'none';
+      restoreBtn.textContent = `Restore ${hidden.length} hidden preset${hidden.length === 1 ? '' : 's'}`;
+    }
+    // Keep the group selector in step with whatever is selected
+    const groupSel = document.getElementById('kit-group');
+    const kits = allKits();
+    if (groupSel && key && key !== 'custom' && kits[key]) groupSel.value = kitGroup(key, kits[key]);
+  }
+
+  function flashKit(msg) {
+    const el = document.getElementById('kit-flash');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function saveCurrentKit() {
+    const name = document.getElementById('brand-name').value.trim();
+    if (!name) { alert('Enter a Brand Name first — that becomes the name of the kit.'); document.getElementById('brand-name').focus(); return; }
+    const key = kitKeyFromName(name);
+    if (!key) { alert('That brand name can\'t be turned into a kit name. Use letters or numbers.'); return; }
+
+    const store = loadKitStore();
+    const existsBuiltIn = !!BRAND_KITS[key], existsCustom = !!store.custom[key];
+    if (existsCustom || existsBuiltIn) {
+      const what = existsCustom ? 'saved brand kit' : 'built-in preset';
+      if (!confirm(`"${name}" already exists as a ${what}. Overwrite it with the fields currently on screen?`)) return;
+    }
+
+    store.custom[key] = {
+      name,
+      voice: document.getElementById('brand-voice').value.trim(),
+      style: document.getElementById('brand-style').value.trim(),
+      logo:  document.getElementById('logo-url').value.trim(),
+      audience: document.getElementById('audience').value.trim(),
+      industry: document.getElementById('industry').value.trim(),
+      tone: document.getElementById('tone').value,
+      group: document.getElementById('kit-group').value === 'mine' ? 'mine' : 'clients'
+    };
+    // Saving over a preset you'd previously removed brings it back as your own version
+    store.hidden = store.hidden.filter(h => h !== key);
+    saveKitStore(store);
+    renderKitOptions(key);
+    document.getElementById('custom-note').classList.remove('visible');
+    flashKit('✓ Saved');
+  }
+
+  function removeSelectedKit() {
+    const sel = document.getElementById('brand-kit-select');
+    const key = sel.value;
+    if (!key || key === 'custom') return;
+    const kits = allKits();
+    const label = (kits[key] && kits[key].name) || key;
+    const isPreset = !!BRAND_KITS[key];
+    const msg = isPreset
+      ? `Remove "${label}" from the dropdown?\n\nIt's a built-in preset, so it's only hidden — you can restore it any time.`
+      : `Delete the saved brand kit "${label}"?\n\nThis can't be undone.`;
+    if (!confirm(msg)) return;
+
+    const store = loadKitStore();
+    delete store.custom[key];
+    if (isPreset && !store.hidden.includes(key)) store.hidden.push(key);
+    saveKitStore(store);
+    renderKitOptions('');
+    applyBrandKit('');
+    flashKit(isPreset ? '✓ Hidden' : '✓ Deleted');
+  }
+
+  function restoreHiddenKits() {
+    const store = loadKitStore();
+    if (!store.hidden.length) return;
+    if (!confirm(`Restore ${store.hidden.length} hidden preset${store.hidden.length === 1 ? '' : 's'} to the dropdown?`)) return;
+    store.hidden = [];
+    saveKitStore(store);
+    renderKitOptions();
+    flashKit('✓ Restored');
+  }
+
   function applyBrandKit(kitKey) {
     const note = document.getElementById('custom-note');
+    updateKitControls();
     if (!kitKey || kitKey === 'custom') {
       // Custom — clear fields and let user type freely
       document.getElementById('brand-name').value = '';
@@ -805,7 +978,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       note.classList.toggle('visible', kitKey === 'custom');
       return;
     }
-    const kit = BRAND_KITS[kitKey];
+    const kit = allKits()[kitKey];
     if (!kit) return;
     document.getElementById('brand-name').value  = kit.name;
     document.getElementById('brand-voice').value = kit.voice;
@@ -870,6 +1043,9 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     }
   }
   document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+
+  // Build the brand-kit dropdown from the presets + anything saved locally
+  renderKitOptions();
 
   function selectType(btn) {
     document.querySelectorAll('#content-type-grid .type-btn').forEach(b => b.classList.remove('active'));

@@ -408,6 +408,7 @@
   }
   .status-sel:focus { border-color: var(--steel); }
   .status-sel.s-emailed { color: var(--steel); border-color: #b8d4e8; background: #f0f7fb; }
+  .status-sel.s-followup-needed { color: #a35b00; border-color: #f0cf9a; background: #fff6e8; font-weight: 700; }
   .status-sel.s-followed { color: #7a3a8a; border-color: #dbbde8; background: #f8f0fc; }
   .status-sel.s-responded { color: #2e7d5e; border-color: #9dd4b8; background: #f0faf5; }
   .status-sel.s-closed { color: #1a5276; border-color: #9ab8d4; background: #edf4fa; }
@@ -748,6 +749,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
           <select class="leads-filter" id="leads-filter" onchange="renderLeadsTable()">
             <option value="">All Statuses</option>
             <option value="Emailed">Emailed</option>
+            <option value="Follow Up Needed">Follow Up Needed</option>
             <option value="Followed Up">Followed Up</option>
             <option value="Responded">Responded</option>
             <option value="Closed">Closed</option>
@@ -906,7 +908,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <div class="field" style="flex:1; min-width:150px;">
         <label>Status</label>
         <select id="al-status" class="field-select">
-          <option>Emailed</option><option>Followed Up</option><option>Responded</option><option>Closed</option><option>Not Interested</option>
+          <option>Emailed</option><option>Follow Up Needed</option><option>Followed Up</option><option>Responded</option><option>Closed</option><option>Not Interested</option>
         </select>
       </div>
     </div>
@@ -953,6 +955,9 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   const PASSWORD = "Messick2026";
   const LEADS_KEY = "mm_leads";
   const LEADS_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec";
+  // The pipeline vocabulary, in stage order. Kept in one place so the table, the
+  // add-lead form, the filter and the dashboard all stay in step.
+  const LEAD_STATUSES = ['Emailed','Follow Up Needed','Followed Up','Responded','Closed','Not Interested'];
 
   let state = { biz: '', loc: '', web: '', email: '', notes: '', scrapeData: null, intelRaw: null, selectedServices: [], customServices: [], chatMessages: [], pitchMessages: [], pitchSystem: '', pitchHistory: [], recommendedServices: [], dismissedFindings: new Set() };
   let leads = [];
@@ -1151,7 +1156,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
           <td style="font-size:13px;">${l.email ? `<a href="mailto:${esc(l.email)}" onclick="event.stopPropagation()" style="color:var(--steel);">${esc(l.email)}</a>` : '<span style="color:#ccc;">—</span>'}</td>
           <td onclick="event.stopPropagation()">
             <select class="status-sel ${statusClass(l.status)}" onchange="updateLeadStatus('${l.id}', this.value)" title="Change status">
-              ${['Emailed','Followed Up','Responded','Closed','Not Interested'].map(s => `<option ${s===l.status?'selected':''}>${s}</option>`).join('')}
+              ${LEAD_STATUSES.map(s => `<option ${s===l.status?'selected':''}>${s}</option>`).join('')}
             </select>
           </td>
           <td style="font-size:12px;color:var(--muted);white-space:nowrap;">${fmtDate(l.savedAt)}</td>
@@ -1164,7 +1169,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   }
 
   function renderLeadsSummary() {
-    const statuses = ['Emailed','Followed Up','Responded','Closed','Not Interested'];
+    const statuses = LEAD_STATUSES;
     const counts = {};
     statuses.forEach(s => counts[s] = leads.filter(l => l.status === s).length);
     document.getElementById('leads-summary').innerHTML = `
@@ -1285,6 +1290,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   // ── STATUS CLASS ──
   function statusClass(s) {
     if (s === 'Emailed') return 's-emailed';
+    if (s === 'Follow Up Needed') return 's-followup-needed';
     if (s === 'Followed Up') return 's-followed';
     if (s === 'Responded') return 's-responded';
     if (s === 'Closed') return 's-closed';

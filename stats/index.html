@@ -96,6 +96,7 @@
         .conf-plat-fb { border-left: 4px solid #1877F2; }
         .conf-plat-li { border-left: 4px solid #0A66C2; }
         .conf-plat-x  { border-left: 4px solid #000000; }
+        .conf-plat-pin { border-left: 4px solid #E60023; }
         .global-auto-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; padding: 0.5rem 1.25rem 1rem; }
         .global-auto-tile { background: white; border-radius: 8px; padding: 0.6rem; text-align: center; }
         .global-auto-tile .gval { font-size: 1.2rem; font-weight: 600; font-family: 'Cormorant Garamond', serif; }
@@ -223,18 +224,30 @@ const PLATFORM_FIELDS = {
     YouTube:   ['followers','followersGained','followersLost','videoViews','impressions','watchTime','likes','comments','shares','dislikes','postsPublished','engRate'],
     Facebook:  ['followers','followersGained','followersLost','reach','impressions','likes','comments','shares','clicks','postsPublished','reelsPublished','engRate','avgDailyReach'],
     LinkedIn:  ['followers','followersGained','followersLost','impressions','likes','comments','shares','clicks','postsPublished','engRate'],
-    X:         ['followers','followersGained','followersLost','impressions','likes','comments','shares','bookmarks','postsPublished','engRate']
+    X:         ['followers','followersGained','followersLost','impressions','videoViews','likes','comments','shares','bookmarks','clicks','postsPublished','engRate'],
+    Pinterest: ['followers','followersGained','followersLost','impressions','reach','saves','pinClicks','clicks','likes','comments','postsPublished','engRate','avgDailyReach']
 };
-const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li', X:'x' };
+const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li', X:'x', Pinterest:'pin' };
 const FIELD_LABELS = {
     followers:'Followers', followersGained:'Gained', followersLost:'Lost',
     reach:'Reach', impressions:'Impressions', videoViews:'Video Views',
     watchTime:'Watch Time (hrs)', likes:'Likes', comments:'Comments',
     shares:'Shares', saves:'Saves', clicks:'Clicks', dislikes:'Dislikes',
+    bookmarks:'Bookmarks', pinClicks:'Pin Clicks',
     plays:'Plays', postsPublished:'Posts', reelsPublished:'Reels',
     engRate:'Eng. Rate %', avgWatchTime:'Avg Watch (sec)', avgDailyReach:'Avg Daily Reach'
 };
-const GLOBAL_SUM_FIELDS = ['followers','followersGained','followersLost','reach','impressions','videoViews','likes','comments','shares','saves','clicks','dislikes','postsPublished','reelsPublished'];
+// Per-platform label overrides so each channel reads in its own native language
+const FIELD_LABELS_BY_PLAT = {
+    X:         { shares:'Reposts', comments:'Replies', clicks:'Link Clicks', postsPublished:'Posts' },
+    Pinterest: { postsPublished:'Pins', clicks:'Outbound Clicks', likes:'Reactions', followersGained:'Gained', impressions:'Impressions' },
+    YouTube:   { followers:'Subscribers', followersGained:'Subs Gained', followersLost:'Subs Lost', postsPublished:'Videos' }
+};
+function platLabel(plat, f) {
+    const o = FIELD_LABELS_BY_PLAT[plat];
+    return (o && o[f]) || FIELD_LABELS[f] || f;
+}
+const GLOBAL_SUM_FIELDS = ['followers','followersGained','followersLost','reach','impressions','videoViews','likes','comments','shares','saves','bookmarks','pinClicks','clicks','dislikes','postsPublished','reelsPublished'];
 const GLOBAL_DISPLAY = ['followers','followersGained','followersLost','impressions','likes','comments','shares','postsPublished'];
 
 function fmt(n) {
@@ -384,7 +397,8 @@ const app = {
                         messages: [{ role: 'user', content: [
                             { type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } },
                             { type: 'text', text: `You are extracting a social media analytics report (likely a Metricool export) into structured JSON.
-The report has per-platform columns (Facebook, Instagram, TikTok, YouTube, LinkedIn) and possibly a Global Total column.
+The report has per-platform columns (Facebook, Instagram, TikTok, YouTube, LinkedIn, X/Twitter, Pinterest) and possibly a Global Total column.
+Platform naming: a column labelled "X", "Twitter", "X (Twitter)" or showing the X/bird logo is the platform X. A column labelled "Pinterest" or showing the Pinterest "P" logo is Pinterest.
 Extract THREE things: (1) per-platform metrics, (2) the top-performing posts/content, (3) the period-over-period deltas.
 
 (1) METRICS — extract INTO EACH PLATFORM SEPARATELY. Do NOT combine platforms.
@@ -397,21 +411,24 @@ Field synonyms:
 - impressions = impressions/views, total impressions
 - videoViews = video views
 - watchTime = watch time (hours)
-- likes = likes, reactions, hearts
-- comments = comments, replies
-- shares = shares, reposts
-- saves = saves, bookmarks
-- clicks = link clicks, profile clicks
+- likes = likes, reactions, hearts (on Pinterest this is "reactions")
+- comments = comments, replies (on X this is "replies")
+- shares = shares, reposts, retweets (on X this is "reposts")
+- saves = saves (on Pinterest this is "saves" / "pin saves"; on Instagram "saves"). Do NOT put X bookmarks here.
+- bookmarks = X bookmarks only (the bookmark/save action on a post). Leave 0 for every other platform.
+- pinClicks = Pinterest pin clicks (clicks that open the Pin itself). Pinterest only.
+- clicks = link clicks, profile clicks. On Pinterest use OUTBOUND clicks (clicks through to the destination site) here, not pin clicks. On X use link clicks.
 - dislikes = dislikes, thumbs down
-- postsPublished = FEED posts only (standard grid/timeline posts). Do NOT include reels, shorts, or stories here.
+- postsPublished = FEED posts only (standard grid/timeline posts). Do NOT include reels, shorts, or stories here. On Pinterest this is Pins published; on X it is posts/tweets published (exclude replies unless the report only gives a combined number).
 - reelsPublished = reels + shorts + short-form video published (count these here, separately from feed posts).
 - IMPORTANT: never count Stories in postsPublished or reelsPublished (Stories are excluded from the Posts total entirely).
-- videoViews = video views (YouTube/TikTok). Keep separate from impressions here; the app folds them into the Impressions total itself.
+- videoViews = video views (YouTube/TikTok/X). Keep separate from impressions here; the app folds them into the Impressions total itself.
+- Pinterest note: Pinterest reports usually give impressions, saves, pin clicks, outbound clicks and total audience/monthly viewers. If only "monthly viewers" is shown, put it in reach, not followers.
 - engRate = engagement rate % (as decimal e.g. 2.5)
 - avgWatchTime = average watch time (seconds)
 - avgDailyReach = average daily reach
 
-(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, format, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array []. For "format", use one of: Reel, Short, Video, Carousel, Image, Story, Text - infer it from the post type/label or the caption (e.g. a vertical video is a Reel on Instagram/Facebook or a Short on YouTube); use "" only if truly unknown.
+(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, format, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array []. For "format", use one of: Reel, Short, Video, Carousel, Image, Story, Text, Pin, Idea Pin - infer it from the post type/label or the caption (e.g. a vertical video is a Reel on Instagram/Facebook or a Short on YouTube); use "" only if truly unknown.
 
 (3) deltas — the period-over-period % change the report shows for each platform (e.g. "+101.71%", "-49.39%", "n/a"). Capture the change strings verbatim (keep the sign and %). Map: followers=follower growth %, impressions=impressions %, interactions=interactions/engagement %, posts=posts %. If a platform shows no % for a metric, use "".
 
@@ -456,7 +473,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const platSections = platforms.map(p => {
             const pData = d[p] || {};
             const fields = PLATFORM_FIELDS[p];
-            const rows = fields.map(f => `<div><label style="font-size:0.6rem;">${(FIELD_LABELS[f]||f).toUpperCase()}</label><input type="number" step="any" data-plat="${p}" data-field="${f}" class="conf-input" value="${pData[f] || ''}" placeholder="0" oninput="app.updateGlobalTotals()"></div>`).join('');
+            const rows = fields.map(f => `<div><label style="font-size:0.6rem;">${platLabel(p, f).toUpperCase()}</label><input type="number" step="any" data-plat="${p}" data-field="${f}" class="conf-input" value="${pData[f] || ''}" placeholder="0" oninput="app.updateGlobalTotals()"></div>`).join('');
             return `
                 <div class="conf-section conf-plat-${PLAT_CSS[p]}">
                     <div class="conf-section-head" onclick="this.nextElementSibling.classList.toggle('collapsed'); this.querySelector('.arrow').classList.toggle('open')">
@@ -534,7 +551,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         global.followerBalance = (global.followersGained || 0) - (global.followersLost || 0);
         // RULE: "Posts" = evergreen content published = feed posts + reels/shorts. Stories are excluded (never counted).
         global.totalContent = (global.postsPublished || 0) + (global.reelsPublished || 0);
-        global.totalInteractions = (global.likes||0) + (global.comments||0) + (global.shares||0) + (global.saves||0) + (global.clicks||0);
+        global.totalInteractions = (global.likes||0) + (global.comments||0) + (global.shares||0) + (global.saves||0) + (global.bookmarks||0) + (global.pinClicks||0) + (global.clicks||0);
         // RULE: Impressions headline folds in video views (YouTube/TikTok), applied consistently.
         global.videoViews = global.videoViews || 0;
         global.impressions = (global.impressions || 0) + global.videoViews; // = "Impressions & Views"
@@ -545,7 +562,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (!global.engRate && global.impressions > 0) global.engRate = parseFloat(((global.totalInteractions / global.impressions) * 100).toFixed(2));
         global.avgDailyReach = platforms.reduce((sum, p) => sum + (perPlatform[p].avgDailyReach || 0), 0);
 
-        const granular = { likes: global.likes||0, comments: global.comments||0, shares: global.shares||0, saves: global.saves||0, clicks: global.clicks||0, dislikes: global.dislikes||0 };
+        const granular = { likes: global.likes||0, comments: global.comments||0, shares: global.shares||0, saves: global.saves||0, bookmarks: global.bookmarks||0, pinClicks: global.pinClicks||0, clicks: global.clicks||0, dislikes: global.dislikes||0 };
 
         const topContent = [];
         const contentText = document.getElementById('content-entries').value.trim();
@@ -637,6 +654,34 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (g.followers > 500 && engRate < 2)
             boosts.push({ tier:'month', title:'Audience Re-engagement', desc:'Large following with low engagement signals stale audience. Run 4-week reactivation: polls, Q&As, UGC prompts, giveaway.' });
 
+        // ── Pinterest
+        if (pp.Pinterest) {
+            const pin = pp.Pinterest;
+            const pinImpr = (pin.impressions||0);
+            if (pinImpr > 1000 && (pin.saves||0) > 0 && (pin.saves/pinImpr*100) < 0.5)
+                boosts.push({ tier:'week', title:'Pinterest Save Rate Is Low', desc:`${fmt(pin.saves)} saves on ${fmt(pinImpr)} impressions (${((pin.saves/pinImpr)*100).toFixed(2)}%). Saves are the Pinterest ranking signal - rework pin design with a bold text overlay, 2:3 vertical ratio, and a benefit-led title.` });
+            if (pinImpr > 500 && (pin.clicks||0) === 0)
+                boosts.push({ tier:'asap', title:'Pinterest Sending No Traffic', desc:`${fmt(pinImpr)} impressions but zero outbound clicks. Every pin needs a working destination URL to a relevant page - check the links on the current pins.` });
+            if ((pin.pinClicks||0) > 0 && (pin.clicks||0) > 0 && (pin.clicks / pin.pinClicks) < 0.25)
+                boosts.push({ tier:'week', title:'Pinterest Click-Through Drop-Off', desc:`${fmt(pin.pinClicks)} pin clicks but only ${fmt(pin.clicks)} outbound clicks. The pin earns the open but the landing promise is weak - align the destination page headline with the pin title.` });
+            if ((pin.postsPublished||0) > 0 && (pin.postsPublished||0) < 12)
+                boosts.push({ tier:'month', title:'Pinterest Volume Push', desc:`Only ${pin.postsPublished} pins published. Pinterest rewards volume and freshness - target 15-25 pins/month, including 3-5 fresh variations of the best-performing blog or service page.` });
+        }
+
+        // ── X
+        if (pp.X) {
+            const x = pp.X;
+            const xImpr = (x.impressions||0) + (x.videoViews||0);
+            if ((x.bookmarks||0) > 0 && (x.likes||0) > 0 && (x.bookmarks / x.likes) > 0.5)
+                boosts.push({ tier:'week', title:'X Bookmarks Outpacing Likes', desc:`${fmt(x.bookmarks)} bookmarks vs ${fmt(x.likes)} likes - the audience is saving this as reference, not reacting to it. Expand the best saved posts into threads and turn them into a recurring format.` });
+            if (xImpr > 1000 && (x.comments||0) === 0)
+                boosts.push({ tier:'asap', title:'No Replies on X', desc:`${fmt(xImpr)} impressions with zero replies. X rewards conversation - end posts with a genuine question and spend 15 min/day replying in-niche.` });
+            if ((x.postsPublished||0) > 0 && (x.postsPublished||0) < 20)
+                boosts.push({ tier:'month', title:'X Cadence Is Too Light', desc:`Only ${x.postsPublished} posts this period. X decays fastest of any platform - target 1-2 posts/day, mixing short takes, one thread/week, and replies to larger accounts.` });
+            if (xImpr > 0 && (x.clicks||0) > 0 && (x.clicks / xImpr * 100) < 0.5)
+                boosts.push({ tier:'week', title:'X Link Clicks Are Thin', desc:`${fmt(x.clicks)} link clicks on ${fmt(xImpr)} impressions. X suppresses posts with outbound links - put the link in a reply to the post instead of in the post itself.` });
+        }
+
         return boosts;
     },
 
@@ -671,7 +716,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const neg = s.replace(/[^0-9.+-]/g, '').startsWith('-'), col = neg ? 'var(--red)' : 'var(--green)', bg = neg ? 'var(--red-bg)' : 'var(--green-bg)';
         return `<span style="display:inline-block; font-size:0.68rem; font-weight:700; color:${col}; background:${bg}; padding:1px 7px; border-radius:6px;">${s}</span>`;
     },
-    platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.clicks||0); },
+    platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.bookmarks||0)+(pd.pinClicks||0)+(pd.clicks||0); },
     // Posts = evergreen content (feed posts + reels/shorts). Stories excluded.
     platPosts(pd) { pd = pd || {}; return (pd.postsPublished||0)+(pd.reelsPublished||0); },
     // Impressions folds in video views (YouTube/TikTok), consistent with the headline rule.
@@ -683,7 +728,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         return foll > 0 && lost === 0 && gained >= foll * 0.9;
     },
     // Rough 2026 median engagement-rate ranges by platform (healthcare / local-service leaning)
-    BENCH: { Instagram:{eng:[0.7,1.5],label:'0.7-1.5%'}, Facebook:{eng:[0.3,0.8],label:'0.3-0.8%'}, LinkedIn:{eng:[1.5,3.0],label:'1.5-3%'}, YouTube:{eng:[1.0,2.5],label:'1-2.5%'}, TikTok:{eng:[2.5,5.0],label:'2.5-5%'}, X:{eng:[0.3,0.9],label:'0.3-0.9%'} },
+    BENCH: { Instagram:{eng:[0.7,1.5],label:'0.7-1.5%'}, Facebook:{eng:[0.3,0.8],label:'0.3-0.8%'}, LinkedIn:{eng:[1.5,3.0],label:'1.5-3%'}, YouTube:{eng:[1.0,2.5],label:'1-2.5%'}, TikTok:{eng:[2.5,5.0],label:'2.5-5%'}, X:{eng:[0.3,0.9],label:'0.3-0.9%'}, Pinterest:{eng:[0.2,0.6],label:'0.2-0.6%'} },
     benchmarkNotes(c) {
         const out = [];
         (c.platforms||[]).forEach(p => {
@@ -700,7 +745,11 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (/\bshort\b/.test(title)) return 'Short';
         if (/\bcarousel\b/.test(title)) return 'Carousel';
         if (/\bstory\b/.test(title)) return 'Story';
+        if (/\bidea pin\b/.test(title)) return 'Idea Pin';
+        if (/\bpin\b/.test(title)) return 'Pin';
         if (plat === 'YouTube') return 'Video';
+        if (plat === 'Pinterest') return 'Pin';
+        if (plat === 'X') return 'Post';
         return 'Post';
     },
     formatBreakdown(c) {
@@ -783,6 +832,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const interactionStats = [
             { lbl:'Likes', val:fmt(gr.likes||0) }, { lbl:'Comments', val:fmt(gr.comments||0) },
             { lbl:'Shares', val:fmt(gr.shares||0) }, { lbl:'Saves', val:fmt(gr.saves||0) },
+            { lbl:'Bookmarks', val:fmt(gr.bookmarks||0) }, { lbl:'Pin Clicks', val:fmt(gr.pinClicks||0) },
             { lbl:'Clicks', val:fmt(gr.clicks||0) }, { lbl:'Dislikes', val:fmt(gr.dislikes||0) }
         ].filter(s => parseFloat(String(s.val).replace(/[^0-9.]/g,'')) > 0 || s.lbl === 'Likes');
 
@@ -896,6 +946,9 @@ USE THIS CONTEXT TO OPTIMIZE THE RECOMMENDATIONS:
 - formatPerformance: average reach/engagement per content format - name the winning format(s) and recommend shifting the mix toward them, citing the numbers.
 - efficiency: per-post reach/engagement and follower-conversion % - use to judge whether the gap is volume (too few posts), hook (low reach/post), or CTA (low follower-conversion), and aim the fix at the weakest stage.
 - platformBenchmarks: cite these ranges so "good/underperforming" is credible, not arbitrary.
+- PLATFORM-SPECIFIC READS (apply only to platforms present in the data):
+  * Pinterest is a search/discovery engine, not a feed. Judge it on saves (the ranking signal), pin clicks, and outbound clicks - NOT on follower count or likes. A low follower count with high impressions is normal and healthy. Recommend pin volume, fresh pin variations, keyword-rich titles/descriptions, and destination-page alignment. Never recommend Stories, Reels, or trending audio for Pinterest.
+  * X rewards conversation and velocity. Judge it on replies, reposts, and bookmarks - bookmarks signal reference-worthy content and are a cue to expand a post into a thread. Cadence matters more here than anywhere else; posts with outbound links get suppressed, so recommend link-in-reply. Never recommend hashtags-for-reach on X.
 - lastPeriodGoal: if present, GRADE it against this period's actual numbers (hit / partially met / missed) and say so in keyFindings.
 Prioritize: order recommendations by impact (High first). Each recommendation gets an "impact" (High/Medium/Low) and, where possible, a "target" (a measurable outcome). Give the 5 highest-leverage moves only.
 
@@ -963,7 +1016,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const g = c.global || {}, plats = c.platforms || [], pp = c.perPlatform || {};
         const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
         const n = v => fmt(v || 0);
-        const stats = plats.map(p => { const pd = pp[p] || {}; return { p, followers: pd.followers||0, impressions: pd.impressions||0, interactions: this.platInteractions(pd), posts: this.platPosts(pd), engRate: pd.engRate||0, isNew: this.isNewChannel(c, p) }; });
+        const stats = plats.map(p => { const pd = pp[p] || {}; return { p, followers: pd.followers||0, impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd), engRate: pd.engRate||0, isNew: this.isNewChannel(c, p) }; });
         const totalImpr = stats.reduce((s,x)=>s+x.impressions,0);
         const top = stats.slice().sort((a,b)=>b.impressions-a.impressions)[0];
         const topPost = (c.topContent||[]).slice().sort((a,b)=>(b.impressions||0)-(a.impressions||0)||(b.totalEng||0)-(a.totalEng||0))[0];
@@ -1002,9 +1055,33 @@ Give exactly 5 recommendations, ordered High impact first.`;
         });
         stats.forEach(x => {
             if (x.isNew) return;
-            if (x.impressions>0) platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
-            if (x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. We'll open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
+            // Pinterest and X get their own bespoke notes below - don't double up here
+            if (x.impressions>0 && x.p !== 'Pinterest' && x.p !== 'X') platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
+            // Pinterest runs well under 1% by nature (discovery surface) - it's judged on saves/clicks instead
+            if (x.p !== 'Pinterest' && x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. We'll open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
         });
+        // Pinterest reads on its own terms: saves and outbound clicks, not followers
+        if (pp.Pinterest && !this.isNewChannel(c, 'Pinterest')) {
+            const pin = pp.Pinterest, pimp = this.platImpressions(pin);
+            if (pimp > 0) {
+                const saveRate = pin.saves ? (pin.saves/pimp*100) : 0;
+                platformNotes.push({platform:'Pinterest', note:`${n(pimp)} impressions, ${n(pin.saves||0)} saves (${saveRate.toFixed(2)}% save rate) and ${n(pin.clicks||0)} outbound clicks across ${pin.postsPublished||0} pin${(pin.postsPublished||0)===1?'':'s'}.`});
+                if (saveRate > 0 && saveRate < 0.5) { concerns.push(`Pinterest save rate is ${saveRate.toFixed(2)}% - saves are the ranking signal, so this caps distribution.`); recommendations.push({title:'Rebuild the Pinterest pin design', detail:`Only ${n(pin.saves||0)} saves on ${n(pimp)} impressions. We'll move to 2:3 vertical pins with a benefit-led text overlay and keyword-rich titles to lift the save rate.`}); }
+                if ((pin.clicks||0) > 0) wins.push(`Pinterest sent ${n(pin.clicks)} outbound clicks to the site from ${n(pimp)} impressions.`);
+                else if (pimp > 500) { concerns.push(`Pinterest drove ${n(pimp)} impressions but no outbound clicks.`); recommendations.push({title:'Fix the Pinterest destination links', detail:`${n(pimp)} impressions produced zero outbound clicks. We'll make sure every pin points to a live, relevant page so the reach converts to traffic.`}); }
+                if ((pin.postsPublished||0) > 0 && (pin.postsPublished||0) < 12) recommendations.push({title:'Raise Pinterest pin volume', detail:`${pin.postsPublished} pins this period. Pinterest rewards freshness and volume, so we'll target 15-25 pins a month including fresh variations of the best performers.`});
+            }
+        }
+        // X reads on conversation + bookmarks
+        if (pp.X && !this.isNewChannel(c, 'X')) {
+            const x = pp.X, ximp = this.platImpressions(x);
+            if (ximp > 0) {
+                platformNotes.push({platform:'X', note:`${n(ximp)} impressions, ${n(x.comments||0)} replies, ${n(x.shares||0)} reposts and ${n(x.bookmarks||0)} bookmarks across ${x.postsPublished||0} post${(x.postsPublished||0)===1?'':'s'}.`});
+                if ((x.bookmarks||0) > 0 && (x.likes||0) > 0 && (x.bookmarks/x.likes) > 0.5) { wins.push(`${n(x.bookmarks)} bookmarks on X - the audience is saving this content as reference.`); recommendations.push({title:'Turn the saved X posts into threads', detail:`${n(x.bookmarks)} bookmarks against ${n(x.likes)} likes says the highest-value posts are reference material. We'll expand those into threads and make it a recurring format.`}); }
+                if (ximp >= 1000 && (x.comments||0) === 0) { concerns.push(`X drew ${n(ximp)} impressions with zero replies - no conversation is starting.`); recommendations.push({title:'Make X posts ask something', detail:`${n(ximp)} impressions and no replies. We'll close posts with a genuine question and reply daily in-niche, since X distribution follows conversation.`}); }
+                if ((x.postsPublished||0) > 0 && (x.postsPublished||0) < 20) recommendations.push({title:'Increase X posting cadence', detail:`${x.postsPublished} posts this period. X decays faster than any other channel, so we'll move toward 1-2 posts a day plus one thread a week.`});
+            }
+        }
         if ((g.totalContent||0) > 0 && (g.totalContent||0) < 12) recommendations.push({title:'Lift posting frequency', detail:`${g.totalContent} posts this period. We'll build toward 3+ per week to keep reach compounding between reports.`});
         if (!wins.length && (g.impressions || g.totalInteractions)) wins.push(`${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions across ${plats.length} platform${plats.length===1?'':'s'}.`);
         if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`We'll maintain the cadence and double down on ${top?top.p:'the top platform'}, the strongest channel this period.`});
@@ -1287,13 +1364,13 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         const pData = c.perPlatform[platform], fields = PLATFORM_FIELDS[platform] || [];
         const audience = ['followers','followersGained','followersLost'];
         const reach = ['reach','impressions','videoViews','watchTime','avgDailyReach'];
-        const interactions = ['likes','comments','shares','saves','clicks','dislikes'];
+        const interactions = ['likes','comments','shares','saves','bookmarks','pinClicks','clicks','dislikes'];
         const meta = ['postsPublished','reelsPublished','engRate','avgWatchTime'];
 
         const renderGroup = (title, keys) => {
             const items = keys.filter(k => fields.includes(k)).map(k => ({ k, v: pData[k]||0 }));
             if (items.length === 0) return '';
-            return `<div class="section-label" style="margin-top:0.75rem;">${title}</div><div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-bottom:0.75rem;">${items.map(i => `<div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${fmt(i.v)}</div><div class="lbl">${FIELD_LABELS[i.k]||i.k}</div></div>`).join('')}</div>`;
+            return `<div class="section-label" style="margin-top:0.75rem;">${title}</div><div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-bottom:0.75rem;">${items.map(i => `<div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${fmt(i.v)}</div><div class="lbl">${platLabel(platform, i.k)}</div></div>`).join('')}</div>`;
         };
         detail.innerHTML = renderGroup('Audience', audience) + renderGroup('Reach & Views', reach) + renderGroup('Interactions', interactions) + renderGroup('Activity & Rate', meta);
     },

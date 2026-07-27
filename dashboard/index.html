@@ -794,6 +794,67 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .ov-pipe-status{margin-left:auto;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--chip);color:var(--muted);white-space:nowrap;flex-shrink:0}
 .ov-pipe-status.s-closed{background:rgba(79,194,125,0.14);color:var(--lo)}
 .ov-pipe-status.s-active{background:var(--blue-pale);color:var(--blue-lt)}
+.ov-pipe-chip.s-followup{background:rgba(224,160,95,0.18);border-color:rgba(224,160,95,0.35);color:var(--hi)}
+.ov-pipe-chip.s-followup b{color:var(--hi)}
+.ov-pipe-status.s-followup{background:rgba(224,160,95,0.18);color:var(--hi)}
+.ov-pipe-foot{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
+.ov-pipe-manage{background:var(--blue-pale);border:1px solid rgba(127,201,232,0.28);color:var(--blue-lt);font-family:'Jost',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .15s}
+.ov-pipe-manage:hover{background:rgba(79,168,208,0.22);border-color:var(--blue);color:var(--black)}
+.ov-pipe-hint{font-size:0.62rem;color:var(--light)}
+
+/* ── LEADS MANAGER (edit mm_leads without leaving the dashboard) ── */
+#leads-overlay{display:none;position:fixed;inset:0;z-index:860;background:rgba(4,10,15,0.86);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:50px 16px 20px}
+#leads-overlay.open{display:flex}
+.lm-modal{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;width:min(860px,96vw);max-height:84vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,0.6);overflow:hidden}
+.lm-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.lm-title{font-family:'Jost',sans-serif;font-size:1.15rem;color:var(--black);letter-spacing:0.02em}
+.lm-sub{font-size:0.6rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--light);margin-top:3px}
+.lm-close{background:none;border:none;color:var(--light);font-size:1.1rem;cursor:pointer;padding:2px 6px;line-height:1;transition:color .15s}
+.lm-close:hover{color:var(--crit)}
+.lm-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.lm-tools input,.lm-tools select{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--black);font-family:'Jost',sans-serif;font-size:0.8rem;outline:none;transition:border-color .15s}
+.lm-tools input:focus,.lm-tools select:focus{border-color:var(--blue)}
+.lm-search{flex:1;min-width:150px}
+.lm-add-btn{background:var(--blue);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.66rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.lm-add-btn:hover{background:var(--blue-lt)}
+.lm-form{display:none;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;background:var(--surface-2);border-bottom:1px solid var(--border);padding:15px 22px;flex-shrink:0}
+.lm-form.open{display:grid}
+.lm-form input,.lm-form select,.lm-form textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--black);font-family:'Jost',sans-serif;font-size:0.82rem;outline:none;transition:border-color .15s}
+.lm-form input:focus,.lm-form select:focus,.lm-form textarea:focus{border-color:var(--blue)}
+.lm-form textarea{grid-column:1/-1;resize:vertical;min-height:56px;line-height:1.5}
+.lm-form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.lm-cancel,.lm-save{font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:0.04em;padding:8px 15px;border-radius:6px;cursor:pointer;border:1px solid var(--border)}
+.lm-cancel{background:none;color:var(--muted)}
+.lm-cancel:hover{color:var(--black);border-color:var(--border-s)}
+.lm-save{background:var(--blue);border-color:var(--blue);color:#fff}
+.lm-save:hover{background:var(--blue-lt)}
+.lm-list{flex:1;overflow-y:auto;padding:6px 0 10px}
+.lm-empty{padding:34px 22px;text-align:center;color:var(--light);font-size:0.85rem}
+.lm-row{display:flex;align-items:center;gap:10px;padding:10px 22px;border-bottom:1px solid var(--border);transition:background .1s}
+.lm-row:hover{background:rgba(255,255,255,0.03)}
+.lm-row-main{flex:1;min-width:0}
+.lm-row-name{font-size:0.86rem;color:var(--black);line-height:1.35;word-break:break-word}
+.lm-row-meta{font-size:0.64rem;color:var(--light);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+.lm-row-meta a{color:var(--blue-lt);text-decoration:none}
+.lm-row-meta a:hover{text-decoration:underline}
+.lm-row-notes{font-size:0.7rem;color:var(--muted);margin-top:5px;line-height:1.45}
+.lm-status{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.7rem;cursor:pointer;outline:none;flex-shrink:0;max-width:150px}
+.lm-status:focus{border-color:var(--blue)}
+.lm-status.s-followup{border-color:rgba(224,160,95,0.5);background:rgba(224,160,95,0.14);color:var(--hi);font-weight:600}
+.lm-status.s-closed{color:var(--light)}
+.lm-icon{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Jost',sans-serif;font-size:0.66rem;padding:6px 9px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.lm-icon:hover{color:var(--black);border-color:var(--border-s)}
+.lm-icon.del:hover{color:var(--crit);border-color:var(--crit)}
+.lm-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 22px;border-top:1px solid var(--border);flex-shrink:0;font-size:0.64rem;color:var(--light)}
+.lm-sync{display:flex;align-items:center;gap:6px}
+.lm-sync-dot{width:6px;height:6px;border-radius:50%;background:var(--lo);flex-shrink:0}
+.lm-sync-dot.syncing{background:var(--hi)}
+.lm-sync-dot.failed{background:var(--crit)}
+@media(max-width:640px){
+  .lm-row{flex-wrap:wrap}
+  .lm-status{max-width:none;flex:1}
+  #leads-overlay{padding:16px 8px}
+}
 
 /* portfolio table */
 .ov-card-wide{padding-bottom:8px}
@@ -1159,6 +1220,10 @@ body.home-drawer #home-view{overflow-y:auto}
 .hm-lname{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hm-lstat{font-size:0.63rem;color:var(--light);white-space:nowrap}
 .hm-lstat.s-active{color:var(--lo)}
+.hm-lstat.s-followup{color:var(--hi);font-weight:600}
+.hm-lchip.s-followup{background:rgba(224,160,95,0.16);border-color:rgba(224,160,95,0.35);color:var(--hi)}
+.hm-lchip.s-followup b{color:var(--hi)}
+.hm-lnum.warn{color:var(--hi)}
 .hm-moneybar{flex-wrap:wrap;gap:18px}
 
 /* ===== TRON GRID ROOM BACKGROUND (added) ===== */
@@ -1364,10 +1429,10 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="ov-card-title">Cash flow this month</div>
         <div id="ov-money"></div>
       </div>
-      <div class="ov-card ov-card-link" role="link" tabindex="0" title="Open the leads pipeline"
-           onclick="ovOpenApp('../leads.html#leads')"
-           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ovOpenApp('../leads.html#leads');}">
-        <span class="ov-card-open">Open ↗</span>
+      <div class="ov-card ov-card-link" role="button" tabindex="0" title="Manage leads without leaving the dashboard"
+           onclick="openLeadsManager()"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLeadsManager();}">
+        <span class="ov-card-open">Manage</span>
         <div class="ov-card-eyebrow">New business</div>
         <div class="ov-card-title">Pipeline</div>
         <div id="ov-pipeline"></div>
@@ -1458,6 +1523,41 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <input class="at-search" id="at-search" placeholder="Filter tasks…" oninput="renderAllTasks()" autocomplete="off">
     </div>
     <div class="at-list" id="at-list"></div>
+  </div>
+</div>
+
+<!-- Leads manager — edits the shared mm_leads store in place -->
+<div id="leads-overlay" onclick="if(event.target===this)closeLeadsManager()">
+  <div class="lm-modal">
+    <div class="lm-header">
+      <div>
+        <div class="lm-title">Pipeline</div>
+        <div class="lm-sub" id="lm-count-label"></div>
+      </div>
+      <button class="lm-close" onclick="closeLeadsManager()">✕</button>
+    </div>
+    <div class="lm-tools">
+      <input class="lm-search" id="lm-search" placeholder="Filter leads…" oninput="renderLeadsManager()" autocomplete="off">
+      <select id="lm-filter" onchange="renderLeadsManager()"></select>
+      <button class="lm-add-btn" onclick="lmToggleForm()">+ Add lead</button>
+    </div>
+    <div class="lm-form" id="lm-form">
+      <input type="text" id="lm-name" placeholder="Practice name *" onkeydown="if(event.key==='Enter')lmSubmit()">
+      <input type="text" id="lm-loc" placeholder="Location">
+      <input type="text" id="lm-email" placeholder="Email">
+      <input type="text" id="lm-web" placeholder="Website">
+      <select id="lm-status"></select>
+      <textarea id="lm-notes" placeholder="Notes"></textarea>
+      <div class="lm-form-actions">
+        <button class="lm-cancel" onclick="lmCloseForm()">Cancel</button>
+        <button class="lm-save" id="lm-save-btn" onclick="lmSubmit()">Save lead</button>
+      </div>
+    </div>
+    <div class="lm-list" id="lm-list"></div>
+    <div class="lm-foot">
+      <span class="lm-sync"><span class="lm-sync-dot" id="lm-sync-dot"></span><span id="lm-sync-text">Synced with the leads Sheet</span></span>
+      <span>Same pipeline as the Leads app &mdash; changes save to both.</span>
+    </div>
   </div>
 </div>
 
@@ -3424,6 +3524,166 @@ async function ovSyncExternal(){
 function ovLoadRevenue(){try{const v=JSON.parse(localStorage.getItem('mm_revenue')||'null');return (v&&typeof v==='object'&&!Array.isArray(v))?v:null;}catch(e){return null;}}
 
 /* ═══════════════════════════════════════════
+   LEADS MANAGER
+   mm_leads is owned by leads.html and mirrored to a Google Sheet. The dashboard
+   used to read it only; this writes back through the SAME contract — normalized
+   camelCase shape into localStorage, then the whole array POSTed to the Apps
+   Script webhook, exactly as leads.html does. Both apps stay interchangeable.
+═══════════════════════════════════════════ */
+const LEAD_STATUSES=['Emailed','Follow Up Needed','Followed Up','Responded','Closed','Not Interested'];
+let lmEditingId=null, lmSyncTimer=null;
+
+function lmLoad(){return ovNormalizeLeads(ovLoadJSON('mm_leads'));}
+function lmOpen(){const ov=document.getElementById('leads-overlay');return!!ov&&ov.classList.contains('open');}
+function lmSetSync(st){
+  const dot=document.getElementById('lm-sync-dot'), txt=document.getElementById('lm-sync-text');
+  if(!dot||!txt)return;
+  dot.className='lm-sync-dot'+(st==='synced'?'':' '+st);
+  txt.textContent=st==='syncing'?'Saving to the leads Sheet…':st==='failed'?'Sheet sync failed — saved locally':'Synced with the leads Sheet';
+}
+/* Persist locally first (instant + offline-safe), then push the full array to
+   the Sheet on a short debounce, mirroring leads.html's persistLeads(). */
+function lmPersist(leads){
+  localStorage.setItem('mm_leads',JSON.stringify(leads));
+  lmSetSync('syncing');
+  clearTimeout(lmSyncTimer);
+  lmSyncTimer=setTimeout(async()=>{
+    try{
+      await fetch(LEADS_SHEETS_URL,{method:'POST',redirect:'follow',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'data='+encodeURIComponent(JSON.stringify(leads))});
+      lmSetSync('synced');
+    }catch(e){lmSetSync('failed');}
+  },800);
+  renderLeadsManager();
+  if(ovVisible())renderOverview();
+  if(hmVisible())renderHome();
+}
+/* Home is the default landing view, so its Leads card has to follow edits too */
+function hmVisible(){const v=document.getElementById('home-view');return!!v&&getComputedStyle(v).display!=='none';}
+
+function openLeadsManager(){
+  const ov=document.getElementById('leads-overlay');
+  if(!ov)return;
+  // Populate the two status pickers once, from the single source of truth
+  const filter=document.getElementById('lm-filter');
+  if(filter&&!filter.options.length)
+    filter.innerHTML='<option value="">All statuses</option>'+LEAD_STATUSES.map(s=>`<option value="${bEsc(s)}">${bEsc(s)}</option>`).join('');
+  const st=document.getElementById('lm-status');
+  if(st&&!st.options.length)st.innerHTML=LEAD_STATUSES.map(s=>`<option>${bEsc(s)}</option>`).join('');
+  ov.classList.add('open');
+  lmCloseForm();
+  lmSetSync('synced');
+  renderLeadsManager();
+}
+function closeLeadsManager(){
+  const ov=document.getElementById('leads-overlay');
+  if(ov)ov.classList.remove('open');
+  lmCloseForm();
+}
+
+function lmToggleForm(){document.getElementById('lm-form').classList.contains('open')?lmCloseForm():lmOpenForm();}
+function lmOpenForm(edit){
+  lmEditingId=(edit&&edit.id)||null;
+  document.getElementById('lm-name').value=edit?edit.practiceName:'';
+  document.getElementById('lm-loc').value=edit?(edit.location||''):'';
+  document.getElementById('lm-email').value=edit?(edit.email||''):'';
+  document.getElementById('lm-web').value=edit?(edit.website||''):'';
+  document.getElementById('lm-status').value=edit?(edit.status||'Emailed'):'Emailed';
+  document.getElementById('lm-notes').value=edit?(edit.notes||''):'';
+  document.getElementById('lm-save-btn').textContent=edit?'Save changes':'Save lead';
+  document.getElementById('lm-form').classList.add('open');
+  document.getElementById('lm-name').focus();
+}
+function lmCloseForm(){const f=document.getElementById('lm-form');if(f)f.classList.remove('open');lmEditingId=null;}
+
+function lmSubmit(){
+  const name=document.getElementById('lm-name').value.trim();
+  if(!name){document.getElementById('lm-name').focus();return;}
+  const fields={
+    practiceName:name,
+    location:document.getElementById('lm-loc').value.trim(),
+    email:document.getElementById('lm-email').value.trim(),
+    website:document.getElementById('lm-web').value.trim(),
+    status:document.getElementById('lm-status').value,
+    notes:document.getElementById('lm-notes').value.trim()
+  };
+  const leads=lmLoad();
+  if(lmEditingId){
+    const l=leads.find(x=>x.id===lmEditingId);
+    if(l)Object.assign(l,fields);
+  }else{
+    // Match leads.html: newest first, id + savedAt set here, empty pitchSnapshot for manual adds
+    leads.unshift({id:uid(),...fields,savedAt:new Date().toISOString(),pitchSnapshot:''});
+  }
+  lmCloseForm();
+  lmPersist(leads);
+}
+function lmSetStatus(id,status){
+  const leads=lmLoad();
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  l.status=status;
+  lmPersist(leads);
+}
+function lmEdit(id){const l=lmLoad().find(x=>x.id===id);if(l)lmOpenForm(l);}
+function lmDelete(id){
+  const leads=lmLoad();
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  if(!confirm(`Delete the lead "${l.practiceName}"?\n\nThis removes it from the leads Sheet too.`))return;
+  lmPersist(leads.filter(x=>x.id!==id));
+}
+/* "Follow Up Needed" is the one status that should shout — it's a to-do, not a state. */
+function lmStatusClass(s){
+  if(/follow\s?up\s?needed/i.test(String(s||'')))return 's-followup';
+  return ovStatusClass(s)==='closed'?'s-closed':'';
+}
+
+function renderLeadsManager(){
+  const host=document.getElementById('lm-list');
+  if(!host)return;
+  const all=lmLoad();
+  const q=(document.getElementById('lm-search').value||'').trim().toLowerCase();
+  const filt=document.getElementById('lm-filter').value||'';
+  const list=all.filter(l=>{
+    if(filt&&l.status!==filt)return false;
+    if(!q)return true;
+    return [l.practiceName,l.location,l.email,l.website,l.notes].some(v=>String(v||'').toLowerCase().includes(q));
+  });
+
+  const label=document.getElementById('lm-count-label');
+  if(label){
+    const active=all.filter(l=>ovStatusClass(l.status)==='active').length;
+    const due=all.filter(l=>lmStatusClass(l.status)==='s-followup').length;
+    label.textContent=`${all.length} tracked · ${active} active${due?` · ${due} need follow-up`:''}`;
+  }
+
+  if(!all.length){host.innerHTML='<div class="lm-empty">No leads yet. Add one here, or run a prospect through the Leads app.</div>';return;}
+  if(!list.length){host.innerHTML='<div class="lm-empty">No leads match that filter.</div>';return;}
+
+  host.innerHTML=list.map(l=>{
+    const meta=[
+      l.location&&bEsc(l.location),
+      l.email&&`<a href="mailto:${bEsc(l.email)}">${bEsc(l.email)}</a>`,
+      l.website&&`<a href="${bEsc(l.website)}" target="_blank" rel="noopener">Site ↗</a>`,
+      l.savedAt&&bEsc(new Date(l.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}))
+    ].filter(Boolean).join('<span style="opacity:.4">·</span>');
+    const opts=LEAD_STATUSES.map(s=>`<option${s===l.status?' selected':''}>${bEsc(s)}</option>`).join('');
+    return`<div class="lm-row">
+      <div class="lm-row-main">
+        <div class="lm-row-name">${bEsc(l.practiceName)}</div>
+        ${meta?`<div class="lm-row-meta">${meta}</div>`:''}
+        ${l.notes?`<div class="lm-row-notes">${bEsc(l.notes)}</div>`:''}
+      </div>
+      <select class="lm-status ${lmStatusClass(l.status)}" onchange="lmSetStatus('${l.id}',this.value)" title="Change status">${opts}</select>
+      <button class="lm-icon" onclick="lmEdit('${l.id}')" title="Edit lead">Edit</button>
+      <button class="lm-icon del" onclick="lmDelete('${l.id}')" title="Delete lead">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
    PROJECT BOARD  (mm_projects — its own store, syncs via KV like tasks,
    completely independent of the Brain tree)
 ═══════════════════════════════════════════ */
@@ -3794,15 +4054,20 @@ function renderHome(){
     dedYtd=expenses.filter(function(e){return e.taxDeductible&&e.date&&e.date.slice(0,4)===_yr&&e.date<=_t;})
                    .reduce(function(s,e){return s+(+e.amount||0);},0);
   }catch(e){}
-  var leadsArr=[],activeLeads=0,leadChips='',leadRecent='';
+  var leadsArr=[],activeLeads=0,followLeads=0,leadChips='',leadRecent='';
   try{
     leadsArr=(typeof ovNormalizeLeads==='function')?ovNormalizeLeads(ovLoadJSON('mm_leads')):[];
     activeLeads=leadsArr.filter(function(l){return (typeof ovStatusClass==='function')&&ovStatusClass(l.status)==='active';}).length;
+    var _fu=function(l){return (typeof lmStatusClass==='function')&&lmStatusClass(l.status)==='s-followup';};
+    followLeads=leadsArr.filter(_fu).length;
     var _sc={};leadsArr.forEach(function(l){var k=l.status||'Untracked';_sc[k]=(_sc[k]||0)+1;});
     leadChips=Object.keys(_sc).sort(function(a,b){return _sc[b]-_sc[a];}).slice(0,4)
-      .map(function(k){return '<span class="hm-lchip"><b>'+_sc[k]+'</b> '+hmEsc(k)+'</span>';}).join('');
-    leadRecent=leadsArr.slice().sort(function(a,b){return String(b.savedAt||'').localeCompare(String(a.savedAt||''));}).slice(0,3)
-      .map(function(l){return '<div class="hm-lrow"><span class="hm-lname">'+hmEsc(l.practiceName||'Untitled lead')+'</span><span class="hm-lstat s-'+((typeof ovStatusClass==='function')?ovStatusClass(l.status):'')+'">'+hmEsc(l.status||'-')+'</span></div>';}).join('');
+      .map(function(k){return '<span class="hm-lchip'+(((typeof lmStatusClass==='function')&&lmStatusClass(k)==='s-followup')?' s-followup':'')+'"><b>'+_sc[k]+'</b> '+hmEsc(k)+'</span>';}).join('');
+    // Anything needing a follow-up leads the list — it's a to-do, not just a state
+    leadRecent=leadsArr.filter(_fu)
+      .concat(leadsArr.filter(function(l){return !_fu(l);}).sort(function(a,b){return String(b.savedAt||'').localeCompare(String(a.savedAt||''));}))
+      .slice(0,3)
+      .map(function(l){return '<div class="hm-lrow"><span class="hm-lname">'+hmEsc(l.practiceName||'Untitled lead')+'</span><span class="hm-lstat '+(_fu(l)?'s-followup':'s-'+((typeof ovStatusClass==='function')?ovStatusClass(l.status):''))+'">'+hmEsc(l.status||'-')+'</span></div>';}).join('');
   }catch(e){}
   var loops=hmLoadLoops();
   var openLoops=loops.filter(function(l){return !l.done&&l.bucket!=='park';});
@@ -3836,9 +4101,9 @@ function renderHome(){
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+(agedCount?' &middot; <span style="color:var(--hi)">'+agedCount+' aging</span>':'')+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Parking lot</span><span class="m">'+parkItems.length+'</span></div><div class="hm-loops">'+parkRows+'</div><div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-c2 hm-leads"><div class="hm-card-h"><span class="t">Leads</span><a class="link" href="../leads.html">Open</a></div>'+
+    '<section class="hm-card hm-c2 hm-leads"><div class="hm-card-h"><span class="t">Leads</span><a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a></div>'+
       (leadsArr.length
-        ? ('<div class="hm-lead-top"><span class="hm-lnum">'+activeLeads+'</span><span class="hm-lsub">active &middot; '+leadsArr.length+' tracked</span></div>'+
+        ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
            (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
            (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
         : '<div class="hm-empty">No leads saved yet.</div>')+
@@ -3991,27 +4256,36 @@ function renderOverview(){
   const stCounts={};
   leads.forEach(l=>{const k=l.status||'Untracked';stCounts[k]=(stCounts[k]||0)+1;});
   const statuses=Object.entries(stCounts).sort((a,b)=>b[1]-a[1]);
-  const recent=[...leads].sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||''))).slice(0,3);
+  const needFollow=leads.filter(l=>lmStatusClass(l.status)==='s-followup');
+  // Anything flagged for follow-up jumps the queue — that's the whole point of the status
+  const rest=[...leads].filter(l=>lmStatusClass(l.status)!=='s-followup')
+    .sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));
+  const recent=[...needFollow,...rest].slice(0,3);
   const pipeEl=document.getElementById('ov-pipeline');
+  const manageFoot=`<div class="ov-pipe-foot">
+      <button class="ov-pipe-manage" onclick="event.stopPropagation();openLeadsManager()">Manage leads</button>
+      <span class="ov-pipe-hint">or <a href="#" onclick="event.stopPropagation();event.preventDefault();ovOpenApp('../leads.html#leads')" style="color:var(--blue-lt);text-decoration:none">open the full app ↗</a></span>
+    </div>`;
   if(!leads.length){
-    pipeEl.innerHTML='<div class="ov-empty">No leads saved yet. Prospects you track show up here.</div>';
+    pipeEl.innerHTML='<div class="ov-empty">No leads saved yet. Prospects you track show up here.</div>'+manageFoot;
   }else{
     pipeEl.innerHTML=`
       <div class="ov-stat-row">
         <div>
-          <div class="ov-stat-label">Active leads</div>
-          <div class="ov-stat-num">${active.length}</div>
-          <div class="ov-stat-sub">${leads.length} tracked total</div>
+          <div class="ov-stat-label">${needFollow.length?'Need follow-up':'Active leads'}</div>
+          <div class="ov-stat-num"${needFollow.length?' style="color:var(--hi)"':''}>${needFollow.length||active.length}</div>
+          <div class="ov-stat-sub">${needFollow.length?`${active.length} active · `:''}${leads.length} tracked total</div>
         </div>
         <div class="ov-pipe-chips">
-          ${statuses.map(([s,n])=>`<span class="ov-pipe-chip"><b>${n}</b> ${bEsc(s)}</span>`).join('')}
+          ${statuses.map(([s,n])=>`<span class="ov-pipe-chip ${lmStatusClass(s)==='s-followup'?'s-followup':''}"><b>${n}</b> ${bEsc(s)}</span>`).join('')}
         </div>
       </div>
       ${recent.length?`<div class="ov-pipe-list">${recent.map(l=>`
         <div class="ov-pipe-row">
           <span class="ov-pipe-name">${bEsc(l.practiceName||'Untitled lead')}</span>
-          <span class="ov-pipe-status s-${ovStatusClass(l.status)}">${bEsc(l.status||'—')}</span>
-        </div>`).join('')}</div>`:''}`;
+          <span class="ov-pipe-status ${lmStatusClass(l.status)==='s-followup'?'s-followup':'s-'+ovStatusClass(l.status)}">${bEsc(l.status||'—')}</span>
+        </div>`).join('')}</div>`:''}
+      ${manageFoot}`;
   }
 
   /* ── project board (self-contained, not derived from the Brain) ── */
@@ -4680,6 +4954,14 @@ function padBind(){
 function init(){
   purgeDeadKeys();
   padBind();
+  // Esc closes the leads manager (the form first, so a half-typed lead isn't lost blind)
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    const ov=document.getElementById('leads-overlay');
+    if(!ov||!ov.classList.contains('open'))return;
+    if(document.getElementById('lm-form').classList.contains('open'))lmCloseForm();
+    else closeLeadsManager();
+  });
   brainLoad();
   setDate();
   initServicesChecklist();
@@ -4715,9 +4997,14 @@ function ovBindAutoSync(){
   if(ovAutoSyncBound)return; ovAutoSyncBound=true;
   window.addEventListener('storage',e=>{
     if((e.key==='mm_leads'||e.key==='mm_expenses')&&ovVisible())renderOverview();
+    // An open leads manager must follow the leads app writing in another tab
+    if(e.key==='mm_leads'&&lmOpen())renderLeadsManager();
+    if(e.key==='mm_leads'&&hmVisible())renderHome();
   });
   document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden&&ovVisible())ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});
+    if(document.hidden)return;
+    if(lmOpen())ovSyncExternal().then(()=>{if(lmOpen())renderLeadsManager();});
+    if(ovVisible())ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});
   });
 }
 
