@@ -1141,6 +1141,25 @@ body.home-drawer #home-view{overflow-y:auto}
 /* ===== double-click to edit (added) ===== */
 .t-row{cursor:default}
 .pb-card{cursor:default}
+
+/* ===== leads + money in/out/net (added) ===== */
+.mb-item{display:flex;align-items:baseline;gap:6px}
+.mb-item i{font-style:normal;font-size:0.68rem;color:var(--light);text-transform:uppercase;letter-spacing:0.05em}
+.mb-item b{font-size:1.05rem;font-weight:600;font-variant-numeric:tabular-nums}
+.mb-item b.pos{color:var(--lo)}
+.mb-item b.neg{color:var(--hi)}
+.hm-lead-top{display:flex;align-items:baseline;gap:9px}
+.hm-lnum{font-size:1.6rem;font-weight:600;line-height:1}
+.hm-lsub{font-size:0.72rem;color:var(--light)}
+.hm-lchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.hm-lchip{font-size:0.64rem;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
+.hm-lchip b{color:var(--black);font-weight:600}
+.hm-lrows{margin-top:10px;padding-top:9px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.hm-lrow{display:flex;align-items:center;gap:8px;font-size:0.76rem}
+.hm-lname{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-lstat{font-size:0.63rem;color:var(--light);white-space:nowrap}
+.hm-lstat.s-active{color:var(--lo)}
+.hm-moneybar{flex-wrap:wrap;gap:18px}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3637,6 +3656,28 @@ function renderHome(){
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
   var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
   var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
+  function hmMoney(n){var v=Math.round(+n||0);var s=(v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US');return s;}
+  var inMonth=rev?(+rev.thisMonth||0):0;
+  var _t=(typeof todayStr==='function')?todayStr():'';
+  var expenses=[],monthOut=0,dedYtd=0;
+  try{
+    expenses=(typeof ovLoadJSON==='function')?ovLoadJSON('mm_expenses'):[];
+    var _ym=_t.slice(0,7),_yr=_t.slice(0,4);
+    var monthEx=expenses.filter(function(e){return e.date&&e.date.slice(0,7)===_ym;});
+    monthOut=monthEx.reduce(function(s,e){return s+(+e.amount||0);},0);
+    dedYtd=expenses.filter(function(e){return e.taxDeductible&&e.date&&e.date.slice(0,4)===_yr&&e.date<=_t;})
+                   .reduce(function(s,e){return s+(+e.amount||0);},0);
+  }catch(e){}
+  var leadsArr=[],activeLeads=0,leadChips='',leadRecent='';
+  try{
+    leadsArr=(typeof ovNormalizeLeads==='function')?ovNormalizeLeads(ovLoadJSON('mm_leads')):[];
+    activeLeads=leadsArr.filter(function(l){return (typeof ovStatusClass==='function')&&ovStatusClass(l.status)==='active';}).length;
+    var _sc={};leadsArr.forEach(function(l){var k=l.status||'Untracked';_sc[k]=(_sc[k]||0)+1;});
+    leadChips=Object.keys(_sc).sort(function(a,b){return _sc[b]-_sc[a];}).slice(0,4)
+      .map(function(k){return '<span class="hm-lchip"><b>'+_sc[k]+'</b> '+hmEsc(k)+'</span>';}).join('');
+    leadRecent=leadsArr.slice().sort(function(a,b){return String(b.savedAt||'').localeCompare(String(a.savedAt||''));}).slice(0,3)
+      .map(function(l){return '<div class="hm-lrow"><span class="hm-lname">'+hmEsc(l.practiceName||'Untitled lead')+'</span><span class="hm-lstat s-'+((typeof ovStatusClass==='function')?ovStatusClass(l.status):'')+'">'+hmEsc(l.status||'-')+'</span></div>';}).join('');
+  }catch(e){}
   var loops=hmLoadLoops();
   var openLoops=loops.filter(function(l){return !l.done&&l.bucket!=='park';});
   var parkItems=loops.filter(function(l){return !l.done&&l.bucket==='park';});
@@ -3669,7 +3710,21 @@ function renderHome(){
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+(agedCount?' &middot; <span style="color:var(--hi)">'+agedCount+' aging</span>':'')+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Parking lot</span><span class="m">'+parkItems.length+'</span></div><div class="hm-loops">'+parkRows+'</div><div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-money hm-moneybar"><span class="t">Money in</span><span class="amt2">'+amt+'</span><span class="ytd2">this month &middot; YTD '+ytd+'</span><span class="m">Moxie</span></section>'+
+    '<section class="hm-card hm-c2 hm-leads"><div class="hm-card-h"><span class="t">Leads</span><a class="link" href="../leads.html">Open</a></div>'+
+      (leadsArr.length
+        ? ('<div class="hm-lead-top"><span class="hm-lnum">'+activeLeads+'</span><span class="hm-lsub">active &middot; '+leadsArr.length+' tracked</span></div>'+
+           (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
+           (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
+        : '<div class="hm-empty">No leads saved yet.</div>')+
+    '</section>'+
+    '<section class="hm-card hm-money hm-moneybar">'+
+      '<span class="t">Money</span>'+
+      '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
+      '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
+      '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
+      '<span class="ytd2">YTD in '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</span>'+
+      '<span class="m">Moxie + Expenses</span>'+
+    '</section>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
@@ -3686,7 +3741,13 @@ function renderHome(){
   if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim(),lt?lt.value:'Waiting on client','loop');li.value='';renderHome();}});
   var pi=document.getElementById('hm-park-input');
   if(pi)pi.addEventListener('keydown',function(e){if(e.key==='Enter'&&pi.value.trim()){hmAddLoop(pi.value.trim(),'Idea','park');pi.value='';renderHome();}});
-  if(!rev&&typeof ovSyncExternal==='function'){ovSyncExternal().then(function(){var tb=document.getElementById('tab-home');if(tb&&tb.classList.contains('active'))renderHome();}).catch(function(){});}
+  if(!window.__hmSynced&&typeof ovSyncExternal==='function'&&(!rev||!expenses.length||!leadsArr.length)){
+    window.__hmSynced=true;
+    ovSyncExternal().then(function(){
+      var b=document.querySelector('#side-rail .sr-btn[data-tab="home"]');
+      if(b&&b.classList.contains('on'))renderHome();
+    }).catch(function(){});
+  }
 }
 function renderOverview(){
   const view=document.getElementById('overview-view');
