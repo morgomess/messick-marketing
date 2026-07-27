@@ -1114,22 +1114,6 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .hm-moneybar .ytd2{font-size:0.75rem;color:var(--light)}
 .hm-moneybar .m{margin-left:auto;font-size:0.7rem;color:var(--light)}
 
-/* ===== collapsible overview (added) ===== */
-#home-view{padding:12px 26px 0}
-.hm-slim{display:flex;align-items:center;gap:9px;flex-wrap:wrap;max-width:1280px;margin:0 auto;width:100%;padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
-.hm-sgreet{font-size:0.84rem;color:var(--muted)}
-.hm-sgreet b{color:var(--black);font-weight:600}
-.hm-schip{font-size:0.69rem;padding:3px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted)}
-.hm-schip.warn{color:var(--hi);border-color:rgba(224,160,95,0.4)}
-.hm-schip.crit{color:var(--crit);border-color:rgba(226,104,95,0.4)}
-.hm-smoney{font-size:0.8rem;font-weight:600;color:var(--lo)}
-.hm-stime{margin-left:auto;font-size:0.73rem;color:var(--light)}
-.hm-toggle{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:0.69rem;padding:5px 11px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:5px}
-.hm-toggle:hover{color:var(--black);border-color:var(--blue)}
-.hm-caret{display:inline-block;transition:transform 0.2s}
-#home-view .hm-grid{display:none;margin-top:13px}
-#home-view.hm-open .hm-grid{display:grid}
-#home-view.hm-open .hm-caret{transform:rotate(180deg)}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3544,18 +3528,7 @@ function renderHome(){
     spark='<svg class="hm-spark" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M'+pts+'" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}}catch(e){}
   var loopRows=openLoops.length?openLoops.map(function(l){return hmRow(l,true);}).join(''):'<div class="hm-empty">Nothing waiting on anyone.</div>';
   var parkRows=parkItems.length?parkItems.map(function(l){return hmRow(l,false);}).join(''):'<div class="hm-empty">Nothing parked.</div>';
-  var slimHTML='<div class="hm-slim">'+
-    '<span class="hm-sgreet">'+greet+' <b>Morgan</b></span>'+
-    '<span class="hm-schip">'+open.length+' open</span>'+
-    (dueToday?'<span class="hm-schip warn">'+dueToday+' today</span>':'')+
-    (overdue?'<span class="hm-schip crit">'+overdue+' overdue</span>':'')+
-    (agedCount?'<span class="hm-schip warn">'+agedCount+' aging</span>':'')+
-    '<span class="hm-schip">'+pct+'% done</span>'+
-    '<span class="hm-smoney">'+amt+'</span>'+
-    '<span class="hm-stime">'+timeStr+'</span>'+
-    '<button class="hm-toggle" id="hm-toggle">Overview <span class="hm-caret">&#9662;</span></button>'+
-    '</div>';
-  view.innerHTML=slimHTML+'<div class="hm-grid">'+
+  view.innerHTML='<div class="hm-grid">'+
     '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-date-day">'+dateDay+', '+dateBig+'</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
     '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
@@ -3581,9 +3554,6 @@ function renderHome(){
   if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim(),lt?lt.value:'Waiting on client','loop');li.value='';renderHome();}});
   var pi=document.getElementById('hm-park-input');
   if(pi)pi.addEventListener('keydown',function(e){if(e.key==='Enter'&&pi.value.trim()){hmAddLoop(pi.value.trim(),'Idea','park');pi.value='';renderHome();}});
-  view.classList.toggle('hm-open',localStorage.getItem('mm_home_open')==='1');
-  var tg=document.getElementById('hm-toggle');
-  if(tg)tg.addEventListener('click',function(){var nowOpen=!view.classList.contains('hm-open');view.classList.toggle('hm-open',nowOpen);try{localStorage.setItem('mm_home_open',nowOpen?'1':'0');}catch(e){}});
   if(!rev&&typeof ovSyncExternal==='function'){ovSyncExternal().then(function(){var tb=document.getElementById('tab-home');if(tb&&tb.classList.contains('active'))renderHome();}).catch(function(){});}
 }
 function renderOverview(){
