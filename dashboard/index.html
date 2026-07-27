@@ -1207,6 +1207,12 @@ header{background:rgba(10,20,34,0.72)!important;backdrop-filter:blur(14px);-webk
 body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
 .mo2-panel{background:rgba(16,26,41,0.94)}
 @media (prefers-reduced-motion:reduce){.bg-stars,.bg-stars2{animation:none}}
+
+/* ===== Mo chat: stop flex from squeezing cards (hid the Approve button) ===== */
+.mo2-msg,.mo2-card{flex-shrink:0}
+.mo2-card{overflow:visible}
+.mo2-card .f{flex-wrap:wrap}
+.mo2-card button{min-height:34px}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3522,6 +3528,8 @@ function hmAddLoop(text,type,bucket){var a=hmLoadLoops();a.push({id:'lp'+Date.no
 var MO_WORKER=(typeof WORKER!=='undefined')?WORKER:'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
 function moMiniSvg(){return '<svg viewBox="0 0 60 56" width="28" height="26"><rect x="11" y="14" width="38" height="34" rx="14" fill="var(--blue)"/><rect x="17" y="20" width="26" height="22" rx="9" fill="#101722"/><circle cx="25" cy="31" r="3.4" fill="#dfeefb"/><circle cx="35" cy="31" r="3.4" fill="#dfeefb"/><circle cx="30" cy="5" r="3" fill="var(--blue-lt)"/><line x1="30" y1="6" x2="30" y2="15" stroke="var(--blue)" stroke-width="2"/></svg>';}
 var moHistory=[];
+var moPending=[];              /* unresolved approval cards, so Mo knows they exist */
+function moOpenCards(){return moPending.filter(function(p){return !p.resolved;});}
 function moTaskText(id){var t=loadTodoTasks().filter(function(x){return x.id===id;})[0];return t?t.text:id;}
 function moContext(){
   var tasks=loadTodoTasks();
@@ -3536,7 +3544,8 @@ function moContext(){
     '\n\nRECENTLY COMPLETED:\n'+(recent||'(none)')+
     '\n\nOPEN LOOPS / PARKED:\n'+(loopLines||'(none)')+
     '\n\nAREAS: '+(nodes||'(none)')+
-    '\n\nREVENUE: '+(rev?('$'+(rev.thisMonth||0)+' collected this month, $'+(rev.ytd||0)+' YTD'):'(not loaded)');
+    '\n\nREVENUE: '+(rev?('$'+(rev.thisMonth||0)+' collected this month, $'+(rev.ytd||0)+' YTD'):'(not loaded)')+
+    '\n\nCARDS AWAITING MORGAN\'S APPROVAL RIGHT NOW: '+(moOpenCards().length?moOpenCards().map(function(p){return '"'+p.label+'"';}).join('; '):'(none)');
 }
 function moSystem(){
   return 'You are Mo, Morgan\'s assistant inside her marketing-agency operations dashboard. You are having an ongoing conversation with her.\n'+
@@ -3545,18 +3554,26 @@ function moSystem(){
   'Resolve relative dates (today, tomorrow, fri, next week) against TODAY into YYYY-MM-DD.\n'+
   'Use the conversation history for follow-ups: "what about next week", "make that one high" refer to what was just discussed.\n\n'+
   'ALWAYS reply with a single JSON object and nothing else:\n'+
-  '{"reply":"what you say to Morgan","action":null}\n\n'+
-  'If she asks you to change something, put ONE action in place of null:\n'+
+  '{"reply":"what you say to Morgan","actions":[]}\n\n'+
+  'If she asks you to change something, put one OR MORE action objects in the actions array. Two tasks means two objects in one reply - never say you can only do one at a time:\n'+
   '{"kind":"create","text":"...","due":"YYYY-MM-DD or null","priority":"critical|high|medium|low|none"}\n'+
   '{"kind":"update","id":"<task id>","changes":{"text":"...","due":"YYYY-MM-DD or null","priority":"..."}}\n'+
   '{"kind":"complete","id":"<task id>"}\n'+
   '{"kind":"delete","id":"<task id>"}\n'+
   '{"kind":"loop","text":"...","type":"Waiting on client|Unbilled|Waiting on payment"}\n'+
   '{"kind":"park","text":"..."}\n\n'+
-  'Rules: use an exact id from OPEN TASKS for update/complete/delete. If you cannot tell which task she means, ask a short clarifying question with action null. For questions, answer from the data with action null. Never invent tasks or numbers that are not in the data.';
+  'HOW APPROVAL WORKS - this matters:\n'+
+  '- Your actions do NOT run immediately. Each becomes a card Morgan must approve by clicking Approve (or by replying "yes").\n'+
+  '- So after you propose something, say it is waiting for her OK. Do NOT claim it is created or done.\n'+
+  '- If she asks whether you did it, look at OPEN TASKS above. If it is listed, it exists - confirm it. If it is NOT listed and a card is shown in CARDS AWAITING APPROVAL, tell her it is still waiting on her Approve click. Do NOT apologise and do NOT propose it again - a duplicate card is worse than a reminder.\n'+
+  '- Never re-propose something already present in OPEN TASKS.\n\n'+
+  'Rules: use an exact id from OPEN TASKS for update/complete/delete. If you cannot tell which task she means, ask a short clarifying question with an empty actions array. For questions, answer from the data with an empty actions array. Never invent tasks or numbers that are not in the data.';
 }
 function moSend(q){
-  var convo=moHistory.slice(-10).map(function(m){return (m.role==='user'?'Morgan':'Mo')+': '+m.text;}).join('\n');
+  var convo=moHistory.slice(-14).map(function(m){
+    if(m.role==='system')return 'SYSTEM NOTE: '+m.text;
+    return (m.role==='user'?'Morgan':'Mo')+': '+m.text;
+  }).join('\n');
   var prompt=moSystem()+'\n\n=== CURRENT DATA ===\n'+moContext()+
     (convo?('\n\n=== CONVERSATION SO FAR ===\n'+convo):'')+
     '\n\nMorgan: '+q+'\n\nRespond with the JSON object only.';
@@ -3567,8 +3584,17 @@ function moSend(q){
       var raw=(d&&(d.text||d.error))?(d.text||('Worker error: '+d.error)):'';
       var clean=String(raw).replace(/```json/g,'').replace(/```/g,'').trim();
       var m=clean.match(/\{[\s\S]*\}/);
-      try{var p=JSON.parse(m?m[0]:clean);if(p&&typeof p.reply==='string')return p;}catch(e){}
-      return {reply:clean||'(no answer)',action:null};
+      try{
+        var p=JSON.parse(m?m[0]:clean);
+        if(p&&typeof p.reply==='string'){
+          var list=[];
+          if(Array.isArray(p.actions))list=p.actions;
+          else if(p.action&&p.action.kind)list=[p.action];
+          p.actions=list.filter(function(a){return a&&a.kind;});
+          return p;
+        }
+      }catch(e){}
+      return {reply:clean||'(no answer)',actions:[]};
     });
 }
 function moLabel(a){
@@ -3613,20 +3639,52 @@ function initMo(){
   var fab=document.createElement('button');fab.id='mo2-fab';fab.className='mo2-fab';fab.setAttribute('aria-label','Open Mo');fab.innerHTML=moMiniSvg();
   var panel=document.createElement('section');panel.className='mo2-panel hidden';panel.id='mo2-panel';
   panel.innerHTML='<div class="mo2-head">'+moMiniSvg()+'<div><div class="nm">Hi, I\'m <b>Mo</b></div><div class="s">Ask anything &middot; changes need your OK</div></div><button class="x" id="mo2-x">&times;</button></div>'+
-    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. Ask me anything about your board, or just talk to me in shorthand - \'JVI blog fri high\', \'push ECCO reel to Monday\'. I remember the conversation, and I always confirm before changing anything.</div></div>'+
+    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. Ask me anything, or talk to me in shorthand - \'JVI blog fri high\', \'push ECCO reel to Monday\'. Anything that changes your board appears as a card: click Approve, or just reply \'yes\'. Nothing is saved until you do.</div></div>'+
     '<div class="mo2-in"><input id="mo2-input" placeholder="Ask Mo, or tell me to change something..." autocomplete="off"><button id="mo2-send">&#8594;</button></div>';
   document.body.appendChild(fab);document.body.appendChild(panel);
   var log=panel.querySelector('#mo2-log'),input=panel.querySelector('#mo2-input');
   function scrollLog(){log.scrollTop=log.scrollHeight;}
   function addMsg(who,text){var m=document.createElement('div');m.className='mo2-msg '+who;m.textContent=text;log.appendChild(m);scrollLog();return m;}
   function addMsgHTML(who,html){var m=document.createElement('div');m.className='mo2-msg '+who;m.innerHTML=html;log.appendChild(m);scrollLog();return m;}
-  function pending(act){var c=document.createElement('div');c.className='mo2-card';c.innerHTML='<div class="h">Needs your OK</div><div class="b">'+act.label+'</div><div class="f"><button class="mo2-ok">Approve</button><button class="mo2-no">Dismiss</button></div><div class="mo2-res" style="display:none"></div>';log.appendChild(c);scrollLog();
-    c.querySelector('.mo2-ok').addEventListener('click',function(){try{act.run();}catch(e){}c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.textContent='\u2713 Done.';});
-    c.querySelector('.mo2-no').addEventListener('click',function(){c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.style.color='var(--light)';r.textContent='Dismissed.';});
+  function pending(act){
+    var c=document.createElement('div');c.className='mo2-card';
+    c.innerHTML='<div class="h">Needs your OK</div><div class="b">'+act.label+'</div>'+
+      '<div class="f"><button class="mo2-ok">Approve</button><button class="mo2-no">Dismiss</button></div>'+
+      '<div class="mo2-res" style="display:none"></div>';
+    log.appendChild(c);scrollLog();
+    var entry={label:String(act.label).replace(/<[^>]*>/g,''),resolved:false};
+    entry.approve=function(){
+      if(entry.resolved)return;
+      entry.resolved=true;
+      try{act.run();}catch(e){}
+      c.querySelector('.f').style.display='none';
+      var r=c.querySelector('.mo2-res');r.style.display='block';r.textContent='\u2713 Done.';
+      moHistory.push({role:'system',text:'Morgan APPROVED "'+entry.label+'". It is now saved to the board.'});
+    };
+    entry.dismiss=function(){
+      if(entry.resolved)return;
+      entry.resolved=true;
+      c.querySelector('.f').style.display='none';
+      var r=c.querySelector('.mo2-res');r.style.display='block';r.style.color='var(--light)';r.textContent='Dismissed.';
+      moHistory.push({role:'system',text:'Morgan DISMISSED "'+entry.label+'". Do not propose it again unless she asks.'});
+    };
+    moPending.push(entry);
+    c.querySelector('.mo2-ok').addEventListener('click',entry.approve);
+    c.querySelector('.mo2-no').addEventListener('click',entry.dismiss);
   }
+  var MO_YES=/^\s*(y|ya|yes|yep|yeah|yup|ok|okay|k|sure|do it|go ahead|please|please do|confirm|confirmed|approve|approved|send it|both|all of them|that works)\s*[.!]*\s*$/i;
   function handle(q){
     if(!q.trim())return;
     addMsg('me',q);
+    var waiting=moOpenCards();
+    if(MO_YES.test(q)&&waiting.length){
+      moHistory.push({role:'user',text:q});
+      waiting.forEach(function(p){p.approve();});
+      var msg=(waiting.length===1)?'Approved - saved to your board.':('Approved all '+waiting.length+' - saved to your board.');
+      addMsg('ai',msg);
+      moHistory.push({role:'assistant',text:msg});
+      return;
+    }
     moHistory.push({role:'user',text:q});
     var thinking=addMsg('ai','…');
     moSend(q).then(function(res){
@@ -3634,8 +3692,14 @@ function initMo(){
       var reply=res.reply||'Done.';
       addMsg('ai',reply);
       moHistory.push({role:'assistant',text:reply});
-      if(res.action&&res.action.kind){
-        pending({label:hmEsc(moLabel(res.action)),run:function(){moApply(res.action);}});
+      var acts=(res.actions&&res.actions.length)?res.actions:((res.action&&res.action.kind)?[res.action]:[]);
+      acts.forEach(function(a){
+        pending({label:hmEsc(moLabel(a)),run:function(){moApply(a);}});
+      });
+      if(acts.length>1){
+        var hint=document.createElement('div');hint.className='mo2-msg ai';
+        hint.textContent='Approve each card above, or just say "yes" to approve all '+acts.length+'.';
+        log.appendChild(hint);scrollLog();
       }
     }).catch(function(err){
       thinking.remove();
