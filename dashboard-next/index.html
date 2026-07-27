@@ -1023,6 +1023,16 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .sr-ic svg{width:20px;height:20px}
 .sr-lbl{font-size:0.57rem;letter-spacing:0.02em}
 @media(max-width:560px){#side-rail{width:54px}#app{padding-left:54px}.sr-btn{width:48px}.sr-lbl{display:none}}
+
+/* ===== ambient calm background (added) ===== */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(58% 50% at 100% 0%, rgba(77,146,245,0.18), transparent 60%),
+    radial-gradient(55% 55% at 0% 100%, rgba(94,180,240,0.10), transparent 62%),
+    radial-gradient(72% 42% at 50% -12%, rgba(200,224,255,0.05), transparent 70%);}
+/* let the glow show through the main shell */
+#app,#home-view,#overview-view,#col-view{background:transparent}
+.mo2-fab{box-shadow:0 12px 34px -8px var(--blue),0 0 26px -6px var(--blue-lt)}
 </style>
   <!-- Meta Pixel Code -->
 <script>
