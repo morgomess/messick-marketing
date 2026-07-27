@@ -1033,6 +1033,34 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 /* let the glow show through the main shell */
 #app,#home-view,#overview-view,#col-view{background:transparent}
 .mo2-fab{box-shadow:0 12px 34px -8px var(--blue),0 0 26px -6px var(--blue-lt)}
+
+/* ===== MERGED HOME strip (added) ===== */
+#home-view{display:none;padding:18px 26px 4px;flex-direction:column}
+.hm-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:1280px;margin:0 auto;width:100%}
+.hm-hero2{display:flex;align-items:flex-start;justify-content:space-between}
+.hm-name2{font-size:1.5rem;font-weight:600;letter-spacing:-0.01em;margin:1px 0 4px}
+.hm-time2{font-size:0.74rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:5px 11px;border-radius:999px;white-space:nowrap}
+.hm-c2{padding:16px 18px}
+.hm-c2 .hm-card-h{margin-bottom:10px}
+.hm-prod2{display:flex;align-items:center;gap:14px}
+.hm-ring2{position:relative;width:76px;height:76px;flex:0 0 auto;display:grid;place-items:center}
+.hm-ring2 svg{width:76px;height:76px}
+.hm-ring2 .rc{position:absolute;inset:0;display:grid;place-items:center;font-size:0.78rem;font-weight:600;color:var(--muted)}
+.hm-note2{font-size:0.82rem;color:var(--lo)}
+.hm-money .amt{font-size:1.5rem}
+.hm-money .lbl{font-size:0.76rem}
+.hm-money .lbl b{color:var(--black)}
+.hm-sc2{grid-template-columns:repeat(4,1fr);gap:8px}
+.hm-sc2 .hm-scitem{padding:9px 4px;gap:5px}
+.hm-sc2 .hm-scitem .ic{width:30px;height:30px;border-radius:9px}
+.hm-sc2 .hm-scitem .ic svg{width:18px;height:18px}
+.hm-sc2 .hm-scitem .lbl{font-size:0.62rem}
+.hm-c2 .hm-ev{padding:7px 0}
+.hm-c2 .hm-loop{padding:7px 0}
+#today-due-section{background:transparent;border-bottom:1px solid var(--border)}
+#focus-section{background:transparent}
+@media(max-width:1000px){.hm-strip{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.hm-strip{grid-template-columns:1fr}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1090,6 +1118,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="h-btn" onclick="logout()">⎋ Log out</button>
     </div>
   </header>
+
+  <div id="home-view"></div>
 
   <div id="today-due-section">
     <div class="td-head">
@@ -1155,8 +1185,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
        Every number here is derived from real task data. Nothing is seeded or
        simulated: KPIs from mm_tasks_todo, load bars and the portfolio table
        from nodeDueRollup() over the brain tree. -->
-  <div id="home-view"></div>
-
   <div id="overview-view">
     <div class="ov-head">
       <div>
@@ -3385,7 +3413,7 @@ var SR_ICON={
 };
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
-  var items=[['home','Home'],['overview','Overview'],['brain','Brain'],['calendar','Calendar'],['clients','Clients']];
+  var items=[['home','Home'],['calendar','Calendar'],['clients','Clients']];
   var rail=document.createElement('nav');rail.id='side-rail';
   rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
   document.body.appendChild(rail);
@@ -3398,6 +3426,9 @@ function renderHome(){
   var view=document.getElementById('home-view'); if(!view)return;
   var tasks=(typeof loadTodoTasks==='function')?loadTodoTasks():[];
   var open=tasks.filter(function(t){return !t.done;});
+  var _td=(typeof todayStr==='function')?todayStr():'';
+  var dueToday=open.filter(function(t){return t.due===_td;}).length;
+  var overdue=open.filter(function(t){return t.due&&t.due<_td;}).length;
   var done=tasks.filter(function(t){return t.done;}).length;
   var total=tasks.length, pct=total?Math.round(done/total*100):0;
   var st=document.getElementById('stat-text'); if(st)st.textContent=done+' of '+total+' done';
@@ -3415,16 +3446,14 @@ function renderHome(){
   var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
   var loops=hmLoadLoops();var openLoops=loops.filter(function(l){return !l.done;});
   var loopRows=openLoops.length?openLoops.map(function(l){return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div></div>';}).join(''):'<div class="hm-empty">No open loops.</div>';
-  view.innerHTML='<div class="hm-wrap"><div class="hm-col">'+
-    '<section class="hm-card hm-hero"><span class="hm-hero-time">'+timeStr+'</span><div class="hm-greet">'+greet+'</div><div class="hm-name">Morgan</div><div class="hm-sub">'+open.length+' open task'+(open.length===1?'':'s')+' right now.</div></section>'+
-    '<section class="hm-card"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">All tasks</span></div><div class="hm-prod"><div class="l"><div class="hm-pct">'+pct+'%</div><div class="hm-note">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div><div class="hm-stats"><div><div class="k">Completed</div><div class="v">'+done+'</div></div><div><div class="k">Total</div><div class="v">'+total+'</div></div></div></div><div class="hm-ring">'+ring+'<span class="rc">'+pct+'%</span></div></div></section>'+
-    '<section class="hm-card"><div class="hm-card-h"><span class="t">Tasks</span><span class="m">'+open.length+' open</span></div><div class="hm-tlist">'+tRows+'</div><div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, press Enter" autocomplete="off"></div></section>'+
-    '<section class="hm-card"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc">'+HM_SHORTCUTS+'</div></section>'+
-    '</div><div class="hm-col">'+
-    '<section class="hm-card hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="amt">'+amt+'</div><div class="lbl">Collected this month</div><div class="ytd">Year to date <b>'+ytd+'</b></div></section>'+
-    '<section class="hm-card"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due date</span></div>'+evRows+'</section>'+
-    '<section class="hm-card"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+' open</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add an open loop, press Enter" autocomplete="off"></div></section>'+
-    '</div></div>';
+  view.innerHTML='<div class="hm-strip">'+
+    '<section class="hm-card hm-hero2"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-sub">'+open.length+' open'+(dueToday?' &middot; '+dueToday+' due today':'')+(overdue?' &middot; <span style="color:var(--crit)">'+overdue+' overdue</span>':'')+'</div></div><div class="hm-time2">'+timeStr+'</div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+' of '+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
+    '<section class="hm-card hm-c2 hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="amt">'+amt+'</div><div class="lbl">this month &middot; YTD <b>'+ytd+'</b></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+' open</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add a loop, press Enter" autocomplete="off"></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
+    '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
   if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
@@ -3598,10 +3627,10 @@ function ovOpenClient(name){
 function switchMainTab(tab){
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
   const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
-  document.getElementById('focus-section').style.display=isBrain?'block':'none';
-  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
-  document.getElementById('quick-add-bar').style.display=(isClients||isOv||isHome)?'none':'flex';
-  document.getElementById('col-view').style.display=isBrain?'flex':'none';
+  document.getElementById('focus-section').style.display=(isBrain||isHome)?'block':'none';
+  document.getElementById('today-due-section').style.display=(isCal||isOv)?'none':'block';
+  document.getElementById('quick-add-bar').style.display=(isClients||isOv)?'none':'flex';
+  document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
   document.getElementById('overview-view').style.display=isOv?'flex':'none';
@@ -3611,7 +3640,7 @@ function switchMainTab(tab){
   document.getElementById('tab-brain').classList.toggle('active',isBrain);
   document.getElementById('tab-calendar').classList.toggle('active',isCal);
   document.getElementById('tab-clients').classList.toggle('active',isClients);
-  if(isHome)renderHome();
+  if(isHome){renderHome();if(typeof renderColumns==='function')renderColumns();}
   if(isClients)renderClients();
   if(isCal)renderCalendar();
   if(isOv){renderOverview(); ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});}
