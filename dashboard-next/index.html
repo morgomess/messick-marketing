@@ -975,6 +975,41 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .hm-ev .eb .et{font-size:0.85rem}
 .hm-ev .eb .es{font-size:0.75rem;color:var(--light);text-transform:capitalize}
 @media(max-width:900px){.hm-wrap{grid-template-columns:1fr}.hm-sc{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== OPEN LOOPS + MO (added) ===== */
+.hm-loops{display:flex;flex-direction:column}
+.hm-loop{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--border)}
+.hm-loop:last-child{border-bottom:0}
+.hm-lbox{width:18px;height:18px;border-radius:6px;border:2px solid var(--light);flex:0 0 auto;cursor:pointer;margin-top:1px;transition:0.15s}
+.hm-lbox:hover{border-color:var(--blue)}
+.hm-ltype{font-size:0.68rem;color:var(--light);text-transform:uppercase;letter-spacing:0.04em}
+.hm-lt{font-size:0.84rem;margin-top:2px}
+.mo2-fab{position:fixed;bottom:24px;right:24px;width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;z-index:900;background:linear-gradient(150deg,var(--blue),var(--blue-lt));box-shadow:0 12px 30px -10px var(--blue);display:grid;place-items:center;transition:transform 0.2s}
+.mo2-fab:hover{transform:scale(1.05)}
+.mo2-fab svg{width:32px;height:30px}
+.mo2-panel{position:fixed;bottom:92px;right:24px;width:362px;max-width:calc(100vw - 36px);height:520px;max-height:calc(100vh - 120px);z-index:901;background:var(--surface);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 70px -22px rgba(0,0,0,0.7)}
+.mo2-panel.hidden{display:none}
+.mo2-head{padding:15px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px}
+.mo2-head .nm{font-size:0.95rem;font-weight:600}
+.mo2-head .nm b{color:var(--blue)}
+.mo2-head .s{font-size:0.72rem;color:var(--light)}
+.mo2-head .x{margin-left:auto;background:none;border:0;color:var(--light);font-size:1.3rem;cursor:pointer;line-height:1}
+.mo2-log{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:11px}
+.mo2-msg{font-size:0.85rem;line-height:1.5;max-width:90%;white-space:pre-wrap}
+.mo2-msg.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--border);padding:9px 12px;border-radius:5px 14px 14px 14px}
+.mo2-msg.me{align-self:flex-end;background:var(--blue);color:#fff;padding:9px 12px;border-radius:14px 5px 14px 14px}
+.mo2-card{align-self:flex-start;width:92%;background:var(--surface-2);border:1px solid var(--hi);border-radius:13px;overflow:hidden}
+.mo2-card .h{padding:8px 13px;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--hi);font-weight:700}
+.mo2-card .b{padding:11px 13px;font-size:0.85rem;font-weight:600}
+.mo2-card .f{display:flex;gap:8px;padding:0 13px 13px}
+.mo2-card button{flex:1;font-family:inherit;font-size:0.8rem;font-weight:600;padding:8px;border-radius:9px;cursor:pointer;border:1px solid var(--border)}
+.mo2-ok{background:var(--lo);color:#06201a;border:0}
+.mo2-no{background:none;color:var(--light)}
+.mo2-res{padding:0 13px 13px;font-size:0.8rem;color:var(--lo)}
+.mo2-in{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+.mo2-in input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--black);padding:10px 13px;font-family:inherit;font-size:0.85rem;outline:none}
+.mo2-in input:focus{border-color:var(--blue)}
+.mo2-in button{width:42px;border:0;border-radius:11px;background:var(--blue);color:#fff;cursor:pointer;font-size:1rem}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3266,6 +3301,57 @@ function hmEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g
 function hmParse(due){var p=String(due||'').split('-');var mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return {day:String((+p[2])||''),mon:mons[((+p[1])-1)]||''};}
 function hmDue(due){var d=hmParse(due);return (d.mon+' '+d.day).trim();}
 function hmAddTask(text){try{var tasks=loadTodoTasks();tasks.push({id:uid(),text:text,nodeId:'personal-root',brand:'other',priority:'none',due:null,recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',recurLastGen:(typeof todayStr==='function'?todayStr():'')});saveTodoTasks(tasks);}catch(e){}}
+/* ===== OPEN LOOPS store (added, syncs via mm_loops) ===== */
+function hmLoadLoops(){try{var a=JSON.parse(localStorage.getItem('mm_loops')||'null');return Array.isArray(a)?a:[{id:'l1',type:'Unbilled',t:'ECCO brush shower invoice',done:false},{id:'l2',type:'Waiting on reply',t:'OEIS PDF source assets',done:false},{id:'l3',type:'Idea',t:'BBS shorts cover A/B test',done:false}];}catch(e){return [];}}
+function hmSaveLoops(a){try{localStorage.setItem('mm_loops',JSON.stringify(a));if(typeof scheduleSave==='function')scheduleSave();}catch(e){}}
+function hmAddLoop(text){var a=hmLoadLoops();a.push({id:'lp'+Date.now()+Math.floor(Math.random()*1000),type:'Reminder',t:text,done:false});hmSaveLoops(a);}
+
+/* ===== MO floating assistant (added) ===== */
+var MO_WORKER=(typeof WORKER!=='undefined')?WORKER:'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
+function moMiniSvg(){return '<svg viewBox="0 0 60 56" width="28" height="26"><rect x="11" y="14" width="38" height="34" rx="14" fill="var(--blue)"/><rect x="17" y="20" width="26" height="22" rx="9" fill="#101722"/><circle cx="25" cy="31" r="3.4" fill="#dfeefb"/><circle cx="35" cy="31" r="3.4" fill="#dfeefb"/><circle cx="30" cy="5" r="3" fill="var(--blue-lt)"/><line x1="30" y1="6" x2="30" y2="15" stroke="var(--blue)" stroke-width="2"/></svg>';}
+function moFindTask(q){q=(q||'').toLowerCase().trim();if(!q)return null;var best=null;loadTodoTasks().forEach(function(t){if(!t.done&&(t.text||'').toLowerCase().indexOf(q)>-1&&(!best||t.text.length<best.text.length))best=t;});return best;}
+function moFindLoop(q){q=(q||'').toLowerCase().trim();if(!q)return null;var best=null;hmLoadLoops().forEach(function(l){if(!l.done&&(l.t||'').toLowerCase().indexOf(q)>-1&&(!best||l.t.length<best.t.length))best=l;});return best;}
+function moParse(q){var m;
+  if(m=q.match(/^\s*(?:add|create|new)\s+(?:a\s+)?(?:task|todo)?\s*:?\s*(.+)/i)){var text=m[1].trim();if(text)return{label:'Add task: '+hmEsc(text),run:function(){hmAddTask(text);if(typeof renderHome==='function')renderHome();}};}
+  if(m=q.match(/\b(?:complete|finish|finished|done with|mark(?: off)?|check off)\b\s+(?:the\s+)?(.+)/i)){var t=moFindTask(m[1]);if(t)return{label:'Complete: '+hmEsc(t.text),run:function(){toggleTask('todo',t.id);if(typeof renderHome==='function')renderHome();}};return{miss:m[1].trim()};}
+  if(m=q.match(/\b(?:close|clear|resolve)\b\s+(?:the\s+)?(?:loop\s+)?(.+)/i)){var l=moFindLoop(m[1]);if(l)return{label:'Close loop: '+hmEsc(l.t),run:function(){var a=hmLoadLoops();var f=a.filter(function(x){return x.id===l.id;})[0];if(f)f.done=true;hmSaveLoops(a);if(typeof renderHome==='function')renderHome();}};}
+  return null;
+}
+function moAsk(q){
+  var open=loadTodoTasks().filter(function(t){return !t.done;}).slice(0,30).map(function(t){return '- '+t.text+(t.due?' (due '+t.due+')':'')+((t.priority&&t.priority!=='none')?' ['+t.priority+']':'');}).join('\n');
+  var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
+  var ctx="You are Mo, a concise assistant inside Morgan's marketing-agency dashboard. Answer in 1-3 short sentences, plain text, no markdown.\n\nHer open tasks:\n"+(open||'(none)')+"\n\nRevenue: "+(rev?('$'+(rev.thisMonth||0)+' this month, $'+(rev.ytd||0)+' YTD'):'(unknown)')+"\n\nQuestion: "+q;
+  return fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:ctx})}).then(function(r){return r.json();}).then(function(d){return (d&&d.text)?d.text:'(no answer)';});
+}
+function initMo(){
+  if(document.getElementById('mo2-fab'))return;
+  var fab=document.createElement('button');fab.id='mo2-fab';fab.className='mo2-fab';fab.setAttribute('aria-label','Open Mo');fab.innerHTML=moMiniSvg();
+  var panel=document.createElement('section');panel.className='mo2-panel hidden';panel.id='mo2-panel';
+  panel.innerHTML='<div class="mo2-head">'+moMiniSvg()+'<div><div class="nm">Hi, I\'m <b>Mo</b></div><div class="s">Ask anything &middot; changes need your OK</div></div><button class="x" id="mo2-x">&times;</button></div>'+
+    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. I can answer questions and tidy your board - tell me to add or complete a task, or close a loop, and I\'ll ask before changing anything.</div></div>'+
+    '<div class="mo2-in"><input id="mo2-input" placeholder="Ask Mo, or tell me to change something..." autocomplete="off"><button id="mo2-send">&#8594;</button></div>';
+  document.body.appendChild(fab);document.body.appendChild(panel);
+  var log=panel.querySelector('#mo2-log'),input=panel.querySelector('#mo2-input');
+  function scrollLog(){log.scrollTop=log.scrollHeight;}
+  function addMsg(who,text){var m=document.createElement('div');m.className='mo2-msg '+who;m.textContent=text;log.appendChild(m);scrollLog();return m;}
+  function addMsgHTML(who,html){var m=document.createElement('div');m.className='mo2-msg '+who;m.innerHTML=html;log.appendChild(m);scrollLog();return m;}
+  function pending(act){var c=document.createElement('div');c.className='mo2-card';c.innerHTML='<div class="h">Needs your OK</div><div class="b">'+act.label+'</div><div class="f"><button class="mo2-ok">Approve</button><button class="mo2-no">Dismiss</button></div><div class="mo2-res" style="display:none"></div>';log.appendChild(c);scrollLog();
+    c.querySelector('.mo2-ok').addEventListener('click',function(){try{act.run();}catch(e){}c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.textContent='\u2713 Done.';});
+    c.querySelector('.mo2-no').addEventListener('click',function(){c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.style.color='var(--light)';r.textContent='Dismissed.';});
+  }
+  function handle(q){if(!q.trim())return;addMsg('me',q);
+    var act=moParse(q);
+    if(act&&act.label){addMsg('ai','Got it - confirm and I\'ll do it:');pending(act);return;}
+    if(act&&act.miss){addMsg('ai','I couldn\'t find an open task matching "'+act.miss+'". Say "add '+act.miss+'" to create it.');return;}
+    var thinking=addMsg('ai','...');
+    moAsk(q).then(function(ans){thinking.textContent=ans;scrollLog();}).catch(function(){thinking.textContent='I could not reach the model just now.';});
+  }
+  fab.addEventListener('click',function(){panel.classList.toggle('hidden');if(!panel.classList.contains('hidden'))input.focus();});
+  panel.querySelector('#mo2-x').addEventListener('click',function(){panel.classList.add('hidden');});
+  panel.querySelector('#mo2-send').addEventListener('click',function(){handle(input.value);input.value='';});
+  input.addEventListener('keydown',function(e){if(e.key==='Enter'){handle(input.value);input.value='';}});
+}
+
 function renderHome(){
   var view=document.getElementById('home-view'); if(!view)return;
   var tasks=(typeof loadTodoTasks==='function')?loadTodoTasks():[];
@@ -3285,6 +3371,8 @@ function renderHome(){
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
   var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
   var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
+  var loops=hmLoadLoops();var openLoops=loops.filter(function(l){return !l.done;});
+  var loopRows=openLoops.length?openLoops.map(function(l){return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div></div>';}).join(''):'<div class="hm-empty">No open loops.</div>';
   view.innerHTML='<div class="hm-wrap"><div class="hm-col">'+
     '<section class="hm-card hm-hero"><span class="hm-hero-time">'+timeStr+'</span><div class="hm-greet">'+greet+'</div><div class="hm-name">Morgan</div><div class="hm-sub">'+open.length+' open task'+(open.length===1?'':'s')+' right now.</div></section>'+
     '<section class="hm-card"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">All tasks</span></div><div class="hm-prod"><div class="l"><div class="hm-pct">'+pct+'%</div><div class="hm-note">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div><div class="hm-stats"><div><div class="k">Completed</div><div class="v">'+done+'</div></div><div><div class="k">Total</div><div class="v">'+total+'</div></div></div></div><div class="hm-ring">'+ring+'<span class="rc">'+pct+'%</span></div></div></section>'+
@@ -3293,10 +3381,14 @@ function renderHome(){
     '</div><div class="hm-col">'+
     '<section class="hm-card hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="amt">'+amt+'</div><div class="lbl">Collected this month</div><div class="ytd">Year to date <b>'+ytd+'</b></div></section>'+
     '<section class="hm-card"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due date</span></div>'+evRows+'</section>'+
+    '<section class="hm-card"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+' open</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add an open loop, press Enter" autocomplete="off"></div></section>'+
     '</div></div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
   if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
+  view.querySelectorAll('.hm-lbox').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');var a=hmLoadLoops();var f=a.filter(function(x){return x.id===id;})[0];if(f){f.done=!f.done;hmSaveLoops(a);renderHome();}});});
+  var li=document.getElementById('hm-loop-input');
+  if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim());li.value='';renderHome();}});
   if(!rev&&typeof ovSyncExternal==='function'){ovSyncExternal().then(function(){var tb=document.getElementById('tab-home');if(tb&&tb.classList.contains('active'))renderHome();}).catch(function(){});}
 }
 function renderOverview(){
@@ -4114,6 +4206,7 @@ function init(){
   if(changed)saveTodoTasks(tasks);
   ovBindAutoSync();
   switchMainTab('home');   // calm Home is the landing page
+  try{initMo();}catch(e){}
 }
 
 /* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
