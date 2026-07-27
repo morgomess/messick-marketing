@@ -1091,6 +1091,10 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .hm-wcol span{font-size:0.6rem;color:var(--light)}
 @media(max-width:1000px){.hm-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.hm-grid{grid-template-columns:1fr}.hm-hero3{grid-column:auto}}
+
+/* ===== tidy pass (added) ===== */
+.hm-hero3 .hm-date-day{font-size:0.76rem;color:var(--light);margin-top:3px}
+.hm-money2{margin-top:0;padding-top:0;border-top:0}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3480,9 +3484,6 @@ function renderHome(){
   var _now=new Date();
   var dateBig=_mons[_now.getMonth()]+' '+_now.getDate()+', '+_now.getFullYear();
   var dateDay=_now.toLocaleDateString('en-US',{weekday:'long'});
-  var wk=[];(function(){for(var i=6;i>=0;i--){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);var e=new Date(d);e.setDate(e.getDate()+1);var n=tasks.filter(function(t){return t.done&&t.doneAt&&t.doneAt>=d.getTime()&&t.doneAt<e.getTime();}).length;wk.push({l:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()],n:n});}})();
-  var wkMax=Math.max.apply(null,wk.map(function(x){return x.n;}).concat([1]));
-  var wkBars=wk.map(function(x){return '<div class="hm-wcol"><div class="hm-wbar'+(x.n===wkMax&&x.n>0?' peak':'')+'" style="height:'+Math.max(8,Math.round(x.n/wkMax*100))+'%"></div><span>'+x.l+'</span></div>';}).join('');
   var brandBars='';
   try{if(typeof nodeDueRollup==='function'&&typeof brainNodes!=='undefined'&&brainNodes.length){
     var KN={'mm-root':'var(--blue)','ve-root':'var(--ve)','personal-root':'var(--personal)'};
@@ -3496,15 +3497,14 @@ function renderHome(){
     spark='<svg class="hm-spark" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M'+pts+'" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}}catch(e){}
   var loopRows=openLoops.length?openLoops.map(function(l){return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div></div>';}).join(''):'<div class="hm-empty">No open loops.</div>';
   view.innerHTML='<div class="hm-grid">'+
-    '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
+    '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-date-day">'+dateDay+', '+dateBig+'</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
     '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
-    '<section class="hm-card hm-c2"><div class="hm-date-big">'+dateBig+'</div><div class="hm-date-day">'+dateDay+'</div><div class="hm-money2"><span class="amt2">'+amt+'</span><span class="ytd2">YTD '+ytd+'</span></div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+'/'+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Client load</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Weekly activity</span><span class="m">done/day</span></div><div class="hm-week">'+wkBars+'</div></section>'+
+    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Work split</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa"><input id="hm-loop-input" placeholder="Add a loop, press Enter" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
+    '<section class="hm-card hm-c2 hm-money"><div class="hm-card-h"><span class="t">Money in</span><span class="m">Moxie</span></div><div class="hm-money2"><span class="amt2">'+amt+'</span><span class="ytd2">YTD '+ytd+'</span></div></section>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
@@ -3679,9 +3679,9 @@ function ovOpenClient(name){
 function switchMainTab(tab){
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
   const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
-  document.getElementById('focus-section').style.display=(isBrain||isHome)?'block':'none';
+  document.getElementById('focus-section').style.display=isBrain?'block':'none';
   document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
-  document.getElementById('quick-add-bar').style.display=(isClients||isOv)?'none':'flex';
+  document.getElementById('quick-add-bar').style.display=(isClients||isOv||isHome)?'none':'flex';
   document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
