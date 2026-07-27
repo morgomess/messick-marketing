@@ -1160,6 +1160,51 @@ body.home-drawer #home-view{overflow-y:auto}
 .hm-lstat{font-size:0.63rem;color:var(--light);white-space:nowrap}
 .hm-lstat.s-active{color:var(--lo)}
 .hm-moneybar{flex-wrap:wrap;gap:18px}
+
+/* ===== TRON GRID ROOM BACKGROUND (added) ===== */
+body{background:#04101f}
+#bg-scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(120% 80% at 50% 50%, rgba(9,38,74,0.55), transparent 70%),
+    linear-gradient(180deg,#04101f 0%,#062a4d 45%,#062a4d 55%,#04101f 100%);}
+#app{position:relative;z-index:1}
+/* perspective grid floor + ceiling */
+.bg-floor,.bg-ceil{position:absolute;left:-25%;right:-25%;height:52vh;
+  background-image:
+    repeating-linear-gradient(to right, rgba(96,196,255,0.30) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom, rgba(96,196,255,0.30) 0 1px, transparent 1px 64px);}
+.bg-floor{bottom:0;height:100vh;transform:perspective(900px) rotateX(64deg);transform-origin:bottom center;
+  -webkit-mask-image:linear-gradient(to top,#000 4%,transparent 72%);
+          mask-image:linear-gradient(to top,#000 4%,transparent 72%);}
+.bg-ceil{top:0;height:100vh;transform:perspective(900px) rotateX(-64deg);transform-origin:top center;
+  -webkit-mask-image:linear-gradient(to bottom,#000 4%,transparent 72%);
+          mask-image:linear-gradient(to bottom,#000 4%,transparent 72%);}
+/* glowing corner beams */
+.bg-beam{position:absolute;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,rgba(140,225,255,0) 0%,rgba(140,225,255,0.85) 18%,rgba(140,225,255,0.85) 82%,rgba(140,225,255,0) 100%);
+  box-shadow:0 0 22px 5px rgba(90,190,255,0.45),0 0 70px 16px rgba(60,150,235,0.25)}
+.bg-beam-l{left:5.5%}
+.bg-beam-r{right:5.5%}
+/* horizon glow pools */
+.bg-pool{position:absolute;left:50%;transform:translateX(-50%);width:210px;height:26px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(120,255,225,0.55),transparent);filter:blur(7px)}
+.bg-pool-t{top:11%}
+.bg-pool-b{bottom:11%}
+/* starfield */
+.bg-stars,.bg-stars2{position:absolute;top:0;left:0;width:1px;height:1px;border-radius:50%;background:transparent}
+.bg-stars{box-shadow:663px 1941px rgba(255,255,255,0.85),308px 808px rgba(255,255,255,0.85),1333px 98px rgba(255,255,255,0.85),148px 1681px rgba(255,255,255,0.85),1097px 192px rgba(255,255,255,0.85),748px 1193px rgba(255,255,255,0.85),118px 1863px rgba(255,255,255,0.85),1039px 439px rgba(255,255,255,0.85),76px 176px rgba(255,255,255,0.85),888px 856px rgba(255,255,255,0.85),143px 492px rgba(255,255,255,0.85),185px 1128px rgba(255,255,255,0.85),869px 121px rgba(255,255,255,0.85),1693px 1158px rgba(255,255,255,0.85),253px 1940px rgba(255,255,255,0.85),457px 1291px rgba(255,255,255,0.85),1284px 1193px rgba(255,255,255,0.85),1940px 126px rgba(255,255,255,0.85),1181px 1199px rgba(255,255,255,0.85),812px 101px rgba(255,255,255,0.85),1999px 452px rgba(255,255,255,0.85),95px 1140px rgba(255,255,255,0.85),1758px 272px rgba(255,255,255,0.85),593px 858px rgba(255,255,255,0.85),295px 1107px rgba(255,255,255,0.85),241px 1169px rgba(255,255,255,0.85),631px 1147px rgba(255,255,255,0.85),1671px 1396px rgba(255,255,255,0.85),370px 211px rgba(255,255,255,0.85),1191px 1169px rgba(255,255,255,0.85),1308px 384px rgba(255,255,255,0.85),762px 199px rgba(255,255,255,0.85),1121px 1458px rgba(255,255,255,0.85),128px 1155px rgba(255,255,255,0.85),122px 1267px rgba(255,255,255,0.85),421px 1016px rgba(255,255,255,0.85),1393px 1088px rgba(255,255,255,0.85),875px 1591px rgba(255,255,255,0.85),643px 953px rgba(255,255,255,0.85),1199px 1891px rgba(255,255,255,0.85),928px 740px rgba(255,255,255,0.85),613px 508px rgba(255,255,255,0.85),1626px 368px rgba(255,255,255,0.85),1431px 1597px rgba(255,255,255,0.85),499px 167px rgba(255,255,255,0.85),1176px 614px rgba(255,255,255,0.85),1075px 1013px rgba(255,255,255,0.85),1792px 703px rgba(255,255,255,0.85),1493px 919px rgba(255,255,255,0.85),589px 1247px rgba(255,255,255,0.85),149px 241px rgba(255,255,255,0.85),1048px 856px rgba(255,255,255,0.85),337px 1550px rgba(255,255,255,0.85),700px 311px rgba(255,255,255,0.85),1911px 1001px rgba(255,255,255,0.85),863px 80px rgba(255,255,255,0.85),1970px 1368px rgba(255,255,255,0.85),158px 1565px rgba(255,255,255,0.85),1142px 1173px rgba(255,255,255,0.85),1616px 1792px rgba(255,255,255,0.85),1675px 642px rgba(255,255,255,0.85),696px 1423px rgba(255,255,255,0.85),717px 1217px rgba(255,255,255,0.85),1017px 1187px rgba(255,255,255,0.85),1632px 934px rgba(255,255,255,0.85),140px 1720px rgba(255,255,255,0.85),191px 1934px rgba(255,255,255,0.85),552px 970px rgba(255,255,255,0.85),1427px 1360px rgba(255,255,255,0.85),133px 124px rgba(255,255,255,0.85),1497px 1436px rgba(255,255,255,0.85),634px 1325px rgba(255,255,255,0.85),1183px 1395px rgba(255,255,255,0.85),1683px 912px rgba(255,255,255,0.85),582px 1467px rgba(255,255,255,0.85),790px 1816px rgba(255,255,255,0.85),1369px 710px rgba(255,255,255,0.85),46px 1926px rgba(255,255,255,0.85),945px 727px rgba(255,255,255,0.85),344px 1251px rgba(255,255,255,0.85),239px 1011px rgba(255,255,255,0.85),120px 446px rgba(255,255,255,0.85),1573px 588px rgba(255,255,255,0.85),264px 1512px rgba(255,255,255,0.85),507px 814px rgba(255,255,255,0.85),800px 1877px rgba(255,255,255,0.85),1784px 1016px rgba(255,255,255,0.85),165px 340px rgba(255,255,255,0.85),919px 822px rgba(255,255,255,0.85),1125px 569px rgba(255,255,255,0.85);animation:bgdrift 150s linear infinite}
+.bg-stars2{box-shadow:1809px 280px rgba(255,255,255,0.5),1677px 881px rgba(255,255,255,0.5),1769px 1126px rgba(255,255,255,0.5),570px 1446px rgba(255,255,255,0.5),850px 734px rgba(255,255,255,0.5),1398px 1810px rgba(255,255,255,0.5),779px 1961px rgba(255,255,255,0.5),472px 309px rgba(255,255,255,0.5),169px 360px rgba(255,255,255,0.5),309px 475px rgba(255,255,255,0.5),1348px 477px rgba(255,255,255,0.5),24px 993px rgba(255,255,255,0.5),1702px 1206px rgba(255,255,255,0.5),373px 538px rgba(255,255,255,0.5),577px 8px rgba(255,255,255,0.5),298px 858px rgba(255,255,255,0.5),1094px 756px rgba(255,255,255,0.5),1248px 1159px rgba(255,255,255,0.5),652px 1951px rgba(255,255,255,0.5),257px 1414px rgba(255,255,255,0.5),1759px 1055px rgba(255,255,255,0.5),1946px 1264px rgba(255,255,255,0.5),1341px 1384px rgba(255,255,255,0.5),1515px 110px rgba(255,255,255,0.5),935px 1842px rgba(255,255,255,0.5),1783px 1597px rgba(255,255,255,0.5),1949px 1791px rgba(255,255,255,0.5),1393px 1634px rgba(255,255,255,0.5),1145px 803px rgba(255,255,255,0.5),815px 817px rgba(255,255,255,0.5),807px 212px rgba(255,255,255,0.5),986px 1299px rgba(255,255,255,0.5),820px 127px rgba(255,255,255,0.5),390px 137px rgba(255,255,255,0.5),427px 902px rgba(255,255,255,0.5),332px 225px rgba(255,255,255,0.5),696px 1230px rgba(255,255,255,0.5),107px 209px rgba(255,255,255,0.5),0px 1160px rgba(255,255,255,0.5),309px 1098px rgba(255,255,255,0.5),207px 1943px rgba(255,255,255,0.5),744px 1256px rgba(255,255,255,0.5),52px 144px rgba(255,255,255,0.5),1790px 425px rgba(255,255,255,0.5),1257px 770px rgba(255,255,255,0.5),304px 1299px rgba(255,255,255,0.5),516px 1956px rgba(255,255,255,0.5),711px 1233px rgba(255,255,255,0.5),745px 971px rgba(255,255,255,0.5),251px 236px rgba(255,255,255,0.5);animation:bgdrift 240s linear infinite}
+@keyframes bgdrift{from{transform:translateY(0)}to{transform:translateY(-1000px)}}
+/* let the chrome show the room through */
+header{background:rgba(10,20,34,0.72)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#side-rail{background:rgba(10,20,34,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.hm-card,.card,.col,.mo2-panel,#board-handle{backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.hm-card{background:rgba(20,30,45,0.80)}
+.col{background:rgba(20,30,45,0.80)}
+#board-handle{background:rgba(12,22,36,0.86)}
+body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
+.mo2-panel{background:rgba(16,26,41,0.94)}
+@media (prefers-reduced-motion:reduce){.bg-stars,.bg-stars2{animation:none}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1192,6 +1237,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     <div id="login-error">Incorrect password. Try again.</div>
   </div>
 </div>
+
+<div id="bg-scene" aria-hidden="true"><div class="bg-ceil"></div><div class="bg-floor"></div><div class="bg-beam bg-beam-l"></div><div class="bg-beam bg-beam-r"></div><div class="bg-pool bg-pool-t"></div><div class="bg-pool bg-pool-b"></div><div class="bg-stars"></div><div class="bg-stars2"></div></div>
 
 <div id="app">
   <header>
@@ -1422,7 +1469,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <div class="picker-glow-bar"></div>
     </div>
     <div class="picker-modal-body">
-      <button class="picker-accept-btn" onclick="pickerAccept()">⚡ Pin to Top 3</button>
       <button class="picker-respin-btn" onclick="pickerSpin()">↻ Respin</button>
       <button class="picker-close-btn" onclick="closePicker()">✕</button>
     </div>
@@ -3655,7 +3701,21 @@ function renderHome(){
   var evRows=up.length?up.map(function(t){var d=hmParse(t.due);return '<div class="hm-ev"><div class="d"><div class="dd">'+d.day+'</div><div class="mm">'+d.mon+'</div></div><div class="eb"><div class="et">'+hmEsc(t.text)+'</div><div class="es">'+hmEsc(t.brand||'')+'</div></div></div>';}).join(''):'<div class="hm-empty">Nothing scheduled by due date.</div>';
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
   var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
-  var ytd=rev?('$'+Math.round((+rev.ytd)||0).toLocaleString('en-US')):'--';
+  var ytdVal=0, ytdLabel='YTD in';
+  if(rev){
+    var _bm=(rev.byMonth&&typeof rev.byMonth==='object'&&!Array.isArray(rev.byMonth))?rev.byMonth:null;
+    var _y=((typeof todayStr==='function')?todayStr():'').slice(0,4);
+    if(_bm){
+      var _mk=Object.keys(_bm).filter(function(k){return String(k).slice(0,4)===_y;}).sort();
+      ytdVal=_mk.reduce(function(s,k){return s+(+_bm[k]||0);},0);
+      if(_mk.length&&_mk[0]!==_y+'-01'){
+        var _MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        ytdLabel='in since '+(_MN[parseInt(_mk[0].slice(5,7),10)-1]||'');
+      }
+    }
+    if(!ytdVal)ytdVal=(+rev.ytd)||0;
+  }
+  var ytd=rev?('$'+Math.round(ytdVal).toLocaleString('en-US')):'--';
   function hmMoney(n){var v=Math.round(+n||0);var s=(v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US');return s;}
   var inMonth=rev?(+rev.thisMonth||0):0;
   var _t=(typeof todayStr==='function')?todayStr():'';
@@ -3722,7 +3782,7 @@ function renderHome(){
       '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
       '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
       '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
-      '<span class="ytd2">YTD in '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</span>'+
+      '<span class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</span>'+
       '<span class="m">Moxie + Expenses</span>'+
     '</section>'+
     '</div>';
