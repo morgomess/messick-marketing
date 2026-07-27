@@ -1114,6 +1114,29 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .hm-moneybar .ytd2{font-size:0.75rem;color:var(--light)}
 .hm-moneybar .m{margin-left:auto;font-size:0.7rem;color:var(--light)}
 
+
+/* ===== full-screen Home + bottom task drawer (added) ===== */
+body.home-drawer #home-view{padding-bottom:52px}
+body.home-drawer #col-view{position:fixed;left:66px;right:0;bottom:40px;height:0;z-index:801;
+  overflow:hidden;transition:height 0.24s ease;border-top:1px solid var(--border);
+  background:var(--surface);padding:0 18px}
+body.home-drawer.drawer-open #col-view{height:56vh;padding:14px 18px;overflow-x:auto}
+#board-handle{display:none;position:fixed;left:66px;right:0;bottom:0;height:40px;z-index:802;
+  align-items:center;gap:10px;padding:0 20px;cursor:pointer;
+  background:var(--surface);border-top:1px solid var(--border)}
+#board-handle:hover{background:var(--surface-2)}
+.bh-grip{width:34px;height:4px;border-radius:3px;background:var(--border-s);flex:0 0 auto}
+.bh-label{font-size:0.78rem;color:var(--muted);font-weight:500}
+.bh-count{font-size:0.68rem;color:var(--light);background:var(--surface-2);border:1px solid var(--border);padding:2px 9px;border-radius:999px}
+.bh-caret{margin-left:auto;font-size:0.6rem;color:var(--light);transition:transform 0.24s}
+body.drawer-open .bh-caret{transform:rotate(180deg)}
+/* bento fills the screen */
+body.home-drawer #home-view{overflow-y:auto}
+.hm-grid{align-content:start}
+@media(max-width:560px){
+  body.home-drawer #col-view,#board-handle{left:54px}
+  body.home-drawer.drawer-open #col-view{height:62vh}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3470,11 +3493,12 @@ var SR_ICON={
  overview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
  brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="9" r="2.5"/><circle cx="10" cy="17" r="2.5"/><path d="M8.7 8.4 15 8.6M9 15 15.5 11"/></svg>',
  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+ brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
  clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.3a3 3 0 0 1 0 5.4"/><path d="M17.5 20a5 5 0 0 0-2.6-4.4"/></svg>'
 };
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
-  var items=[['home','Home'],['calendar','Calendar'],['clients','Clients']];
+  var items=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients']];
   var rail=document.createElement('nav');rail.id='side-rail';
   rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
   document.body.appendChild(rail);
@@ -3483,6 +3507,19 @@ function buildSideRail(){
   sync('home');
 }
 
+function buildBoardHandle(){
+  if(document.getElementById('board-handle'))return;
+  var h=document.createElement('div');h.id='board-handle';
+  h.innerHTML='<span class="bh-grip"></span><span class="bh-label">Task board</span><span class="bh-count" id="bh-count"></span><span class="bh-caret">&#9650;</span>';
+  document.body.appendChild(h);
+  if(localStorage.getItem('mm_board_open')==='1')document.body.classList.add('drawer-open');
+  h.addEventListener('click',function(){
+    var open=!document.body.classList.contains('drawer-open');
+    document.body.classList.toggle('drawer-open',open);
+    try{localStorage.setItem('mm_board_open',open?'1':'0');}catch(e){}
+    if(open&&typeof renderColumns==='function')renderColumns();
+  });
+}
 function renderHome(){
   var view=document.getElementById('home-view'); if(!view)return;
   var tasks=(typeof loadTodoTasks==='function')?loadTodoTasks():[];
@@ -3493,6 +3530,7 @@ function renderHome(){
   var done=tasks.filter(function(t){return t.done;}).length;
   var total=tasks.length, pct=total?Math.round(done/total*100):0;
   var st=document.getElementById('stat-text'); if(st)st.textContent=done+' of '+total+' done';
+  var bc=document.getElementById('bh-count'); if(bc)bc.textContent=open.length+' open';
   var h=new Date().getHours(), greet=h<12?'Good morning,':(h<18?'Good afternoon,':'Good evening,');
   var timeStr=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   var r=48,c=2*Math.PI*r,off=c*(1-pct/100);
@@ -3721,14 +3759,16 @@ function ovOpenClient(name){
 function switchMainTab(tab){
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
   const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
-  document.getElementById('focus-section').style.display=isBrain?'block':'none';
+  document.getElementById('focus-section').style.display='none';
   document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
-  document.getElementById('quick-add-bar').style.display=(isClients||isOv||isHome)?'none':'flex';
+  document.getElementById('quick-add-bar').style.display='none';
   document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
   document.getElementById('overview-view').style.display=isOv?'flex':'none';
   document.getElementById('home-view').style.display=isHome?'flex':'none';
+  document.body.classList.toggle('home-drawer',isHome);
+  var _bh=document.getElementById('board-handle'); if(_bh)_bh.style.display=isHome?'flex':'none';
   document.getElementById('tab-overview').classList.toggle('active',isOv);
   document.getElementById('tab-home').classList.toggle('active',isHome);
   document.getElementById('tab-brain').classList.toggle('active',isBrain);
@@ -4373,6 +4413,7 @@ function init(){
   switchMainTab('home');   // calm Home is the landing page
   try{initMo();}catch(e){}
   try{buildSideRail();}catch(e){}
+  try{buildBoardHandle();}catch(e){}
 }
 
 /* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
