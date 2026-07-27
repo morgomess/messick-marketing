@@ -1137,6 +1137,10 @@ body.home-drawer #home-view{overflow-y:auto}
   body.home-drawer #col-view,#board-handle{left:54px}
   body.home-drawer.drawer-open #col-view{height:62vh}
 }
+
+/* ===== double-click to edit (added) ===== */
+.t-row{cursor:default}
+.pb-card{cursor:default}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -2045,6 +2049,13 @@ function buildColTask(task,idx,type){
   tr.querySelector('.t-edit').addEventListener('click',()=>openDrawer(task.id));
   tr.querySelector('.t-pin').addEventListener('click',()=>{togglePin(type,task.id);renderColumns();});
   tr.querySelector('.t-del').addEventListener('click',()=>{deleteTask(type,task.id);renderColumns();});
+  tr.title='Double-click to edit';
+  tr.addEventListener('dblclick',function(ev){
+    if(ev.target.closest('.t-actions')||ev.target.closest('.t-check'))return;
+    ev.preventDefault();
+    if(window.getSelection)try{window.getSelection().removeAllRanges();}catch(e){}
+    openDrawer(task.id);
+  });
   return tr;
 }
 
@@ -3394,7 +3405,7 @@ function renderProjects(){
       const typeLabel=p.type==='oneoff'?'One-off':'Monthly';
       const meta=[p.client&&bEsc(p.client),p.due&&bEsc(fmtDate(p.due))].filter(Boolean).join(' · ');
       const opts=PB_STATUSES.map(o=>`<option value="${o.k}"${o.k===p.status?' selected':''}>${o.label}</option>`).join('');
-      return`<div class="pb-card">
+      return`<div class="pb-card" data-pid="${p.id}" title="Double-click to edit">
         <div class="pb-card-top">
           <span class="pb-card-name">${bEsc(p.name)}</span>
           <span class="pb-badge pb-badge-${p.type==='oneoff'?'oneoff':'monthly'}">${typeLabel}</span>
@@ -3760,7 +3771,7 @@ function switchMainTab(tab){
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
   const isBrain=!isHome&&!isClients&&!isCal&&!isOv;
   document.getElementById('focus-section').style.display='none';
-  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome)?'none':'block';
+  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome||isClients)?'none':'block';
   document.getElementById('quick-add-bar').style.display='none';
   document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
@@ -4414,6 +4425,16 @@ function init(){
   try{initMo();}catch(e){}
   try{buildSideRail();}catch(e){}
   try{buildBoardHandle();}catch(e){}
+  try{
+    document.addEventListener('dblclick',function(ev){
+      if(!ev.target||!ev.target.closest)return;
+      var pc=ev.target.closest('.pb-card');
+      if(!pc)return;
+      if(ev.target.closest('.pb-card-foot'))return;
+      var pid=pc.getAttribute('data-pid');
+      if(pid&&typeof pbEdit==='function'){ev.preventDefault();pbEdit(pid);}
+    });
+  }catch(e){}
 }
 
 /* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
