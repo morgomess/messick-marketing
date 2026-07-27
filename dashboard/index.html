@@ -1162,17 +1162,17 @@ body.home-drawer #home-view{overflow-y:auto}
 .hm-moneybar{flex-wrap:wrap;gap:18px}
 
 /* ===== TRON GRID ROOM BACKGROUND (added) ===== */
-body{background:#04101f}
+body{background:#020810}
 #bg-scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
   background:
-    radial-gradient(120% 80% at 50% 50%, rgba(9,38,74,0.55), transparent 70%),
-    linear-gradient(180deg,#04101f 0%,#062a4d 45%,#062a4d 55%,#04101f 100%);}
+    radial-gradient(120% 80% at 50% 50%, rgba(8,30,58,0.38), transparent 70%),
+    linear-gradient(180deg,#020810 0%,#04182c 45%,#04182c 55%,#020810 100%);}
 #app{position:relative;z-index:1}
 /* perspective grid floor + ceiling */
 .bg-floor,.bg-ceil{position:absolute;left:-25%;right:-25%;height:52vh;
   background-image:
-    repeating-linear-gradient(to right, rgba(96,196,255,0.30) 0 1px, transparent 1px 64px),
-    repeating-linear-gradient(to bottom, rgba(96,196,255,0.30) 0 1px, transparent 1px 64px);}
+    repeating-linear-gradient(to right, rgba(96,196,255,0.15) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom, rgba(96,196,255,0.15) 0 1px, transparent 1px 64px);}
 .bg-floor{bottom:0;height:100vh;transform:perspective(900px) rotateX(64deg);transform-origin:bottom center;
   -webkit-mask-image:linear-gradient(to top,#000 4%,transparent 72%);
           mask-image:linear-gradient(to top,#000 4%,transparent 72%);}
@@ -1181,15 +1181,17 @@ body{background:#04101f}
           mask-image:linear-gradient(to bottom,#000 4%,transparent 72%);}
 /* glowing corner beams */
 .bg-beam{position:absolute;top:0;bottom:0;width:5px;
-  background:linear-gradient(180deg,rgba(140,225,255,0) 0%,rgba(140,225,255,0.85) 18%,rgba(140,225,255,0.85) 82%,rgba(140,225,255,0) 100%);
-  box-shadow:0 0 22px 5px rgba(90,190,255,0.45),0 0 70px 16px rgba(60,150,235,0.25)}
+  background:linear-gradient(180deg,rgba(140,225,255,0) 0%,rgba(140,225,255,0.42) 18%,rgba(140,225,255,0.42) 82%,rgba(140,225,255,0) 100%);
+  box-shadow:0 0 16px 3px rgba(90,190,255,0.20),0 0 54px 12px rgba(60,150,235,0.12)}
 .bg-beam-l{left:5.5%}
 .bg-beam-r{right:5.5%}
 /* horizon glow pools */
 .bg-pool{position:absolute;left:50%;transform:translateX(-50%);width:210px;height:26px;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(120,255,225,0.55),transparent);filter:blur(7px)}
+  background:radial-gradient(closest-side,rgba(120,255,225,0.26),transparent);filter:blur(8px)}
 .bg-pool-t{top:11%}
 .bg-pool-b{bottom:11%}
+#bg-scene::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(115% 85% at 50% 45%, rgba(2,8,16,0.55) 0%, rgba(2,8,16,0.80) 55%, rgba(2,8,16,0.92) 100%)}
 /* starfield */
 .bg-stars,.bg-stars2{position:absolute;top:0;left:0;width:1px;height:1px;border-radius:50%;background:transparent}
 .bg-stars{box-shadow:663px 1941px rgba(255,255,255,0.85),308px 808px rgba(255,255,255,0.85),1333px 98px rgba(255,255,255,0.85),148px 1681px rgba(255,255,255,0.85),1097px 192px rgba(255,255,255,0.85),748px 1193px rgba(255,255,255,0.85),118px 1863px rgba(255,255,255,0.85),1039px 439px rgba(255,255,255,0.85),76px 176px rgba(255,255,255,0.85),888px 856px rgba(255,255,255,0.85),143px 492px rgba(255,255,255,0.85),185px 1128px rgba(255,255,255,0.85),869px 121px rgba(255,255,255,0.85),1693px 1158px rgba(255,255,255,0.85),253px 1940px rgba(255,255,255,0.85),457px 1291px rgba(255,255,255,0.85),1284px 1193px rgba(255,255,255,0.85),1940px 126px rgba(255,255,255,0.85),1181px 1199px rgba(255,255,255,0.85),812px 101px rgba(255,255,255,0.85),1999px 452px rgba(255,255,255,0.85),95px 1140px rgba(255,255,255,0.85),1758px 272px rgba(255,255,255,0.85),593px 858px rgba(255,255,255,0.85),295px 1107px rgba(255,255,255,0.85),241px 1169px rgba(255,255,255,0.85),631px 1147px rgba(255,255,255,0.85),1671px 1396px rgba(255,255,255,0.85),370px 211px rgba(255,255,255,0.85),1191px 1169px rgba(255,255,255,0.85),1308px 384px rgba(255,255,255,0.85),762px 199px rgba(255,255,255,0.85),1121px 1458px rgba(255,255,255,0.85),128px 1155px rgba(255,255,255,0.85),122px 1267px rgba(255,255,255,0.85),421px 1016px rgba(255,255,255,0.85),1393px 1088px rgba(255,255,255,0.85),875px 1591px rgba(255,255,255,0.85),643px 953px rgba(255,255,255,0.85),1199px 1891px rgba(255,255,255,0.85),928px 740px rgba(255,255,255,0.85),613px 508px rgba(255,255,255,0.85),1626px 368px rgba(255,255,255,0.85),1431px 1597px rgba(255,255,255,0.85),499px 167px rgba(255,255,255,0.85),1176px 614px rgba(255,255,255,0.85),1075px 1013px rgba(255,255,255,0.85),1792px 703px rgba(255,255,255,0.85),1493px 919px rgba(255,255,255,0.85),589px 1247px rgba(255,255,255,0.85),149px 241px rgba(255,255,255,0.85),1048px 856px rgba(255,255,255,0.85),337px 1550px rgba(255,255,255,0.85),700px 311px rgba(255,255,255,0.85),1911px 1001px rgba(255,255,255,0.85),863px 80px rgba(255,255,255,0.85),1970px 1368px rgba(255,255,255,0.85),158px 1565px rgba(255,255,255,0.85),1142px 1173px rgba(255,255,255,0.85),1616px 1792px rgba(255,255,255,0.85),1675px 642px rgba(255,255,255,0.85),696px 1423px rgba(255,255,255,0.85),717px 1217px rgba(255,255,255,0.85),1017px 1187px rgba(255,255,255,0.85),1632px 934px rgba(255,255,255,0.85),140px 1720px rgba(255,255,255,0.85),191px 1934px rgba(255,255,255,0.85),552px 970px rgba(255,255,255,0.85),1427px 1360px rgba(255,255,255,0.85),133px 124px rgba(255,255,255,0.85),1497px 1436px rgba(255,255,255,0.85),634px 1325px rgba(255,255,255,0.85),1183px 1395px rgba(255,255,255,0.85),1683px 912px rgba(255,255,255,0.85),582px 1467px rgba(255,255,255,0.85),790px 1816px rgba(255,255,255,0.85),1369px 710px rgba(255,255,255,0.85),46px 1926px rgba(255,255,255,0.85),945px 727px rgba(255,255,255,0.85),344px 1251px rgba(255,255,255,0.85),239px 1011px rgba(255,255,255,0.85),120px 446px rgba(255,255,255,0.85),1573px 588px rgba(255,255,255,0.85),264px 1512px rgba(255,255,255,0.85),507px 814px rgba(255,255,255,0.85),800px 1877px rgba(255,255,255,0.85),1784px 1016px rgba(255,255,255,0.85),165px 340px rgba(255,255,255,0.85),919px 822px rgba(255,255,255,0.85),1125px 569px rgba(255,255,255,0.85);animation:bgdrift 150s linear infinite}
@@ -1199,8 +1201,8 @@ body{background:#04101f}
 header{background:rgba(10,20,34,0.72)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 #side-rail{background:rgba(10,20,34,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .hm-card,.card,.col,.mo2-panel,#board-handle{backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
-.hm-card{background:rgba(20,30,45,0.80)}
-.col{background:rgba(20,30,45,0.80)}
+.hm-card{background:rgba(19,28,42,0.90)}
+.col{background:rgba(19,28,42,0.90)}
 #board-handle{background:rgba(12,22,36,0.86)}
 body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
 .mo2-panel{background:rgba(16,26,41,0.94)}
