@@ -1051,10 +1051,10 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .hm-money .lbl{font-size:0.76rem}
 .hm-money .lbl b{color:var(--black)}
 .hm-sc2{grid-template-columns:repeat(4,1fr);gap:8px}
-.hm-sc2 .hm-scitem{padding:9px 4px;gap:5px}
-.hm-sc2 .hm-scitem .ic{width:30px;height:30px;border-radius:9px}
-.hm-sc2 .hm-scitem .ic svg{width:18px;height:18px}
-.hm-sc2 .hm-scitem .lbl{font-size:0.62rem}
+.hm-sc2 .hm-scitem{padding:13px 5px 11px;gap:8px}
+.hm-sc2 .hm-scitem .ic{width:46px;height:46px;border-radius:14px}
+.hm-sc2 .hm-scitem .ic svg{width:28px;height:28px}
+.hm-sc2 .hm-scitem .lbl{font-size:0.72rem}
 .hm-c2 .hm-ev{padding:7px 0}
 .hm-c2 .hm-loop{padding:7px 0}
 #today-due-section{background:transparent;border-bottom:1px solid var(--border)}
@@ -3454,26 +3454,99 @@ function hmAddLoop(text,type,bucket){var a=hmLoadLoops();a.push({id:'lp'+Date.no
 /* ===== MO floating assistant (added) ===== */
 var MO_WORKER=(typeof WORKER!=='undefined')?WORKER:'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
 function moMiniSvg(){return '<svg viewBox="0 0 60 56" width="28" height="26"><rect x="11" y="14" width="38" height="34" rx="14" fill="var(--blue)"/><rect x="17" y="20" width="26" height="22" rx="9" fill="#101722"/><circle cx="25" cy="31" r="3.4" fill="#dfeefb"/><circle cx="35" cy="31" r="3.4" fill="#dfeefb"/><circle cx="30" cy="5" r="3" fill="var(--blue-lt)"/><line x1="30" y1="6" x2="30" y2="15" stroke="var(--blue)" stroke-width="2"/></svg>';}
-function moFindTask(q){q=(q||'').toLowerCase().trim();if(!q)return null;var best=null;loadTodoTasks().forEach(function(t){if(!t.done&&(t.text||'').toLowerCase().indexOf(q)>-1&&(!best||t.text.length<best.text.length))best=t;});return best;}
-function moFindLoop(q){q=(q||'').toLowerCase().trim();if(!q)return null;var best=null;hmLoadLoops().forEach(function(l){if(!l.done&&(l.t||'').toLowerCase().indexOf(q)>-1&&(!best||l.t.length<best.t.length))best=l;});return best;}
-function moParse(q){var m;
-  if(m=q.match(/^\s*(?:add|create|new)\s+(?:a\s+)?(?:task|todo)?\s*:?\s*(.+)/i)){var text=m[1].trim();if(text)return{label:'Add task: '+hmEsc(text),run:function(){hmAddTask(text);if(typeof renderHome==='function')renderHome();}};}
-  if(m=q.match(/\b(?:complete|finish|finished|done with|mark(?: off)?|check off)\b\s+(?:the\s+)?(.+)/i)){var t=moFindTask(m[1]);if(t)return{label:'Complete: '+hmEsc(t.text),run:function(){toggleTask('todo',t.id);if(typeof renderHome==='function')renderHome();}};return{miss:m[1].trim()};}
-  if(m=q.match(/\b(?:close|clear|resolve)\b\s+(?:the\s+)?(?:loop\s+)?(.+)/i)){var l=moFindLoop(m[1]);if(l)return{label:'Close loop: '+hmEsc(l.t),run:function(){var a=hmLoadLoops();var f=a.filter(function(x){return x.id===l.id;})[0];if(f)f.done=true;hmSaveLoops(a);if(typeof renderHome==='function')renderHome();}};}
-  return null;
+var moHistory=[];
+function moTaskText(id){var t=loadTodoTasks().filter(function(x){return x.id===id;})[0];return t?t.text:id;}
+function moContext(){
+  var tasks=loadTodoTasks();
+  var open=tasks.filter(function(t){return !t.done;}).slice(0,45);
+  var lines=open.map(function(t){return '['+t.id+'] '+t.text+(t.due?' | due '+t.due:'')+((t.priority&&t.priority!=='none')?' | '+t.priority:'')+(t.brand?' | '+t.brand:'');}).join('\n');
+  var recent=tasks.filter(function(t){return t.done&&t.doneAt;}).sort(function(a,b){return b.doneAt-a.doneAt;}).slice(0,8).map(function(t){return '- '+t.text;}).join('\n');
+  var ls=[];try{ls=hmLoadLoops().filter(function(l){return !l.done;});}catch(e){}
+  var loopLines=ls.map(function(l){return '['+l.id+'] '+(l.bucket==='park'?'PARKED':l.type)+': '+l.t;}).join('\n');
+  var rev=null;try{rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;}catch(e){}
+  var nodes='';try{nodes=brainNodes.map(function(n){return n.id+'="'+n.label+'"';}).join(', ');}catch(e){}
+  return 'TODAY IS '+((typeof todayStr==='function')?todayStr():'')+'\n\nOPEN TASKS (use the exact id):\n'+(lines||'(none)')+
+    '\n\nRECENTLY COMPLETED:\n'+(recent||'(none)')+
+    '\n\nOPEN LOOPS / PARKED:\n'+(loopLines||'(none)')+
+    '\n\nAREAS: '+(nodes||'(none)')+
+    '\n\nREVENUE: '+(rev?('$'+(rev.thisMonth||0)+' collected this month, $'+(rev.ytd||0)+' YTD'):'(not loaded)');
 }
-function moAsk(q){
-  var open=loadTodoTasks().filter(function(t){return !t.done;}).slice(0,30).map(function(t){return '- '+t.text+(t.due?' (due '+t.due+')':'')+((t.priority&&t.priority!=='none')?' ['+t.priority+']':'');}).join('\n');
-  var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
-  var ctx="You are Mo, a concise assistant inside Morgan's marketing-agency dashboard. Answer in 1-3 short sentences, plain text, no markdown.\n\nHer open tasks:\n"+(open||'(none)')+"\n\nRevenue: "+(rev?('$'+(rev.thisMonth||0)+' this month, $'+(rev.ytd||0)+' YTD'):'(unknown)')+"\n\nQuestion: "+q;
-  return fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:ctx})}).then(function(r){return r.json();}).then(function(d){return (d&&d.text)?d.text:'(no answer)';});
+function moSystem(){
+  return 'You are Mo, Morgan\'s assistant inside her marketing-agency operations dashboard. You are having an ongoing conversation with her.\n'+
+  'Voice: warm, direct, concise. 1-3 sentences. Plain text, no markdown, no bullet characters.\n'+
+  'You understand agency shorthand. "JVI blog fri high" means create a task "JVI blog" due this coming Friday with high priority. "ECCO reel done" means complete the ECCO reel task. Clients include JVI, ECCO, OEIS, Aspire, Virtueasy, BBS, Messick.\n'+
+  'Resolve relative dates (today, tomorrow, fri, next week) against TODAY into YYYY-MM-DD.\n'+
+  'Use the conversation history for follow-ups: "what about next week", "make that one high" refer to what was just discussed.\n\n'+
+  'ALWAYS reply with a single JSON object and nothing else:\n'+
+  '{"reply":"what you say to Morgan","action":null}\n\n'+
+  'If she asks you to change something, put ONE action in place of null:\n'+
+  '{"kind":"create","text":"...","due":"YYYY-MM-DD or null","priority":"critical|high|medium|low|none"}\n'+
+  '{"kind":"update","id":"<task id>","changes":{"text":"...","due":"YYYY-MM-DD or null","priority":"..."}}\n'+
+  '{"kind":"complete","id":"<task id>"}\n'+
+  '{"kind":"delete","id":"<task id>"}\n'+
+  '{"kind":"loop","text":"...","type":"Waiting on client|Unbilled|Waiting on payment"}\n'+
+  '{"kind":"park","text":"..."}\n\n'+
+  'Rules: use an exact id from OPEN TASKS for update/complete/delete. If you cannot tell which task she means, ask a short clarifying question with action null. For questions, answer from the data with action null. Never invent tasks or numbers that are not in the data.';
+}
+function moSend(q){
+  var convo=moHistory.slice(-10).map(function(m){return (m.role==='user'?'Morgan':'Mo')+': '+m.text;}).join('\n');
+  var prompt=moSystem()+'\n\n=== CURRENT DATA ===\n'+moContext()+
+    (convo?('\n\n=== CONVERSATION SO FAR ===\n'+convo):'')+
+    '\n\nMorgan: '+q+'\n\nRespond with the JSON object only.';
+  return fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:prompt})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var raw=(d&&(d.text||d.error))?(d.text||('Worker error: '+d.error)):'';
+      var clean=String(raw).replace(/```json/g,'').replace(/```/g,'').trim();
+      var m=clean.match(/\{[\s\S]*\}/);
+      try{var p=JSON.parse(m?m[0]:clean);if(p&&typeof p.reply==='string')return p;}catch(e){}
+      return {reply:clean||'(no answer)',action:null};
+    });
+}
+function moLabel(a){
+  if(a.kind==='create')return 'Add task: '+a.text+(a.due?' (due '+a.due+')':'')+((a.priority&&a.priority!=='none')?' ['+a.priority+']':'');
+  if(a.kind==='update'){var c=a.changes||{},b=[];
+    if(c.text!=null)b.push('title to "'+c.text+'"');
+    if(c.due!==undefined)b.push('due to '+(c.due||'none'));
+    if(c.priority)b.push('priority to '+c.priority);
+    return 'Update "'+moTaskText(a.id)+'": '+(b.join(', ')||'no change');}
+  if(a.kind==='complete')return 'Complete "'+moTaskText(a.id)+'"';
+  if(a.kind==='delete')return 'Delete "'+moTaskText(a.id)+'"';
+  if(a.kind==='loop')return 'Add loop ('+(a.type||'Waiting on client')+'): '+a.text;
+  if(a.kind==='park')return 'Park idea: '+a.text;
+  return String(a.kind||'change');
+}
+function moApply(a){
+  if(!a||!a.kind)return;
+  var tasks,i,c;
+  if(a.kind==='create'){
+    tasks=loadTodoTasks();
+    tasks.push({id:uid(),text:a.text,nodeId:'personal-root',brand:'other',priority:a.priority||'none',due:a.due||null,
+      recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',
+      recurLastGen:((typeof todayStr==='function')?todayStr():'')});
+    saveTodoTasks(tasks);
+  } else if(a.kind==='update'){
+    tasks=loadTodoTasks();c=a.changes||{};
+    for(i=0;i<tasks.length;i++){if(tasks[i].id===a.id){
+      if(c.text!=null)tasks[i].text=c.text;
+      if(c.due!==undefined)tasks[i].due=c.due;
+      if(c.priority)tasks[i].priority=c.priority;
+    }}
+    saveTodoTasks(tasks);
+  } else if(a.kind==='complete'){ if(typeof toggleTask==='function')toggleTask('todo',a.id);
+  } else if(a.kind==='delete'){ if(typeof deleteTask==='function')deleteTask('todo',a.id);
+  } else if(a.kind==='loop'){ hmAddLoop(a.text,a.type||'Waiting on client','loop');
+  } else if(a.kind==='park'){ hmAddLoop(a.text,'Idea','park'); }
+  try{if(typeof renderHome==='function')renderHome();}catch(e){}
+  try{if(typeof renderColumns==='function')renderColumns();}catch(e){}
 }
 function initMo(){
   if(document.getElementById('mo2-fab'))return;
   var fab=document.createElement('button');fab.id='mo2-fab';fab.className='mo2-fab';fab.setAttribute('aria-label','Open Mo');fab.innerHTML=moMiniSvg();
   var panel=document.createElement('section');panel.className='mo2-panel hidden';panel.id='mo2-panel';
   panel.innerHTML='<div class="mo2-head">'+moMiniSvg()+'<div><div class="nm">Hi, I\'m <b>Mo</b></div><div class="s">Ask anything &middot; changes need your OK</div></div><button class="x" id="mo2-x">&times;</button></div>'+
-    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. Brain-dump in shorthand (\'JVI blog fri high\', \'ECCO reel done\') and I\'ll file it through the AI Sorter, or ask me anything - I always confirm before changing your board.</div></div>'+
+    '<div class="mo2-log" id="mo2-log"><div class="mo2-msg ai">Hey Morgan. Ask me anything about your board, or just talk to me in shorthand - \'JVI blog fri high\', \'push ECCO reel to Monday\'. I remember the conversation, and I always confirm before changing anything.</div></div>'+
     '<div class="mo2-in"><input id="mo2-input" placeholder="Ask Mo, or tell me to change something..." autocomplete="off"><button id="mo2-send">&#8594;</button></div>';
   document.body.appendChild(fab);document.body.appendChild(panel);
   var log=panel.querySelector('#mo2-log'),input=panel.querySelector('#mo2-input');
@@ -3484,13 +3557,23 @@ function initMo(){
     c.querySelector('.mo2-ok').addEventListener('click',function(){try{act.run();}catch(e){}c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.textContent='\u2713 Done.';});
     c.querySelector('.mo2-no').addEventListener('click',function(){c.querySelector('.f').style.display='none';var r=c.querySelector('.mo2-res');r.style.display='block';r.style.color='var(--light)';r.textContent='Dismissed.';});
   }
-  function isQuestion(q){var s=q.trim().toLowerCase();return /\?$/.test(s)||/^(what|when|where|who|why|how|which|did|do|does|is|are|am|can|could|should|will|would|tell me|show me|summar|status|update)/.test(s);}
-  function handle(q){if(!q.trim())return;addMsg('me',q);
-    var act=moParse(q);
-    if(act&&act.label){addMsg('ai','Got it - confirm and I\'ll do it:');pending(act);return;}
-    if(isQuestion(q)){var thinking=addMsg('ai','...');moAsk(q).then(function(ans){thinking.textContent=ans;scrollLog();}).catch(function(){thinking.textContent='I could not reach the model just now.';});return;}
-    addMsg('ai','Running that through the AI Sorter (it speaks shorthand) - confirm:');
-    pending({label:'AI Sorter: '+hmEsc(q),run:function(){var qa=document.getElementById('quick-add-input');if(qa&&typeof quickAddTask==='function'){qa.value=q;quickAddTask();}else{hmAddTask(q);}}});
+  function handle(q){
+    if(!q.trim())return;
+    addMsg('me',q);
+    moHistory.push({role:'user',text:q});
+    var thinking=addMsg('ai','…');
+    moSend(q).then(function(res){
+      thinking.remove();
+      var reply=res.reply||'Done.';
+      addMsg('ai',reply);
+      moHistory.push({role:'assistant',text:reply});
+      if(res.action&&res.action.kind){
+        pending({label:hmEsc(moLabel(res.action)),run:function(){moApply(res.action);}});
+      }
+    }).catch(function(err){
+      thinking.remove();
+      addMsg('ai','I could not reach the model just now. '+(err&&err.message?err.message:''));
+    });
   }
   fab.addEventListener('click',function(){panel.classList.toggle('hidden');if(!panel.classList.contains('hidden'))input.focus();});
   panel.querySelector('#mo2-x').addEventListener('click',function(){panel.classList.add('hidden');});
