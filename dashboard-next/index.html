@@ -1010,6 +1010,19 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .mo2-in input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--black);padding:10px 13px;font-family:inherit;font-size:0.85rem;outline:none}
 .mo2-in input:focus{border-color:var(--blue)}
 .mo2-in button{width:42px;border:0;border-radius:11px;background:var(--blue);color:#fff;cursor:pointer;font-size:1rem}
+
+/* ===== LEFT SIDEBAR NAV (added) ===== */
+.h-tabs{display:none!important}
+#app{padding-left:66px}
+#side-rail{position:fixed;left:0;top:0;bottom:0;width:66px;background:#0f131b;border-right:1px solid var(--border);z-index:850;display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 0}
+.sr-logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,var(--blue),var(--blue-lt));color:#0d1016;font-weight:700;font-size:1.1rem;display:grid;place-items:center;margin-bottom:14px}
+.sr-btn{width:56px;border:0;background:none;color:var(--light);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 0;border-radius:12px;transition:0.15s;font-family:inherit}
+.sr-btn:hover{color:var(--black);background:var(--surface-2)}
+.sr-btn.on{color:var(--blue);background:var(--surface-2)}
+.sr-ic{height:20px;display:grid;place-items:center}
+.sr-ic svg{width:20px;height:20px}
+.sr-lbl{font-size:0.57rem;letter-spacing:0.02em}
+@media(max-width:560px){#side-rail{width:54px}#app{padding-left:54px}.sr-btn{width:48px}.sr-lbl{display:none}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3352,6 +3365,25 @@ function initMo(){
   input.addEventListener('keydown',function(e){if(e.key==='Enter'){handle(input.value);input.value='';}});
 }
 
+/* ===== LEFT SIDEBAR NAV (added) ===== */
+var SR_ICON={
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+ overview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+ brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="9" r="2.5"/><circle cx="10" cy="17" r="2.5"/><path d="M8.7 8.4 15 8.6M9 15 15.5 11"/></svg>',
+ calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+ clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.3a3 3 0 0 1 0 5.4"/><path d="M17.5 20a5 5 0 0 0-2.6-4.4"/></svg>'
+};
+function buildSideRail(){
+  if(document.getElementById('side-rail'))return;
+  var items=[['home','Home'],['overview','Overview'],['brain','Brain'],['calendar','Calendar'],['clients','Clients']];
+  var rail=document.createElement('nav');rail.id='side-rail';
+  rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
+  document.body.appendChild(rail);
+  function sync(active){rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});}
+  rail.querySelectorAll('.sr-btn').forEach(function(b){b.addEventListener('click',function(){var tab=b.getAttribute('data-tab');switchMainTab(tab);sync(tab);});});
+  sync('home');
+}
+
 function renderHome(){
   var view=document.getElementById('home-view'); if(!view)return;
   var tasks=(typeof loadTodoTasks==='function')?loadTodoTasks():[];
@@ -4207,6 +4239,7 @@ function init(){
   ovBindAutoSync();
   switchMainTab('home');   // calm Home is the landing page
   try{initMo();}catch(e){}
+  try{buildSideRail();}catch(e){}
 }
 
 /* Keep the Overview fresh: another same-origin tab writing mm_leads/mm_expenses
