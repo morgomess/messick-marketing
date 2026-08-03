@@ -1440,6 +1440,27 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
 .hm-ev .es{font-size:0.72rem}
 .hm-ev .et{font-size:0.86rem}
 @media (max-width:768px){.hm-evcheck{width:22px;height:22px}.hm-evcheck::after{left:6px;top:3px}}
+
+/* ===== To-Do master list: the check circle is now a real control ===== */
+.at-check{
+  width:19px;height:19px;border-width:2px;border-color:var(--light);
+  margin-top:1px;position:relative;cursor:pointer;
+}
+.at-check:hover{border-color:var(--lo);background:rgba(78,201,160,0.20);transform:scale(1.08)}
+.at-check::after{
+  content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;
+  border:solid #06201a;border-width:0 2px 2px 0;
+  transform:rotate(45deg) scale(0);transition:transform .15s;
+}
+.at-check.at-on{background:var(--lo);border-color:var(--lo)}
+.at-check.at-on::after{transform:rotate(45deg) scale(1)}
+.at-item:hover .at-check{border-color:var(--lo)}
+.at-text{font-size:0.86rem}
+@media (max-width:768px){
+  .at-check{width:23px;height:23px}
+  .at-check::after{left:6px;top:3px;width:6px;height:11px}
+  .at-item{padding:12px 18px}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -3225,6 +3246,18 @@ function closeAllTasks(){
   document.getElementById('alltasks-overlay').classList.remove('open');
 }
 
+function atComplete(ev,id){
+  if(ev){ev.stopPropagation();ev.preventDefault();}
+  var el=ev&&ev.currentTarget;
+  if(el)el.classList.add('at-on');
+  setTimeout(function(){
+    try{ if(typeof toggleTask==='function')toggleTask('todo',id); }catch(e){}
+    try{ renderAllTasks(); }catch(e){}
+    try{ if(typeof renderColumns==='function')renderColumns(); }catch(e){}
+    try{ if(typeof renderHome==='function')renderHome(); }catch(e){}
+    try{ if(typeof updateCompletionStat==='function')updateCompletionStat(); }catch(e){}
+  },150);
+}
 function renderAllTasks(){
   const q=(document.getElementById('at-search').value||'').toLowerCase().trim();
   const list=document.getElementById('at-list');
@@ -3279,7 +3312,7 @@ function renderAllTasks(){
       else if(t.due)dueHtml=`<span class="at-due">${fmtDate(t.due)}</span>`;
       const pri=t.priority&&t.priority!=='none'?`<span class="at-pri at-pri-${t.priority}"></span>`:'';
       html+=`<div class="at-item" onclick="closeAllTasks();openDrawer('${t.id}')">
-        <div class="at-check"></div>
+        <div class="at-check" onclick="atComplete(event,'${t.id}')" title="Mark complete"></div>
         <div class="at-body">
           <div class="at-text">${bEsc(t.text)}</div>
           <div class="at-meta"><span class="at-crumb">${bEsc(crumb)}</span>${dueHtml?'<span style="color:rgba(230,241,248,0.2)">·</span>'+dueHtml:''}${pri}</div>
