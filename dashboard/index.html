@@ -4146,7 +4146,13 @@ function renderHome(){
   var up=open.filter(function(t){return t.due;}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,4);
   var evRows=up.length?up.map(function(t){var d=hmParse(t.due);return '<div class="hm-ev"><div class="d"><div class="dd">'+d.day+'</div><div class="mm">'+d.mon+'</div></div><div class="eb"><div class="et">'+hmEsc(t.text)+'</div><div class="es">'+hmEsc(t.brand||'')+'</div></div></div>';}).join(''):'<div class="hm-empty">Nothing scheduled by due date.</div>';
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
-  var amt=rev?('$'+Math.round((+rev.thisMonth)||0).toLocaleString('en-US')):'--';
+  var _ymNow=((typeof todayStr==='function')?todayStr():'').slice(0,7);
+  var inMonthVal=0;
+  if(rev){
+    var _bmNow=(rev.byMonth&&typeof rev.byMonth==='object'&&!Array.isArray(rev.byMonth))?rev.byMonth:null;
+    inMonthVal=_bmNow?((+_bmNow[_ymNow])||0):((+rev.thisMonth)||0);
+  }
+  var amt=rev?('$'+Math.round(inMonthVal).toLocaleString('en-US')):'--';
   var ytdVal=0, ytdLabel='YTD in';
   if(rev){
     var _bm=(rev.byMonth&&typeof rev.byMonth==='object'&&!Array.isArray(rev.byMonth))?rev.byMonth:null;
@@ -4163,7 +4169,7 @@ function renderHome(){
   }
   var ytd=rev?('$'+Math.round(ytdVal).toLocaleString('en-US')):'--';
   function hmMoney(n){var v=Math.round(+n||0);var s=(v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US');return s;}
-  var inMonth=rev?(+rev.thisMonth||0):0;
+  var inMonth=inMonthVal;
   var _t=(typeof todayStr==='function')?todayStr():'';
   var expenses=[],monthOut=0,dedYtd=0;
   try{
@@ -4252,7 +4258,7 @@ function renderHome(){
   if(li)li.addEventListener('keydown',function(e){if(e.key==='Enter'&&li.value.trim()){hmAddLoop(li.value.trim(),lt?lt.value:'Waiting on client','loop');li.value='';renderHome();}});
   var pi=document.getElementById('hm-park-input');
   if(pi)pi.addEventListener('keydown',function(e){if(e.key==='Enter'&&pi.value.trim()){hmAddLoop(pi.value.trim(),'Idea','park');pi.value='';renderHome();}});
-  if(!window.__hmSynced&&typeof ovSyncExternal==='function'&&(!rev||!expenses.length||!leadsArr.length)){
+  if(!window.__hmSynced&&typeof ovSyncExternal==='function'){
     window.__hmSynced=true;
     ovSyncExternal().then(function(){
       var b=document.querySelector('#side-rail .sr-btn[data-tab="home"]');
