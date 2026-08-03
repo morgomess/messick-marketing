@@ -1350,6 +1350,96 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
   .tb-lbl{font-size:0.56rem}
   .hm-grid{grid-template-columns:1fr}
 }
+
+/* ===== DUE / OVERDUE TASK CARDS (readability + calm) =====
+   Was: ~9px labels at 55% opacity on an 8%-alpha muddy orange wash.
+   Now: real type sizes, a neutral surface, and urgency carried by a left
+   stripe + one accent colour instead of tinting the whole chip. */
+#today-due-section{padding:13px 22px}
+.td-head{margin-bottom:11px}
+.td-title{font-size:0.76rem;letter-spacing:0.1em;color:var(--muted)}
+.td-count{font-size:0.7rem;color:var(--light)}
+.td-list{gap:10px}
+
+.td-item{
+  position:relative;gap:11px;padding:11px 15px 11px 16px;border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.09);
+  box-shadow:0 2px 10px -6px rgba(0,0,0,0.6);
+  transition:background .15s,border-color .15s,transform .15s;
+  overflow:hidden;
+}
+.td-item::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--blue);border-radius:12px 0 0 12px;
+}
+.td-item:hover{background:rgba(255,255,255,0.085);border-color:rgba(255,255,255,0.16);transform:translateY(-1px)}
+
+/* due today - warm accent, no full-chip wash */
+.td-item.today::before,.td-item:not(.overdue)::before{background:var(--hi)}
+/* genuinely overdue - red stripe, faint tint, gentle glow */
+.td-item.overdue{
+  background:rgba(226,104,95,0.10);
+  border-color:rgba(226,104,95,0.34);
+  box-shadow:0 2px 14px -8px rgba(226,104,95,0.55);
+}
+.td-item.overdue::before{background:var(--crit)}
+.td-item.overdue:hover{background:rgba(226,104,95,0.16)}
+
+/* readable type */
+.td-text{font-size:0.9rem;font-weight:600;color:#f2f6fa;max-width:300px;letter-spacing:-0.005em}
+.td-sub{gap:8px;margin-top:2px}
+.td-pill{font-size:0.7rem;font-weight:600;color:var(--muted)}
+.td-overdue{
+  font-size:0.66rem;font-weight:700;letter-spacing:0.04em;
+  color:#ffd9d4;background:rgba(226,104,95,0.42);
+  padding:2px 8px;border-radius:999px;
+}
+.td-pri{width:8px;height:8px;box-shadow:0 0 7px currentColor}
+.td-pri.critical{background:var(--crit);color:var(--crit)}
+.td-pri.high{background:var(--hi);color:var(--hi)}
+.td-pri.medium{background:var(--med);color:var(--med)}
+.td-pri.low{background:var(--lo);color:var(--lo)}
+
+/* tap target + clearer check */
+.td-check{width:19px;height:19px;border-width:2px;border-color:rgba(255,255,255,0.4)}
+.td-check:hover{background:rgba(255,255,255,0.18);border-color:#fff}
+.td-check.td-on{background:var(--lo);border-color:var(--lo)}
+
+/* board rows: due badges were ~9.6px */
+.t-due{font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:999px;
+  background:rgba(77,146,245,0.16);color:var(--blue-lt)}
+.t-due.over{background:rgba(226,104,95,0.20);color:#ffb3ad}
+.t-due.today{background:rgba(224,160,95,0.20);color:#f3c98d}
+.t-text{font-size:0.85rem}
+
+@media (max-width:768px){
+  .td-item{padding:12px 14px 12px 15px}
+  .td-text{font-size:0.92rem;max-width:none}
+  .td-list{gap:9px}
+}
+
+/* ===== Upcoming: click to complete ===== */
+.hm-ev{gap:11px}
+.hm-evcheck{
+  width:19px;height:19px;border-radius:50%;flex:0 0 auto;cursor:pointer;
+  border:2px solid var(--light);position:relative;transition:.15s;
+}
+.hm-evcheck:hover{border-color:var(--lo);background:rgba(78,201,160,0.18)}
+.hm-evcheck::after{
+  content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;
+  border:solid #06201a;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);
+  transition:transform .15s;
+}
+.hm-evcheck.done{background:var(--lo);border-color:var(--lo)}
+.hm-evcheck.done::after{transform:rotate(45deg) scale(1)}
+.hm-ev.ev-over .d{border-color:rgba(226,104,95,0.45);background:rgba(226,104,95,0.12)}
+.hm-ev.ev-over .es{color:#f0a8a8}
+.hm-ev.ev-today .d{border-color:rgba(224,160,95,0.45);background:rgba(224,160,95,0.12)}
+.hm-ev.ev-today .es{color:#f3c98d}
+.hm-ev .es{font-size:0.72rem}
+.hm-ev .et{font-size:0.86rem}
+@media (max-width:768px){.hm-evcheck{width:22px;height:22px}.hm-evcheck::after{left:6px;top:3px}}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -4144,7 +4234,13 @@ function renderHome(){
   var shown=open.slice().sort(function(a,b){return (pOrd[a.priority]==null?4:pOrd[a.priority])-(pOrd[b.priority]==null?4:pOrd[b.priority]);}).slice(0,6);
   var tRows=shown.length?shown.map(function(t){var hi=(t.priority==='high'||t.priority==='critical');var tag=t.due?hmDue(t.due):((t.priority&&t.priority!=='none')?t.priority:'');return '<div class="hm-trow"><span class="hm-rad" data-id="'+t.id+'"></span><span class="hm-nm">'+hmEsc(t.text)+'</span>'+(tag?'<span class="hm-tag'+(hi?' hi':'')+'">'+hmEsc(tag)+'</span>':'')+'</div>';}).join(''):'<div class="hm-empty">All clear - no open tasks.</div>';
   var up=open.filter(function(t){return t.due;}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,4);
-  var evRows=up.length?up.map(function(t){var d=hmParse(t.due);return '<div class="hm-ev"><div class="d"><div class="dd">'+d.day+'</div><div class="mm">'+d.mon+'</div></div><div class="eb"><div class="et">'+hmEsc(t.text)+'</div><div class="es">'+hmEsc(t.brand||'')+'</div></div></div>';}).join(''):'<div class="hm-empty">Nothing scheduled by due date.</div>';
+  var evRows=up.length?up.map(function(t){var d=hmParse(t.due);
+    var over=(t.due&&_td&&t.due<_td), today=(t.due===_td);
+    return '<div class="hm-ev'+(over?' ev-over':(today?' ev-today':''))+'">'+
+      '<span class="hm-evcheck" data-id="'+t.id+'" title="Mark complete"></span>'+
+      '<div class="d"><div class="dd">'+d.day+'</div><div class="mm">'+d.mon+'</div></div>'+
+      '<div class="eb"><div class="et">'+hmEsc(t.text)+'</div><div class="es">'+(over?'overdue':(today?'due today':hmEsc(t.brand||'')))+'</div></div></div>';
+  }).join(''):'<div class="hm-empty">Nothing scheduled by due date.</div>';
   var rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;
   var _ymNow=((typeof todayStr==='function')?todayStr():'').slice(0,7);
   var inMonthVal=0;
@@ -4247,6 +4343,18 @@ function renderHome(){
   var qi=document.getElementById('hm-task-input');
   if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
   view.querySelectorAll('.hm-lbox').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');var a=hmLoadLoops();var f=a.filter(function(x){return x.id===id;})[0];if(f){f.done=!f.done;hmSaveLoops(a);renderHome();}});});
+  view.querySelectorAll('.hm-evcheck').forEach(function(el){
+    el.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var id=el.getAttribute('data-id');
+      el.classList.add('done');
+      setTimeout(function(){
+        if(typeof toggleTask==='function')toggleTask('todo',id);
+        renderHome();
+        if(typeof renderColumns==='function')renderColumns();
+      },160);
+    });
+  });
   view.querySelectorAll('.hm-prom').forEach(function(el){el.addEventListener('click',function(ev){ev.stopPropagation();
     var id=el.getAttribute('data-id'),a=hmLoadLoops(),idx=-1;
     for(var k=0;k<a.length;k++){if(a[k].id===id)idx=k;}
