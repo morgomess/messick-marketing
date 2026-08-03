@@ -3862,20 +3862,33 @@ function moMiniSvg(){return '<svg viewBox="0 0 60 56" width="28" height="26"><re
 var moHistory=[];
 var moPending=[];              /* unresolved approval cards, so Mo knows they exist */
 function moOpenCards(){return moPending.filter(function(p){return !p.resolved;});}
+function moNodeId(id){
+  try{ if(id&&typeof brainMap!=='undefined'&&brainMap[id])return id; }catch(e){}
+  return 'personal-root';
+}
+function moBrandFor(nodeId){
+  try{ if(typeof getNodeBrand==='function')return getNodeBrand(nodeId); }catch(e){}
+  return 'other';
+}
+function moNodeLabel(id){
+  try{ var n=brainMap[id]; return n?n.label:'Unfiled'; }catch(e){ return 'Unfiled'; }
+}
 function moTaskText(id){var t=loadTodoTasks().filter(function(x){return x.id===id;})[0];return t?t.text:id;}
 function moContext(){
   var tasks=loadTodoTasks();
   var open=tasks.filter(function(t){return !t.done;}).slice(0,45);
-  var lines=open.map(function(t){return '['+t.id+'] '+t.text+(t.due?' | due '+t.due:'')+((t.priority&&t.priority!=='none')?' | '+t.priority:'')+(t.brand?' | '+t.brand:'');}).join('\n');
+  var lines=open.map(function(t){return '['+t.id+'] '+t.text+' | in '+_nl(t.nodeId)+(t.due?' | due '+t.due:'')+((t.priority&&t.priority!=='none')?' | '+t.priority:'');}).join('\n');
   var recent=tasks.filter(function(t){return t.done&&t.doneAt;}).sort(function(a,b){return b.doneAt-a.doneAt;}).slice(0,8).map(function(t){return '- '+t.text;}).join('\n');
   var ls=[];try{ls=hmLoadLoops().filter(function(l){return !l.done;});}catch(e){}
   var loopLines=ls.map(function(l){return '['+l.id+'] '+(l.bucket==='park'?'PARKED':l.type)+': '+l.t;}).join('\n');
   var rev=null;try{rev=(typeof ovLoadRevenue==='function')?ovLoadRevenue():null;}catch(e){}
-  var nodes='';try{nodes=brainNodes.map(function(n){return n.id+'="'+n.label+'"';}).join(', ');}catch(e){}
+  var nodes='[]';
+  try{nodes=JSON.stringify(brainNodes.map(function(n){return {id:n.id,label:n.label,parent:n.parent||null};}));}catch(e){}
+  function _nl(id){try{var n=brainMap[id];return n?n.label:'Unfiled';}catch(e){return 'Unfiled';}}
   return 'TODAY IS '+((typeof todayStr==='function')?todayStr():'')+'\n\nOPEN TASKS (use the exact id):\n'+(lines||'(none)')+
     '\n\nRECENTLY COMPLETED:\n'+(recent||'(none)')+
     '\n\nOPEN LOOPS / PARKED:\n'+(loopLines||'(none)')+
-    '\n\nAREAS: '+(nodes||'(none)')+
+    '\n\nBRAIN TREE - pick nodeId from here:\n'+nodes+
     '\n\nREVENUE: '+(rev?('$'+(rev.thisMonth||0)+' collected this month, $'+(rev.ytd||0)+' YTD'):'(not loaded)')+
     '\n\nCARDS AWAITING MORGAN\'S APPROVAL RIGHT NOW: '+(moOpenCards().length?moOpenCards().map(function(p){return '"'+p.label+'"';}).join('; '):'(none)');
 }
@@ -3888,12 +3901,17 @@ function moSystem(){
   'ALWAYS reply with a single JSON object and nothing else:\n'+
   '{"reply":"what you say to Morgan","actions":[]}\n\n'+
   'If she asks you to change something, put one OR MORE action objects in the actions array. Two tasks means two objects in one reply - never say you can only do one at a time:\n'+
-  '{"kind":"create","text":"...","due":"YYYY-MM-DD or null","priority":"critical|high|medium|low|none"}\n'+
-  '{"kind":"update","id":"<task id>","changes":{"text":"...","due":"YYYY-MM-DD or null","priority":"..."}}\n'+
+  '{"kind":"create","text":"...","nodeId":"<id from BRAIN TREE>","due":"YYYY-MM-DD or null","priority":"critical|high|medium|low|none"}\n'+
+  '{"kind":"update","id":"<task id>","changes":{"text":"...","nodeId":"<id>","due":"YYYY-MM-DD or null","priority":"...","notes":"replace the notes","addNote":"append a line to the notes"}}\n'+
   '{"kind":"complete","id":"<task id>"}\n'+
   '{"kind":"delete","id":"<task id>"}\n'+
   '{"kind":"loop","text":"...","type":"Waiting on client|Unbilled|Waiting on payment"}\n'+
   '{"kind":"park","text":"..."}\n\n'+
+  'FILING - always set nodeId. Never leave a client task in Personal:\n'+
+  '- Pick the most specific matching node id from BRAIN TREE. Only use a personal node when the task is genuinely personal (errands, health, home).\n'+
+  '- Client shorthand: ECCO / EM = ECCO Medical. JVI = Joint & Vascular. OEIS. TVI = Texas Vascular. SVV = Sound Vascular/Vein. Desert / DCC = Desert Cardiovascular. Aspire / AT = Aspire Therapy. Kelli / BT / BTF / BTTC = Brain Talk. OBL = OBL Marketing. Virtueasy / VA = Virtueasy. BBS = Bad Bible Stories.\n'+
+  '- If a client is named or implied, that decides the node. If you truly cannot tell which area, ask rather than dumping it in Personal.\n\n'+
+  'NOTES AND DETAILS: extra context she gives about a task belongs in notes, not the title. Keep titles short and actionable. Use addNote to append a line to what is already there, and notes only when she wants the existing notes replaced. You can change a task\'s title, notes, area, due date and priority in one update.\n\n'+
   'HOW APPROVAL WORKS - this matters:\n'+
   '- Your actions do NOT run immediately. Each becomes a card Morgan must approve by clicking Approve (or by replying "yes").\n'+
   '- So after you propose something, say it is waiting for her OK. Do NOT claim it is created or done.\n'+
@@ -3930,11 +3948,14 @@ function moSend(q){
     });
 }
 function moLabel(a){
-  if(a.kind==='create')return 'Add task: '+a.text+(a.due?' (due '+a.due+')':'')+((a.priority&&a.priority!=='none')?' ['+a.priority+']':'');
+  if(a.kind==='create')return 'Add to '+moNodeLabel(moNodeId(a.nodeId))+': '+a.text+(a.due?' (due '+a.due+')':'')+((a.priority&&a.priority!=='none')?' ['+a.priority+']':'');
   if(a.kind==='update'){var c=a.changes||{},b=[];
     if(c.text!=null)b.push('title to "'+c.text+'"');
     if(c.due!==undefined)b.push('due to '+(c.due||'none'));
     if(c.priority)b.push('priority to '+c.priority);
+    if(c.nodeId)b.push('move to '+moNodeLabel(moNodeId(c.nodeId)));
+    if(c.notes!=null)b.push('replace notes');
+    if(c.addNote)b.push('add note "'+String(c.addNote).slice(0,50)+'"');
     return 'Update "'+moTaskText(a.id)+'": '+(b.join(', ')||'no change');}
   if(a.kind==='complete')return 'Complete "'+moTaskText(a.id)+'"';
   if(a.kind==='delete')return 'Delete "'+moTaskText(a.id)+'"';
@@ -3947,7 +3968,8 @@ function moApply(a){
   var tasks,i,c;
   if(a.kind==='create'){
     tasks=loadTodoTasks();
-    tasks.push({id:uid(),text:a.text,nodeId:'personal-root',brand:'other',priority:a.priority||'none',due:a.due||null,
+    var _nid=moNodeId(a.nodeId);
+    tasks.push({id:uid(),text:a.text,nodeId:_nid,brand:moBrandFor(_nid),priority:a.priority||'none',due:a.due||null,
       recur:'none',done:false,addedAt:Date.now(),subtasks:[],assignees:[],notes:'',
       recurLastGen:((typeof todayStr==='function')?todayStr():'')});
     saveTodoTasks(tasks);
@@ -3957,6 +3979,9 @@ function moApply(a){
       if(c.text!=null)tasks[i].text=c.text;
       if(c.due!==undefined)tasks[i].due=c.due;
       if(c.priority)tasks[i].priority=c.priority;
+      if(c.nodeId){var _mv=moNodeId(c.nodeId);tasks[i].nodeId=_mv;tasks[i].brand=moBrandFor(_mv);}
+      if(c.notes!=null)tasks[i].notes=String(c.notes);
+      if(c.addNote){var _ex=tasks[i].notes||'';tasks[i].notes=_ex?(_ex.replace(/\s+$/,'')+'\n'+String(c.addNote)):String(c.addNote);}
     }}
     saveTodoTasks(tasks);
   } else if(a.kind==='complete'){ if(typeof toggleTask==='function')toggleTask('todo',a.id);
