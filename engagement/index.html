@@ -638,7 +638,9 @@ const SITE_MAP = {
 };
 function discoverUrl(platform, kw, days){
   const win = days<=7 ? "qdr:w" : days<=31 ? "qdr:m" : days<=90 ? "qdr:m3" : "qdr:y";
-  return `https://www.google.com/search?q=${encodeURIComponent(`site:${SITE_MAP[platform]} "${kw}"`)}&tbs=${win}`;
+  // num=30 returns three pages' worth in one load — the agent paginating is
+  // three navigations where one will do.
+  return `https://www.google.com/search?q=${encodeURIComponent(`site:${SITE_MAP[platform]} "${kw}"`)}&tbs=${win}&num=30`;
 }
 function searchUrl(platform, kw, days){
   const q = encodeURIComponent(kw);
@@ -754,22 +756,35 @@ Authorized: I am the account owner and these are ordinary search results and pub
 STEP 1 — indexed search (no login needed)
 ${disc}
 ${step2}
-Collect up to 15 posts per search. Stop there rather than scrolling on.
+HOW TO RUN THIS FAST — read this before starting
+This job is one page load per search. Everything you need is already on the
+results page.
 
-FOR EACH POST RETURN
+- Do NOT open, click into, or navigate to the individual posts. Their titles,
+  URLs and snippets are all on the results page.
+- Do NOT take screenshots. Extract the page text instead — it is far quicker
+  and this job needs no visual judgement.
+- Read each results page in a single pass, then move to the next URL.
+- Do NOT scroll for more, paginate, or click "More results". One page each.
+- Do NOT check for duplicates, rank, or judge relevance. The app scores and
+  dedupes everything. Collect and move on.
+
+FOR EACH RESULT RETURN
   platform    "${platform}"
-  account     display name of the posting account
-  accountUrl  link to the profile
-  postUrl     direct permalink to the post
-  text        first ~400 characters of the post text
-  postedAt    ISO date, e.g. 2026-08-01
+  account     posting account name, as shown in the result
+  postUrl     the result's URL
+  text        the result title plus its snippet, exactly as shown
+  accountUrl  profile link IF the results page shows one, else null
+  postedAt    ISO date IF the result shows one, else null
 
-DO NOT collect follower counts, likes, comments or shares. Those are unreliable on a search feed and are gathered separately later. Skipping them is the point of this job — it keeps it short.
+Nulls are expected here and completely fine. A short snippet is enough for the
+app to rank on. Missing counts and dates are filled in later, for the handful
+of posts that actually score well.
 
-SKIP
+ONLY SKIP the obvious, by glancing at the result text — never open a post to decide:
 - ${client.name}'s own accounts${(client.exclude||[]).length?": "+(client.exclude||[]).join(", "):""}
-- Paid ads and sponsored posts
-- Posts about an individual patient's personal medical situation
+- Anything plainly an ad or a personal patient story
+When unsure, include it. The app filters; you do not need to.
 
 OUTPUT
 Return one JSON array and nothing else — no commentary before or after. Then add it to the inbox.
@@ -840,6 +855,32 @@ async function runYouTube(){
 }
 
 /* ── Intake ── */
+/* Agents routinely hit an output limit mid-array, which makes JSON.parse reject
+   the entire payload over one incomplete trailing record. Scan for balanced
+   top-level objects instead and keep every complete one. */
+function salvageObjects(raw){
+  const out = [];
+  let depth=0, start=-1, inStr=false, esc=false;
+  for(let i=0;i<raw.length;i++){
+    const ch = raw[i];
+    if(inStr){
+      if(esc) esc=false;
+      else if(ch==="\\") esc=true;
+      else if(ch==='"') inStr=false;
+      continue;
+    }
+    if(ch==='"'){ inStr=true; continue; }
+    if(ch==='{'){ if(depth===0) start=i; depth++; }
+    else if(ch==='}'){
+      depth--;
+      if(depth===0 && start>=0){
+        try{ out.push(JSON.parse(raw.slice(start,i+1))); }catch(e){}
+        start = -1;
+      }
+    }
+  }
+  return out;
+}
 function openIntake(){
   document.getElementById("in-json").value="";
   document.getElementById("in-err").style.display="none";
@@ -848,16 +889,24 @@ function openIntake(){
 async function submitIntake(){
   const raw = document.getElementById("in-json").value.trim();
   const err = document.getElementById("in-err");
-  let arr, isEnrich = false;
+  let arr, isEnrich = false, salvaged = false;
   try{
     const parsed = JSON.parse(raw);
     arr = Array.isArray(parsed) ? parsed : (parsed.posts || null);
     isEnrich = !Array.isArray(parsed) && !!parsed.enrich;
     if(!Array.isArray(arr)) throw new Error("Expected a JSON array of posts");
   }catch(e){
-    err.textContent = "Could not read that: "+e.message; err.style.display="block"; return;
+    // Almost always a truncated agent response. Keep every complete record
+    // rather than discarding the whole batch over the incomplete tail.
+    const rescued = salvageObjects(raw).filter(o=>o && (o.postUrl || o.url));
+    if(!rescued.length){
+      err.textContent = "Could not read that: "+e.message; err.style.display="block"; return;
+    }
+    arr = rescued; salvaged = true;
+    isEnrich = /"enrich"\s*:\s*true/.test(raw);
   }
   closeModal("modal-intake");
+  if(salvaged) toast(`Paste was cut off — recovered ${arr.length} complete posts`,"warn");
   // A metrics-only payload (no text) is an enrich pass even if unlabelled.
   if(isEnrich || arr.every(r=>!r.text && !r.account)) enrichPosts(arr);
   else await ingest(arr, lastRun || defaultRun());
