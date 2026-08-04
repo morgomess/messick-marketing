@@ -195,12 +195,11 @@ tr:last-child td{border-bottom:none}
     <div class="sb-brand">Messick</div>
     <div class="sb-tag">Engagement Finder</div>
     <ul class="sb-nav">
-      <li class="active" data-view="search" onclick="go('search')">Search</li>
-      <li data-view="queue" onclick="go('queue')">Queue <span class="cnt" id="nav-queue">0</span></li>
-      <li data-view="comments" onclick="go('comments')">Comments <span class="cnt" id="nav-comments">0</span></li>
-      <li data-view="calibrate" onclick="go('calibrate')">Calibrate <span class="cnt" id="nav-cal" style="display:none">!</span></li>
-      <li data-view="clients" onclick="go('clients')">Clients</li>
-      <li data-view="settings" onclick="go('settings')">Settings</li>
+      <li class="active" data-view="search" onclick="go('search')">1 · Find</li>
+      <li data-view="queue" onclick="go('queue')">2 · Review <span class="cnt" id="nav-queue">0</span></li>
+      <li data-view="comments" onclick="go('comments')">3 · Comment <span class="cnt" id="nav-comments">0</span></li>
+      <li data-view="clients" onclick="go('clients')">Setup</li>
+      <li data-view="calibrate" onclick="go('calibrate')" id="nav-cal-li" style="display:none">Recalibrate <span class="cnt">!</span></li>
     </ul>
     <div class="sb-foot">
       <div class="sync"><span class="dot" id="sync-dot"></span><span id="sync-txt">Idle</span></div>
@@ -215,11 +214,11 @@ tr:last-child td{border-bottom:none}
   <!-- ══════ SEARCH ══════ -->
   <section class="view active" id="view-search">
     <div class="page-head"><h1>Search</h1></div>
-    <p class="page-sub">Pick a client and what you're hunting for. The app builds the searches, then either runs them itself or hands you a pack to run in your logged-in browser.</p>
+    <p class="page-sub">Pick a client and what you are hunting for. The app builds the searches, then either runs them itself or hands you small jobs to run in your logged-in browser.</p>
 
     <div class="card">
-      <h3>1 · Who and what</h3>
-      <div class="card-sub">Keywords are seeded from the client's expertise areas. Edit freely — one per line.</div>
+      <h3>What to look for</h3>
+      <div class="card-sub">Keywords are seeded from the client's expertise areas. Edit freely — one per line. Keep them specific; a broad phrase like "clinical research" returns mostly noise.</div>
       <div class="form-row">
         <div class="form-group">
           <label>Client</label>
@@ -248,27 +247,8 @@ tr:last-child td{border-bottom:none}
     </div>
 
     <div class="card">
-      <h3>2 · Minimum bar</h3>
-      <div class="card-sub">Nothing below the bar is thrown away — it is scored, labelled, and parked in <b>Below bar</b> on the Queue so you can still see it.</div>
-      <div class="form-row-3">
-        <div class="form-group">
-          <label>Min followers</label>
-          <input type="number" id="s-minfoll" value="500" min="0">
-        </div>
-        <div class="form-group">
-          <label>Min comments/replies</label>
-          <input type="number" id="s-mineng" value="2" min="0">
-        </div>
-        <div class="form-group">
-          <label>Surface at score</label>
-          <input type="number" id="s-surface" value="65" min="0" max="100">
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>3 · Run it</h3>
-      <div class="card-sub">YouTube can be searched directly. X, LinkedIn, Instagram and Facebook have no usable search API, so those run through your own logged-in browser.</div>
+      <h3>Run it</h3>
+      <div class="card-sub">YouTube is searched directly. X, LinkedIn, Instagram and Facebook have no usable search API, so those run through your own logged-in browser. Thresholds live under <b>Setup</b>.</div>
       <div class="form-group">
         <label class="form-check"><input type="checkbox" id="s-fast" checked onchange="renderFastHint()">
           <span>Fast mode — indexed search only</span></label>
@@ -299,7 +279,7 @@ tr:last-child td{border-bottom:none}
         <button class="btn btn-outline btn-sm" onclick="exportApproved()">Export for sheet</button>
       </div>
     </div>
-    <p class="page-sub">Ranked by combined score. Thumbs up or down teaches the scorer what you actually want — that feedback drives the weekly recalibration on the Calibrate tab.</p>
+    <p class="page-sub">Ranked by score. Thumbs up marks a good find and queues it for a comment; thumbs down teaches the scorer to stop showing you that. After about a dozen votes a Recalibrate tab appears.</p>
     <div class="stats" id="q-stats"></div>
     <div id="q-body"></div>
   </section>
@@ -313,7 +293,7 @@ tr:last-child td{border-bottom:none}
         <button class="btn btn-primary btn-sm" id="c-draft-btn" onclick="draftAll()">Draft all approved</button>
       </div>
     </div>
-    <p class="page-sub">Every approved post gets a drafted comment in that client's voice. Nothing posts from here. You approve each draft, then the drop pack carries them to your browser.</p>
+    <p class="page-sub">Every good find gets a comment drafted in that client's voice. Nothing posts from here: you approve each draft, then the drop pack carries them to your browser.</p>
     <div class="notice"><b>Drafts only.</b> This app never posts. It produces text you approve and a pack you run yourself, which keeps a human between the model and a live clinical account.</div>
     <div class="stats" id="c-stats"></div>
     <div id="c-body"></div>
@@ -329,53 +309,53 @@ tr:last-child td{border-bottom:none}
   <!-- ══════ CLIENTS ══════ -->
   <section class="view" id="view-clients">
     <div class="page-head">
-      <h1>Clients</h1>
+      <h1>Setup</h1>
       <button class="btn btn-primary btn-sm" onclick="openClient(null)">+ Add client</button>
     </div>
-    <p class="page-sub">Expertise areas drive both the seeded keywords and the AI's judgement of whether a post actually matches what this client is known for.</p>
-    <div class="card" style="padding:0;overflow-x:auto">
+    <p class="page-sub">Set once and mostly forget. Expertise areas drive the seeded keywords, the scorer's sense of "on topic", and the voice of drafted comments.</p>
+    <div class="card" style="padding:0;overflow-x:auto;margin-bottom:20px">
       <table>
-        <thead><tr><th>Client</th><th>Platforms</th><th>Expertise areas</th><th>Queue</th><th></th></tr></thead>
+        <thead><tr><th>Client</th><th>Platforms</th><th>Expertise areas</th><th>In queue</th><th></th></tr></thead>
         <tbody id="cl-body"></tbody>
       </table>
     </div>
-  </section>
-
-  <!-- ══════ SETTINGS ══════ -->
-  <section class="view" id="view-settings">
-    <div class="page-head"><h1>Settings</h1></div>
-    <p class="page-sub">Scoring weights are managed automatically by Calibrate, but you can override them here.</p>
 
     <div class="card">
-      <h3>Scoring weights</h3>
-      <div class="card-sub">Relative pull of each component on the combined score. They are normalised, so only the ratios matter.</div>
-      <div id="w-body"></div>
-      <div style="display:flex;gap:10px;margin-top:18px">
-        <button class="btn btn-primary btn-sm" onclick="saveWeights()">Save weights</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetWeights()">Reset to defaults</button>
+      <h3>Minimum bar</h3>
+      <div class="card-sub">Nothing below the bar is thrown away. It is scored, labelled, and parked under <b>Everything else</b> on Review so you can still see it.</div>
+      <div class="form-row-3">
+        <div class="form-group"><label>Min followers</label><input type="number" id="s-minfoll" value="500" min="0"></div>
+        <div class="form-group"><label>Min comments/replies</label><input type="number" id="s-mineng" value="2" min="0"></div>
+        <div class="form-group"><label>Surface at score</label><input type="number" id="s-surface" value="65" min="0" max="100"></div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>YouTube API key</h3>
-      <div class="card-sub">Optional. A Google Cloud API key with YouTube Data API v3 enabled lets the app search YouTube directly instead of routing it through the browser pack. Free tier is about 100 searches/day.</div>
-      <div class="form-group">
-        <input type="password" id="set-ytkey" placeholder="AIza...">
-        <div class="hint">Stored in this browser only. It is never sent anywhere except googleapis.com.</div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="saveYtKey()">Save key</button>
-    </div>
+    <details class="card">
+      <summary style="cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600">Advanced</summary>
+      <div style="margin-top:18px">
+        <h4 style="font-size:1rem;margin-bottom:4px">Scoring weights</h4>
+        <div class="card-sub">Managed automatically by Recalibrate. Override only if you want to.</div>
+        <div id="w-body"></div>
+        <div style="display:flex;gap:10px;margin:14px 0 26px">
+          <button class="btn btn-primary btn-sm" onclick="saveWeights()">Save weights</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetWeights()">Reset to defaults</button>
+        </div>
 
-    <div class="card">
-      <h3>Data</h3>
-      <div class="card-sub">Everything syncs to the shared Cloudflare KV store, so the queue follows you between devices.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="pushAll(true)">Force push</button>
-        <button class="btn btn-outline btn-sm" onclick="pullAll(true)">Force pull</button>
-        <button class="btn btn-outline btn-sm" onclick="exportBackup()">Download backup</button>
-        <button class="btn btn-danger btn-sm" onclick="clearReviewed()">Clear reviewed posts</button>
+        <h4 style="font-size:1rem;margin-bottom:4px">YouTube API key</h4>
+        <div class="card-sub">Optional. A Google Cloud key with YouTube Data API v3 enabled lets the app search YouTube directly instead of routing it through a browser job.</div>
+        <div class="form-group"><input type="password" id="set-ytkey" placeholder="AIza..."><div class="hint">Stored in this browser only. Never sent anywhere except googleapis.com.</div></div>
+        <button class="btn btn-primary btn-sm" onclick="saveYtKey()">Save key</button>
+
+        <h4 style="font-size:1rem;margin:26px 0 4px">Data</h4>
+        <div class="card-sub">Everything syncs to the shared Cloudflare store, so your queue follows you between devices.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="pushAll(true)">Force push</button>
+          <button class="btn btn-outline btn-sm" onclick="pullAll(true)">Force pull</button>
+          <button class="btn btn-outline btn-sm" onclick="exportBackup()">Download backup</button>
+          <button class="btn btn-danger btn-sm" onclick="clearReviewed()">Clear reviewed posts</button>
+        </div>
       </div>
-    </div>
+    </details>
   </section>
 
   </main>
@@ -636,8 +616,7 @@ function go(v){
   if(v==="queue") renderQueue();
   if(v==="comments") renderComments();
   if(v==="calibrate") renderCalibrate();
-  if(v==="clients") renderClients();
-  if(v==="settings") renderSettings();
+  if(v==="clients"){ renderClients(); renderSettings(); }
   window.scrollTo(0,0);
 }
 
@@ -1288,22 +1267,37 @@ function renderQueue(){
   const top    = rows.filter(p=>!p.gates.length && p.total>=barOf(p));
   const below  = rows.filter(p=>!p.gates.length && p.total<barOf(p));
 
+  const cal = calcCalibration();
   document.getElementById("q-stats").innerHTML = `
-    <div class="stat accent"><div class="v">${top.length}</div><div class="l">Above the bar</div></div>
-    <div class="stat"><div class="v">${below.length}</div><div class="l">Below bar</div></div>
-    <div class="stat warnc"><div class="v">${gated.length}</div><div class="l">Threshold gated</div></div>
-    <div class="stat"><div class="v">${queue.filter(p=>!p.reviewed).length}</div><div class="l">Unreviewed total</div></div>
-    <div class="stat"><div class="v">${queue.filter(p=>p.approved).length}</div><div class="l">Approved</div></div>`;
+    <div class="stat accent"><div class="v">${top.length}</div><div class="l">Worth a look</div></div>
+    <div class="stat"><div class="v">${below.length + gated.length}</div><div class="l">Everything else</div></div>
+    <div class="stat"><div class="v">${queue.filter(p=>p.approved).length}</div><div class="l">Good finds</div></div>`
+    + (cal.ready?`<div class="stat warnc" style="cursor:pointer" onclick="go('calibrate')"><div class="v">&#8635;</div><div class="l">Recalibrate ready</div></div>`:"");
 
   const body = document.getElementById("q-body");
   if(!rows.length){
-    body.innerHTML = `<div class="empty"><h3>Nothing here yet</h3><p>Run a search to fill the queue. If you have already run one in the browser, use <b>Pull from inbox</b> or <b>Paste results</b> on the Search tab.</p></div>`;
+    // Distinguish "you have nothing" from "nothing matches this filter". The
+    // filter defaults to Unreviewed, so a fully reviewed queue used to render
+    // as if every post had vanished.
+    const total = cid ? queue.filter(p=>p.clientId===cid).length : queue.length;
+    body.innerHTML = total
+      ? `<div class="empty"><h3>All caught up</h3>
+          <p>Nothing is waiting on you. Your ${total} saved post${total===1?" is":"s are"} still here, just filtered out of this view.</p>
+          <button class="btn btn-primary btn-sm" style="margin-top:16px"
+            onclick="document.getElementById('q-filter').value='all';renderQueue()">Show all ${total}</button></div>`
+      : `<div class="empty"><h3>Nothing here yet</h3><p>Run a search to fill the queue. If you have already run one in the browser, use <b>Pull from inbox</b> or <b>Paste results</b> on the Find tab.</p></div>`;
     return;
   }
+  const rest = below.concat(gated).sort((a,b)=>b.total-a.total);
   body.innerHTML =
-    bucket("Above the bar", top, "Scored at or above the surfacing threshold and clear of every minimum. Start here.") +
-    bucket("Below bar", below, "Scored and kept, just under the surfacing threshold. Skim these so nothing good slips past a number.") +
-    bucket("Threshold gated", gated, "Failed a hard minimum you set. Kept deliberately visible — a gate is a filter, not a delete.");
+    bucket("Worth a look", top, "Scored above your threshold and clear of every minimum. Start here, thumbs up anything good.") +
+    // Secondary results are kept but folded away, so the page opens on the
+    // handful that matter rather than everything ever collected.
+    (rest.length?`<details class="bucket"${top.length?"":" open"}>
+      <summary class="bucket-head" style="cursor:pointer"><h3>Everything else</h3><span class="n">${rest.length}</span></summary>
+      <div class="bucket-note">Below your score threshold or short of a minimum. Kept visible on purpose, because a threshold is a filter and not a delete. Skim if you want; nothing here is required.</div>
+      ${rest.map(postCard).join("")}
+    </details>`:"");
 }
 function bucket(title, rows, note){
   if(!rows.length) return "";
@@ -1331,8 +1325,7 @@ function postCard(p){
       <div class="score-badge"><div class="n">${p.total}</div><div class="t">score</div></div>
       <div class="post-meta">
         <div class="post-acct">${esc(p.account)} <span class="plat">${esc(platName(p.platform))}</span>
-          ${p.verdict?`<span class="verdict ${p.verdict}">${p.verdict==="up"?"you liked this":"you passed"}</span>`:""}
-          ${p.approved?`<span class="verdict up">approved</span>`:""}</div>
+          ${p.verdict==="up"?`<span class="verdict up">good find, queued for a comment</span>`:p.verdict==="down"?`<span class="verdict down">passed</span>`:""}</div>
         <div class="post-line">${fmtMaybe(p.followers)} followers · ${fmtMaybe(p.comments)} comments · ${fmtMaybe(p.likes)} likes · ${esc(age)}
           ${p.partial?`<span class="gate-flag" style="margin-left:6px">${esc(p.partial.join(" & "))} unknown — scored on the rest</span>`:""}</div>
       </div>
@@ -1344,9 +1337,8 @@ function postCard(p){
     <div class="bars">${bars}</div>
     <div class="post-acts">
       ${p.postUrl?`<a class="btn btn-outline btn-sm" href="${esc(p.postUrl)}" target="_blank" rel="noopener">Open post</a>`:""}
-      <button class="btn btn-ghost btn-sm" onclick="vote('${p.id}','up')">&#128077; Good find</button>
+      <button class="btn ${p.verdict==="up"?"btn-outline":"btn-primary"} btn-sm" onclick="vote('${p.id}','up')">&#128077; Good find</button>
       <button class="btn btn-ghost btn-sm" onclick="vote('${p.id}','down')">&#128078; Not useful</button>
-      <button class="btn ${p.approved?"btn-ghost":"btn-primary"} btn-sm" onclick="toggleApprove('${p.id}')">${p.approved?"Unapprove":"Approve"}</button>
     </div>
   </div>`;
 }
@@ -1570,11 +1562,9 @@ function renderComments(){
   const waiting  = rows.filter(p=>!p.draft && !p.draftSkip);
 
   document.getElementById("c-stats").innerHTML = `
-    <div class="stat"><div class="v">${waiting.length}</div><div class="l">Awaiting draft</div></div>
-    <div class="stat accent"><div class="v">${drafted.length}</div><div class="l">Drafted, needs you</div></div>
+    <div class="stat accent"><div class="v">${waiting.length + drafted.length}</div><div class="l">Needs you</div></div>
     <div class="stat"><div class="v">${approved.length}</div><div class="l">Ready to drop</div></div>
-    <div class="stat"><div class="v">${posted.length}</div><div class="l">Posted</div></div>
-    <div class="stat warnc"><div class="v">${skipped.length}</div><div class="l">Skipped on rules</div></div>`;
+    <div class="stat"><div class="v">${posted.length}</div><div class="l">Posted</div></div>`;
 
   const body = document.getElementById("c-body");
   if(!rows.length){
@@ -1592,22 +1582,17 @@ function renderComments(){
       </div>
       ${approved.map(commentCard).join("")}</div>`;
   }
-  if(drafted.length)
-    h += `<div class="bucket"><div class="bucket-head"><h3>Drafted, needs your approval</h3><span class="n">${drafted.length}</span></div>
-      <div class="bucket-note">Edit freely. Nothing here can be dropped until you approve it.</div>
-      ${drafted.map(commentCard).join("")}</div>`;
-  if(waiting.length)
-    h += `<div class="bucket"><div class="bucket-head"><h3>Awaiting a draft</h3><span class="n">${waiting.length}</span></div>
-      <div class="bucket-note">Approved posts with no comment written yet.</div>
-      ${waiting.map(commentCard).join("")}</div>`;
-  if(skipped.length)
-    h += `<div class="bucket"><div class="bucket-head"><h3>Skipped on the clinical rules</h3><span class="n">${skipped.length}</span></div>
-      <div class="bucket-note">Deliberately not drafted. Personal symptom posts, cancer posts, patient stories and memorials are never commented on, and nothing honest could be added to the rest without pitching.</div>
-      ${skipped.map(commentCard).join("")}</div>`;
-  if(posted.length)
-    h += `<div class="bucket"><div class="bucket-head"><h3>Posted</h3><span class="n">${posted.length}</span></div>
-      <div class="bucket-note">Done. Export these as log rows for the client's Engagement Sheet.</div>
-      ${posted.map(commentCard).join("")}</div>`;
+  const needsYou = drafted.concat(waiting);
+  if(needsYou.length)
+    h += `<div class="bucket"><div class="bucket-head"><h3>Needs you</h3><span class="n">${needsYou.length}</span></div>
+      <div class="bucket-note">Drafts to read and approve, plus any good find with no comment written yet. Edit freely; nothing leaves here until you approve it.</div>
+      ${needsYou.map(commentCard).join("")}</div>`;
+  // Finished and refused work is folded away — visible on demand, not in the way.
+  const done = posted.concat(skipped);
+  if(done.length)
+    h += `<details class="bucket"><summary class="bucket-head" style="cursor:pointer"><h3>Done and skipped</h3><span class="n">${done.length}</span></summary>
+      <div class="bucket-note">${posted.length} posted${skipped.length?`, and ${skipped.length} deliberately not drafted: personal symptom posts, cancer posts, patient stories and memorials are never commented on`:""}.</div>
+      ${done.map(commentCard).join("")}</details>`;
   body.innerHTML = h;
 }
 function commentCard(p){
@@ -1933,7 +1918,7 @@ function updateNav(){
   document.getElementById("nav-comments").textContent =
     queue.filter(p=>p.approved && !p.draftSkip && p.draftStatus!=="posted").length;
   const r = calcCalibration();
-  document.getElementById("nav-cal").style.display = r.ready ? "inline-block" : "none";
+  document.getElementById("nav-cal-li").style.display = r.ready ? "flex" : "none";
 }
 function renderAll(){ renderSearch(); renderQueue(); renderComments(); renderClients(); renderSettings(); updateNav(); }
 function init(){
