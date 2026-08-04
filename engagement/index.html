@@ -197,6 +197,7 @@ tr:last-child td{border-bottom:none}
     <ul class="sb-nav">
       <li class="active" data-view="search" onclick="go('search')">Search</li>
       <li data-view="queue" onclick="go('queue')">Queue <span class="cnt" id="nav-queue">0</span></li>
+      <li data-view="comments" onclick="go('comments')">Comments <span class="cnt" id="nav-comments">0</span></li>
       <li data-view="calibrate" onclick="go('calibrate')">Calibrate <span class="cnt" id="nav-cal" style="display:none">!</span></li>
       <li data-view="clients" onclick="go('clients')">Clients</li>
       <li data-view="settings" onclick="go('settings')">Settings</li>
@@ -303,6 +304,21 @@ tr:last-child td{border-bottom:none}
     <div id="q-body"></div>
   </section>
 
+  <!-- ══════ COMMENTS ══════ -->
+  <section class="view" id="view-comments">
+    <div class="page-head">
+      <h1>Comments</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="c-client" onchange="renderComments()" style="padding:8px 12px;border:1px solid var(--gray-200);border-radius:3px;font-family:'Jost';font-size:.85rem"></select>
+        <button class="btn btn-primary btn-sm" id="c-draft-btn" onclick="draftAll()">Draft all approved</button>
+      </div>
+    </div>
+    <p class="page-sub">Every approved post gets a drafted comment in that client's voice. Nothing posts from here. You approve each draft, then the drop pack carries them to your browser.</p>
+    <div class="notice"><b>Drafts only.</b> This app never posts. It produces text you approve and a pack you run yourself, which keeps a human between the model and a live clinical account.</div>
+    <div class="stats" id="c-stats"></div>
+    <div id="c-body"></div>
+  </section>
+
   <!-- ══════ CALIBRATE ══════ -->
   <section class="view" id="view-calibrate">
     <div class="page-head"><h1>Calibrate</h1></div>
@@ -374,6 +390,7 @@ tr:last-child td{border-bottom:none}
     <div class="form-group"><label>Client name</label><input id="mc-name" placeholder="Joint &amp; Vascular Institute"></div>
     <div class="form-group"><label>Short code</label><input id="mc-code" placeholder="JVI"><div class="hint">Used in exports and the sheet handoff.</div></div>
     <div class="form-group"><label>Expertise areas (one per line)</label><textarea id="mc-exp" rows="6" placeholder="peripheral artery disease&#10;uterine fibroid embolization"></textarea></div>
+    <div class="form-group"><label>Comment voice</label><textarea id="mc-voice" rows="5" placeholder="Who the audience is, the register, and any boundary specific to this brand."></textarea><div class="hint">Drives drafted comments. The agency-wide clinical and format rules always apply on top of this and cannot be overridden here.</div></div>
     <div class="form-group"><label>Platforms</label><div class="chips" id="mc-plats"></div></div>
     <div class="form-group"><label>Exclude accounts (one per line)</label><textarea id="mc-excl" rows="3" placeholder="@ourownaccount"></textarea><div class="hint">The client's own handles, so their posts never come back as targets.</div></div>
     <div class="modal-acts">
@@ -429,20 +446,38 @@ const COMPONENTS = [
 ];
 const DEFAULT_WEIGHTS = { rel:25, eng:20, clin:25, rec:15, exp:15 };
 
+/* voice = per-client register and boundaries, on top of the agency-wide hard
+   rules in HARD_RULES. Condensed from each brand's Comment Bank voice pack. */
 const SEED_CLIENTS = [
   { id:"jvi",  name:"Joint & Vascular Institute", code:"JVI",
     expertise:["peripheral artery disease","uterine fibroid embolization","varicose veins","deep vein thrombosis","interventional radiology"],
-    platforms:["facebook","instagram","linkedin"], exclude:[] },
+    platforms:["facebook","instagram","linkedin"], exclude:[],
+    voice:"Confident, plainspoken, patient-first, speaking as the practice. Audience is women 35-55 with fibroids or heavy bleeding, men 50+ with prostate symptoms, adults 50+ with joint pain not ready for replacement, plus referring clinicians who also read these pages, so it must hold up to a physician reading it. The idea worth carrying into almost every comment is that most people do not know a non-surgical option exists. Everyday words, never procedure codes. Red heart only and only on support comments, never blue. No stethoscope emoji. Oncology boundary: BPH is not prostate cancer and fibroids are not cancer, never blur that line and never comment on an individual's cancer post. Standard UFE recovery is 1 to 2 weeks, never say within days." },
   { id:"ecco", name:"ECCO Medical", code:"ECCO",
     expertise:["peripheral artery disease","uterine fibroid embolization","prostate artery embolization","genicular artery embolization","vein treatment"],
-    platforms:["facebook","instagram","linkedin"], exclude:[] },
+    platforms:["facebook","instagram","linkedin"], exclude:[],
+    voice:"Speaking as the practice, plainspoken and patient-first. Audience is adults weighing minimally invasive options against surgery. Lead with the fact that an outpatient, image-guided option often exists. Everyday words, never procedure codes. Same oncology boundary: embolization for BPH or fibroids is not cancer treatment." },
   { id:"svv",  name:"Sound Vascular & Vein", code:"SVV",
     expertise:["varicose veins","venous insufficiency","peripheral artery disease","vascular surgery outcomes"],
-    platforms:["facebook","instagram","linkedin"], exclude:[] },
+    platforms:["facebook","instagram","linkedin"], exclude:[],
+    voice:"Speaking as the practice, warm and direct. Audience is adults with leg pain, swelling, cramping or visible veins who assume it is cosmetic or just ageing. Useful angle: symptoms rather than appearance decide whether veins are a medical issue." },
   { id:"oeis", name:"OEIS", code:"OEIS",
     expertise:["office based labs","outpatient endovascular","vascular reimbursement","ASC cardiology","PAD interventions"],
-    platforms:["linkedin","x","youtube"], exclude:[] },
+    platforms:["linkedin","x","youtube"], exclude:[],
+    voice:"Peer-to-peer professional society voice, NOT patient-facing. Audience is physicians, OBL and ASC operators, and administrators. Register is collegial and specific: reimbursement, policy, site-of-service economics, practice operations. Referencing named policy, trials or CMS rules is appropriate here in a way it never is on a consumer page. Never patient-directed advice." },
 ];
+/* Agency-wide, non-negotiable, applied to every client. Sourced from the
+   Engagement Runbook's overriding rules. */
+const HARD_RULES = `- No em dashes anywhere. Single hyphens only.
+- The comment is the brand speaking. Sign nothing. Never use a staff or physician name, and never Morgan's name.
+- Never diagnose, never give individual medical advice, never assess anyone's situation in public.
+- Never confirm, deny or imply that anyone is a patient.
+- No outcome guarantees. Never the word "cure".
+- No links. No pitch. No procedure being sold. No booking or phone number.
+- No comparative superiority claims, and never comment on another practice's approach.
+- Never "Great post!", never emoji-only, never a one-liner.
+- If the post is a person describing their own symptoms, condition, diagnosis or personal struggle, do NOT write a comment. Return a skip instead. This rule outranks everything.
+- Never comment on an individual's cancer post, memorial post, patient story or personal fundraiser.`;
 
 /* ═══════════════════════════════════════════════════════════════
    STATE
@@ -577,6 +612,7 @@ function go(v){
   document.getElementById("view-"+v).classList.add("active");
   document.querySelectorAll(".sb-nav li").forEach(e=>e.classList.toggle("active", e.dataset.view===v));
   if(v==="queue") renderQueue();
+  if(v==="comments") renderComments();
   if(v==="calibrate") renderCalibrate();
   if(v==="clients") renderClients();
   if(v==="settings") renderSettings();
@@ -587,10 +623,14 @@ function go(v){
    SEARCH VIEW
    ═══════════════════════════════════════════════════════════════ */
 function renderSearch(){
-  const sel=document.getElementById("s-client"), q=document.getElementById("q-client");
+  const sel=document.getElementById("s-client"), q=document.getElementById("q-client"),
+        cc=document.getElementById("c-client");
   const opts = clients.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
+  const keep = cc.value;
   sel.innerHTML = opts;
   q.innerHTML = `<option value="">All clients</option>`+opts;
+  cc.innerHTML = `<option value="">All clients</option>`+opts;
+  cc.value = keep;
   renderPlatChips();
   renderFastHint();
   onClientChange();
@@ -787,18 +827,17 @@ ONLY SKIP the obvious, by glancing at the result text — never open a post to d
 When unsure, include it. The app filters; you do not need to.
 
 OUTPUT
-Return one JSON array and nothing else — no commentary before or after. Then add it to the inbox.
+Return one JSON array and nothing else — no commentary before or after. Then post it to the inbox:
 
-Read the inbox first and append to it. A plain POST REPLACES the whole inbox, so writing directly would wipe results from the other platform jobs I am running alongside this one.
-
-  const url = "${CONFIG.SYNC}${KV.inbox}";
-  const cur = await (await fetch(url, {cache:"no-store"})).json();
-  const merged = (cur.posts || []).concat(<the array>);
-  await fetch(url, {
+  await fetch("${CONFIG.SYNC}${KV.inbox}&append=1", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ runId: "${run.id}", clientId: "${client.id}", posts: merged, ts: Date.now() })
+    body: JSON.stringify({ runId: "${run.id}", clientId: "${client.id}", posts: <the array>, ts: Date.now() })
   });
+
+append=1 merges server-side, so other platform jobs running at the same time
+cannot overwrite each other and re-sending the same post is harmless. Just post
+your own results; do not read the inbox or merge anything yourself.
 
 If that fails, just show me the JSON and I will paste it in.`;
 }
@@ -1264,6 +1303,9 @@ function vote(id, verdict){
   const p = queue.find(x=>x.id===id);
   if(!p) return;
   p.verdict = verdict; p.reviewed = true;
+  // A good find is an approval. Marking it twice was busywork.
+  if(verdict==="up") p.approved = true;
+  if(verdict==="down") p.approved = false;
   learning.feedback = learning.feedback.filter(f=>f.postId!==id);
   learning.feedback.push({
     postId:id, verdict, scores:{...p.scores}, total:p.total,
@@ -1276,7 +1318,7 @@ function vote(id, verdict){
   });
   learning.exemplars = learning.exemplars.slice(0,20);
   persist(); renderQueue(); updateNav();
-  toast(verdict==="up"?"Logged as a good find":"Logged as not useful","success");
+  toast(verdict==="up"?"Good find, approved for a comment":"Logged as not useful","success");
 }
 function toggleApprove(id){
   const p = queue.find(x=>x.id===id);
@@ -1336,9 +1378,9 @@ Prefer the page's own JSON network response over scraped text — it carries exa
 For each, return: postUrl, followers, likes, comments, shares, postedAt.
 If a number is still not visible, return null. Do not estimate or infer — a wrong number corrupts the ranking, a null does not.
 
-Return one JSON array and nothing else, then POST it as:
-  { "posts": <array>, "enrich": true }
-to ${CONFIG.SYNC}${KV.inbox}
+Return one JSON array and nothing else, then POST it to
+${CONFIG.SYNC}${KV.inbox}&append=1
+with body: { "posts": <array>, "enrich": true }
 
 POSTS (${rows.length})
 ${rows.map(p=>`${p.postUrl}   [missing: ${p.partial.join(", ")}]`).join("\n")}`;
@@ -1353,6 +1395,260 @@ function downloadFile(name, content){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(b); a.download = name; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMENT DRAFTING
+   ═══════════════════════════════════════════════════════════════ */
+const DRAFT_CAP = 10;   // matches the runbook's max comments per run
+
+function commentTargets(){
+  const cid = document.getElementById("c-client").value;
+  let rows = queue.filter(p=>p.approved);
+  if(cid) rows = rows.filter(p=>p.clientId===cid);
+  return rows.sort((a,b)=>b.total-a.total);
+}
+async function draftAll(){
+  const todo = commentTargets().filter(p=>!p.draft && !p.draftSkip).slice(0, DRAFT_CAP);
+  if(!todo.length) return toast("Nothing approved is waiting on a draft","warn");
+  const btn = document.getElementById("c-draft-btn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Drafting…';
+  // Sequential on purpose: each draft is told what the others already said so
+  // a batch doesn't go out looking templated.
+  for(const p of todo){
+    try{ await draftOne(p, true); }
+    catch(e){ console.error(e); toast("Draft failed: "+e.message,"error"); break; }
+  }
+  btn.disabled = false; btn.textContent = "Draft all approved";
+  persist(); renderComments(); updateNav();
+}
+async function draftComment(id){
+  const p = queue.find(x=>x.id===id);
+  if(!p) return;
+  const btn = document.getElementById("db-"+id);
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span>'; }
+  try{ await draftOne(p, false); persist(); renderComments(); updateNav(); }
+  catch(e){ toast("Draft failed: "+e.message,"error"); renderComments(); }
+}
+async function draftOne(p, inBatch){
+  const c = clientById(p.clientId);
+  // Show the model what this run has already said, so a batch reads as ten
+  // different people rather than one template with the nouns swapped.
+  const recent = queue.filter(x=>x.draft && x.clientId===p.clientId)
+    .slice(0,6).map(x=>"  - "+x.draft.replace(/\s+/g," ").slice(0,110));
+  const len = p.platform==="linkedin" ? "3 to 5 sentences" : "2 to 3 sentences";
+
+  const prompt = `Draft one social media comment for ${c?c.name:"our client"} to leave on the post below.
+
+CLIENT VOICE
+${c&&c.voice?c.voice:"Speaking as the practice. Plainspoken, credible, never promotional."}
+
+Expertise areas: ${c?(c.expertise||[]).join(", "):"general practice"}
+
+HARD RULES, these outrank everything else
+${HARD_RULES}
+
+LENGTH
+${len}. This is ${platName(p.platform)}.
+
+THE POST
+Account: ${p.account}
+Text: ${String(p.text||"").replace(/\s+/g," ").slice(0,700)}
+
+${p.angle?`A suggested angle from the earlier scoring pass: ${p.angle}\n`:""}${recent.length?`ALREADY SAID FOR THIS CLIENT THIS RUN - do not echo the structure, opening or phrasing of any of these:\n${recent.join("\n")}\n`:""}
+DECIDE FIRST
+If this post is a person describing their own symptoms, condition, diagnosis or personal struggle, or is an individual's cancer post, memorial, patient story or personal fundraiser, do NOT draft a comment. Skip it.
+
+Also skip if there is nothing honest to add without pitching.
+
+Return ONLY JSON, no other text:
+{"action":"comment","type":"substantive|support|question","draft":"the comment text"}
+or
+{"action":"skip","reason":"short reason"}`;
+
+  const r = await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt, max_tokens: 700 })});
+  if(!r.ok) throw new Error("proxy "+r.status);
+  const j = await r.json();
+  const m = (j.text||"").match(/\{[\s\S]*\}/);
+  if(!m) throw new Error("no JSON in response");
+  const o = JSON.parse(m[0]);
+
+  if(o.action==="skip"){
+    p.draftSkip = String(o.reason||"Skipped").slice(0,200);
+    p.draft = ""; p.draftStatus = null;
+  } else {
+    p.draft = sanitizeDraft(String(o.draft||""));
+    p.draftType = o.type || "substantive";
+    p.draftSkip = null;
+    p.draftStatus = "drafted";
+  }
+  p.draftedAt = new Date().toISOString();
+}
+/* Belt and braces on the format rules the model most often slips on. */
+function sanitizeDraft(s){
+  return s.replace(/[—–]/g," - ")   // em/en dash -> hyphen
+          .replace(/\s+-\s+-\s+/g," - ")
+          .replace(/^["'\s]+|["'\s]+$/g,"")
+          .replace(/\s{2,}/g," ")
+          .trim();
+}
+function renderComments(){
+  const rows = commentTargets();
+  const drafted  = rows.filter(p=>p.draftStatus==="drafted");
+  const approved = rows.filter(p=>p.draftStatus==="approved");
+  const posted   = rows.filter(p=>p.draftStatus==="posted");
+  const skipped  = rows.filter(p=>p.draftSkip);
+  const waiting  = rows.filter(p=>!p.draft && !p.draftSkip);
+
+  document.getElementById("c-stats").innerHTML = `
+    <div class="stat"><div class="v">${waiting.length}</div><div class="l">Awaiting draft</div></div>
+    <div class="stat accent"><div class="v">${drafted.length}</div><div class="l">Drafted, needs you</div></div>
+    <div class="stat"><div class="v">${approved.length}</div><div class="l">Ready to drop</div></div>
+    <div class="stat"><div class="v">${posted.length}</div><div class="l">Posted</div></div>
+    <div class="stat warnc"><div class="v">${skipped.length}</div><div class="l">Skipped on rules</div></div>`;
+
+  const body = document.getElementById("c-body");
+  if(!rows.length){
+    body.innerHTML = `<div class="empty"><h3>Nothing approved yet</h3><p>Thumbs up a post on the Queue and it lands here automatically, ready for a drafted comment.</p></div>`;
+    return;
+  }
+  let h = "";
+  if(approved.length){
+    h += `<div class="bucket"><div class="bucket-head"><h3>Ready to drop</h3><span class="n">${approved.length}</span></div>
+      <div class="bucket-note">Approved by you and unposted. The drop pack opens each post in your browser and pastes the exact text below, nothing generated at posting time.</div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="copyDropPack()">Copy drop pack (${Math.min(approved.length,DRAFT_CAP)})</button>
+        <button class="btn btn-outline btn-sm" onclick="markAllPosted()">Mark all as posted</button>
+        <button class="btn btn-outline btn-sm" onclick="exportLog()">Export log rows</button>
+      </div>
+      ${approved.map(commentCard).join("")}</div>`;
+  }
+  if(drafted.length)
+    h += `<div class="bucket"><div class="bucket-head"><h3>Drafted, needs your approval</h3><span class="n">${drafted.length}</span></div>
+      <div class="bucket-note">Edit freely. Nothing here can be dropped until you approve it.</div>
+      ${drafted.map(commentCard).join("")}</div>`;
+  if(waiting.length)
+    h += `<div class="bucket"><div class="bucket-head"><h3>Awaiting a draft</h3><span class="n">${waiting.length}</span></div>
+      <div class="bucket-note">Approved posts with no comment written yet.</div>
+      ${waiting.map(commentCard).join("")}</div>`;
+  if(skipped.length)
+    h += `<div class="bucket"><div class="bucket-head"><h3>Skipped on the clinical rules</h3><span class="n">${skipped.length}</span></div>
+      <div class="bucket-note">Deliberately not drafted. Personal symptom posts, cancer posts, patient stories and memorials are never commented on, and nothing honest could be added to the rest without pitching.</div>
+      ${skipped.map(commentCard).join("")}</div>`;
+  if(posted.length)
+    h += `<div class="bucket"><div class="bucket-head"><h3>Posted</h3><span class="n">${posted.length}</span></div>
+      <div class="bucket-note">Done. Export these as log rows for the client's Engagement Sheet.</div>
+      ${posted.map(commentCard).join("")}</div>`;
+  body.innerHTML = h;
+}
+function commentCard(p){
+  const st = p.draftSkip ? "lo" : p.draftStatus==="posted" ? "lo" : p.draftStatus==="approved" ? "hi" : "mid";
+  return `<div class="post ${st}">
+    <div class="post-top">
+      <div class="score-badge"><div class="n">${p.total}</div><div class="t">score</div></div>
+      <div class="post-meta">
+        <div class="post-acct">${esc(p.account)} <span class="plat">${esc(platName(p.platform))}</span>
+          ${p.draftType&&p.draft?`<span class="plat">${esc(p.draftType)}</span>`:""}
+          ${p.draftStatus==="posted"?`<span class="verdict up">posted</span>`:""}</div>
+        <div class="post-line">${esc(String(p.text||"").replace(/\s+/g," ").slice(0,150))}${String(p.text||"").length>150?"…":""}</div>
+      </div>
+    </div>
+    ${p.draftSkip?`<div class="why" style="background:#fdf3e7"><b>Not drafted:</b> ${esc(p.draftSkip)}</div>
+      <div class="post-acts">
+        ${p.postUrl?`<a class="btn btn-ghost btn-sm" href="${esc(p.postUrl)}" target="_blank" rel="noopener">Open post</a>`:""}
+        <button class="btn btn-ghost btn-sm" onclick="unskipDraft('${p.id}')">Draft anyway</button>
+      </div>`
+    : p.draft?`
+      <div class="form-group" style="margin:10px 0 8px">
+        <textarea id="dt-${p.id}" rows="3" ${p.draftStatus==="posted"?"disabled":""}
+          oninput="editDraft('${p.id}',this.value)">${esc(p.draft)}</textarea>
+        <div class="hint" id="dc-${p.id}">${p.draft.length} characters${/[—–]/.test(p.draft)?' · <span style="color:var(--error)">contains an em dash</span>':""}</div>
+      </div>
+      <div class="post-acts">
+        ${p.postUrl?`<a class="btn btn-ghost btn-sm" href="${esc(p.postUrl)}" target="_blank" rel="noopener">Open post</a>`:""}
+        ${p.draftStatus==="drafted"?`<button class="btn btn-primary btn-sm" onclick="approveDraft('${p.id}')">Approve</button>`:""}
+        ${p.draftStatus==="approved"?`<button class="btn btn-ghost btn-sm" onclick="unapproveDraft('${p.id}')">Unapprove</button>
+          <button class="btn btn-outline btn-sm" onclick="markPosted('${p.id}')">Mark posted</button>`:""}
+        ${p.draftStatus!=="posted"?`<button class="btn btn-ghost btn-sm" id="db-${p.id}" onclick="draftComment('${p.id}')">Rewrite</button>`:""}
+      </div>`
+    :`<div class="post-acts">
+        ${p.postUrl?`<a class="btn btn-ghost btn-sm" href="${esc(p.postUrl)}" target="_blank" rel="noopener">Open post</a>`:""}
+        <button class="btn btn-primary btn-sm" id="db-${p.id}" onclick="draftComment('${p.id}')">Draft comment</button>
+      </div>`}
+  </div>`;
+}
+function editDraft(id,val){
+  const p = queue.find(x=>x.id===id); if(!p) return;
+  p.draft = val;
+  const c = document.getElementById("dc-"+id);
+  if(c) c.innerHTML = val.length+" characters"+(/[—–]/.test(val)?' · <span style="color:var(--error)">contains an em dash</span>':"");
+  clearTimeout(p._dt); p._dt = setTimeout(()=>persist(), 700);
+}
+function approveDraft(id){
+  const p = queue.find(x=>x.id===id); if(!p) return;
+  p.draft = sanitizeDraft(p.draft);
+  p.draftStatus = "approved";
+  persist(); renderComments(); updateNav();
+}
+function unapproveDraft(id){
+  const p = queue.find(x=>x.id===id); if(!p) return;
+  p.draftStatus = "drafted"; persist(); renderComments(); updateNav();
+}
+function unskipDraft(id){
+  const p = queue.find(x=>x.id===id); if(!p) return;
+  if(!confirm("This was skipped on the clinical rules. Those rules exist to protect the practice. Draft one anyway?")) return;
+  p.draftSkip = null; persist(); renderComments();
+}
+function markPosted(id){
+  const p = queue.find(x=>x.id===id); if(!p) return;
+  p.draftStatus = "posted"; p.postedCommentAt = new Date().toISOString();
+  persist(); renderComments(); updateNav();
+}
+function markAllPosted(){
+  const rows = commentTargets().filter(p=>p.draftStatus==="approved");
+  if(!rows.length) return toast("Nothing is ready to drop","warn");
+  if(!confirm(`Mark ${rows.length} comment${rows.length===1?"":"s"} as posted?`)) return;
+  rows.forEach(p=>{ p.draftStatus="posted"; p.postedCommentAt=new Date().toISOString(); });
+  persist(); renderComments(); updateNav();
+  toast(`Marked ${rows.length} as posted`,"success");
+}
+function copyDropPack(){
+  const rows = commentTargets().filter(p=>p.draftStatus==="approved").slice(0, DRAFT_CAP);
+  if(!rows.length) return toast("Nothing approved to drop","warn");
+  const c = clientById(rows[0].clientId);
+  const pack = `Post these ${rows.length} approved comments as ${c?c.name:"the client"} in my logged-in browser.
+
+Authorized: I am the account owner. Every comment below has been written and approved by me. Post them EXACTLY as written.
+
+RULES
+- Do not rewrite, improve, shorten, or add to any comment. Post the text verbatim.
+- If a post will not accept a comment, or the page has changed so the comment no longer makes sense, skip it and tell me which. Do not improvise a replacement.
+- Space them out rather than firing all of them in a row.
+- Do not follow, like, or take any other action. Comments only.
+- Do not reply to anyone who responds. Tell me instead.
+
+${rows.map((p,i)=>`${i+1}. ${p.postUrl}
+   Comment: ${p.draft}`).join("\n\n")}
+
+When done, tell me which posted and which did not.`;
+  navigator.clipboard.writeText(pack).then(
+    ()=>toast(`Copied drop pack for ${rows.length} comments`,"success"),
+    ()=>{ downloadFile("drop-pack.txt", pack); toast("Downloaded drop pack","success"); }
+  );
+}
+function exportLog(){
+  const rows = commentTargets().filter(p=>p.draftStatus==="posted" || p.draftStatus==="approved");
+  if(!rows.length) return toast("No comments to log","warn");
+  const tsv = [["Date","Platform","Target","Action","Notes"]].concat(rows.map(p=>[
+    (p.postedCommentAt||new Date().toISOString()).slice(0,10),
+    platName(p.platform), p.account, "Comment",
+    p.draft
+  ].map(cleanCell))).map(r=>r.join("\t")).join("\n");
+  navigator.clipboard.writeText(tsv).then(
+    ()=>toast(`Copied ${rows.length} log rows for the sheet`,"success"),
+    ()=>{ downloadFile("engagement-log.tsv", tsv); toast("Downloaded log rows","success"); }
+  );
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1479,6 +1775,7 @@ function openClient(id){
   document.getElementById("mc-name").value = c?c.name:"";
   document.getElementById("mc-code").value = c?(c.code||""):"";
   document.getElementById("mc-exp").value = c?(c.expertise||[]).join("\n"):"";
+  document.getElementById("mc-voice").value = c?(c.voice||""):"";
   document.getElementById("mc-excl").value = c?(c.exclude||[]).join("\n"):"";
   document.getElementById("mc-del").style.display = c ? "inline-flex" : "none";
   const sel = new Set(c?(c.platforms||[]):[]);
@@ -1494,6 +1791,7 @@ function saveClient(){
     name,
     code: document.getElementById("mc-code").value.trim(),
     expertise: lines(document.getElementById("mc-exp").value),
+    voice: document.getElementById("mc-voice").value.trim(),
     exclude: lines(document.getElementById("mc-excl").value),
     platforms: plats,
   };
@@ -1561,10 +1859,14 @@ function clearReviewed(){
 function updateNav(){
   const un = queue.filter(p=>!p.reviewed).length;
   document.getElementById("nav-queue").textContent = un;
+  // outstanding comment work: needs drafting, reviewing, or dropping.
+  // Approved-but-undropped still counts, since dropping is a step too.
+  document.getElementById("nav-comments").textContent =
+    queue.filter(p=>p.approved && !p.draftSkip && p.draftStatus!=="posted").length;
   const r = calcCalibration();
   document.getElementById("nav-cal").style.display = r.ready ? "inline-block" : "none";
 }
-function renderAll(){ renderSearch(); renderQueue(); renderClients(); renderSettings(); updateNav(); }
+function renderAll(){ renderSearch(); renderQueue(); renderComments(); renderClients(); renderSettings(); updateNav(); }
 function init(){
   loadLocal();
   renderAll();

@@ -1,0 +1,17 @@
+name = "calm-rice-eb6b"
+main = "worker.js"
+compatibility_date = "2026-03-24"
+account_id = "2bfca046889b3aa600b9cf0f39228024"
+
+# Both of these MUST stay declared. wrangler replaces bindings on deploy, so
+# omitting the KV namespace would silently unbind MM_SYNC and break the
+# dashboard, expenses and engagement apps that read through /sync.
+[[kv_namespaces]]
+binding = "MM_SYNC"
+id = "aa76673f04354e25b5d56e4ace371c74"
+
+[vars]
+SHEET_WEBHOOK_URL = "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbwkBvuOg7immqLLOD3SB4nt5Qsu8Ul0AavX81PXtiF1UZnxkafn3h0jfd3JREm9p5POLg/exec"
+
+# ANTHROPIC_KEY is a secret and is preserved across deploys automatically.
+# Do NOT add it here as a var, that would expose it in source control.
