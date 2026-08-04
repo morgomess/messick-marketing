@@ -600,6 +600,28 @@ function num(v){
   return isNaN(n) ? null : n;
 }
 function fmtMaybe(n,suffix){ return n===null ? "—" : fmtN(n)+(suffix||""); }
+/* Search engines elide long URLs in the displayed result ("facebook.com > ... >
+   Videos"), so a harvested postUrl is often a stub rather than a permalink.
+   Worse, several different posts share the SAME stub, so keying on it silently
+   merges unrelated posts. Treat a stub as no URL at all. */
+function usableUrl(u){
+  if(!u) return "";
+  const s = String(u).trim();
+  if(!/^https?:\/\//i.test(s)) return "";
+  if(s.includes("/...")) return "";                 // elided middle
+  if(/\.\.\.$/.test(s)) return "";                  // truncated tail
+  const n = normUrl(s);
+  const parts = n.split("/").filter(Boolean);
+  if(parts.length < 2) return "";                   // bare domain
+  // a section index, not an individual post
+  if(parts.length === 2 && /^(posts|photos|videos|reels|explore|p)$/i.test(parts[1])) return "";
+  return s;
+}
+function hashStr(s){
+  let h = 5381;
+  for(let i=0;i<s.length;i++) h = ((h<<5)+h+s.charCodeAt(i))|0;
+  return Math.abs(h).toString(36);
+}
 function closeModal(id){ document.getElementById(id).classList.remove("show"); }
 function clientById(id){ return clients.find(c=>c.id===id) || null; }
 function platName(id){ const p=PLATFORMS.find(x=>x.id===id); return p?p.name:id; }
@@ -970,11 +992,21 @@ async function pullInbox(){
 function enrichPosts(rows){
   let filled = 0, matched = 0;
   rows.forEach(r=>{
-    const key = normUrl(r.postUrl || r.url);
-    const p = queue.find(x=>x.key===key);
+    // Match on the echoed contentKey when the post had no permalink, otherwise
+    // on the URL itself.
+    const ck = r.contentKey || r.key;
+    const p = ck ? queue.find(x=>x.key===ck)
+                 : queue.find(x=>x.key===normUrl(usableUrl(r.postUrl||r.url)));
     if(!p) return;
     matched++;
     let changed = false;
+    // A recovered permalink promotes the post off its content key.
+    const found = usableUrl(r.postUrl || r.url);
+    if(found && p.urlMissing){
+      p.postUrl = found; p.urlMissing = false; p.rawUrl = "";
+      if(!queue.some(x=>x!==p && x.key===normUrl(found))) p.key = normUrl(found);
+      changed = true;
+    }
     ["followers","likes","comments","shares"].forEach(f=>{
       const v = num(r[f]);
       if(v!==null && p[f]===null){ p[f]=v; changed=true; }
@@ -982,8 +1014,8 @@ function enrichPosts(rows){
     if(!p.postedAt && r.postedAt){ p.postedAt = r.postedAt; changed = true; }
     if(changed){
       filled++;
-      p.scores.rec = scoreRecency(daysOld(p.postedAt), 7);
-      p.scores.eng = scoreEngagement(p, p.surfaceAt ? 2 : 2);
+      p.scores.rec = recencyOf(p);
+      p.scores.eng = scoreEngagement(p, 2);
       applyGates(p, { minFollowers:0, minEngagement:0, clientId:p.clientId });
       p.total = combine(p);
     }
@@ -1007,6 +1039,15 @@ function scoreRecency(days, halfLife){
   const hl = halfLife || 7;
   return Math.round(100 * Math.pow(0.5, days/hl));
 }
+/* An unknown date is not an old date. daysOld() returns 999 for a missing
+   postedAt, which would score ~0 and quietly sink the post, so return null and
+   let combine() drop the component instead. */
+function recencyOf(p){
+  if(!p.postedAt) return null;
+  const t = Date.parse(p.postedAt);
+  if(isNaN(t)) return null;
+  return scoreRecency(Math.max(0,(Date.now()-t)/86400000), 7);
+}
 function scoreEngagement(p, minEng){
   const c=num(p.comments), s=num(p.shares), l=num(p.likes);
   // Every metric absent means we genuinely don't know, which is different from
@@ -1022,19 +1063,28 @@ function scoreEngagement(p, minEng){
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 function normalizeIncoming(raw, run){
-  const url = normUrl(raw.postUrl || raw.url);
-  if(!url) return null;
+  const rawUrl = raw.postUrl || raw.url;
+  const good = usableUrl(rawUrl);
+  const text = String(raw.text || raw.content || "").slice(0,1200);
+  // Without a usable permalink, fall back to a content key so the post is kept
+  // and still deduped. Dropping it would throw away a genuinely good find just
+  // because the search engine hid the link.
+  if(!good && !text && !raw.account) return null;
+  const key = good ? normUrl(good)
+    : "c:"+hashStr((raw.platform||"")+"|"+(raw.account||"")+"|"+text.slice(0,160));
   return {
     id: uid(),
-    key: url,
+    key,
+    urlMissing: !good,
+    rawUrl: good ? "" : String(rawUrl||""),
     clientId: run.clientId,
     runId: run.id,
     platform: (raw.platform||"").toLowerCase() || "unknown",
     account: raw.account || raw.author || "Unknown account",
     handle: raw.handle || "",
     accountUrl: raw.accountUrl || "",
-    postUrl: raw.postUrl || raw.url || "",
-    text: String(raw.text || raw.content || "").slice(0,1200),
+    postUrl: good,
+    text,
     followers: num(raw.followers),
     likes: num(raw.likes),
     comments: num(raw.comments),
@@ -1051,6 +1101,7 @@ function applyGates(p, run){
   // recorded as such and the post is judged on everything else, never gated out
   // for data the platform simply didn't show us.
   const unknown = [];
+  if(p.urlMissing)       unknown.push("post link");
   if(p.followers===null) unknown.push("followers");
   if(p.comments===null)  unknown.push("comments");
   p.partial = unknown.length ? unknown : null;
@@ -1096,7 +1147,7 @@ async function ingest(rawPosts, run){
 
   // deterministic components first
   fresh.forEach(p=>{
-    p.scores.rec = scoreRecency(daysOld(p.postedAt), 7);
+    p.scores.rec = recencyOf(p);
     p.scores.eng = scoreEngagement(p, run.minEngagement);
     applyGates(p, run);
   });
@@ -1371,19 +1422,36 @@ function copyEnrichPack(){
   // long list is exactly what makes these runs stall.
   const skipped = Math.max(0, rows.length - ENRICH_LIMIT);
   rows = rows.sort((a,b)=>b.total-a.total).slice(0, ENRICH_LIMIT);
-  const prompt = `Authorized work for Messick Marketing. Open each post URL below in my logged-in browser and read its engagement numbers off the post's own page.
+  const needUrl = rows.filter(p=>p.urlMissing);
+  const haveUrl = rows.filter(p=>!p.urlMissing);
+  const prompt = `Authorized work for Messick Marketing, in my own logged-in browser.
 
-Prefer the page's own JSON network response over scraped text — it carries exact counts that rendered text rounds or hides.
+Prefer each page's own JSON network response over scraped text. It carries exact counts that rendered text rounds or hides.
+${haveUrl.length?`
+PART A - READ THE NUMBERS (${haveUrl.length})
+Open each URL and read the engagement counts and the author's follower count off the post's own page.
 
-For each, return: postUrl, followers, likes, comments, shares, postedAt.
-If a number is still not visible, return null. Do not estimate or infer — a wrong number corrupts the ranking, a null does not.
+${haveUrl.map(p=>`${p.postUrl}   [need: ${p.partial.filter(x=>x!=="post link").join(", ")||"metrics"}]`).join("\n")}
+`:""}${needUrl.length?`
+PART B - FIND THE MISSING LINKS (${needUrl.length})
+These came from search results where the link was cut off, so I do not have a permalink. For each, find the actual post and return its full URL along with the numbers.
+
+Search ${needUrl[0].platform} for the account name plus a distinctive phrase from the snippet. If you cannot find the exact post in a reasonable attempt, return it with postUrl null and move on. Do NOT return a profile or section URL in place of a post URL, and do NOT guess.
+
+${needUrl.map((p,i)=>`${i+1}. account: ${p.account||"unknown"}
+   snippet: ${String(p.text||"").replace(/\s+/g," ").slice(0,140)}
+   contentKey: ${p.key}`).join("\n\n")}
+`:""}
+FOR EVERY ITEM RETURN
+  contentKey  echo it back UNCHANGED for anything from Part B, so I can match it up. Omit for Part A.
+  postUrl     the full permalink
+  followers, likes, comments, shares, postedAt
+
+If a value is not visible, return null. Do not estimate or infer. A wrong number corrupts the ranking; a null does not.
 
 Return one JSON array and nothing else, then POST it to
 ${CONFIG.SYNC}${KV.inbox}&append=1
-with body: { "posts": <array>, "enrich": true }
-
-POSTS (${rows.length})
-${rows.map(p=>`${p.postUrl}   [missing: ${p.partial.join(", ")}]`).join("\n")}`;
+with body: { "posts": <array>, "enrich": true }`;
   navigator.clipboard.writeText(prompt).then(
     ()=>toast(`Copied enrich pack for the top ${rows.length} posts`+(skipped?`, ${skipped} lower-scoring left for later`:""),"success"),
     ()=>{ downloadFile("enrich-pack.txt", prompt); toast("Downloaded enrich pack","success"); }
@@ -1587,6 +1655,7 @@ function editDraft(id,val){
 }
 function approveDraft(id){
   const p = queue.find(x=>x.id===id); if(!p) return;
+  if(p.urlMissing) return toast("No permalink for this post yet. Run Enrich missing from the Queue to recover it first.","error");
   p.draft = sanitizeDraft(p.draft);
   p.draftStatus = "approved";
   persist(); renderComments(); updateNav();
