@@ -1461,6 +1461,94 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
   .at-check::after{left:6px;top:3px;width:6px;height:11px}
   .at-item{padding:12px 18px}
 }
+
+/* ═══════════════════════════════════════════
+   TASK ROWS — SKIM PASS
+   Rows measured 60–111px tall in a 256px column: the text wrapped to
+   three lines and the meta chips wrapped again underneath it, so the
+   list had no rhythm to run your eye down. Priority was a 7px dot
+   buried in that same meta row, which meant you had to READ every row
+   to find the urgent one. Fixes, in order of how much they matter:
+     1. priority moves to a left edge rail you read peripherally
+     2. text clamps to two lines so every row has the same rhythm
+     3. the meta line can no longer push a row taller
+   Colour language is unchanged — same priority hues, status still the
+   only thing that earns a fill.
+═══════════════════════════════════════════ */
+.col-task{
+  position:relative;
+  align-items:flex-start;
+  gap:9px;
+  padding:10px 14px 10px 18px;          /* the extra left inset is the rail's lane */
+  border-bottom:1px solid rgba(255,255,255,0.045);
+}
+
+/* ── 1. PRIORITY AS AN EDGE, NOT A DOT ── */
+.col-task::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:transparent;transition:background 0.15s;
+}
+.col-task.pri-critical::before{background:var(--crit)}
+.col-task.pri-high::before{background:var(--hi)}
+.col-task.pri-medium::before{background:var(--med)}
+.col-task.pri-low::before{background:var(--lo)}
+/* critical is the one priority that also earns a whisper of field */
+.col-task.pri-critical{background:rgba(226,104,95,0.05)}
+/* the rail replaced the dot in this view — reclaim the meta space.
+   Search results keep their dot; they have no rail to carry it. */
+.col-task .t-pri{display:none}
+
+/* ── 2. ONE RHYTHM ──
+   Two lines, then ellipsis. Full text is on hover and in the drawer. */
+.col-task .t-text{
+  font-size:0.845rem;font-weight:500;line-height:1.38;color:var(--black);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;word-break:normal;overflow-wrap:anywhere;
+}
+.col-task.done .t-text{font-weight:400}
+
+/* ── 3. META NEVER INFLATES THE ROW ──
+   One line, no wrap, fading out rather than clipping hard. */
+.col-task .t-meta{
+  margin-top:5px;gap:6px;flex-wrap:nowrap;overflow:hidden;min-height:15px;
+  -webkit-mask-image:linear-gradient(to right,#000 86%,transparent);
+  mask-image:linear-gradient(to right,#000 86%,transparent);
+}
+.col-task .t-meta > *{flex-shrink:0}
+/* 0.68rem, not smaller — an earlier pass deliberately raised these off
+   ~9.6px because they were unreadable. Don't walk that back. */
+.col-task .t-due{font-size:0.68rem;font-weight:700;padding:2px 7px;letter-spacing:0.04em}
+.col-task .t-assignee{font-size:0.66rem;padding:2px 7px}
+
+/* ── 4. STATUS SURFACES THE ROW ITSELF ──
+   An overdue task should be findable without reading its badge. */
+.col-task.due-today{background:rgba(224,160,95,0.055)}
+.col-task.due-over{background:rgba(226,104,95,0.075)}
+.col-task.due-today:hover{background:rgba(224,160,95,0.10)}
+.col-task.due-over:hover{background:rgba(226,104,95,0.12)}
+.col-task:hover{background:rgba(255,255,255,0.055)}
+
+/* ── 5. THE CHECK IS A CONTROL ──
+   Matches the To-Do master list and Upcoming, so completing a task
+   looks and feels identical wherever you happen to be standing. */
+.col-task .t-check{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,0.28);
+  margin-top:1px;transition:all 0.15s;
+}
+.col-task .t-check:hover{border-color:var(--lo);background:rgba(78,201,160,0.18);transform:scale(1.08)}
+.col-task .t-check.chk{background:var(--lo);border-color:var(--lo)}
+.col-task .t-check.chk::after{color:#06201a;font-size:9px}
+
+/* ── 6. DONE TASKS STEP OUT OF THE WAY ── */
+.col-task.done,.col-task.done:hover{background:transparent}
+.col-task.done::before{background:transparent}
+
+@media (max-width:768px){
+  .col-task{padding:12px 14px 12px 18px}
+  .col-task .t-text{font-size:0.9rem}
+  .col-task .t-check{width:22px;height:22px}
+  .acc .col-task{padding-left:11px}   /* accordion still needs the rail's lane */
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -2380,6 +2468,11 @@ function buildColTask(task,idx,type){
   }
   const pri=task.priority||'none';
   const ds=dueStatus(task.due);
+  /* The priority rail and the overdue tint are CSS on the ROW, so the row
+     has to carry the state. Without this the styling has nothing to hook. */
+  if(pri!=='none')tr.classList.add('pri-'+pri);
+  if(ds==='overdue')tr.classList.add('due-over');
+  else if(ds==='due-today')tr.classList.add('due-today');
   let dueHtml='';
   if(ds==='overdue')dueHtml=`<span class="t-due over">Overdue</span>`;
   else if(ds==='due-today')dueHtml=`<span class="t-due today">Today</span>`;
@@ -2393,7 +2486,7 @@ function buildColTask(task,idx,type){
   tr.innerHTML=`
     <div class="t-check${task.done?' chk':''}"></div>
     <div class="t-body">
-      <span class="t-text">${bEsc(task.text)}</span>
+      <span class="t-text" title="${bEsc(task.text)}">${bEsc(task.text)}</span>
       <div class="t-meta">${dueHtml}${priDot}${assigneeHtml}${subProg}</div>
     </div>
     <div class="t-actions">
