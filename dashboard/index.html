@@ -1549,6 +1549,41 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
   .col-task .t-check{width:22px;height:22px}
   .acc .col-task{padding-left:11px}   /* accordion still needs the rail's lane */
 }
+
+/* ═══════════════════════════════════════════
+   TODAY / DUE STRIP — SKIM PASS
+   Two problems here. First, .td-list was a wrapping row of
+   variable-width chips, so nothing lined up and the eye had to
+   zig-zag across ragged edges to read it. It's a grid now: every
+   card starts on the same x and the text truncates at a shared
+   width, which is what makes a list scannable at a glance.
+   Second, the 3px stripe meant DUE STATUS here but PRIORITY over in
+   the task columns — the same visual device saying two different
+   things two inches apart. The stripe now means priority everywhere.
+   Overdue was never relying on it: the tint, the border, the glow
+   and the badge were already carrying that, and the badge now says
+   how many days late rather than just "Overdue".
+═══════════════════════════════════════════ */
+.td-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(272px,1fr));
+  gap:10px;align-items:stretch;
+}
+.td-item{max-width:none}
+.td-text{max-width:none}
+
+/* the stripe is priority, matching .col-task */
+.td-item::before{background:var(--light)}
+.td-item.pri-critical::before{background:var(--crit)}
+.td-item.pri-high::before{background:var(--hi)}
+.td-item.pri-medium::before{background:var(--med)}
+.td-item.pri-low::before{background:var(--lo)}
+/* the 8px dot was doing the stripe's job twice — drop it */
+.td-item .td-pri{display:none}
+
+@media (max-width:640px){
+  .td-list{grid-template-columns:1fr}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1938,6 +1973,15 @@ function dueStatus(due){
   const diff=(d-td)/(1000*60*60*24);
   if(diff<0)return'overdue'; if(diff===0)return'due-today'; if(diff<=7)return'due-week'; return'future';
 }
+/* Whole days past due, 0 if not overdue. "3 days late" beats "Overdue"
+   because it tells you how bad the slip is without opening anything. */
+function daysOverdue(due){
+  if(!due)return 0;
+  const now=new Date(); const td=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const [y,m,dd]=due.split('-'); const d=new Date(+y,+m-1,+dd);
+  const diff=Math.round((td-d)/(1000*60*60*24));
+  return diff>0?diff:0;
+}
 
 /* ═══════════════════════════════════════════
    AUTH
@@ -2197,18 +2241,22 @@ function getColBrand(nodeId){
 }
 
 function nodeDueRollup(nodeId){
-  let overdue=0,today=0,soon=0,open=0;
+  let overdue=0,today=0,soon=0,open=0,maxOverdueDays=0;
   (function walk(id){
     tasksForNode(id).forEach(t=>{
       if(t.done)return; open++;
       const s=dueStatus(t.due);
-      if(s==='overdue')overdue++;
+      if(s==='overdue'){
+        overdue++;
+        const d=daysOverdue(t.due);
+        if(d>maxOverdueDays)maxOverdueDays=d;   // the worst slip in the subtree
+      }
       else if(s==='due-today')today++;
       else if(s==='due-week')soon++;
     });
     brainNodes.filter(n=>n.parent===id).forEach(c=>walk(c.id));
   })(nodeId);
-  return{overdue,today,soon,open};
+  return{overdue,today,soon,open,maxOverdueDays};
 }
 
 /* Scroll a freshly created node into view and flash it, so creating something
@@ -2322,9 +2370,13 @@ function buildColumn(colIdx,parentId){
       item.dataset.nodeId=child.id;   // lets revealNewNode() find a just-created node
       const dr=nodeDueRollup(child.id);
       let badge='';
-      if(dr.overdue>0)badge=`<span class="col-badge over">${dr.open}</span>`;
-      else if(dr.today>0)badge=`<span class="col-badge today">${dr.open}</span>`;
-      else if(dr.open>0)badge=`<span class="col-badge">${dr.open}</span>`;
+      /* Red used to show total-open, so "7" could mean 1 overdue out of 7.
+         Colour logic is unchanged; the red number now tracks how many days
+         late the worst task in this subtree is. Amber/neutral still count
+         tasks, which is why the red one carries a "d". */
+      if(dr.overdue>0)badge=`<span class="col-badge over" title="${dr.overdue} overdue of ${dr.open} open · oldest is ${dr.maxOverdueDays} day${dr.maxOverdueDays===1?'':'s'} late">${dr.maxOverdueDays}d</span>`;
+      else if(dr.today>0)badge=`<span class="col-badge today" title="${dr.today} due today of ${dr.open} open">${dr.open}</span>`;
+      else if(dr.open>0)badge=`<span class="col-badge" title="${dr.open} open">${dr.open}</span>`;
       item.innerHTML=`<span class="col-item-label">${bEsc(child.label)}</span>${badge}<span class="col-chev">›</span>`;
       item.addEventListener('click',()=>selectColNode(colIdx,child.id));
       // Right-click to delete
@@ -2813,9 +2865,17 @@ function renderTodayDue(){
     const label=getBrandLabel(t.brand,t.nodeId);
     const pri=(t.priority&&t.priority!=="none")?`<span class="td-pri ${t.priority}"></span>`:"";
     const overdue=dueStatus(t.due)==="overdue";
-    const dueBadge=overdue?`<span class="td-overdue">Overdue${t.due?" · "+fmtDate(t.due):""}</span>`:"";
+    const dOver=overdue?daysOverdue(t.due):0;
+    /* "3 days late" rather than "Overdue · Aug 5" — the slip size is the
+       thing you triage on, and it saves doing date arithmetic in your head. */
+    const dueBadge=overdue
+      ?`<span class="td-overdue" title="Due ${t.due?fmtDate(t.due):""}">${dOver===1?"1 day late":dOver+" days late"}</span>`
+      :"";
     const el=document.createElement("div");
-    el.className="td-item"+(overdue?" overdue":"");
+    /* The stripe carries PRIORITY here, same as .col-task, so the device
+       means one thing across the app. Overdue keeps the tint + badge. */
+    el.className="td-item"+(overdue?" overdue":"")
+      +((t.priority&&t.priority!=="none")?" pri-"+t.priority:"");
     el.dataset.taskId=t.id;
     el.setAttribute("draggable","true");
     el.innerHTML=`<div class="td-check" title="Mark done"></div>
