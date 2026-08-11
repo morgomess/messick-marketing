@@ -5159,11 +5159,21 @@ function renderClients(){
    is NOT matched by DEAD_KEY_RE. Do not rename it into an mm_monthly_* shape or
    purgeDeadKeys() will silently eat it.
 
-   Seeding is deliberately write-only-if-absent and does NOT scheduleSave():
-   bootApp() awaits pullState() before init(), but a seed that pushed would
-   stamp a newer v than the server copy and could clobber a real list.
+   Seeding is per-checklist and one-shot. Every shipped list carries a stable
+   `seed` id, and mm_checklists_seeds records the ones already installed on this
+   account. So a new default added in a later release lands on an existing
+   dashboard, while a shipped list Morgan deletes stays deleted.
+
+   Seeding never calls scheduleSave(): bootApp() awaits pullState() before
+   init(), but a seed that pushed would stamp a newer v than the server copy and
+   could clobber a real list. The first real edit pushes it up instead.
 ═══════════════════════════════════════════ */
 const CK_KEY='mm_checklists';
+const CK_SEEDS_KEY='mm_checklists_seeds';
+/* Shipped before seed ids existed. Any pre-existing store came from exactly
+   these four, so they are treated as installed rather than matched by title,
+   which would re-add a list Morgan had renamed. */
+const CK_ORIGINAL_SEEDS=['onboarding','offboarding','discovery','yt-upload'];
 let ckOpenId=null, ckEditMode=false, ckEditingItem=null;
 
 function ckMk(t){
@@ -5216,7 +5226,7 @@ Cell: (843) 227-0213`;
    Discovery Call and Content Upload are new, built off the Leads app flow and
    the YouTube metadata pipeline. All four are editable in-app. */
 function CK_DEFAULTS(){return[
-  {id:uid(),title:'Client Onboarding',sub:'New SMM client, intake through first invoice',resetAt:null,sections:[
+  {id:uid(),seed:'onboarding',title:'Client Onboarding',sub:'New SMM client, intake through first invoice',resetAt:null,sections:[
     ckSec('Getting Started',[
       'Client selects package and service start date.'
     ]),
@@ -5243,7 +5253,7 @@ function CK_DEFAULTS(){return[
     ])
   ]},
 
-  {id:uid(),title:'Client Offboarding',sub:'Wind-down, access handback, and final email',resetAt:null,sections:[
+  {id:uid(),seed:'offboarding',title:'Client Offboarding',sub:'Wind-down, access handback, and final email',resetAt:null,sections:[
     ckSec('Confirm & Notify',[
       'Confirm the client’s **intent to offboard** and **service end-date**.',
       '**Inform team** members to ensure no further work is started or scheduled.'
@@ -5280,7 +5290,7 @@ function CK_DEFAULTS(){return[
     ])
   ]},
 
-  {id:uid(),title:'Discovery Call',sub:'Prospect call, prep through follow-up',resetAt:null,sections:[
+  {id:uid(),seed:'discovery',title:'Discovery Call',sub:'Prospect call, prep through follow-up',resetAt:null,sections:[
     ckSec('Before the Call',[
       'Pull the prospect up in the **Leads** app and review the saved pitch snapshot.',
       'Run **Discovery Call Prep** in the Leads app to generate tailored questions.',
@@ -5307,7 +5317,7 @@ function CK_DEFAULTS(){return[
     ])
   ]},
 
-  {id:uid(),title:'Content Upload (YouTube)',sub:'Publishing a video, prep through post-publish',resetAt:null,sections:[
+  {id:uid(),seed:'yt-upload',title:'Content Upload (YouTube)',sub:'Publishing a video, prep through post-publish',resetAt:null,sections:[
     ckSec('Prep',[
       'Watch the final export end to end, checking audio sync and captions.',
       'Confirm the **thumbnail** is finished and still legible at small size.',
@@ -5332,14 +5342,96 @@ function CK_DEFAULTS(){return[
       {text:'Check first-24-hour **CTR and impressions** in YouTube Studio.',note:'Low CTR with healthy impressions means the thumbnail or title is the problem, not the video.'},
       'Add the video to the client’s monthly report.'
     ])
+  ]},
+
+  {id:uid(),seed:'blog-client',title:'Blog Post: Draft & Deliver',sub:'Client blog, brief through Google Doc delivery',resetAt:null,sections:[
+    ckSec('Before Drafting',[
+      {text:'Read the client’s **Clients** record first.',note:'Voice & Tone, Hard Rules / Must-Avoid, Structure Preferences, Example Post URL, Reference File.'},
+      'Load the **blog-writer** skill.',
+      {text:'Load **healthcare-knowledge** too for any clinical client.',note:'ASPIRE is PT/OT/SLP/wellness, not the vascular set, so it does not need it.'}
+    ]),
+    ckSec('Draft',[
+      'Write the body as **Markdown** into a **Blog Posts** row in the client blog base.',
+      'Set **Status = In Review**.'
+    ]),
+    ckSec('Approval Gate',[
+      {text:'Wait for **Status = Approved** in Airtable.',note:'This is the human gate. Do not skip past it.'}
+    ]),
+    ckSec('Deliver',[
+      {text:'Confirm the row is Approved and **Doc URL is empty**.',note:'The adapter will not re-fire while Doc URL is set. Clear Doc URL to re-deliver a revision.'},
+      'Convert the Markdown to HTML with **md-to-doc-html.mjs** in `client-blog-aios`.',
+      {text:'Create the doc in the client’s Drive folder.',note:'create_file with contentMimeType "text/html" and the client’s parentId. Drive imports that as a native formatted Doc.'},
+      'Write **Doc URL** and **Deliver Date** back, and set **Status = Delivered**.',
+      {text:'For **ECCO**, move the draft into ECCO’s own Drive by hand.',note:'ECCO has no Drive subfolder, so drafts land in the general parent. This step is Morgan’s.'},
+      {text:'For **ASPIRE**, also publish to weaspire.net.',note:'Use the Blog Post: Publish to Site checklist. Internal links stay absolute in the Doc; the adapter relativizes at publish time.'}
+    ]),
+    ckSec('Calendar Write-Back',[
+      {text:'Push the status to the client’s editorial-calendar base **inside this run**.',note:'There is no automation. A cross-base write needs an Airtable Run-script action, so it rides along with the delivery run instead.'},
+      {text:'Check that base’s **singleSelect choices** before writing.',note:'The calendars do not share a status vocabulary. Only BTTC has Draft Done and Submitted for Publishing.'},
+      {text:'Use the **work-finished-on-our-side** value, not the review-facing one.',note:'BTTC to Draft Done, vascular (ECCO / TVI / SVV) to Drafted, ASPIRE to Done.'}
+    ])
+  ]},
+
+  {id:uid(),seed:'blog-publish',title:'Blog Post: Publish to Site',sub:'Getting a finished post live on a site repo',resetAt:null,sections:[
+    ckSec('Before You Touch the Repo',[
+      'Confirm which site this is going to, and re-read that brand’s section of the publish SOP.',
+      {text:'**git fetch** and check how far behind the local checkout is.',note:'These working copies drift badly. One was 24 commits behind with a file 754 lines out of date.'},
+      'Diff the target file before editing anything.'
+    ]),
+    ckSec('Build the Post',[
+      {text:'Copy the **most recent** post as the template, not the generic one.',note:'The newest post carries the current nav, schema, and styling.'},
+      'Run the brand’s injector with **--dry** first.',
+      {text:'**DSDD** is generator-driven.',note:'Edit build/source.html, run node build.mjs, then commit the built output. Never hand-edit the generated pages.'},
+      {text:'**ASPIRE**: read the repo source, never the live page.',note:'Netlify Pretty URLs rewrites links at deploy time, so copying served markup ships the link-convention bug. It also injects a netlify-rum script that is not in source.'},
+      {text:'**ASPIRE**: check link conventions.',note:'From root pages use blog/<file>. Between posts use bare siblings. This is the recurring bug.'}
+    ]),
+    ckSec('Index & Sitemap',[
+      {text:'Confirm the post’s card sits at the **top of the blog index**.',note:'Virtueasy auto-syncs its home page cards between the BLOG-CARDS markers. Messick’s grid is hand-authored, so insert it yourself.'},
+      {text:'Add the `<url>` entry to **sitemap.xml by hand**.',note:'The Messick injector does not write the sitemap. A 2026-08-11 audit found three live posts missing from it entirely. The failure is silent: nothing on the site looks wrong.'},
+      'Diff the sitemap against the actual post files before you finish.',
+      'Bump the **lastmod** on the blog index entry.',
+      {text:'Match the existing URL convention.',note:'Messick sitemap URLs are extensionless (/blog/<slug>) even though the files and in-site links are .html. Do not invent a second convention.'}
+    ]),
+    ckSec('If It Came From a YouTube Video',[
+      {text:'Read the script from the FX project’s **src/captions.ts**.',note:'It holds a word-timed faster-whisper pass over the export. Do not pull captions off YouTube.'},
+      {text:'Get the video ID via **vidiq_get_videos_by_ids** off a known post.',note:'vidiq_user_channels returns only the BBS channel, so the Messick channel cannot be discovered that way.'},
+      'Place the embed `<figure>` after the intro paragraphs and before the first `<h2>`.',
+      {text:'Paste the **VideoObject JSON-LD** in by hand before `</head>`.',note:'The injector does not touch head beyond title, meta, and og.'},
+      {text:'Add **FAQPage JSON-LD** if the post has a real FAQ section.',note:'The schema questions must match the visible ones or it is a Search Console violation.'},
+      'Make it a real **expansion**, not a transcript.'
+    ]),
+    ckSec('Ship & Verify',[
+      {text:'Push with the token **inline on the push URL**.',note:'Never git remote set-url with a token in it, that persists the secret into .git/config.'},
+      {text:'**GitHub Pages** rebuilds in about 30 to 60 seconds.',note:'Messick, Virtueasy, and DSDD.'},
+      {text:'**ASPIRE / Netlify is not fast.**',note:'Pushes have taken 25+ minutes. Confirm the commit reached origin/main, check the Netlify dashboard, and verify the live URL returns 200 before calling it shipped.'},
+      'Load the live URL and confirm the post and its index card both render.'
+    ])
   ]}
 ];}
 
 function ckLoad(){
-  try{const a=JSON.parse(localStorage.getItem(CK_KEY)||'null');if(Array.isArray(a))return a;}catch(e){}
-  const seed=CK_DEFAULTS();
-  try{localStorage.setItem(CK_KEY,JSON.stringify(seed));}catch(e){}
-  return seed;
+  let all=null,seedsRaw=null;
+  try{const a=JSON.parse(localStorage.getItem(CK_KEY)||'null');if(Array.isArray(a))all=a;}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(CK_SEEDS_KEY)||'null');if(Array.isArray(s))seedsRaw=s;}catch(e){}
+
+  const fresh=(all===null);
+  if(fresh)all=[];
+  // A store with no seeds key predates them, so it can only have come from the
+  // original four. A genuinely fresh install starts with nothing installed.
+  let seeds=seedsRaw!==null?seedsRaw:(fresh?[]:CK_ORIGINAL_SEEDS.slice());
+
+  let changed=false;
+  CK_DEFAULTS().forEach(d=>{
+    if(seeds.indexOf(d.seed)>=0)return;
+    all.push(d);seeds.push(d.seed);changed=true;
+  });
+  if(changed||seedsRaw===null){
+    try{
+      localStorage.setItem(CK_KEY,JSON.stringify(all));
+      localStorage.setItem(CK_SEEDS_KEY,JSON.stringify(seeds));
+    }catch(e){}
+  }
+  return all;
 }
 function ckSave(a){
   try{localStorage.setItem(CK_KEY,JSON.stringify(a));}catch(e){}
