@@ -1584,6 +1584,100 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
 @media (max-width:640px){
   .td-list{grid-template-columns:1fr}
 }
+
+/* ══ CHECKLISTS ══
+   Repeatable ops runbooks. One live list per checklist, reset to run it again.
+   Same surface ladder as the rest of the app: bg → surface (card) → surface-2 (well). */
+#checklists-view{display:none;flex-direction:column;gap:20px;padding:24px 28px;overflow-y:auto;flex:1}
+.ck-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ck-title{font-size:1.5rem;font-weight:600;letter-spacing:-0.01em}
+.ck-eyebrow{font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--light);margin-bottom:4px}
+.ck-actions{display:flex;align-items:center;gap:8px}
+.ck-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--border-s);color:var(--muted);font-family:'Poppins',sans-serif;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;padding:7px 14px;cursor:pointer;transition:all 0.2s;border-radius:4px}
+.ck-btn:hover{border-color:var(--blue-lt);color:#fff}
+.ck-btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.ck-btn.primary:hover{background:var(--blue-lt);border-color:var(--blue-lt)}
+.ck-btn.danger:hover{border-color:var(--crit);color:var(--crit)}
+
+/* ── card grid ── */
+.ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.ck-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:border-color 0.2s,transform 0.15s;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.ck-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal);opacity:0.75}
+.ck-card:hover{border-color:var(--border-s);transform:translateY(-2px)}
+.ck-card.done::before{background:var(--lo)}
+.ck-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.ck-card-name{font-size:0.98rem;font-weight:600;line-height:1.3}
+.ck-card-sub{font-size:0.72rem;color:var(--light);margin-top:3px;line-height:1.4}
+.ck-card-pct{font-size:0.72rem;font-weight:700;color:var(--teal);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ck-card.done .ck-card-pct{color:var(--lo)}
+.ck-bar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.ck-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-lt));border-radius:3px;transition:width 0.35s ease}
+.ck-card.done .ck-bar span{background:var(--lo)}
+.ck-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.68rem;color:var(--light)}
+.ck-empty{padding:44px 20px;text-align:center;color:var(--light);font-size:0.82rem;background:var(--surface);border:1px dashed var(--border-s);border-radius:10px}
+
+/* ── detail ── */
+.ck-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ck-back{background:none;border:none;color:var(--light);font-family:'Poppins',sans-serif;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;padding:0 0 8px;display:flex;align-items:center;gap:6px;transition:color 0.2s}
+.ck-back:hover{color:#fff}
+.ck-detail-meta{display:flex;align-items:center;gap:14px;margin-top:10px}
+.ck-detail-bar{flex:1;max-width:340px;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.ck-detail-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-lt));border-radius:3px;transition:width 0.35s ease}
+.ck-detail-bar.done span{background:var(--lo)}
+.ck-detail-count{font-size:0.76rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.ck-section{margin-top:22px}
+.ck-section-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ck-section-title{font-size:0.66rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal)}
+.ck-section-rule{flex:1;height:1px;background:var(--border)}
+.ck-items{display:flex;flex-direction:column;gap:2px}
+
+.ck-item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:var(--surface);border:1px solid transparent;border-radius:7px;cursor:pointer;transition:background 0.15s,border-color 0.15s}
+.ck-item:hover{background:var(--surface-2);border-color:var(--border)}
+.ck-box{width:18px;height:18px;border:1.5px solid var(--border-s);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all 0.18s}
+.ck-box svg{width:11px;height:11px;opacity:0;transform:scale(0.6);transition:all 0.18s;stroke:#0d1016;stroke-width:3.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ck-item.on .ck-box{background:var(--lo);border-color:var(--lo)}
+.ck-item.on .ck-box svg{opacity:1;transform:scale(1)}
+.ck-item-text{font-size:0.84rem;line-height:1.5;flex:1;transition:color 0.18s}
+.ck-item.on .ck-item-text{color:var(--light);text-decoration:line-through;text-decoration-color:rgba(255,255,255,0.25)}
+.ck-item-text b{font-weight:600;color:#fff}
+.ck-item.on .ck-item-text b{color:var(--light);font-weight:500}
+.ck-item-note{display:block;font-size:0.72rem;color:var(--light);margin-top:3px;line-height:1.45;text-decoration:none}
+
+/* attached copy block (e.g. the offboarding email) */
+.ck-attach{margin:2px 0 6px 44px}
+.ck-attach-toggle{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Poppins',sans-serif;font-size:0.66rem;letter-spacing:0.06em;text-transform:uppercase;padding:5px 11px;cursor:pointer;border-radius:4px;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s}
+.ck-attach-toggle:hover{border-color:var(--blue-lt);color:#fff}
+.ck-attach-body{display:none;margin-top:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.ck-attach-body.open{display:block}
+.ck-attach-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.ck-attach-label{font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--light)}
+.ck-attach-text{margin:0;padding:14px;font-family:'Poppins',sans-serif;font-size:0.78rem;line-height:1.62;color:var(--muted);white-space:pre-wrap;word-break:break-word;max-height:340px;overflow-y:auto}
+
+/* ── edit mode ── */
+.ck-item.editing{cursor:default;background:var(--surface-2);border-color:var(--border-s)}
+.ck-edit-input{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border-s);color:var(--black);font-family:'Poppins',sans-serif;font-size:0.84rem;padding:7px 10px;border-radius:5px;outline:none}
+.ck-edit-input:focus{border-color:var(--blue-lt)}
+.ck-row-tools{display:flex;align-items:center;gap:3px;flex-shrink:0;opacity:0;transition:opacity 0.15s}
+.ck-item:hover .ck-row-tools,.ck-item.editing .ck-row-tools{opacity:1}
+.ck-tool{background:none;border:none;color:var(--light);cursor:pointer;font-size:0.78rem;padding:3px 6px;border-radius:4px;line-height:1;transition:all 0.15s;font-family:'Poppins',sans-serif}
+.ck-tool:hover{background:rgba(255,255,255,0.08);color:#fff}
+.ck-tool.del:hover{color:var(--crit)}
+.ck-add-row{display:flex;gap:8px;margin-top:8px}
+.ck-add-row input{flex:1;background:var(--surface);border:1px dashed var(--border-s);color:var(--black);font-family:'Poppins',sans-serif;font-size:0.8rem;padding:9px 13px;border-radius:7px;outline:none}
+.ck-add-row input:focus{border-style:solid;border-color:var(--blue-lt)}
+.ck-add-row input::placeholder{color:var(--light)}
+.ck-sec-name-input{background:rgba(255,255,255,0.05);border:1px solid var(--border-s);color:var(--teal);font-family:'Poppins',sans-serif;font-size:0.66rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:4px 9px;border-radius:4px;outline:none}
+.ck-editing-flag{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--hi);border:1px solid rgba(224,160,95,0.4);background:rgba(224,160,95,0.1);padding:4px 10px;border-radius:20px}
+
+@media (max-width:768px){
+  #checklists-view{padding:16px 14px;gap:16px}
+  .ck-grid{grid-template-columns:1fr}
+  .ck-title{font-size:1.2rem}
+  .ck-attach{margin-left:0}
+  .ck-detail-meta{width:100%}
+  .ck-row-tools{opacity:1}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1632,6 +1726,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <button class="h-tab" id="tab-brain" onclick="switchMainTab('brain')">🧠 Brain</button>
         <button class="h-tab" id="tab-calendar" onclick="switchMainTab('calendar')">🗓 Calendar</button>
         <button class="h-tab" id="tab-clients" onclick="switchMainTab('clients')">👥 Clients</button>
+        <button class="h-tab" id="tab-checklists" onclick="switchMainTab('checklists')">✓ Lists</button>
       </div>
     </div>
     <div class="h-right">
@@ -1799,6 +1894,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 
     <div class="clients-grid" id="clients-list"></div>
   </div>
+
+  <div id="checklists-view"></div>
 </div>
 
 <!-- Task Drawer -->
@@ -4353,10 +4450,11 @@ var SR_ICON={
  calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
  mo:'<svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="6" width="18" height="14" rx="6"/><circle cx="10" cy="13" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="1.6" fill="currentColor" stroke="none"/><path d="M13 2.5V6"/></svg>',
  brain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
- clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.3a3 3 0 0 1 0 5.4"/><path d="M17.5 20a5 5 0 0 0-2.6-4.4"/></svg>'
+ clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.3a3 3 0 0 1 0 5.4"/><path d="M17.5 20a5 5 0 0 0-2.6-4.4"/></svg>',
+ checklists:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8.2 9.6l1.6 1.6 3.2-3.2M8.2 15.6l1.6 1.6 3.2-3.2"/><path d="M15.4 10.2h1.4M15.4 16.2h1.4"/></svg>'
 };
 function MM_IS_PHONE(){try{return window.matchMedia('(max-width:768px)').matches;}catch(e){return false;}}
-var MM_TABS=[['mo','Mo'],['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients']];
+var MM_TABS=[['mo','Mo'],['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients'],['checklists','Lists']];
 function buildTabBar(){
   if(document.getElementById('tab-bar'))return;
   var bar=document.createElement('nav');bar.id='tab-bar';
@@ -4379,7 +4477,7 @@ function mmSyncTabs(active){
 }
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
-  var items=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients']];
+  var items=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients'],['checklists','Lists']];
   var rail=document.createElement('nav');rail.id='side-rail';
   rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
   document.body.appendChild(rail);
@@ -4734,18 +4832,20 @@ function ovOpenClient(name){
 function switchMainTab(tab){
   const isMo=tab==='mo';
   const isHome=tab==='home', isClients=tab==='clients', isCal=tab==='calendar', isOv=tab==='overview';
-  const isBrain=!isMo&&!isHome&&!isClients&&!isCal&&!isOv;
+  const isCk=tab==='checklists';
+  const isBrain=!isMo&&!isHome&&!isClients&&!isCal&&!isOv&&!isCk;
   document.body.classList.toggle('mo-tab',isMo);
   if(isMo){
     var mp=document.getElementById('mo2-panel');
     if(mp){mp.classList.remove('hidden');var mi=document.getElementById('mo2-input');if(mi&&!MM_IS_PHONE())mi.focus();}
   }
   document.getElementById('focus-section').style.display='none';
-  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome||isClients)?'none':'block';
+  document.getElementById('today-due-section').style.display=(isCal||isOv||isHome||isClients||isCk)?'none':'block';
   document.getElementById('quick-add-bar').style.display='none';
   document.getElementById('col-view').style.display=(isBrain||isHome)?'flex':'none';
   document.getElementById('calendar-view').style.display=isCal?'flex':'none';
   document.getElementById('clients-view').style.display=isClients?'block':'none';
+  document.getElementById('checklists-view').style.display=isCk?'flex':'none';
   document.getElementById('overview-view').style.display=isOv?'flex':'none';
   document.getElementById('home-view').style.display=isHome?'flex':'none';
   if(isMo){document.getElementById('home-view').style.display='none';document.getElementById('col-view').style.display='none';}
@@ -4756,8 +4856,10 @@ function switchMainTab(tab){
   document.getElementById('tab-brain').classList.toggle('active',isBrain);
   document.getElementById('tab-calendar').classList.toggle('active',isCal);
   document.getElementById('tab-clients').classList.toggle('active',isClients);
+  document.getElementById('tab-checklists').classList.toggle('active',isCk);
   if(isHome){renderHome();if(typeof renderColumns==='function')renderColumns();}
   if(isClients)renderClients();
+  if(isCk)renderChecklists();
   if(isCal)renderCalendar();
   if(isOv){renderOverview(); ovSyncExternal().then(c=>{if(c&&ovVisible())renderOverview();});}
 }
@@ -5049,6 +5151,486 @@ function renderClients(){
 }
 
 /* ═══════════════════════════════════════════
+   CHECKLISTS
+   Repeatable ops runbooks: one live list per checklist, Reset clears the ticks
+   so it can be run again for the next client / call / video.
+
+   Stored under mm_checklists, so it rides the normal mm_* KV sync for free and
+   is NOT matched by DEAD_KEY_RE. Do not rename it into an mm_monthly_* shape or
+   purgeDeadKeys() will silently eat it.
+
+   Seeding is deliberately write-only-if-absent and does NOT scheduleSave():
+   bootApp() awaits pullState() before init(), but a seed that pushed would
+   stamp a newer v than the server copy and could clobber a real list.
+═══════════════════════════════════════════ */
+const CK_KEY='mm_checklists';
+let ckOpenId=null, ckEditMode=false, ckEditingItem=null;
+
+function ckMk(t){
+  if(typeof t==='string')return{id:uid(),text:t,done:false};
+  return Object.assign({id:uid(),done:false},t);
+}
+function ckSec(title,items){return{id:uid(),title:title,items:items.map(ckMk)};}
+
+const CK_OFFBOARD_EMAIL=`Hi [Client's Name],
+
+As we wrap up our work together, I wanted to take a moment to say how much my team and I have enjoyed partnering with you. While we’re sorry to see you go, we wish you nothing but the best in all your future endeavors!
+
+To ensure a smooth transition, here are some important next steps:
+
+SOCIAL MEDIA ACCOUNT ACCESS
+To remove my access to your accounts, please follow these instructions:
+
+Facebook:
+1. Log in to your Facebook page.
+2. Go to 'Settings' and then 'Page Roles.'
+3. Find my name under 'Existing Page Roles' and click 'Edit.'
+4. Select 'Remove' to remove me from the account.
+
+LinkedIn:
+1. Log in to your LinkedIn account.
+2. Go to your company page and click on 'Admin Tools.'
+3. Select 'Manage Admins.'
+4. Click on the 'Remove' option next to my name.
+
+Your password-specific accounts (Instagram and TikTok) were unlinked from our scheduling tools and removed from all devices this morning.
+
+FILE TRANSFERS & STORAGE
+This link will take you to all of the photos and videos we’ve used during our time together: [insert client’s Google Folder link]
+I’ve also gone ahead and sent an Ownership Transfer Invitation so you’ll have full access moving forward.
+
+FEEDBACK
+Your experience means the world to us! We’d love for you to take 60 seconds to share your thoughts by filling out this quick feedback form: https://forms.gle/XmGSrzjfEtYuGuBe8
+
+If you have any questions or need assistance in the future, don’t hesitate to reach out. We’d love to work with you again down the road!
+
+Thank you for trusting Messick Marketing to support your business. Wishing you continued success in all that you do.
+
+Best,
+Morgan Messick
+Messick Marketing LLC
+www.messickmarketing.com
+Cell: (843) 227-0213`;
+
+/* Imported verbatim from the SMM Onboarding / Offboarding Checklist Google Docs.
+   Discovery Call and Content Upload are new, built off the Leads app flow and
+   the YouTube metadata pipeline. All four are editable in-app. */
+function CK_DEFAULTS(){return[
+  {id:uid(),title:'Client Onboarding',sub:'New SMM client, intake through first invoice',resetAt:null,sections:[
+    ckSec('Getting Started',[
+      'Client selects package and service start date.'
+    ]),
+    ckSec('Phase 1: Intake & Welcome Kit',[
+      'Send **Intake Questionnaire** to the client (business details, contact info, services/pain points, brand kits, usernames/passwords).',
+      'Send **Welcome Kit** (account access instructions, process details, link to the Google Drive folder for photo/video uploads, and a screenshot of my Facebook/LinkedIn profile so the client can add me as an admin).',
+      'Send **Social Media Management Agreement** via **Moxie**.',
+      'Create **Google Drive Folder** for client content.',
+      {text:'Create **New Pages** on relevant platforms, if needed.',note:'Only for clients who require new Pages or Accounts.'}
+    ]),
+    ckSec('Phase 2: Strategy & Content Creation',[
+      'Once questionnaire and account access are received, perform **Account Audit**.',
+      'Conduct **Competitor Analysis** to develop the social media strategy.',
+      'Create **Content Calendar** in **Airtable** for the client’s first few weeks of posts.',
+      'Create **Brand Kit** in **Canva** using the client’s brand colors, logos, and fonts.',
+      'Schedule **Strategy & Content Review Call** (or Video Review) with the client.',
+      'Start creating **Content Posts** tailored to the client’s brand, tone, voice, and preferences.',
+      {text:'Link accounts to **Metricool** for scheduling.',note:'Check the Time Zone settings.'}
+    ]),
+    ckSec('Phase 3: Week-to-Week & Invoice',[
+      'Schedule recurring **preview calendar email** using **Boomerang**.',
+      'Create **New Client** in **Moxie**.',
+      'Send **First Invoice** to the client.'
+    ])
+  ]},
+
+  {id:uid(),title:'Client Offboarding',sub:'Wind-down, access handback, and final email',resetAt:null,sections:[
+    ckSec('Confirm & Notify',[
+      'Confirm the client’s **intent to offboard** and **service end-date**.',
+      '**Inform team** members to ensure no further work is started or scheduled.'
+    ]),
+    ckSec('Account Access (Usernames & Passwords)',[
+      'Identify what **platforms** we have managed for this client (Instagram, Facebook, Pinterest, TikTok, LinkedIn).',
+      'Gather **usernames** and **passwords** to share in the final offboarding email.',
+      '**Log out** of all accounts on all devices.'
+    ]),
+    ckSec('File Storage',[
+      'Send **Ownership Transfer** invitation for the client’s specific Google Drive Folder.',
+      'Move the folder to **Archives**.'
+    ]),
+    ckSec('Metricool',[
+      'In **Metricool** (and/or **Social Status**), generate and download a report for all performance data from contract start to now.',
+      'Delete the client’s **brand** from Metricool once all accounts are unlinked.'
+    ]),
+    ckSec('Canva',[
+      'Delete the client’s **Brand Kit** in Canva.'
+    ]),
+    ckSec('Airtable',[
+      'Delete the client’s **preview calendar** in Airtable.',
+      'Change the brand icon color to grey once final posts are scheduled, and move the **client base to Archives**.'
+    ]),
+    ckSec('Final Invoicing & Financial Settlements',[
+      'Issue any **final invoices** and ensure they are settled.',
+      'Close the client’s **financial account** in **Moxie**.'
+    ]),
+    ckSec('Client Communication',[
+      {text:'Send the final **offboarding email**.',
+       note:'Covers intent to offboard and account access, ownership transfer for the Google folder and its 60-day time limit, instructions for removing our access, and contact info for future questions.',
+       attach:{label:'Offboarding email template',body:CK_OFFBOARD_EMAIL}},
+      'Send the client a **feedback form** to gather insights about their overall experience.'
+    ])
+  ]},
+
+  {id:uid(),title:'Discovery Call',sub:'Prospect call, prep through follow-up',resetAt:null,sections:[
+    ckSec('Before the Call',[
+      'Pull the prospect up in the **Leads** app and review the saved pitch snapshot.',
+      'Run **Discovery Call Prep** in the Leads app to generate tailored questions.',
+      'Review their website, current social profiles, and recent posting cadence.',
+      {text:'Check for **market conflict** with existing clients.',note:'Messick does not serve competing specialties in overlapping geographic markets. Check JVI, ECCO, SVV, TVI, and Desert Cardiovascular.'},
+      'Confirm the calendar invite and video link went out.'
+    ]),
+    ckSec('On the Call',[
+      'Confirm who the **decision maker** is and who else needs to approve.',
+      'Ask what they have tried so far, and what did or did not work.',
+      'Uncover **budget range** and desired start timeline.',
+      'Identify their top **patient acquisition** priority.',
+      'Note which platforms they already own and who holds admin access.',
+      'Set expectations on scope, turnaround, and reporting cadence.',
+      'Agree on the **next step** and put a date on it.'
+    ]),
+    ckSec('After the Call',[
+      'Update the lead **status** in the Leads pipeline.',
+      'Send the recap email confirming the agreed next step.',
+      'Build and send the proposal or package options.',
+      'If they are ready, send the **Social Media Management Agreement** via **Moxie**.',
+      'Add a **follow-up task** with a due date.',
+      {text:'If it is not a fit, mark **Not Interested** and note why.',note:'The reason is what makes the pipeline worth reading back through later.'}
+    ])
+  ]},
+
+  {id:uid(),title:'Content Upload (YouTube)',sub:'Publishing a video, prep through post-publish',resetAt:null,sections:[
+    ckSec('Prep',[
+      'Watch the final export end to end, checking audio sync and captions.',
+      'Confirm the **thumbnail** is finished and still legible at small size.',
+      'Generate **title, description, and tags**.',
+      'Pull the **transcript** for the description and chapter timestamps.'
+    ]),
+    ckSec('Upload',[
+      'Upload the video and set visibility to **Unlisted** or **Scheduled**.',
+      'Set the title and paste the description.',
+      'Add tags.',
+      'Upload the **custom thumbnail**.',
+      'Add the video to the right **playlist**.',
+      'Set category and language.',
+      'Add **chapters and timestamps** to the description.',
+      'Add **end screen** and cards.',
+      {text:'Set audience to **Not made for kids**, unless it is.',note:'Getting this wrong disables comments and end screens.'}
+    ]),
+    ckSec('Post-Publish',[
+      'Pin a comment if there is a CTA.',
+      'Log the video in the **content calendar** in Airtable.',
+      'Cross-post the Short or clip to Instagram, TikTok, and Facebook.',
+      {text:'Check first-24-hour **CTR and impressions** in YouTube Studio.',note:'Low CTR with healthy impressions means the thumbnail or title is the problem, not the video.'},
+      'Add the video to the client’s monthly report.'
+    ])
+  ]}
+];}
+
+function ckLoad(){
+  try{const a=JSON.parse(localStorage.getItem(CK_KEY)||'null');if(Array.isArray(a))return a;}catch(e){}
+  const seed=CK_DEFAULTS();
+  try{localStorage.setItem(CK_KEY,JSON.stringify(seed));}catch(e){}
+  return seed;
+}
+function ckSave(a){
+  try{localStorage.setItem(CK_KEY,JSON.stringify(a));}catch(e){}
+  scheduleSave();
+}
+function ckStats(c){
+  let t=0,d=0;
+  ((c&&c.sections)||[]).forEach(s=>((s.items)||[]).forEach(i=>{t++;if(i.done)d++;}));
+  return{done:d,total:t,pct:t?Math.round(d/t*100):0};
+}
+function ckFmt(s){return bEsc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function ckAgo(ts){
+  if(!ts)return'';
+  const d=Math.floor((Date.now()-ts)/86400000);
+  if(d<=0)return'today';
+  if(d===1)return'yesterday';
+  if(d<30)return d+'d ago';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function renderChecklists(){
+  const view=document.getElementById('checklists-view');
+  if(!view)return;
+  const all=ckLoad();
+  if(ckOpenId&&!all.some(c=>c.id===ckOpenId)){ckOpenId=null;ckEditMode=false;}
+  view.innerHTML=ckOpenId?ckDetailHTML(all.find(c=>c.id===ckOpenId)):ckGridHTML(all);
+}
+
+function ckGridHTML(all){
+  const cards=all.map(c=>{
+    const s=ckStats(c),complete=s.total>0&&s.pct===100;
+    return `<div class="ck-card${complete?' done':''}" onclick="ckOpen('${c.id}')">
+      <div class="ck-card-top">
+        <div>
+          <div class="ck-card-name">${bEsc(c.title)}</div>
+          ${c.sub?`<div class="ck-card-sub">${bEsc(c.sub)}</div>`:''}
+        </div>
+        <div class="ck-card-pct">${s.done}/${s.total}</div>
+      </div>
+      <div class="ck-bar"><span style="width:${s.pct}%"></span></div>
+      <div class="ck-card-foot">
+        <span>${s.total?(complete?'Complete':s.pct+'% done'):'No items yet'}</span>
+        <span>${c.resetAt?'Reset '+bEsc(ckAgo(c.resetAt)):''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="ck-head">
+      <div>
+        <div class="ck-eyebrow">Repeatable ops</div>
+        <div class="ck-title">Checklists</div>
+      </div>
+      <div class="ck-actions">
+        <button class="ck-btn primary" onclick="ckNew()">+ New checklist</button>
+      </div>
+    </div>
+    ${all.length?`<div class="ck-grid">${cards}</div>`
+      :'<div class="ck-empty">No checklists yet. Create one to get started.</div>'}`;
+}
+
+function ckItemHTML(sec,it){
+  if(ckEditMode&&ckEditingItem===it.id){
+    return `<div class="ck-item editing">
+      <input class="ck-edit-input" id="ck-edit-${it.id}" value="${bEsc(it.text)}"
+        onkeydown="if(event.key==='Enter')ckSaveItem('${it.id}');if(event.key==='Escape')ckCancelEdit()">
+      <div class="ck-row-tools">
+        <button class="ck-tool" onclick="ckSaveItem('${it.id}')">Save</button>
+        <button class="ck-tool" onclick="ckCancelEdit()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  const tools=ckEditMode?`<div class="ck-row-tools">
+      <button class="ck-tool" title="Move up" onclick="event.stopPropagation();ckMoveItem('${sec.id}','${it.id}',-1)">&#8593;</button>
+      <button class="ck-tool" title="Move down" onclick="event.stopPropagation();ckMoveItem('${sec.id}','${it.id}',1)">&#8595;</button>
+      <button class="ck-tool" title="Edit" onclick="event.stopPropagation();ckEditItem('${it.id}')">&#9998;</button>
+      <button class="ck-tool del" title="Delete" onclick="event.stopPropagation();ckDelItem('${sec.id}','${it.id}')">&#10005;</button>
+    </div>`:'';
+  const row=`<div class="ck-item${it.done?' on':''}" data-iid="${it.id}"${ckEditMode?'':` onclick="ckToggle('${it.id}')"`}>
+      <span class="ck-box"><svg viewBox="0 0 14 14"><path d="M2 7.4 5.4 10.8 12 3.6"/></svg></span>
+      <span class="ck-item-text">${ckFmt(it.text)}${it.note?`<span class="ck-item-note">${ckFmt(it.note)}</span>`:''}</span>
+      ${tools}
+    </div>`;
+  const att=it.attach?`<div class="ck-attach">
+      <button class="ck-attach-toggle" data-iid="${it.id}" data-label="${bEsc(it.attach.label)}"
+        onclick="ckToggleAttach('${it.id}')">&#9656; ${bEsc(it.attach.label)}</button>
+      <div class="ck-attach-body" id="ck-att-${it.id}">
+        <div class="ck-attach-bar">
+          <span class="ck-attach-label">${bEsc(it.attach.label)}</span>
+          <button class="ck-tool" onclick="ckCopyAttach('${it.id}',this)">Copy</button>
+        </div>
+        <pre class="ck-attach-text" id="ck-atttxt-${it.id}">${bEsc(it.attach.body)}</pre>
+      </div>
+    </div>`:'';
+  return row+att;
+}
+
+function ckDetailHTML(c){
+  const s=ckStats(c),complete=s.total>0&&s.pct===100;
+  const secs=(c.sections||[]).map(sec=>{
+    const items=(sec.items||[]).map(it=>ckItemHTML(sec,it)).join('');
+    const head=ckEditMode
+      ?`<input class="ck-sec-name-input" value="${bEsc(sec.title)}" onchange="ckRenameSection('${sec.id}',this.value)">
+        <div class="ck-section-rule"></div>
+        <button class="ck-tool del" title="Delete section" onclick="ckDelSection('${sec.id}')">&#10005;</button>`
+      :`<span class="ck-section-title">${bEsc(sec.title)}</span><div class="ck-section-rule"></div>`;
+    return `<div class="ck-section">
+      <div class="ck-section-head">${head}</div>
+      <div class="ck-items">${items}</div>
+      ${ckEditMode?`<div class="ck-add-row"><input type="text" id="ck-add-${sec.id}" placeholder="Add an item, then Enter"
+        onkeydown="if(event.key==='Enter'){ckAddItem('${sec.id}',this.value);this.value='';}"></div>`:''}
+    </div>`;
+  }).join('');
+  return `<div>
+    <button class="ck-back" onclick="ckBack()">&#8592; All checklists</button>
+    <div class="ck-detail-head">
+      <div style="flex:1;min-width:220px">
+        <div class="ck-eyebrow">Checklist</div>
+        ${ckEditMode
+          ?`<input class="ck-edit-input" style="font-size:1.3rem;font-weight:600;max-width:420px" value="${bEsc(c.title)}" onchange="ckRename('${c.id}',this.value)">`
+          :`<div class="ck-title">${bEsc(c.title)}</div>`}
+        <div class="ck-detail-meta">
+          <div class="ck-detail-bar${complete?' done':''}"><span style="width:${s.pct}%"></span></div>
+          <span class="ck-detail-count">${s.done} of ${s.total} done</span>
+        </div>
+      </div>
+      <div class="ck-actions">
+        ${ckEditMode?'<span class="ck-editing-flag">Editing</span>':''}
+        <button class="ck-btn" onclick="ckToggleEdit()">${ckEditMode?'Done editing':'&#9998; Edit'}</button>
+        <button class="ck-btn danger" onclick="ckReset('${c.id}')">&#8635; Reset</button>
+        ${ckEditMode?`<button class="ck-btn danger" onclick="ckDelete('${c.id}')">Delete list</button>`:''}
+      </div>
+    </div>
+    ${secs}
+    ${ckEditMode?`<div class="ck-add-row" style="margin-top:22px"><input type="text" placeholder="Add a section, then Enter"
+      onkeydown="if(event.key==='Enter'){ckAddSection('${c.id}',this.value);this.value='';}"></div>`:''}
+  </div>`;
+}
+
+/* ── navigation ── */
+function ckOpen(id){ckOpenId=id;ckEditMode=false;ckEditingItem=null;renderChecklists();
+  const v=document.getElementById('checklists-view');if(v)v.scrollTop=0;}
+function ckBack(){ckOpenId=null;ckEditMode=false;ckEditingItem=null;renderChecklists();}
+function ckToggleEdit(){ckEditMode=!ckEditMode;ckEditingItem=null;renderChecklists();}
+
+/* ── ticking ──
+   Repaints just the row and the progress bar rather than re-rendering, so an
+   open email template and the scroll position both survive a tick. */
+function ckToggle(iid){
+  const all=ckLoad();
+  let target=null,owner=null;
+  all.forEach(c=>(c.sections||[]).forEach(s=>(s.items||[]).forEach(i=>{
+    if(i.id===iid){target=i;owner=c;}
+  })));
+  if(!target)return;
+  target.done=!target.done;
+  ckSave(all);
+  const row=document.querySelector('#checklists-view .ck-item[data-iid="'+iid+'"]');
+  if(row)row.classList.toggle('on',target.done);
+  ckPaintProgress(owner);
+}
+function ckPaintProgress(c){
+  const s=ckStats(c),complete=s.total>0&&s.pct===100;
+  const bar=document.querySelector('#checklists-view .ck-detail-bar');
+  if(bar){
+    bar.classList.toggle('done',complete);
+    const sp=bar.querySelector('span');if(sp)sp.style.width=s.pct+'%';
+  }
+  const cnt=document.querySelector('#checklists-view .ck-detail-count');
+  if(cnt)cnt.textContent=s.done+' of '+s.total+' done';
+}
+
+function ckReset(id){
+  const all=ckLoad(),c=all.find(x=>x.id===id);
+  if(!c)return;
+  const s=ckStats(c);
+  if(s.done&&!confirm('Reset "'+c.title+'"?\n\nThis clears all '+s.done+' checked items so you can run it again. The steps themselves stay.'))return;
+  (c.sections||[]).forEach(sec=>(sec.items||[]).forEach(i=>{i.done=false;}));
+  c.resetAt=Date.now();
+  ckSave(all);renderChecklists();
+}
+
+/* ── attachments ── */
+function ckToggleAttach(iid){
+  const body=document.getElementById('ck-att-'+iid);
+  if(!body)return;
+  const open=body.classList.toggle('open');
+  const btn=document.querySelector('#checklists-view .ck-attach-toggle[data-iid="'+iid+'"]');
+  if(btn)btn.innerHTML=(open?'&#9662; ':'&#9656; ')+bEsc(btn.getAttribute('data-label')||'');
+}
+function ckCopyAttach(iid,btn){
+  const pre=document.getElementById('ck-atttxt-'+iid);
+  if(pre)copyText(pre.textContent,btn);
+}
+
+/* ── editing ── */
+function ckNew(){
+  const t=prompt('Name the new checklist');
+  if(!t||!t.trim())return;
+  const all=ckLoad();
+  const c={id:uid(),title:t.trim(),sub:'',resetAt:null,sections:[ckSec('Steps',[])]};
+  all.push(c);ckSave(all);
+  ckOpenId=c.id;ckEditMode=true;ckEditingItem=null;renderChecklists();
+}
+function ckDelete(id){
+  const all=ckLoad(),c=all.find(x=>x.id===id);
+  if(!c)return;
+  if(!confirm('Delete the "'+c.title+'" checklist for good?\n\nThis removes the steps too, not just the ticks. Use Reset if you only want to clear it.'))return;
+  ckSave(all.filter(x=>x.id!==id));
+  ckOpenId=null;ckEditMode=false;renderChecklists();
+}
+function ckRename(id,val){
+  if(!val||!val.trim())return;
+  const all=ckLoad(),c=all.find(x=>x.id===id);
+  if(!c)return;
+  c.title=val.trim();ckSave(all);renderChecklists();
+}
+function ckAddSection(cid,title){
+  if(!title||!title.trim())return;
+  const all=ckLoad(),c=all.find(x=>x.id===cid);
+  if(!c)return;
+  (c.sections=c.sections||[]).push(ckSec(title.trim(),[]));
+  ckSave(all);renderChecklists();
+}
+function ckRenameSection(secId,val){
+  if(!val||!val.trim())return;
+  const all=ckLoad();
+  for(const c of all)for(const s of(c.sections||[]))if(s.id===secId){
+    s.title=val.trim();ckSave(all);return;
+  }
+}
+function ckDelSection(secId){
+  const all=ckLoad();
+  for(const c of all){
+    const secs=c.sections||[],idx=secs.findIndex(s=>s.id===secId);
+    if(idx<0)continue;
+    const n=(secs[idx].items||[]).length;
+    if(n&&!confirm('Delete the "'+secs[idx].title+'" section and its '+n+' item'+(n===1?'':'s')+'?'))return;
+    secs.splice(idx,1);ckSave(all);renderChecklists();return;
+  }
+}
+function ckAddItem(secId,text){
+  if(!text||!text.trim())return;
+  const all=ckLoad();
+  for(const c of all)for(const s of(c.sections||[]))if(s.id===secId){
+    (s.items=s.items||[]).push(ckMk(text.trim()));
+    ckSave(all);renderChecklists();
+    const el=document.getElementById('ck-add-'+secId);if(el)el.focus();
+    return;
+  }
+}
+function ckEditItem(iid){
+  ckEditingItem=iid;renderChecklists();
+  const el=document.getElementById('ck-edit-'+iid);
+  if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
+}
+function ckCancelEdit(){ckEditingItem=null;renderChecklists();}
+function ckSaveItem(iid){
+  const el=document.getElementById('ck-edit-'+iid);
+  if(!el)return;
+  const val=el.value.trim();
+  if(!val){ckCancelEdit();return;}
+  const all=ckLoad();
+  all.forEach(c=>(c.sections||[]).forEach(s=>(s.items||[]).forEach(i=>{
+    if(i.id===iid)i.text=val;
+  })));
+  ckEditingItem=null;ckSave(all);renderChecklists();
+}
+function ckDelItem(secId,iid){
+  const all=ckLoad();
+  for(const c of all)for(const s of(c.sections||[])){
+    if(s.id!==secId)continue;
+    const items=s.items||[],idx=items.findIndex(i=>i.id===iid);
+    if(idx<0)continue;
+    items.splice(idx,1);ckSave(all);renderChecklists();return;
+  }
+}
+function ckMoveItem(secId,iid,dir){
+  const all=ckLoad();
+  for(const c of all)for(const s of(c.sections||[])){
+    if(s.id!==secId)continue;
+    const items=s.items||[],idx=items.findIndex(i=>i.id===iid),to=idx+dir;
+    if(idx<0||to<0||to>=items.length)return;
+    items.splice(to,0,items.splice(idx,1)[0]);
+    ckSave(all);renderChecklists();return;
+  }
+}
+function ckVisible(){
+  const v=document.getElementById('checklists-view');
+  return!!v&&v.style.display!=='none';
+}
+
+/* ═══════════════════════════════════════════
    SYNC (background)
 ═══════════════════════════════════════════ */
 /* GLOBAL SYNC (cross-device via Cloudflare KV) */
@@ -5102,6 +5684,7 @@ function applyRemoteAndRender(){
   if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
   if(typeof calVisible==='function'&&calVisible())renderCalendar();
   if(typeof ovVisible==='function'&&ovVisible())renderOverview();
+  if(typeof ckVisible==='function'&&ckVisible()&&!ckEditMode)renderChecklists();
 }
 let saveTimer=null;
 function scheduleSave(){
