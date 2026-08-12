@@ -5406,6 +5406,44 @@ function CK_DEFAULTS(){return[
       {text:'**ASPIRE / Netlify is not fast.**',note:'Pushes have taken 25+ minutes. Confirm the commit reached origin/main, check the Netlify dashboard, and verify the live URL returns 200 before calling it shipped.'},
       'Load the live URL and confirm the post and its index card both render.'
     ])
+  ]},
+
+  {id:uid(),seed:'monthly-calendar',title:'Monthly Calendar Review',sub:'Rida outlines a new month, audit to approval',resetAt:null,sections:[
+    ckSec('Before You Start',[
+      {text:'Confirm this is the **monthly outline** in the client’s main base.',note:'Not the weekly (Preview) pass. Different artifact, different checks. The (Preview) bases are the client-visible publish-readiness gate and have their own QA.'},
+      {text:'**Do not flag missing attachments, blank Status, or unset Content Type.**',note:'That is the normal state of an outline. Graphics and reels are produced downstream and land in the (Preview) base. This has been flagged wrongly twice, most recently on TVI’s August calendar.'},
+      'Open the base’s **Idea Board** so the month can be checked against its umbrellas.',
+      {text:'Confirm the client is still active before auditing.',note:'Dr. Kelli off-boarded 2026-08-07. That base still exists and still returns records, so it is dead data.'}
+    ]),
+    ckSec('Audit the Words',[
+      'Read every caption for copy quality and typos.',
+      'Check medical accuracy, and that any procedure claims are defensible.',
+      'Verify **provider names, titles, and credentials**.',
+      'Check testimonial claims are attributable and not overstated.',
+      {text:'Check hashtags are relevant to **that row’s current topic**.',note:'Hashtags are a separate column from the caption. When a row’s topic changes, the hashtags do not follow.'},
+      {text:'Flag any caption opening with a YouTube link that is really a **Short**.',note:'A /watch?v= URL does not mean long-form, so check the duration. Flag it in the row for Morgan to repoint or remove. Do not rewrite the caption yourself.'}
+    ]),
+    ckSec('Audit the Plan',[
+      'Check the month against the base’s **Idea Board umbrellas**.',
+      'Check the **pillar / category mix** is balanced, not all one type.',
+      'Check **CTA variety**, not the same closing line every post.',
+      {text:'Check **weekday coverage and cadence** match the brand.',note:'Most brands are Mon/Wed/Fri. Texas Vascular is daily Mon to Fri. OBL Marketing is once a week on Mondays.'},
+      'Check publishing dates are filled in and land in the right month.',
+      'Watch for repeated topics or near-duplicate captions across the month.'
+    ]),
+    ckSec('Client-Specific Traps',[
+      {text:'**ECCO:** captions use the **720 or 719** phone lines, never 303.',note:'A 303 number is a repeat offender here. ASPIRE legitimately uses 303 (Louisville, CO).'},
+      {text:'**ECCO:** the second location is always **Pueblo West**, never shortened to Pueblo.',note:'Pueblo West is a separate community about 10 miles from the city of Pueblo. Shortening it is factually wrong and costs local search relevance.'},
+      '**JVI:** red heart not blue, strip practice-name brand hashtags, strip the stethoscope, hand emojis need medium-white skin tone.',
+      'Check the rest against **client-brand-specifics**.'
+    ]),
+    ckSec('Feedback & Approval',[
+      'Send Rida **one consolidated pass** of feedback, not a trickle.',
+      'Point at rows specifically so she can act without guessing.',
+      'Let Rida tweak.',
+      '**Re-check only the rows you flagged**, plus anything her edits touched.',
+      'Approve the month.'
+    ])
   ]}
 ];}
 
