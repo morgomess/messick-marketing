@@ -5182,7 +5182,7 @@ const CK_SEEDS_KEY='mm_checklists_seeds';
    Lists Morgan created herself have no `seed` and are never touched.
    Trade-off: hand edits to a *shipped* list are lost on the next bump. If she
    wants one changed for good, change it here. */
-const CK_CONTENT_REV=2;
+const CK_CONTENT_REV=3;
 const CK_REV_KEY='mm_checklists_rev';
 /* Shipped before seed ids existed. Any pre-existing store came from exactly
    these four, so they are treated as installed rather than matched by title,
@@ -5241,216 +5241,137 @@ Cell: (843) 227-0213`;
    the YouTube metadata pipeline. All four are editable in-app. */
 function CK_DEFAULTS(){return[
   {id:uid(),seed:'onboarding',title:'Client Onboarding',sub:'New SMM client, intake to first invoice',resetAt:null,sections:[
-    ckSec('Getting Started',[
-      'Client picks package and start date'
+    ckSec('Intake',[
+      'Client picks package and start date',
+      {text:'Send **Intake Questionnaire** and **Welcome Kit**',note:'Questionnaire: business details, contact info, services and pain points, brand kit, logins. Welcome Kit: access instructions, how the process runs, Drive folder link, and a screenshot of my Facebook/LinkedIn profile so they can add me as admin.'},
+      {text:'Send the **Agreement**, create the Drive folder',note:'Agreement goes via Moxie. Also create new platform Pages here if they do not already have the accounts.'}
     ]),
-    ckSec('Phase 1: Intake & Welcome Kit',[
-      {text:'Send **Intake Questionnaire**',note:'Business details, contact info, services and pain points, brand kit, logins.'},
-      {text:'Send **Welcome Kit**',note:'Access instructions, how the process runs, Drive folder link, and a screenshot of my Facebook/LinkedIn profile so they can add me as admin.'},
-      'Send **Management Agreement** via Moxie',
-      'Create their **Google Drive folder**',
-      {text:'Create new platform Pages, if needed',note:'Only for clients who do not already have the accounts.'}
+    ckSec('Strategy & Content',[
+      'Run **Account Audit** and **Competitor Analysis**',
+      'Build **Content Calendar** and Canva **Brand Kit**',
+      'Book the **Strategy & Content Review** call'
     ]),
-    ckSec('Phase 2: Strategy & Content',[
-      'Run **Account Audit**',
-      'Run **Competitor Analysis**',
-      'Build **Content Calendar** in Airtable',
-      'Build **Brand Kit** in Canva',
-      'Book the **Strategy & Content Review** call',
-      'Start creating posts',
-      {text:'Link accounts to **Metricool**',note:'Check the Time Zone settings.'}
-    ]),
-    ckSec('Phase 3: Week-to-Week & Invoice',[
-      'Schedule the preview calendar email in **Boomerang**',
-      'Create the client in **Moxie**',
-      'Send the **first invoice**'
+    ckSec('Go Live',[
+      {text:'Link accounts to **Metricool**, start posts',note:'Check the Time Zone settings.'},
+      {text:'Moxie client, Boomerang email, first invoice',note:'Create the client in Moxie, schedule the recurring preview calendar email in Boomerang, send the first invoice.'}
     ])
   ]},
 
   {id:uid(),seed:'offboarding',title:'Client Offboarding',sub:'Wind-down, access handback, final email',resetAt:null,sections:[
-    ckSec('Confirm & Notify',[
-      'Confirm intent to offboard and the end date',
-      'Tell the team to stop new work'
+    ckSec('Wind Down',[
+      'Confirm intent and end date, tell the team',
+      {text:'Gather logins, log out everywhere',note:'List the platforms we manage, collect logins for the final email, log out of all accounts on all devices.'},
+      {text:'Download the full performance report',note:'Contract start to now, from Metricool and Social Status if they are on it.'}
     ]),
-    ckSec('Account Access',[
-      'List the platforms we manage',
-      'Gather logins for the final email',
-      'Log out of all accounts on all devices'
+    ckSec('Tear Down',[
+      'Transfer the Drive folder, move to **Archives**',
+      {text:'Delete the Metricool brand and Canva kit',note:'Unlink all accounts before deleting the Metricool brand.'},
+      {text:'Archive the Airtable base and calendar',note:'Delete their preview calendar, grey the brand icon once final posts are scheduled, move the base to Archives.'}
     ]),
-    ckSec('File Storage',[
-      'Send the Drive folder **Ownership Transfer**',
-      'Move the folder to **Archives**'
-    ]),
-    ckSec('Metricool',[
-      {text:'Download the full performance report',note:'Contract start to now. Metricool, and Social Status if they are on it.'},
-      'Delete the brand once accounts are unlinked'
-    ]),
-    ckSec('Canva',[
-      'Delete their **Brand Kit**'
-    ]),
-    ckSec('Airtable',[
-      'Delete their **preview calendar**',
-      'Grey the brand icon and move the base to **Archives**'
-    ]),
-    ckSec('Final Invoicing',[
-      'Issue and settle final invoices',
-      'Close their account in **Moxie**'
-    ]),
-    ckSec('Client Communication',[
-      {text:'Send the **offboarding email**',
+    ckSec('Close Out',[
+      'Settle final invoices, close the Moxie account',
+      {text:'Send the **offboarding email** and feedback form',
        note:'Covers account access, ownership transfer and its 60-day limit, how to remove our access, and contact info.',
-       attach:{label:'Offboarding email template',body:CK_OFFBOARD_EMAIL}},
-      'Send the **feedback form**'
+       attach:{label:'Offboarding email template',body:CK_OFFBOARD_EMAIL}}
     ])
   ]},
 
   {id:uid(),seed:'discovery',title:'Discovery Call',sub:'Prospect call, prep to follow-up',resetAt:null,sections:[
-    ckSec('Before the Call',[
-      'Review their pitch snapshot in **Leads**',
-      'Generate questions with **Discovery Call Prep**',
-      'Review their site, socials, and posting cadence',
-      {text:'Check for **market conflict**',note:'We do not serve competing specialties in overlapping markets. Check JVI, ECCO, SVV, TVI, Desert Cardiovascular.'},
-      'Confirm the invite and video link went out'
+    ckSec('Before',[
+      'Review the pitch snapshot, run **Discovery Prep**',
+      'Review their site, socials, and cadence',
+      {text:'Check for **market conflict**',note:'We do not serve competing specialties in overlapping markets. Check JVI, ECCO, SVV, TVI, Desert Cardiovascular.'}
     ]),
     ckSec('On the Call',[
       'Confirm the **decision maker**',
-      'Ask what they have already tried',
-      'Uncover **budget** and timeline',
-      'Find their top patient acquisition priority',
+      'Ask what they have tried, and their budget',
       'Note platforms owned, and who has admin',
-      'Set scope, turnaround, and reporting expectations',
-      'Agree the **next step**, with a date'
+      'Set expectations, agree a dated **next step**'
     ]),
-    ckSec('After the Call',[
-      'Update their status in the **Leads** pipeline',
-      'Send the recap email',
-      'Send the proposal or package options',
-      'Send the **Agreement** via Moxie if they are ready',
-      'Add a follow-up task with a due date',
-      {text:'If no fit, mark **Not Interested** with a reason',note:'The reason is what makes the pipeline worth reading back through.'}
+    ckSec('After',[
+      {text:'Update **Leads** status, send the recap',note:'If it is not a fit, mark Not Interested with a reason. The reason is what makes the pipeline worth reading back through.'},
+      {text:'Send the proposal, add a follow-up task',note:'If they are ready, send the Agreement via Moxie. Give the follow-up task a due date.'}
     ])
   ]},
 
   {id:uid(),seed:'yt-upload',title:'Content Upload (YouTube)',sub:'Publishing a video, prep to post-publish',resetAt:null,sections:[
     ckSec('Prep',[
       {text:'Watch the export end to end',note:'Audio sync and captions.'},
-      'Confirm the **thumbnail** reads at small size',
-      'Generate **title, description, tags**',
-      'Pull the transcript for chapters'
+      {text:'Generate title, description, tags, thumbnail',note:'Pull the transcript too, for chapter timestamps. Check the thumbnail still reads at small size.'}
     ]),
     ckSec('Upload',[
       'Upload, set **Unlisted** or **Scheduled**',
-      'Set title and description',
-      'Add tags',
-      'Upload the **custom thumbnail**',
-      'Add to the right **playlist**',
-      'Set category and language',
-      'Add **chapters** to the description',
-      'Add **end screen** and cards',
-      {text:'Set **Not made for kids**, unless it is',note:'Getting this wrong disables comments and end screens.'}
+      'Set title, description, tags, chapters',
+      'Add thumbnail, playlist, category, language',
+      {text:'Add end screen, set **Not made for kids**',note:'Getting the audience setting wrong disables comments and end screens.'}
     ]),
     ckSec('Post-Publish',[
       'Pin a CTA comment',
-      'Log it in the Airtable calendar',
       'Cross-post the clip to IG, TikTok, Facebook',
-      {text:'Check 24-hour **CTR and impressions**',note:'Low CTR with healthy impressions means the thumbnail or title, not the video.'},
-      'Add it to the monthly report'
+      {text:'Check 24-hour CTR, log it in the calendar',note:'Low CTR with healthy impressions means the thumbnail or title, not the video. Log it in Airtable and add it to the monthly report.'}
     ])
   ]},
 
   {id:uid(),seed:'blog-client',title:'Blog Post: Draft & Deliver',sub:'Client blog, brief to Google Doc',resetAt:null,sections:[
-    ckSec('Before Drafting',[
-      {text:'Read the client’s **Clients** record',note:'Voice & Tone, Hard Rules / Must-Avoid, Structure Preferences, Example Post URL, Reference File.'},
-      'Load **blog-writer**',
-      {text:'Load **healthcare-knowledge** for clinical clients',note:'ASPIRE is PT/OT/SLP/wellness, so it does not need it.'}
-    ]),
     ckSec('Draft',[
-      'Write the body as Markdown into **Blog Posts**',
-      'Set **Status = In Review**'
+      {text:'Read the client’s **Clients** record',note:'Voice & Tone, Hard Rules / Must-Avoid, Structure Preferences, Example Post URL, Reference File.'},
+      {text:'Load **blog-writer**, plus healthcare-knowledge',note:'healthcare-knowledge for clinical clients only. ASPIRE is PT/OT/SLP/wellness, so it does not need it.'},
+      'Draft into **Blog Posts**, set **In Review**'
     ]),
-    ckSec('Approval Gate',[
+    ckSec('Approve',[
       {text:'Wait for **Status = Approved**',note:'This is the human gate. Do not skip past it.'}
     ]),
     ckSec('Deliver',[
       {text:'Confirm Approved, and **Doc URL empty**',note:'The adapter will not re-fire while Doc URL is set. Clear it to re-deliver a revision.'},
-      'Convert the Markdown with **md-to-doc-html.mjs**',
-      'Create the Doc in their Drive folder',
-      'Write back **Doc URL** and **Deliver Date**, set Delivered',
-      {text:'**ECCO:** move the draft into their own Drive',note:'ECCO has no subfolder, so drafts land in the general parent. This one is Morgan’s step.'},
-      '**ASPIRE:** also publish to weaspire.net'
-    ]),
-    ckSec('Calendar Write-Back',[
-      {text:'Push the status during this run',note:'There is no automation. A cross-base write needs an Airtable Run-script action, so it rides along with delivery.'},
-      {text:'Check that base’s status choices first',note:'The calendars do not share a vocabulary. Only BTTC has Draft Done.'},
-      {text:'Use the **work-finished** value',note:'BTTC to Draft Done. Vascular (ECCO / TVI / SVV) to Drafted. ASPIRE to Done.'}
+      {text:'Convert, create the Doc in their folder',note:'Convert with md-to-doc-html.mjs. ECCO has no subfolder, so its drafts land in the general parent and Morgan moves them. ASPIRE also publishes to weaspire.net.'},
+      'Write back **Doc URL** and Date, set Delivered',
+      {text:'Push the status to the calendar base',note:'No automation exists, so it rides along with delivery. Check that base’s status choices first, they do not share a vocabulary. BTTC to Draft Done, vascular to Drafted, ASPIRE to Done.'}
     ])
   ]},
 
   {id:uid(),seed:'blog-publish',title:'Blog Post: Publish to Site',sub:'Getting a finished post live',resetAt:null,sections:[
-    ckSec('Before You Touch the Repo',[
-      'Confirm which site, and re-read its SOP section',
-      {text:'**git fetch** and check how far behind',note:'These checkouts drift badly. One was 24 commits behind with a file 754 lines out of date.'},
-      'Diff the target file'
+    ckSec('Prep',[
+      'Confirm the site, re-read its SOP section',
+      {text:'**git fetch**, check drift, diff the target',note:'These checkouts drift badly. One was 24 commits behind with a file 754 lines out of date.'}
     ]),
-    ckSec('Build the Post',[
+    ckSec('Build',[
       {text:'Copy the **most recent** post as the template',note:'The newest post carries the current nav, schema, and styling.'},
-      'Run the injector with **--dry** first',
-      '**DSDD:** edit source.html, run build.mjs, commit the output',
-      {text:'**ASPIRE:** build from repo source, not the live page',note:'Netlify rewrites links at deploy, so served markup ships the link bug. It also injects a netlify-rum script that is not in source.'},
-      {text:'**ASPIRE:** check link conventions',note:'From root pages use blog/<file>. Between posts use bare siblings. This is the recurring bug.'}
+      {text:'Run the injector with **--dry** first',note:'All injectors are idempotent and skip a slug that already exists.'},
+      {text:'Check the brand’s build quirks',note:'DSDD: edit source.html, run build.mjs, commit the output. ASPIRE: build from repo source not the live page, since Netlify rewrites links at deploy. ASPIRE links: blog/<file> from root pages, bare siblings between posts.'}
     ]),
     ckSec('Index & Sitemap',[
       'Put the card at the **top** of the blog index',
-      {text:'Add the sitemap entry **by hand**',note:'The Messick injector does not write it, and the failure is silent. Three live posts were found missing. Messick sitemap URLs are extensionless.'},
-      'Diff the sitemap against the post files',
-      'Bump **lastmod** on the blog index entry'
+      {text:'Add the sitemap entry **by hand**',note:'The Messick injector does not write it and the failure is silent. Three live posts were found missing. URLs here are extensionless. Diff the sitemap against the post files and bump lastmod on the index entry.'}
     ]),
     ckSec('Video Post Extras',[
-      {text:'Read the script from **src/captions.ts**',note:'Word-timed whisper pass over the export. Do not pull captions off YouTube.'},
-      {text:'Get the video ID via **vidiq_get_videos_by_ids**',note:'vidiq_user_channels only returns the BBS channel, so the Messick channel cannot be found that way.'},
-      'Place the embed before the first **h2**',
-      {text:'Paste **VideoObject** JSON-LD before </head>',note:'The injector does not touch head beyond title, meta, and og.'},
-      {text:'Add **FAQPage** JSON-LD if there is an FAQ',note:'Schema questions must match the visible ones or it is a Search Console violation.'},
-      'Write an **expansion**, not a transcript'
+      {text:'Read the script from **src/captions.ts**',note:'Word-timed whisper pass over the export. Do not pull captions off YouTube. Get the video ID via vidiq_get_videos_by_ids, since vidiq_user_channels only returns BBS.'},
+      {text:'Add **VideoObject** and FAQPage JSON-LD by hand',note:'The injector does not touch head beyond title, meta, and og. FAQPage only if there is a real FAQ, and its questions must match the visible ones. Place the embed before the first h2, and write an expansion not a transcript.'}
     ]),
-    ckSec('Ship & Verify',[
+    ckSec('Ship',[
       {text:'Push with the token **inline**',note:'Never git remote set-url with a token in it, that persists the secret into .git/config.'},
-      'Pages rebuilds in 30 to 60 seconds',
-      {text:'**ASPIRE:** verify a 200 before calling it shipped',note:'Netlify deploys have taken 25+ minutes. Confirm the commit reached origin/main and check the dashboard.'},
-      'Load the live URL, check the post and its card'
+      {text:'Load the live URL, check post and card',note:'Pages rebuilds in 30 to 60 seconds. ASPIRE on Netlify has taken 25+ minutes, so confirm the commit reached origin/main and verify a 200 before calling it shipped.'}
     ])
   ]},
 
   {id:uid(),seed:'monthly-calendar',title:'Monthly Calendar Review',sub:'Rida outlines, you audit, she tweaks',resetAt:null,sections:[
-    ckSec('Before You Start',[
-      {text:'Confirm this is the **monthly outline**, not (Preview)',note:'Different artifact, different checks. The (Preview) bases are the client-visible publish-readiness gate and have their own pass.'},
-      {text:'**Do not flag missing media or blank Status**',note:'Normal for an outline. Graphics and reels are produced downstream into the (Preview) base. Raised wrongly twice, most recently on TVI’s August calendar.'},
-      'Open the **Idea Board**',
-      'Confirm the client is still active'
+    ckSec('Before',[
+      {text:'Confirm it’s the **monthly outline**, not (Preview)',note:'The (Preview) bases are the client-visible publish-readiness gate and have their own pass. In an outline there are no attachments and Status is routinely blank. That is normal. Do not flag it. Raised wrongly twice, most recently on TVI’s August calendar.'},
+      'Open the **Idea Board**, confirm the client is active'
     ]),
     ckSec('Audit the Words',[
       'Read every caption for copy and typos',
-      'Check medical accuracy and claims',
-      'Verify provider names, titles, credentials',
-      'Check testimonial claims hold up',
+      {text:'Check medical accuracy and claims',note:'Provider names, titles and credentials, and whether testimonial claims hold up.'},
       {text:'Check hashtags match the row’s topic',note:'Separate column from the caption, so they do not follow when a topic changes.'},
-      {text:'Flag YouTube links that are really **Shorts**',note:'A /watch?v= URL does not mean long-form, so check the duration. Flag it for Morgan, do not rewrite the caption.'},
-      {text:'Check brand rules for this client',note:'Phone lines, location names, emoji and hashtag rules. See client-brand-specifics.'}
+      {text:'Check brand rules for this client',note:'Phone lines, location names, emoji and hashtag rules. See client-brand-specifics. Also flag YouTube links that are really Shorts: a /watch?v= URL does not mean long-form.'}
     ]),
     ckSec('Audit the Plan',[
       'Check against the **Idea Board umbrellas**',
-      'Check the **pillar mix** is balanced',
-      'Check **CTA variety**',
-      {text:'Check **cadence** matches the brand',note:'Most are Mon/Wed/Fri. Texas Vascular is daily Mon to Fri. OBL is Mondays only.'},
-      'Check dates are filled and in the right month',
-      'Watch for near-duplicate captions'
+      {text:'Check pillar mix, CTA variety, cadence',note:'Most brands are Mon/Wed/Fri. Texas Vascular is daily Mon to Fri. OBL is Mondays only.'},
+      'Check dates fill the month, no near-duplicates'
     ]),
-    ckSec('Feedback & Approval',[
-      'Send Rida **one consolidated pass**',
-      'Point at specific rows',
-      'Let Rida tweak',
-      'Re-check flagged rows, and anything her edits touched',
-      '**Approve** the month'
+    ckSec('Feedback',[
+      {text:'Send Rida **one consolidated pass**',note:'Point at specific rows so she can act without guessing.'},
+      'Re-check flagged rows, **approve** the month'
     ])
   ]}
 ];}
