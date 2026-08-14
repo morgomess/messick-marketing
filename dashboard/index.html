@@ -1014,6 +1014,14 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .hm-tag{font-size:0.75rem;color:var(--light)}
 .hm-tag.hi{color:var(--hi)}
 .hm-empty{font-size:0.82rem;color:var(--light);padding:10px 0}
+.hm-plan-lead{font-size:0.9rem;color:var(--black);padding:2px 0 8px;line-height:1.45}
+.hm-plan-sec{padding:6px 0;border-top:1px solid var(--border)}
+.hm-plan-sec:first-of-type{border-top:none}
+.hm-plan-h{font-size:0.68rem;color:var(--light);text-transform:uppercase;letter-spacing:0.04em;padding-bottom:3px}
+.hm-plan-it{font-size:0.84rem;color:var(--muted);padding:2px 0;line-height:1.4}
+.hm-plan-it:first-of-type{color:var(--black)}
+.hm-plan-stale{opacity:0.7}
+.hm-plan-note{font-size:0.75rem;color:var(--hi);padding-bottom:6px}
 .hm-qa{margin-top:14px}
 .hm-qa input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--black);padding:10px 14px;font-family:inherit;font-size:0.85rem;outline:none}
 .hm-qa input:focus{border-color:var(--blue)}
@@ -4290,7 +4298,20 @@ function moSystem(){
   'FILING - always set nodeId. Never leave a client task in Personal:\n'+
   '- Pick the most specific matching node id from BRAIN TREE. Only use a personal node when the task is genuinely personal (errands, health, home).\n'+
   '- Client shorthand: ECCO / EM = ECCO Medical. JVI = Joint & Vascular. OEIS. TVI = Texas Vascular. SVV = Sound Vascular/Vein. Desert / DCC = Desert Cardiovascular. Aspire / AT = Aspire Therapy. BTTCF / BTTC / BTT = Be The Transformational Change Fund, an ACTIVE client (Todd, Brooke). OBL = OBL Marketing. Virtueasy / VA = Virtueasy. BBS = Bad Bible Stories. DSDD = Doggy See Doggy Do.\n'+
-  '- Kelli / BT / BTF / Brain Talk = Brain Talk Foundation, OFF-BOARDED 2026-08-07. Never file new work there. Never confuse it with BTTCF, which is a different and active client. If she types BTTC or BTT, she means BTTCF.\n'+
+  '- Kelli / BT / BTF / Brain Talk = Brain Talk Foundation, OFF-BOARDED 2026-08-07. Never file new work there. Never confuse it with BTTCF, which is a different and active client. If she types BTTC or BTT, she means BTTCF.\n\n'+
+  'CLIENT FACTS you know cold. Contacts are FIRST NAMES ONLY, never invent a surname, title or role:\n'+
+  '- JVI: IR and MSK embolization, Libertyville + Rockford IL. Osman, Mikin, Jessica, the physicians themselves.\n'+
+  '- ECCO Medical: IR, vein, cosmetic. Lone Tree + Pueblo West CO. Lew, Kristine, Jennifer.\n'+
+  '- TVI: vascular, vein, PAD. Dallas, Plano, Hurst. Angela, Lisa.\n'+
+  '- SVV: vascular, IR, womens health. Federal Way WA. Cassandra, Holly, Connor.\n'+
+  '- Desert Cardiovascular: CARDIOLOGY plus endovascular, NOT IR. Las Vegas. Melissa, Holly, Connor.\n'+
+  '- OEIS: a national physician SOCIETY, B2B, not patient-facing. Julie, NOT Dr. Ryan.\n'+
+  '- OBL Marketing: a marketing AGENCY, not a practice, not patient-facing. Denver. Greg, Connor, Stephanie.\n'+
+  '- BTTCF: LGBTQIA+ equity. Todd (client), Brooke (CMS).\n'+
+  '- ASPIRE Therapy: PT, OT, SLP, pelvic. Louisville CO. Jordon Allard.\n'+
+  '- Connor sits on SVV, Desert and OBL, so assume anything told to him travels between them.\n'+
+  '- Never use em dashes in anything client-facing. Not ever.\n'+
+  'You are the same Mo Morgan texts on Telegram. That Mo has tools (repos, email, publishing); you do not, you have her live tasks and loops instead. If she asks you to do something outside this dashboard, say plainly to text Mo instead of guessing.\n'+
   '- If a client is named or implied, that decides the node. If you truly cannot tell which area, ask rather than dumping it in Personal.\n\n'+
   'NOTES AND DETAILS: extra context she gives about a task belongs in notes, not the title. Keep titles short and actionable. Use addNote to append a line to what is already there, and notes only when she wants the existing notes replaced. You can change a task\'s title, notes, area, due date and priority in one update.\n\n'+
   'HOW APPROVAL WORKS - this matters:\n'+
@@ -4586,6 +4607,23 @@ function renderHome(){
   var loops=hmLoadLoops();
   var openLoops=loops.filter(function(l){return !l.done&&l.bucket!=='park';});
   var parkItems=loops.filter(function(l){return !l.done&&l.bucket==='park';});
+  /* Today's Plan — written into mm_daily_brief by the 6:45 weekday routine, arrives via KV sync */
+  var planCard='';
+  try{
+    var pb=JSON.parse(localStorage.getItem('mm_daily_brief')||'null');
+    if(pb&&pb.sections&&pb.sections.length){
+      var stale=pb.date!==_td;
+      var pRows=pb.sections.map(function(s){
+        var items=(s.items||[]).map(function(it){return '<div class="hm-plan-it">'+hmEsc(it)+'</div>';}).join('');
+        return '<div class="hm-plan-sec"><div class="hm-plan-h">'+hmEsc(s.h)+'</div>'+(items||'<div class="hm-empty">Nothing here.</div>')+'</div>';
+      }).join('');
+      planCard='<section class="hm-card hm-c2 hm-plan'+(stale?' hm-plan-stale':'')+'"><div class="hm-card-h"><span class="t">Today\'s plan</span><span class="m">'+(stale?('from '+hmEsc(pb.date)):'Mo &middot; 6:45')+'</span></div>'+
+        (stale?'<div class="hm-plan-note">Yesterday\'s plan. A fresh one lands each weekday morning.</div>':'')+
+        (pb.lead?'<div class="hm-plan-lead">'+hmEsc(pb.lead)+'</div>':'')+pRows+'</section>';
+    }else{
+      planCard='<section class="hm-card hm-c2 hm-plan"><div class="hm-card-h"><span class="t">Today\'s plan</span><span class="m">Mo</span></div><div class="hm-empty">No plan yet. One lands each weekday at 6:45am.</div></section>';
+    }
+  }catch(e){planCard='';}
   var agedCount=openLoops.filter(function(l){return hmAge(l.at)>=7;}).length;
   function hmRow(l,showAge){var d=hmAge(l.at),cls=hmAgeCls(d);
     return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+(showAge?'<span class="hm-age '+cls+'">'+d+'d</span>':'')+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div><button class="hm-prom" data-id="'+l.id+'" title="Turn into a task">&rarr;</button></div>';}
@@ -4609,6 +4647,7 @@ function renderHome(){
   view.innerHTML='<div class="hm-grid">'+
     '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-date-day">'+dateDay+', '+dateBig+'</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
     '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
+    planCard+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+'/'+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
     '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Work split</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
