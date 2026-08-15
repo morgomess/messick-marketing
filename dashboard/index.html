@@ -17,7 +17,8 @@
      seven Cormorant selectors are overridden to Poppins by the restyle. That is five
      fewer font files per load. -->
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('mm_theme')||'dark');}catch(e){}</script>
 <style>
 :root {
   /* ══ CEO COMMAND CENTER ══
@@ -1693,6 +1694,151 @@ body.home-drawer #col-view{background:rgba(10,20,34,0.90)}
   .ck-detail-meta{width:100%}
   .ck-row-tools{opacity:1}
 }
+/* ══ COCKPIT 2026 ══ appended 2026-08-15
+   The brand's own tokens, finally. messick-design-system defines Messick as
+   black #111111, warm white #faf8f5, steel blue #3a6b8a, light blue #5a9ab8,
+   with the descriptor "steel blue as the only real color". The old ice-blue
+   #4d92f5 was not a brand color at all, it was invented for the CEO Command
+   Center pass. Everything below is a REMAP of the existing tokens, so every
+   view (Overview, Brain, Calendar, Clients, Lists) inherits the new palette
+   without touching a single view's own rules.
+
+   Two changes reverse earlier decisions on purpose:
+     · section 7 said "all sans, per brief". Display type is now Fraunces.
+     · the starfield room and the glass blur are off. The reference concepts
+       are flat cards on a quiet ground, and the two do not coexist. */
+
+:root{
+  --bg:#0d151b; --surface:#141f27; --surface-2:#18242d;
+  --black:#eaf1f5; --muted:#9aa9b3; --light:#75858f;
+  --blue:#5a9ab8; --blue-lt:#7db6d0;
+  --blue-pale:rgba(90,154,184,.15);
+  --border:rgba(255,255,255,.075); --border-s:rgba(255,255,255,.15);
+  --glow:rgba(90,154,184,.14); --chip:rgba(255,255,255,.06);
+  --crit:#e0968c; --hi:#d9ae72; --med:#8fb4c6; --lo:#7fbfa6; --teal:#5a9ab8;
+  --rail-bg:#0a1116;
+  --card-shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.26);
+}
+:root[data-theme="light"]{
+  --bg:#faf8f5; --surface:#ffffff; --surface-2:#f4f1ec;
+  --black:#111111; --muted:#5d6870; --light:#8a939b;
+  --blue:#3a6b8a; --blue-lt:#2c5169;
+  --blue-pale:rgba(58,107,138,.09);
+  --border:rgba(17,17,17,.09); --border-s:rgba(17,17,17,.16);
+  --glow:rgba(58,107,138,.08); --chip:rgba(17,17,17,.045);
+  --crit:#8f4038; --hi:#8a6524; --med:#4a6272; --lo:#3f6b57; --teal:#3a6b8a;
+  --rail-bg:#0e1c25;
+  --card-shadow:0 1px 2px rgba(17,17,17,.04),0 8px 24px rgba(17,17,17,.05);
+}
+
+/* ── the ground: quiet, no starfield, no grid ── */
+#bg-scene{display:none!important}
+body{background:var(--bg)!important;background-attachment:initial!important;
+     color:var(--black);transition:background .3s ease,color .3s ease}
+body::before{display:none}
+body::after{
+  content:'';position:fixed;left:50%;top:-380px;width:1400px;height:700px;z-index:0;
+  transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at center,var(--glow) 0%,transparent 68%);
+}
+.hm-card,.col,.mo2-panel,#board-handle,.card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+header{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.hm-card{background:var(--surface)!important}
+.col{background:var(--surface)!important}
+.mo2-panel{background:var(--surface)!important}
+#board-handle{background:var(--surface)!important}
+body.home-drawer #col-view{background:transparent!important}
+
+/* ── display type ── */
+.hm-name2,.hm-greet,.hm-card-h .t,.focus-title,.cal-month,.sr-brand b,
+.at-title,.client-name,.lm-title,.pb-title,.cl-title{
+  font-family:'Fraunces',Georgia,serif!important;font-optical-sizing:auto;
+  letter-spacing:-.012em;
+}
+.hm-name2{font-size:2.1rem!important;font-weight:400!important;line-height:1.1}
+.hm-greet{font-size:1.05rem!important;font-weight:400!important;color:var(--muted)!important}
+.hm-card-h .t{font-size:1.16rem!important;font-weight:400!important;color:var(--black)!important}
+.focus-title{font-size:1.05rem!important;font-weight:400!important}
+
+/* ── the eyebrow, kept and tightened ── */
+.hm-card-h .m,.hm-plan-h{
+  font-size:.6rem!important;font-weight:600!important;letter-spacing:.16em!important;
+  text-transform:uppercase!important;color:var(--light)!important;
+}
+
+/* ── cards ── */
+.hm-card{
+  border:1px solid var(--border)!important;border-radius:14px!important;
+  box-shadow:var(--card-shadow);transition:background .3s ease,border-color .3s ease;
+}
+.hm-card-h{align-items:flex-start!important}
+.hm-grid{gap:16px;max-width:1340px}
+
+/* ── SIDEBAR ── 66px icon strip becomes the concept's named rail ── */
+#app{padding-left:238px}
+#side-rail{
+  width:238px;align-items:stretch;padding:24px 14px 20px;gap:26px;
+  background:var(--rail-bg)!important;border-right:1px solid rgba(255,255,255,.07);
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  overflow-y:auto;
+}
+.sr-logo{display:none}
+.sr-brand{padding:0 10px;display:flex;flex-direction:column;gap:4px;margin-bottom:2px}
+.sr-brand b{font-weight:500;font-size:1.36rem;color:#fff;line-height:1}
+.sr-brand span{font-size:.5rem;letter-spacing:.34em;text-transform:uppercase;color:#7e939f;font-weight:500}
+.sr-group{display:flex;flex-direction:column;gap:2px}
+.sr-glabel{
+  font-size:.565rem;font-weight:600;letter-spacing:.17em;text-transform:uppercase;
+  color:#7e939f;opacity:.8;padding:0 10px;margin-bottom:9px;
+}
+.sr-btn{
+  width:100%;flex-direction:row!important;align-items:center!important;gap:11px!important;
+  padding:9px 10px!important;border-radius:9px!important;color:#7e939f!important;
+  border:1px solid transparent!important;text-align:left;
+}
+.sr-btn:hover{background:rgba(255,255,255,.045)!important;color:#e6eef2!important}
+.sr-btn.on{background:rgba(90,154,184,.17)!important;color:#fff!important;border-color:rgba(90,154,184,.28)!important}
+.sr-ic{height:auto!important;flex-shrink:0}
+.sr-ic svg{width:16px;height:16px}
+.sr-lbl{font-size:.81rem!important;letter-spacing:0!important;font-weight:400}
+.sr-foot{margin-top:auto;padding:0 10px}
+.sr-state{font-size:.71rem;color:#7e939f;line-height:1.55}
+.sr-state b{color:#e6eef2;font-weight:500}
+
+/* ── header slims down: the tabs live in the rail now ── */
+header .h-tabs{display:none}
+header{border-bottom:1px solid var(--border);height:60px}
+.h-date{color:var(--light)}
+.h-btn{border-radius:8px;border-color:var(--border-s);color:var(--muted)}
+.h-btn:hover{border-color:var(--blue);color:var(--black);background:var(--blue-pale)}
+#mm-theme{cursor:pointer}
+
+/* ── controls pick up steel blue ── */
+.h-tab.active{color:var(--blue-lt);background:var(--blue-pale)}
+.qa-btn,.pick-btn{background:var(--blue);border-color:var(--blue)}
+:root[data-theme="light"] .qa-btn,:root[data-theme="light"] .pick-btn{color:#fff}
+
+/* ── light-mode repairs for rules that assumed a dark ground ── */
+:root[data-theme="light"] #login-screen{background:radial-gradient(ellipse at 60% 40%,#ffffff 0%,#f4f1ec 60%,#eae5dd 100%)}
+:root[data-theme="light"] .login-logo h1{color:var(--black)}
+:root[data-theme="light"] .login-logo p{color:var(--light)}
+:root[data-theme="light"] .login-card{background:#fff;border-color:var(--border-s);backdrop-filter:none}
+:root[data-theme="light"] .login-card input{background:#fff;border-color:var(--border-s);color:var(--black)}
+:root[data-theme="light"] .login-card input::placeholder{color:var(--light)}
+:root[data-theme="light"] .h-logo img{filter:invert(1) brightness(.15)}
+:root[data-theme="light"] .col-foot{background:var(--surface-2)}
+:root[data-theme="light"] .col-hdr{background:transparent}
+:root[data-theme="light"] #today-due-section{background:rgba(160,120,50,.06);border-bottom-color:rgba(160,120,50,.18)}
+:root[data-theme="light"] #focus-section,:root[data-theme="light"] #quick-add-bar{background:var(--surface)}
+
+@media (max-width:1100px){
+  #app{padding-left:200px}
+  #side-rail{width:200px}
+}
+@media (max-width:768px){
+  #app{padding-left:0}
+  .hm-name2{font-size:1.7rem!important}
+}
 </style>
   <!-- Meta Pixel Code -->
 <script>
@@ -1749,6 +1895,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="h-btn todo" onclick="openAllTasks()">📋 To-Do</button>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
       <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
+      <button class="h-btn" id="mm-theme" onclick="mmTheme()">☾ Light</button>
       <button class="h-btn" onclick="openPad()">✎ Notes</button>
       <button class="h-btn" onclick="logout()">⎋ Log out</button>
     </div>
@@ -4504,12 +4651,40 @@ function mmSyncTabs(active){
   var rail=document.getElementById('side-rail');
   if(rail)rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});
 }
+function mmTheme(next){
+  var cur=document.documentElement.getAttribute('data-theme')||'dark';
+  var v=next||(cur==='dark'?'light':'dark');
+  document.documentElement.setAttribute('data-theme',v);
+  try{localStorage.setItem('mm_theme',v);}catch(e){}
+  var b=document.getElementById('mm-theme');
+  if(b)b.textContent=(v==='dark'?'☾ Light':'☀ Dark');
+}
+function srState(){
+  var el=document.getElementById('sr-state'); if(!el)return;
+  try{
+    var tasks=loadTodoTasks(),open=tasks.filter(function(t){return !t.done;});
+    var td=todayStr(),over=open.filter(function(t){return t.due&&t.due<td;}).length;
+    var loops=hmLoadLoops(),live=loops.filter(function(l){return !l.done&&l.bucket!=='park';}).length;
+    var park=loops.filter(function(l){return !l.done&&l.bucket==='park';}).length;
+    el.innerHTML='<b>'+open.length+' open</b>'+(over?' &middot; '+over+' overdue':'')+'<br><b>'+live+' loops</b> live, '+park+' parked';
+  }catch(e){}
+}
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
-  var items=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients'],['checklists','Lists']];
+  var groups=[
+    ['Workspace',[['home','Today'],['brain','Tasks'],['calendar','Calendar']]],
+    ['Reference',[['clients','Clients'],['checklists','Playbooks']]]
+  ];
   var rail=document.createElement('nav');rail.id='side-rail';
-  rail.innerHTML='<div class="sr-logo">M</div>'+items.map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('');
+  rail.innerHTML='<div class="sr-brand"><b>Messick</b><span>Marketing</span></div>'+
+    groups.map(function(g){
+      return '<div class="sr-group"><div class="sr-glabel">'+g[0]+'</div>'+
+        g[1].map(function(it){return '<button class="sr-btn" data-tab="'+it[0]+'"><span class="sr-ic">'+(SR_ICON[it[0]]||'')+'</span><span class="sr-lbl">'+it[1]+'</span></button>';}).join('')+
+        '</div>';
+    }).join('')+
+    '<div class="sr-foot"><div class="sr-glabel">State</div><div class="sr-state" id="sr-state"></div></div>';
   document.body.appendChild(rail);
+  srState();
   function sync(active){rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});}
   rail.querySelectorAll('.sr-btn').forEach(function(b){b.addEventListener('click',function(){var tab=b.getAttribute('data-tab');switchMainTab(tab);mmSyncTabs(tab);});});
   sync('home');
@@ -6119,6 +6294,7 @@ function init(){
   ovBindAutoSync();
   try{initMo();}catch(e){}
   try{buildSideRail();}catch(e){}
+  try{mmTheme(document.documentElement.getAttribute('data-theme')||'dark');}catch(e){}
   try{buildTabBar();}catch(e){}
   try{buildBoardHandle();}catch(e){}   /* must exist before the first switchMainTab */
   var mmLanding=MM_IS_PHONE()?'mo':'home';   // phone: Mo first, it is the capture tool
