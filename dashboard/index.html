@@ -1831,6 +1831,45 @@ header{border-bottom:1px solid var(--border);height:60px}
 :root[data-theme="light"] #today-due-section{background:rgba(160,120,50,.06);border-bottom-color:rgba(160,120,50,.18)}
 :root[data-theme="light"] #focus-section,:root[data-theme="light"] #quick-add-bar{background:var(--surface)}
 
+/* ── BREAK IT DOWN ── */
+.bd-panel{
+  background:var(--surface);border:1px solid rgba(90,154,184,.22);border-radius:14px;
+  padding:20px 22px 22px;margin:0 0 18px;box-shadow:var(--card-shadow);
+  background-image:linear-gradient(180deg,var(--blue-pale) 0%,transparent 70%);
+}
+:root[data-theme="light"] .bd-panel{border-color:rgba(58,107,138,.22)}
+.bd-panel .ck-eyebrow{color:var(--blue)!important}
+.bd-title{
+  font-family:'Fraunces',Georgia,serif;font-size:1.32rem;font-weight:400;
+  color:var(--black);margin-top:5px;letter-spacing:-.012em;
+}
+.bd-lede{font-size:.8rem;color:var(--muted);margin-top:7px;line-height:1.55;max-width:64ch}
+.bd-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.bd-row input{
+  flex:1;min-width:220px;padding:11px 15px;border-radius:10px;
+  border:1px solid var(--border-s);background:var(--bg);color:var(--black);
+  font-family:inherit;font-size:.84rem;outline:none;transition:border-color .18s,box-shadow .18s;
+}
+.bd-row input::placeholder{color:var(--light)}
+.bd-row input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.bd-row .ck-btn{flex-shrink:0}
+.bd-row .ck-btn:disabled{opacity:.6;cursor:default}
+.bd-status{font-size:.76rem;margin-top:10px;min-height:1em;color:var(--light)}
+.bd-status.work{color:var(--blue)}
+.bd-status.err{color:var(--crit)}
+.bd-applied{
+  background:var(--blue-pale);border:1px solid rgba(90,154,184,.22);
+  border-radius:12px;padding:14px 16px;margin:0 0 16px;
+}
+:root[data-theme="light"] .bd-applied{border-color:rgba(58,107,138,.2)}
+.bd-applied .ck-eyebrow{color:var(--blue)!important;margin-bottom:9px}
+.bd-rules{display:flex;flex-wrap:wrap;gap:7px}
+.bd-rule{
+  font-size:.7rem;padding:5px 10px;border-radius:7px;background:var(--surface);
+  border:1px solid rgba(90,154,184,.24);color:var(--blue);font-weight:500;line-height:1.4;
+}
+:root[data-theme="light"] .bd-rule{border-color:rgba(58,107,138,.22)}
+
 @media (max-width:1100px){
   #app{padding-left:200px}
   #side-rail{width:200px}
@@ -5700,6 +5739,17 @@ function ckGridHTML(all){
         <button class="ck-btn primary" onclick="ckNew()">+ New checklist</button>
       </div>
     </div>
+    <div class="bd-panel">
+      <div class="ck-eyebrow">Checked against your rules first</div>
+      <div class="bd-title">Break it down.</div>
+      <p class="bd-lede">Name a project. It gets read against your brand rules, the client roster and what is already open, then cut into steps small enough to tick off.</p>
+      <div class="bd-row">
+        <input id="bd-in" placeholder="e.g. Draft blog post for BTTCF"
+          onkeydown="if(event.key==='Enter')bdRun()" autocomplete="off">
+        <button class="ck-btn primary" id="bd-go" onclick="bdRun()">Break it down</button>
+      </div>
+      <div class="bd-status" id="bd-status"></div>
+    </div>
     ${all.length?`<div class="ck-grid">${cards}</div>`
       :'<div class="ck-empty">No checklists yet. Create one to get started.</div>'}`;
 }
@@ -5756,8 +5806,14 @@ function ckDetailHTML(c){
         onkeydown="if(event.key==='Enter'){ckAddItem('${sec.id}',this.value);this.value='';}"></div>`:''}
     </div>`;
   }).join('');
+  const ruleBox=(Array.isArray(c.rules)&&c.rules.length)
+    ?`<div class="bd-applied">
+        <div class="ck-eyebrow">Rules it checked first</div>
+        <div class="bd-rules">${c.rules.map(r=>`<span class="bd-rule">${bEsc(r)}</span>`).join('')}</div>
+      </div>`:'';
   return `<div>
     <button class="ck-back" onclick="ckBack()">&#8592; All checklists</button>
+    ${ruleBox}
     <div class="ck-detail-head">
       <div style="flex:1;min-width:220px">
         <div class="ck-eyebrow">Checklist</div>
@@ -5850,6 +5906,94 @@ function ckNew(){
   const c={id:uid(),title:t.trim(),sub:'',resetAt:null,sections:[ckSec('Steps',[])]};
   all.push(c);ckSave(all);
   ckOpenId=c.id;ckEditMode=true;ckEditingItem=null;renderChecklists();
+}
+/* ── BREAK IT DOWN ──
+   Generates a REAL checklist into mm_checklists rather than living as its own
+   widget, so it inherits ticking, editing, reset and the mm_* KV sync for free.
+   No `seed`, so CK_CONTENT_REV bumps never touch what it produces.
+
+   The rules array is the point. A generic step generator is worthless; what
+   makes it hers is naming which of her rules it applied before writing a step,
+   so a collision (BTTCF vs Brain Talk, patient voice at a society) surfaces
+   before the work starts rather than after it ships. */
+let bdBusy=false;
+function bdRules(){
+  return [
+    'Never use em dashes in anything client-facing. Comma, period, or restructure.',
+    'Client-facing reports and copy use the agency "we" voice, not "you should".',
+    'Contacts are FIRST NAMES ONLY. Never invent a surname, title or role.',
+    'Never identify a person in an image or video from context, a roster or a filename.',
+    'OEIS is a physician SOCIETY and OBL Marketing is an AGENCY. Neither is patient-facing, so patient-voice healthcare copy is wrong for both.',
+    'BTTCF (Be The Transformational Change Fund) is an ACTIVE LGBTQIA+ equity client. Brain Talk Foundation / Dr. Kelli is OFF-BOARDED. BTTC and BTT mean BTTCF. Never conflate them.',
+    'Desert Cardiovascular is CARDIOLOGY plus endovascular, not IR.',
+    'JVI: red heart emoji, never blue. No cartoon treatments and no stock photography (Jessica, 2026-08-14). JVI does NOT offer kyphoplasty.',
+    'Virtueasy is sold TO virtual assistants, never to businesses hiring one.',
+    'Show one thing and wait. Paid generations, batches and renders need approval first.',
+    'Anything a client or the public sees needs approval before it goes out.'
+  ].join('\n');
+}
+function bdRun(){
+  if(bdBusy)return;
+  const inp=document.getElementById('bd-in'),st=document.getElementById('bd-status');
+  const q=inp?inp.value.trim():'';
+  if(!q){if(st)st.textContent='Name a project first.';return;}
+  bdBusy=true;
+  const go=document.getElementById('bd-go');
+  if(go){go.disabled=true;go.textContent='Reading your rules…';}
+  if(st){st.className='bd-status work';st.textContent='Checking it against the roster and the brand rules.';}
+
+  const prompt='You break a piece of agency work into the smallest steps that can actually be ticked off.\n'+
+    'You are working inside Morgan Messick\'s dashboard. She runs Messick Marketing, a healthcare content agency.\n\n'+
+    '=== HER STANDING RULES ===\n'+bdRules()+'\n\n'+
+    '=== CLIENTS ===\n'+
+    'JVI (Joint & Vascular Institute, IR/MSK embolization, Libertyville + Rockford IL, contacts Osman, Mikin, Jessica). '+
+    'ECCO Medical (IR/vein/cosmetic, Lone Tree + Pueblo West CO, Lew, Kristine, Jennifer). '+
+    'TVI (Texas Vascular Institute, vascular/vein/PAD, Dallas/Plano/Hurst, Angela, Lisa). '+
+    'SVV (Sound Vascular & Vein, Federal Way WA, Cassandra, Holly, Connor). '+
+    'Desert Cardiovascular (cardiology + endovascular, Las Vegas, Melissa, Holly, Connor). '+
+    'OEIS (national physician society, B2B, Julie). OBL Marketing (a marketing agency, Denver, Greg, Connor, Stephanie). '+
+    'BTTCF (LGBTQIA+ equity, Todd, Brooke). ASPIRE Therapy & Wellness (PT/OT/SLP/pelvic, Louisville CO, Jordon). '+
+    'Her own brands: Virtueasy, Bad Bible Stories, Doggy See Doggy Do, Messick Marketing.\n\n'+
+    '=== HER TOOLING ===\n'+
+    'Airtable holds content calendars and keywords. AIOS is the worker that drafts blog posts and social copy into Airtable. '+
+    'Metricool schedules and publishes. Moxie handles invoicing. Sites deploy from the main branch of their GitHub repo. '+
+    'Rida executes much of the client social posting. Jacob owns video calendars. Remotion renders motion graphics, CapCut edits.\n\n'+
+    '=== WHAT IS ALREADY OPEN ===\n'+moContext()+'\n\n'+
+    '=== THE REQUEST ===\n'+q+'\n\n'+
+    'Return ONE JSON object and nothing else:\n'+
+    '{"title":"short name for this checklist","sub":"one short line of context","rules":["the specific rules you applied, quoted short, 2 to 5 of them"],'+
+    '"sections":[{"title":"section name","items":["step","step"]}]}\n\n'+
+    'Rules for your output: steps must be concrete and doable in one sitting, naming the actual tool where it matters '+
+    '(Airtable, AIOS, Metricool, Moxie, the site repo). 8 to 16 steps total across 2 to 4 sections. '+
+    'The "rules" array must name the rules that ACTUALLY bear on THIS request, not a generic list; if a client is named, '+
+    'include the rule specific to that client. Do not use em dashes anywhere. No markdown.';
+
+  fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:prompt})})
+    .then(r=>r.json())
+    .then(d=>{
+      const raw=(d&&(d.text||d.error))?(d.text||('Worker error: '+d.error)):'';
+      const clean=String(raw).replace(/```json/g,'').replace(/```/g,'').trim();
+      const m=clean.match(/\{[\s\S]*\}/);
+      const p=JSON.parse(m?m[0]:clean);
+      if(!p||!Array.isArray(p.sections)||!p.sections.length)throw new Error('no steps came back');
+      const all=ckLoad();
+      const c={id:uid(),title:(p.title||q).slice(0,90),sub:(p.sub||'').slice(0,140),
+        rules:Array.isArray(p.rules)?p.rules.slice(0,6).map(x=>String(x).slice(0,160)):[],
+        resetAt:null,
+        sections:p.sections.slice(0,5).map(s=>ckSec(String(s.title||'Steps').slice(0,70),
+          (Array.isArray(s.items)?s.items:[]).slice(0,20).map(t=>String(t).slice(0,220))))};
+      if(!c.sections.some(s=>s.items.length))throw new Error('no steps came back');
+      all.push(c);ckSave(all);
+      bdBusy=false;ckOpenId=c.id;ckEditMode=false;renderChecklists();
+    })
+    .catch(e=>{
+      bdBusy=false;
+      const g=document.getElementById('bd-go');
+      if(g){g.disabled=false;g.textContent='Break it down';}
+      const s2=document.getElementById('bd-status');
+      if(s2){s2.className='bd-status err';s2.textContent='That did not come back usable ('+(e&&e.message?e.message:'request failed')+'). Try naming the client explicitly.';}
+    });
 }
 function ckDelete(id){
   const all=ckLoad(),c=all.find(x=>x.id===id);
