@@ -1831,6 +1831,75 @@ header{border-bottom:1px solid var(--border);height:60px}
 :root[data-theme="light"] #today-due-section{background:rgba(160,120,50,.06);border-bottom-color:rgba(160,120,50,.18)}
 :root[data-theme="light"] #focus-section,:root[data-theme="light"] #quick-add-bar{background:var(--surface)}
 
+/* ══ HOME, THE CONCEPT LAYOUT ══
+   The bento grid is gone from Home. Hero band, then a wide working column
+   beside a narrow rail, then the numbers demoted to a strip. renderHome()
+   builds .hm2 now; .hm-grid rules below are left alone because other views
+   still use the hm-* card classes. */
+.hm2{max-width:1340px;margin:0 auto;width:100%;padding:0 4px 28px}
+.hm2-hero{padding:26px 4px 24px}
+.hm2-tag{display:flex;align-items:center;gap:8px;font-size:.6rem;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--light)}
+.hm2-tag i{width:6px;height:6px;border-radius:50%;background:var(--blue);display:block}
+.hm2-h{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;
+  font-size:2.5rem;font-weight:400;letter-spacing:-.02em;line-height:1.08;
+  color:var(--black);margin-top:11px}
+.hm2-sub{font-size:.85rem;color:var(--muted);line-height:1.62;max-width:68ch;margin-top:13px}
+.hm2-hero .hm-chips{margin-top:16px}
+
+.hm2-cols{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);
+  gap:16px;align-items:start}
+.hm2-main,.hm2-rail{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hm2-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+  align-items:start;margin-top:16px}
+
+.hm2-card{padding:20px 22px 18px}
+.hm2-ch{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.hm2-eb{font-size:.6rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--light)}
+.hm2-t{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;
+  font-size:1.24rem;font-weight:400;letter-spacing:-.012em;color:var(--black);margin-top:5px}
+.hm2-m{font-size:.74rem;color:var(--light);flex-shrink:0;margin-top:6px}
+.hm2-count b.aging{color:var(--hi);font-weight:500}
+
+.hm2-bar{height:3px;border-radius:99px;background:var(--border);overflow:hidden;margin-bottom:6px}
+.hm2-bar i{display:block;height:100%;border-radius:99px;background:var(--blue);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.hm2-tasks{margin:0 -10px}
+.hm2-task{display:flex;align-items:flex-start;gap:12px;padding:13px 10px;
+  border-bottom:1px solid var(--border);border-radius:9px;transition:background .16s}
+.hm2-task:last-child{border-bottom:0}
+.hm2-task:hover{background:var(--blue-pale)}
+.hm2-task .hm-rad{flex-shrink:0;margin-top:2px}
+.hm2-tb{flex:1;min-width:0}
+.hm2-tt{font-size:.875rem;color:var(--black);line-height:1.42}
+.hm2-tm{font-size:.715rem;color:var(--light);margin-top:4px}
+.hm2-task.over .hm2-tm{color:var(--crit)}
+.hm2-pill{font-size:.575rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  padding:4px 9px;border-radius:6px;flex-shrink:0;margin-top:2px;white-space:nowrap}
+.hm2-pill.critical,.hm2-pill.high{color:var(--crit);background:var(--crit-bg,rgba(224,150,140,.13))}
+.hm2-pill.medium{color:var(--hi);background:rgba(217,174,114,.13)}
+.hm2-pill.low{color:var(--med);background:var(--blue-pale)}
+:root[data-theme="light"] .hm2-pill.critical,:root[data-theme="light"] .hm2-pill.high{background:rgba(160,74,64,.11)}
+:root[data-theme="light"] .hm2-pill.medium{background:rgba(160,120,50,.12)}
+
+.hm2-money{display:flex;gap:22px;flex-wrap:wrap}
+.hm2-money .mb-item{display:flex;flex-direction:column;gap:3px}
+.hm2-money i{font-style:normal;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--light)}
+.hm2-money b{font-size:1.15rem;font-weight:500}
+.hm2-strip .ytd2{font-size:.72rem;color:var(--light);margin-top:12px;display:block}
+
+/* the plan card drops its own chrome and adopts the new card head */
+.hm2-main .hm-plan{padding:20px 22px 18px}
+.hm2-main .hm-plan .hm-card-h{align-items:flex-start;margin-bottom:12px}
+
+@media (max-width:1200px){
+  .hm2-cols{grid-template-columns:1fr}
+  .hm2-strip{grid-template-columns:1fr}
+}
+@media (max-width:768px){
+  .hm2-h{font-size:1.85rem}
+  .hm2{padding:0 0 24px}
+}
+
 /* ── LAYOUT REPAIRS after the rail widened from 66px to 238px ──
    Grid items were stretching to the tallest row, so the hero and Shortcuts
    inflated to match Today's plan and left a screen of dead space. The old
@@ -4781,8 +4850,26 @@ function renderHome(){
   var r=48,c=2*Math.PI*r,off=c*(1-pct/100);
   var ring='<svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg)"><defs><linearGradient id="hmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--blue)"/><stop offset="1" stop-color="var(--blue-lt)"/></linearGradient></defs><circle cx="55" cy="55" r="'+r+'" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="55" cy="55" r="'+r+'" fill="none" stroke="url(#hmg)" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'"/></svg>';
   var pOrd={critical:0,high:1,medium:2,low:3,none:4};
-  var shown=open.slice().sort(function(a,b){return (pOrd[a.priority]==null?4:pOrd[a.priority])-(pOrd[b.priority]==null?4:pOrd[b.priority]);}).slice(0,6);
-  var tRows=shown.length?shown.map(function(t){var hi=(t.priority==='high'||t.priority==='critical');var tag=t.due?hmDue(t.due):((t.priority&&t.priority!=='none')?t.priority:'');return '<div class="hm-trow"><span class="hm-rad" data-id="'+t.id+'"></span><span class="hm-nm">'+hmEsc(t.text)+'</span>'+(tag?'<span class="hm-tag'+(hi?' hi':'')+'">'+hmEsc(tag)+'</span>':'')+'</div>';}).join(''):'<div class="hm-empty">All clear - no open tasks.</div>';
+  /* Overdue first, then due today, then by priority. Priority alone put a
+     medium with no date above an overdue low, which is the wrong order. */
+  var shown=open.slice().sort(function(a,b){
+    var ao=(a.due&&a.due<_td)?0:(a.due===_td?1:2), bo=(b.due&&b.due<_td)?0:(b.due===_td?1:2);
+    if(ao!==bo)return ao-bo;
+    var ap=(pOrd[a.priority]==null?4:pOrd[a.priority]), bp=(pOrd[b.priority]==null?4:pOrd[b.priority]);
+    if(ap!==bp)return ap-bp;
+    return String(a.due||'9999').localeCompare(String(b.due||'9999'));
+  }).slice(0,10);
+  var tRows=shown.length?shown.map(function(t){
+    var pr=(t.priority&&t.priority!=='none')?t.priority:'';
+    var over=(t.due&&_td&&t.due<_td), meta=[];
+    if(t.due)meta.push(over?'Overdue':(t.due===_td?'Due today':hmDue(t.due)));
+    if(t.brand)meta.push(t.brand);
+    return '<div class="hm2-task'+(over?' over':'')+'">'+
+      '<span class="hm-rad" data-id="'+t.id+'"></span>'+
+      '<div class="hm2-tb"><div class="hm2-tt">'+hmEsc(t.text)+'</div>'+
+      (meta.length?'<div class="hm2-tm">'+hmEsc(meta.join(' · '))+'</div>':'')+'</div>'+
+      (pr?'<span class="hm2-pill '+pr+'">'+pr+'</span>':'')+'</div>';
+  }).join(''):'<div class="hm-empty">All clear, nothing open.</div>';
   var up=open.filter(function(t){return t.due;}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,4);
   var evRows=up.length?up.map(function(t){var d=hmParse(t.due);
     var over=(t.due&&_td&&t.due<_td), today=(t.due===_td);
@@ -4881,31 +4968,76 @@ function renderHome(){
     spark='<svg class="hm-spark" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M'+pts+'" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}}catch(e){}
   var loopRows=openLoops.length?openLoops.map(function(l){return hmRow(l,true);}).join(''):'<div class="hm-empty">Nothing waiting on anyone.</div>';
   var parkRows=parkItems.length?parkItems.map(function(l){return hmRow(l,false);}).join(''):'<div class="hm-empty">Nothing parked.</div>';
-  view.innerHTML='<div class="hm-grid">'+
-    '<section class="hm-card hm-hero3"><div class="hm-hrow"><div><div class="hm-greet">'+greet+'</div><div class="hm-name2">Morgan</div><div class="hm-date-day">'+dateDay+', '+dateBig+'</div></div><span class="hm-time2">'+timeStr+'</span></div><div class="hm-chips">'+
-    '<span class="hm-chip">'+open.length+' open</span>'+(dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+(overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+'</div>'+spark+'</section>'+
-    planCard+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Shortcuts</span></div><div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Productivity</span><span class="m">'+done+'/'+total+'</span></div><div class="hm-prod2"><div class="hm-ring2">'+ring+'<span class="rc">'+pct+'%</span></div><div class="hm-note2">'+(pct>=80?'Great progress':(pct>=50?'On track':(pct>0?'Keep going':'Fresh start')))+'</div></div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Work split</span><span class="m">open tasks</span></div><div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Upcoming</span><span class="m">by due</span></div>'+evRows+'</section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Open loops</span><span class="m">'+openLoops.length+(agedCount?' &middot; <span style="color:var(--hi)">'+agedCount+' aging</span>':'')+'</span></div><div class="hm-loops">'+loopRows+'</div><div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-c2"><div class="hm-card-h"><span class="t">Parking lot</span><span class="m">'+parkItems.length+'</span></div><div class="hm-loops">'+parkRows+'</div><div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div></section>'+
-    '<section class="hm-card hm-c2 hm-leads"><div class="hm-card-h"><span class="t">Leads</span><a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a></div>'+
-      (leadsArr.length
-        ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
-           (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
-           (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
-        : '<div class="hm-empty">No leads saved yet.</div>')+
-    '</section>'+
-    '<section class="hm-card hm-money hm-moneybar">'+
-      '<span class="t">Money</span>'+
-      '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
-      '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
-      '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
-      '<span class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</span>'+
-      '<span class="m">Moxie + Expenses</span>'+
-    '</section>'+
+  /* ── the concept layout ──
+     A hero band that is not a card, then one wide working column beside a
+     narrow rail, then the numbers demoted to a strip underneath. The old
+     4-column bento gave a lead sentence the same weight as a sparkline. */
+  var planLead='', planSecs='';
+  try{
+    var _pb=JSON.parse(localStorage.getItem('mm_daily_brief')||'null');
+    if(_pb&&_pb.date===_td&&_pb.lead)planLead=hmEsc(_pb.lead);
+  }catch(e){}
+  var eyebrow=dateDay+' focus';
+  var hCard=function(eb,title,meta,body,cls){
+    return '<section class="hm-card hm2-card'+(cls?' '+cls:'')+'">'+
+      '<div class="hm2-ch"><div><div class="hm2-eb">'+eb+'</div><div class="hm2-t">'+title+'</div></div>'+
+      (meta?'<div class="hm2-m">'+meta+'</div>':'')+'</div>'+body+'</section>';
+  };
+
+  view.innerHTML='<div class="hm2">'+
+    '<div class="hm2-hero">'+
+      '<div class="hm2-tag"><i></i>'+hmEsc(eyebrow)+'</div>'+
+      '<h2 class="hm2-h">'+greet+' Morgan.</h2>'+
+      (planLead?'<p class="hm2-sub">'+planLead+'</p>':'')+
+      '<div class="hm-chips">'+
+        '<span class="hm-chip">'+open.length+' open</span>'+
+        (dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+
+        (overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+
+        '<span class="hm-chip">'+dateDay+', '+dateBig+'</span>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="hm2-cols">'+
+      '<div class="hm2-main">'+
+        hCard('The work that moves the needle','Today&rsquo;s priorities',
+          '<span class="hm2-count">'+done+'/'+total+' complete</span>',
+          '<div class="hm2-bar"><i style="width:'+pct+'%"></i></div>'+
+          '<div class="hm2-tasks">'+tRows+'</div>'+
+          '<div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, then Enter" autocomplete="off"></div>')+
+        planCard+
+      '</div>'+
+
+      '<div class="hm2-rail">'+
+        hCard('By due date','Upcoming','',evRows)+
+        hCard('Nothing moves until these do','Waiting',
+          '<span class="hm2-count">'+openLoops.length+(agedCount?' &middot; <b class="aging">'+agedCount+' aging</b>':'')+'</span>',
+          '<div class="hm-loops">'+loopRows+'</div>'+
+          '<div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div>')+
+        hCard('Not now, not never','Parking lot','<span class="hm2-count">'+parkItems.length+'</span>',
+          '<div class="hm-loops">'+parkRows+'</div>'+
+          '<div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div>')+
+        hCard('Your launchpad','Quick access','','<div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div>')+
+      '</div>'+
+    '</div>'+
+
+    '<div class="hm2-strip">'+
+      hCard('This month','Money',
+        '<span class="hm2-count">Moxie + Expenses</span>',
+        '<div class="hm2-money">'+
+          '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
+          '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
+          '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
+        '</div><div class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</div>')+
+      hCard('Open tasks','Work split','',
+        '<div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div>')+
+      hCard('New business','Leads',
+        '<a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a>',
+        (leadsArr.length
+          ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
+             (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
+             (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
+          : '<div class="hm-empty">No leads saved yet.</div>'),'hm-leads')+
+    '</div>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var qi=document.getElementById('hm-task-input');
