@@ -1845,6 +1845,13 @@ header{border-bottom:1px solid var(--border);height:60px}
   font-size:2.5rem;font-weight:400;letter-spacing:-.02em;line-height:1.08;
   color:var(--black);margin-top:11px}
 .hm2-sub{font-size:.85rem;color:var(--muted);line-height:1.62;max-width:68ch;margin-top:13px}
+.hm2-src{display:block;font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--light);margin-top:9px}
+
+/* The open-task count was on screen four times: this stat, the hero chips, the
+   sidebar State block and the task-board handle. The To-Do button beside it
+   opens the same overlay, so this one goes. */
+#completion-stat{display:none}
 .hm2-hero .hm-chips{margin-top:16px}
 
 .hm2-cols{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);
@@ -5019,10 +5026,17 @@ function renderHome(){
      A hero band that is not a card, then one wide working column beside a
      narrow rail, then the numbers demoted to a strip underneath. The old
      4-column bento gave a lead sentence the same weight as a sparkline. */
-  var planLead='', planSecs='';
+  /* The brief's lead is the only part of it that is not already on screen.
+     Its Today items are the priorities list, its Waiting items are the loops
+     card, its This week items are Upcoming. So the lead moves to the hero and
+     the plan card is gone; rendering it too was the duplication. */
+  var planLead='', planWhen='';
   try{
     var _pb=JSON.parse(localStorage.getItem('mm_daily_brief')||'null');
-    if(_pb&&_pb.date===_td&&_pb.lead)planLead=hmEsc(_pb.lead);
+    if(_pb&&_pb.lead){
+      planLead=hmEsc(_pb.lead);
+      planWhen=(_pb.date===_td)?'Mo, this morning':('Mo, '+hmEsc(_pb.date));
+    }
   }catch(e){}
   var eyebrow=dateDay+' focus';
   var tPct=tTotal?Math.round(tDone/tTotal*100):0;
@@ -5036,7 +5050,7 @@ function renderHome(){
     '<div class="hm2-hero">'+
       '<div class="hm2-tag"><i></i>'+hmEsc(eyebrow)+'</div>'+
       '<h2 class="hm2-h">'+greet+' Morgan.</h2>'+
-      (planLead?'<p class="hm2-sub">'+planLead+'</p>':'')+
+      (planLead?'<p class="hm2-sub">'+planLead+'<span class="hm2-src">'+planWhen+'</span></p>':'')+
       '<div class="hm-chips">'+
         '<span class="hm-chip">'+open.length+' open</span>'+
         (dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+
@@ -5064,7 +5078,6 @@ function renderHome(){
           '<div class="hm2-bar"><i style="width:'+tPct+'%"></i></div>'+
           '<div class="hm2-tasks">'+tRows+'</div>'+
           '<div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, then Enter" autocomplete="off"></div>')+
-        planCard+
       '</div>'+
 
       '<div class="hm2-rail">'+
