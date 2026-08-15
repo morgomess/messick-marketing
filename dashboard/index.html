@@ -1831,6 +1831,29 @@ header{border-bottom:1px solid var(--border);height:60px}
 :root[data-theme="light"] #today-due-section{background:rgba(160,120,50,.06);border-bottom-color:rgba(160,120,50,.18)}
 :root[data-theme="light"] #focus-section,:root[data-theme="light"] #quick-add-bar{background:var(--surface)}
 
+/* ── LAYOUT REPAIRS after the rail widened from 66px to 238px ──
+   Grid items were stretching to the tallest row, so the hero and Shortcuts
+   inflated to match Today's plan and left a screen of dead space. The old
+   sheet set align-content but never align-items, which is the one that
+   governs item height. The fixed drawer and its handle were still offset
+   66px and so ran under the new rail. */
+.hm-grid{align-items:start}
+#board-handle{left:238px}
+body.home-drawer #col-view{left:238px}
+@media (max-width:1100px){
+  #board-handle{left:200px}
+  body.home-drawer #col-view{left:200px}
+}
+@media (max-width:768px){
+  #board-handle{left:0}
+  body.home-drawer #col-view{left:0}
+}
+
+/* the plan lead was reading as a heading, not as a sentence */
+.hm-plan-lead{font-size:.83rem!important;color:var(--muted)!important;line-height:1.6!important}
+.hm-plan-it:first-of-type{color:var(--black)}
+.hm-spark{opacity:.55}
+
 /* ── BREAK IT DOWN ── */
 .bd-panel{
   background:var(--surface);border:1px solid rgba(90,154,184,.22);border-radius:14px;
