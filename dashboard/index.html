@@ -1881,6 +1881,28 @@ header{border-bottom:1px solid var(--border);height:60px}
 :root[data-theme="light"] .hm2-pill.critical,:root[data-theme="light"] .hm2-pill.high{background:rgba(160,74,64,.11)}
 :root[data-theme="light"] .hm2-pill.medium{background:rgba(160,120,50,.12)}
 
+/* Mo as the first thing in the working column, not a bubble in the corner.
+   The floating fab stays as the way back to the conversation from any tab. */
+.hm2-mo{border-color:rgba(90,154,184,.26);
+  background-image:linear-gradient(180deg,var(--blue-pale) 0%,transparent 72%)}
+:root[data-theme="light"] .hm2-mo{border-color:rgba(58,107,138,.24)}
+.hm2-mo .hm2-eb{color:var(--blue)}
+.hm2-molede{font-size:.8rem;color:var(--muted);line-height:1.58;max-width:60ch;margin:-6px 0 14px}
+.hm2-moin{display:flex;align-items:center;gap:8px;border:1px solid var(--border-s);
+  border-radius:11px;background:var(--bg);padding:5px 5px 5px 15px;transition:border-color .18s,box-shadow .18s}
+.hm2-moin:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-pale)}
+.hm2-moin input{flex:1;border:0;outline:0;background:transparent;font-family:inherit;
+  font-size:.84rem;color:var(--black);padding:10px 0}
+.hm2-moin input::placeholder{color:var(--light)}
+.hm2-moin button{width:34px;height:34px;border-radius:8px;border:0;background:var(--blue);
+  color:#fff;font-size:1rem;line-height:1;cursor:pointer;flex-shrink:0;transition:filter .18s}
+.hm2-moin button:hover{filter:brightness(1.12)}
+:root[data-theme="light"] .hm2-moin button{color:#fff}
+.hm2-mochips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hm2-mochip{font-family:inherit;font-size:.735rem;padding:7px 13px;border-radius:99px;
+  cursor:pointer;border:1px solid var(--border-s);background:transparent;color:var(--muted);transition:all .18s}
+.hm2-mochip:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-pale)}
+
 .hm2-money{display:flex;gap:22px;flex-wrap:wrap}
 .hm2-money .mb-item{display:flex;flex-direction:column;gap:3px}
 .hm2-money i{font-style:normal;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--light)}
@@ -4747,6 +4769,12 @@ function initMo(){
   panel.querySelector('#mo2-x').addEventListener('click',function(){panel.classList.add('hidden');});
   panel.querySelector('#mo2-send').addEventListener('click',function(){handle(input.value);input.value='';});
   input.addEventListener('keydown',function(e){if(e.key==='Enter'){handle(input.value);input.value='';}});
+  /* Home's Mo card needs a way in. handle() is closure-scoped, so expose one
+     entry point rather than duplicating the conversation logic on Home. */
+  window.moAsk=function(q){
+    panel.classList.remove('hidden');
+    if(q&&q.trim())handle(q); else input.focus();
+  };
 }
 
 /* ===== LEFT SIDEBAR NAV (added) ===== */
@@ -4870,7 +4898,10 @@ function renderHome(){
       (meta.length?'<div class="hm2-tm">'+hmEsc(meta.join(' · '))+'</div>':'')+'</div>'+
       (pr?'<span class="hm2-pill '+pr+'">'+pr+'</span>':'')+'</div>';
   }).join(''):'<div class="hm-empty">All clear, nothing open.</div>';
-  var up=open.filter(function(t){return t.due;}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,4);
+  /* Upcoming must not restate the priorities list. Strictly future due dates,
+     and never an id already shown above, or the rail just mirrors the column. */
+  var shownIds={}; shown.forEach(function(t){shownIds[t.id]=1;});
+  var up=open.filter(function(t){return t.due&&t.due>_td&&!shownIds[t.id];}).sort(function(a,b){return a.due<b.due?-1:1;}).slice(0,5);
   var evRows=up.length?up.map(function(t){var d=hmParse(t.due);
     var over=(t.due&&_td&&t.due<_td), today=(t.due===_td);
     return '<div class="hm-ev'+(over?' ev-over':(today?' ev-today':''))+'">'+
@@ -4978,6 +5009,11 @@ function renderHome(){
     if(_pb&&_pb.date===_td&&_pb.lead)planLead=hmEsc(_pb.lead);
   }catch(e){}
   var eyebrow=dateDay+' focus';
+  /* done/total counted every task ever created, which read as "146/165" against
+     a list of nine. Scope the bar to what is actually live today. */
+  var tScope=tasks.filter(function(t){return t.due&&t.due<=_td;});
+  var tTotal=tScope.length, tDone=tScope.filter(function(t){return t.done;}).length;
+  var tPct=tTotal?Math.round(tDone/tTotal*100):0;
   var hCard=function(eb,title,meta,body,cls){
     return '<section class="hm-card hm2-card'+(cls?' '+cls:'')+'">'+
       '<div class="hm2-ch"><div><div class="hm2-eb">'+eb+'</div><div class="hm2-t">'+title+'</div></div>'+
@@ -4999,9 +5035,21 @@ function renderHome(){
 
     '<div class="hm2-cols">'+
       '<div class="hm2-main">'+
+        '<section class="hm-card hm2-card hm2-mo">'+
+          '<div class="hm2-ch"><div><div class="hm2-eb">Messick OS</div>'+
+          '<div class="hm2-t">What should I do next?</div></div></div>'+
+          '<p class="hm2-molede">Ask about priorities, clients, what is blocked, or the fastest path to revenue. Shorthand works: &ldquo;JVI blog fri high&rdquo;.</p>'+
+          '<div class="hm2-moin"><input id="hm2-mo-input" placeholder="Ask Mo, or tell her to change something&hellip;" autocomplete="off">'+
+          '<button id="hm2-mo-go" aria-label="Ask Mo">&#8594;</button></div>'+
+          '<div class="hm2-mochips">'+
+            '<button class="hm2-mochip">What is blocked?</button>'+
+            '<button class="hm2-mochip">What should I start with?</button>'+
+            '<button class="hm2-mochip">Summarise my open loops</button>'+
+          '</div>'+
+        '</section>'+
         hCard('The work that moves the needle','Today&rsquo;s priorities',
-          '<span class="hm2-count">'+done+'/'+total+' complete</span>',
-          '<div class="hm2-bar"><i style="width:'+pct+'%"></i></div>'+
+          '<span class="hm2-count">'+tDone+'/'+tTotal+' in scope today</span>',
+          '<div class="hm2-bar"><i style="width:'+tPct+'%"></i></div>'+
           '<div class="hm2-tasks">'+tRows+'</div>'+
           '<div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, then Enter" autocomplete="off"></div>')+
         planCard+
@@ -5040,6 +5088,13 @@ function renderHome(){
     '</div>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
+  var moIn=document.getElementById('hm2-mo-input'), moGo=document.getElementById('hm2-mo-go');
+  var moFire=function(){var v=moIn?moIn.value.trim():''; if(!v)return; if(typeof moAsk==='function')moAsk(v); if(moIn)moIn.value='';};
+  if(moGo)moGo.addEventListener('click',moFire);
+  if(moIn)moIn.addEventListener('keydown',function(e){if(e.key==='Enter')moFire();});
+  view.querySelectorAll('.hm2-mochip').forEach(function(el){
+    el.addEventListener('click',function(){if(typeof moAsk==='function')moAsk(el.textContent);});
+  });
   var qi=document.getElementById('hm-task-input');
   if(qi)qi.addEventListener('keydown',function(e){if(e.key==='Enter'&&qi.value.trim()){hmAddTask(qi.value.trim());qi.value='';renderHome();}});
   view.querySelectorAll('.hm-lbox').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');var a=hmLoadLoops();var f=a.filter(function(x){return x.id===id;})[0];if(f){f.done=!f.done;hmSaveLoops(a);renderHome();}});});
