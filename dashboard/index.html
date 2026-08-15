@@ -5986,10 +5986,17 @@ function bdRun(){
     'Return ONE JSON object and nothing else:\n'+
     '{"title":"short name for this checklist","sub":"one short line of context","rules":["the specific rules you applied, quoted short, 2 to 5 of them"],'+
     '"sections":[{"title":"section name","items":["step","step"]}]}\n\n'+
-    'Rules for your output: steps must be concrete and doable in one sitting, naming the actual tool where it matters '+
-    '(Airtable, AIOS, Metricool, Moxie, the site repo). 8 to 16 steps total across 2 to 4 sections. '+
-    'The "rules" array must name the rules that ACTUALLY bear on THIS request, not a generic list; if a client is named, '+
-    'include the rule specific to that client. Do not use em dashes anywhere. No markdown.';
+    'HOW TO WRITE THE STEPS. This is the part people get wrong.\n'+
+    'Each step is a plain imperative action and nothing else. Under 10 words. Start with a verb.\n'+
+    'GOOD: "Pull BTTCF keywords from Airtable" / "Run the outline through AIOS" / "Read it out loud" / "Send to Todd for approval"\n'+
+    'BAD: "Draft the post, remembering to avoid em dashes and to use the red heart emoji rather than blue"\n'+
+    'NEVER restate a rule inside a step. No reminders about em dashes, emojis, voice, hashtags or naming. '+
+    'Those belong in the "rules" array and nowhere else; repeating them in the steps is noise she will delete.\n'+
+    'No parentheticals, no "make sure to", no explaining why. Name the tool only when it tells her where to go '+
+    '(Airtable, AIOS, Metricool, Moxie, the site repo).\n'+
+    '6 to 12 steps total across 2 or 3 sections. Fewer and sharper beats thorough.\n\n'+
+    'The "rules" array must name the rules that ACTUALLY bear on THIS request, not a generic list; if a client is '+
+    'named, include the rule specific to that client. Do not use em dashes anywhere. No markdown.';
 
   fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({prompt:prompt})})
