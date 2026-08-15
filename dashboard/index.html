@@ -1015,14 +1015,6 @@ header{background:transparent;border-bottom:1px solid var(--border);height:62px;
 .hm-tag{font-size:0.75rem;color:var(--light)}
 .hm-tag.hi{color:var(--hi)}
 .hm-empty{font-size:0.82rem;color:var(--light);padding:10px 0}
-.hm-plan-lead{font-size:0.9rem;color:var(--black);padding:2px 0 8px;line-height:1.45}
-.hm-plan-sec{padding:6px 0;border-top:1px solid var(--border)}
-.hm-plan-sec:first-of-type{border-top:none}
-.hm-plan-h{font-size:0.68rem;color:var(--light);text-transform:uppercase;letter-spacing:0.04em;padding-bottom:3px}
-.hm-plan-it{font-size:0.84rem;color:var(--muted);padding:2px 0;line-height:1.4}
-.hm-plan-it:first-of-type{color:var(--black)}
-.hm-plan-stale{opacity:0.7}
-.hm-plan-note{font-size:0.75rem;color:var(--hi);padding-bottom:6px}
 .hm-qa{margin-top:14px}
 .hm-qa input{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--black);padding:10px 14px;font-family:inherit;font-size:0.85rem;outline:none}
 .hm-qa input:focus{border-color:var(--blue)}
@@ -1857,8 +1849,8 @@ header{border-bottom:1px solid var(--border);height:60px}
 .hm2-cols{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);
   gap:16px;align-items:start}
 .hm2-main,.hm2-rail{display:flex;flex-direction:column;gap:16px;min-width:0}
-.hm2-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
-  align-items:start;margin-top:16px}
+/* Money + Work split as a pair inside the main column; Leads takes the full width beneath */
+.hm2-nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
 
 .hm2-card{padding:20px 22px 18px}
 .hm2-ch{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
@@ -1914,15 +1906,15 @@ header{border-bottom:1px solid var(--border);height:60px}
 .hm2-money .mb-item{display:flex;flex-direction:column;gap:3px}
 .hm2-money i{font-style:normal;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--light)}
 .hm2-money b{font-size:1.15rem;font-weight:500}
-.hm2-strip .ytd2{font-size:.72rem;color:var(--light);margin-top:12px;display:block}
-
-/* the plan card drops its own chrome and adopts the new card head */
-.hm2-main .hm-plan{padding:20px 22px 18px}
-.hm2-main .hm-plan .hm-card-h{align-items:flex-start;margin-bottom:12px}
+.hm2-nums .ytd2{font-size:.72rem;color:var(--light);margin-top:12px;display:block}
+.hm2-nums .hm2-money{gap:14px}
+.hm2-nums .hm2-money b{font-size:1.05rem}
 
 @media (max-width:1200px){
   .hm2-cols{grid-template-columns:1fr}
-  .hm2-strip{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .hm2-nums{grid-template-columns:1fr}
 }
 @media (max-width:768px){
   .hm2-h{font-size:1.85rem}
@@ -1947,9 +1939,6 @@ body.home-drawer #col-view{left:238px}
   body.home-drawer #col-view{left:0}
 }
 
-/* the plan lead was reading as a heading, not as a sentence */
-.hm-plan-lead{font-size:.83rem!important;color:var(--muted)!important;line-height:1.6!important}
-.hm-plan-it:first-of-type{color:var(--black)}
 .hm-spark{opacity:.55}
 
 /* ── BREAK IT DOWN ── */
@@ -4985,23 +4974,6 @@ function renderHome(){
   var loops=hmLoadLoops();
   var openLoops=loops.filter(function(l){return !l.done&&l.bucket!=='park';});
   var parkItems=loops.filter(function(l){return !l.done&&l.bucket==='park';});
-  /* Today's Plan — written into mm_daily_brief by the 6:45 weekday routine, arrives via KV sync */
-  var planCard='';
-  try{
-    var pb=JSON.parse(localStorage.getItem('mm_daily_brief')||'null');
-    if(pb&&pb.sections&&pb.sections.length){
-      var stale=pb.date!==_td;
-      var pRows=pb.sections.map(function(s){
-        var items=(s.items||[]).map(function(it){return '<div class="hm-plan-it">'+hmEsc(it)+'</div>';}).join('');
-        return '<div class="hm-plan-sec"><div class="hm-plan-h">'+hmEsc(s.h)+'</div>'+(items||'<div class="hm-empty">Nothing here.</div>')+'</div>';
-      }).join('');
-      planCard='<section class="hm-card hm-c2 hm-plan'+(stale?' hm-plan-stale':'')+'"><div class="hm-card-h"><span class="t">Today\'s plan</span><span class="m">'+(stale?('from '+hmEsc(pb.date)):'Mo &middot; 6:45')+'</span></div>'+
-        (stale?'<div class="hm-plan-note">Yesterday\'s plan. A fresh one lands each weekday morning.</div>':'')+
-        (pb.lead?'<div class="hm-plan-lead">'+hmEsc(pb.lead)+'</div>':'')+pRows+'</section>';
-    }else{
-      planCard='<section class="hm-card hm-c2 hm-plan"><div class="hm-card-h"><span class="t">Today\'s plan</span><span class="m">Mo</span></div><div class="hm-empty">No plan yet. One lands each weekday at 6:45am.</div></section>';
-    }
-  }catch(e){planCard='';}
   var agedCount=openLoops.filter(function(l){return hmAge(l.at)>=7;}).length;
   function hmRow(l,showAge){var d=hmAge(l.at),cls=hmAgeCls(d);
     return '<div class="hm-loop"><span class="hm-lbox" data-id="'+l.id+'"></span><div class="hm-lb"><div class="hm-ltype">'+hmEsc(l.type)+(showAge?'<span class="hm-age '+cls+'">'+d+'d</span>':'')+'</div><div class="hm-lt">'+hmEsc(l.t)+'</div></div><button class="hm-prom" data-id="'+l.id+'" title="Turn into a task">&rarr;</button></div>';}
@@ -5078,6 +5050,32 @@ function renderHome(){
           '<div class="hm2-bar"><i style="width:'+tPct+'%"></i></div>'+
           '<div class="hm2-tasks">'+tRows+'</div>'+
           '<div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, then Enter" autocomplete="off"></div>')+
+        /* The numbers live under the priorities in the main column, not in a strip
+           beneath the whole grid. The strip could not start until the taller rail
+           ended, which stranded Money/Work split/Leads under a screen of dead space. */
+        '<div class="hm2-nums">'+
+        hCard('This month','Money',
+          '<span class="hm2-count">Moxie + Expenses</span>',
+          '<div class="hm2-money">'+
+            '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
+            '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
+            '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
+          '</div><div class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</div>')+
+        hCard('Open tasks','Work split','',
+          '<div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div>')+
+        '</div>'+
+        hCard('New business','Leads',
+          '<a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a>',
+          (leadsArr.length
+            ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
+               (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
+               (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
+            : '<div class="hm-empty">No leads saved yet.</div>'),'hm-leads')+
+        /* Parking is the lowest-urgency thing on the page and by far the tallest card. It sits
+           last in the wide column, where its length costs nothing and balances the rail. */
+        hCard('Not now, not never','Parking lot','<span class="hm2-count">'+parkItems.length+'</span>',
+          '<div class="hm-loops">'+parkRows+'</div>'+
+          '<div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div>')+
       '</div>'+
 
       '<div class="hm2-rail">'+
@@ -5086,31 +5084,10 @@ function renderHome(){
           '<span class="hm2-count">'+openLoops.length+(agedCount?' &middot; <b class="aging">'+agedCount+' aging</b>':'')+'</span>',
           '<div class="hm-loops">'+loopRows+'</div>'+
           '<div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div>')+
-        hCard('Not now, not never','Parking lot','<span class="hm2-count">'+parkItems.length+'</span>',
-          '<div class="hm-loops">'+parkRows+'</div>'+
-          '<div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div>')+
         hCard('Your launchpad','Quick access','','<div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div>')+
       '</div>'+
     '</div>'+
 
-    '<div class="hm2-strip">'+
-      hCard('This month','Money',
-        '<span class="hm2-count">Moxie + Expenses</span>',
-        '<div class="hm2-money">'+
-          '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
-          '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
-          '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
-        '</div><div class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</div>')+
-      hCard('Open tasks','Work split','',
-        '<div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div>')+
-      hCard('New business','Leads',
-        '<a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a>',
-        (leadsArr.length
-          ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
-             (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
-             (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
-          : '<div class="hm-empty">No leads saved yet.</div>'),'hm-leads')+
-    '</div>'+
     '</div>';
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var moIn=document.getElementById('hm2-mo-input'), moGo=document.getElementById('hm2-mo-go');
