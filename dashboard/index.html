@@ -2005,6 +2005,36 @@ body.home-drawer #col-view{left:238px}
 :root[data-theme="light"] #login-error{color:var(--crit)}
 :root[data-theme="light"] .at-search{background:var(--surface);border-color:var(--border-s)}
 
+/* ── LIGHT MODE: panels with a hardcoded dark ground ──
+   .at-modal and .picker-modal are literal #111111, so recolouring their text
+   to var(--black) above made them worse, not better: #111 on #111. The panel
+   itself has to flip first. Everything here is inside a modal or overlay, all
+   of it originally written white-on-dark. */
+:root[data-theme="light"] #alltasks-overlay,
+:root[data-theme="light"] #picker-overlay{background:rgba(17,17,17,.42)}
+:root[data-theme="light"] .at-modal,
+:root[data-theme="light"] .picker-modal{background:var(--surface);border-color:var(--border-s);
+  box-shadow:0 24px 60px -20px rgba(17,17,17,.28)}
+:root[data-theme="light"] .picker-modal-body{background:var(--surface-2)}
+:root[data-theme="light"] .at-header,
+:root[data-theme="light"] .at-search-wrap{border-bottom-color:var(--border)}
+:root[data-theme="light"] .at-item{border-bottom-color:var(--border)}
+:root[data-theme="light"] .at-item:hover{background:var(--blue-pale)}
+:root[data-theme="light"] .at-close{color:var(--light)}
+:root[data-theme="light"] .at-search{background:var(--surface-2);border-color:var(--border-s);color:var(--black)}
+:root[data-theme="light"] .at-search::placeholder{color:var(--light)}
+:root[data-theme="light"] .at-empty,
+:root[data-theme="light"] .at-crumb{color:var(--light)}
+:root[data-theme="light"] .at-count,
+:root[data-theme="light"] .at-group-label{color:var(--blue)}
+:root[data-theme="light"] .at-due{background:var(--blue-pale);color:var(--blue)}
+:root[data-theme="light"] .at-due.over{background:rgba(160,74,64,.12)}
+:root[data-theme="light"] .at-due.today{background:rgba(160,120,50,.14)}
+:root[data-theme="light"] .at-check{border-color:rgba(58,107,138,.45)}
+:root[data-theme="light"] .at-edit-btn{color:rgba(58,107,138,.5)}
+:root[data-theme="light"] #focus-section{background:var(--surface)}
+:root[data-theme="light"] header{background:var(--bg)!important}
+
 /* the due strip's own chrome was tuned for a dark ground too */
 :root[data-theme="light"] .td-item{background:var(--surface);border-color:rgba(160,120,50,.28)}
 :root[data-theme="light"] .td-item:hover{background:rgba(160,120,50,.08);border-color:rgba(160,120,50,.5)}
