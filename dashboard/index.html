@@ -1980,6 +1980,37 @@ body.home-drawer #col-view{left:238px}
 }
 :root[data-theme="light"] .bd-rule{border-color:rgba(58,107,138,.22)}
 
+/* ── LIGHT MODE: hardcoded near-white text ──
+   These predate the theme and were written when the only ground was dark, so
+   they set literal #e6f1f8 / #f2f6fa rather than var(--black). Several land
+   AFTER the token-based rules (.td-text is set at line 112, corrected at 717,
+   then hardcoded again at 1391), so the fix has to be scoped and last.
+   Dark mode is deliberately untouched: this block is light-only. */
+:root[data-theme="light"] .td-text,
+:root[data-theme="light"] .focus-title,
+:root[data-theme="light"] .focus-slot.filled .fs-text,
+:root[data-theme="light"] .picker-task-reveal,
+:root[data-theme="light"] .at-title,
+:root[data-theme="light"] .at-text,
+:root[data-theme="light"] .at-search,
+:root[data-theme="light"] .at-close:hover{color:var(--black)}
+
+:root[data-theme="light"] .td-overdue,
+:root[data-theme="light"] .t-due.over,
+:root[data-theme="light"] .at-due.over,
+:root[data-theme="light"] .hm-ev.ev-over .es{color:var(--crit)}
+:root[data-theme="light"] .t-due.today,
+:root[data-theme="light"] .at-due.today,
+:root[data-theme="light"] .hm-ev.ev-today .es{color:var(--hi)}
+:root[data-theme="light"] #login-error{color:var(--crit)}
+:root[data-theme="light"] .at-search{background:var(--surface);border-color:var(--border-s)}
+
+/* the due strip's own chrome was tuned for a dark ground too */
+:root[data-theme="light"] .td-item{background:var(--surface);border-color:rgba(160,120,50,.28)}
+:root[data-theme="light"] .td-item:hover{background:rgba(160,120,50,.08);border-color:rgba(160,120,50,.5)}
+:root[data-theme="light"] .td-item.overdue{background:rgba(160,74,64,.07);border-color:rgba(160,74,64,.32)}
+:root[data-theme="light"] .td-check{border-color:rgba(160,120,50,.6)}
+
 @media (max-width:1100px){
   #app{padding-left:200px}
   #side-rail{width:200px}
