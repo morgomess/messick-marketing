@@ -4539,6 +4539,10 @@ function hmLoadLoops(){try{var a=JSON.parse(localStorage.getItem('mm_loops')||'n
   if(!Array.isArray(a))a=[{id:'l1',type:'Unbilled',t:'ECCO brush shower invoice',done:false,bucket:'loop',at:Date.now()},{id:'l2',type:'Waiting on client',t:'OEIS PDF source assets',done:false,bucket:'loop',at:Date.now()},{id:'l3',type:'Idea',t:'BBS shorts cover A/B test',done:false,bucket:'park',at:Date.now()}];
   if(hmLoopNorm(a))hmSaveLoops(a);
   return a;}catch(e){return [];}}
+/* Brand is stored as a lowercase key, so rows read "messick" and, worse,
+   "other" for anything personal. Label it the way she says it out loud. */
+var HM_BRAND={messick:'Messick',virtueasy:'Virtueasy',personal:'Personal',other:'Personal',bbs:'BBS',dsdd:'DSDD'};
+function hmBrand(b){var k=String(b||'').toLowerCase();return HM_BRAND[k]||(b.charAt(0).toUpperCase()+b.slice(1));}
 function hmAge(at){return Math.max(0,Math.floor((Date.now()-(at||Date.now()))/86400000));}
 function hmAgeCls(d){return d>=14?'crit':(d>=7?'warn':'');}
 function hmSaveLoops(a){try{localStorage.setItem('mm_loops',JSON.stringify(a));if(typeof scheduleSave==='function')scheduleSave();}catch(e){}}
@@ -4871,7 +4875,19 @@ function renderHome(){
   var overdue=open.filter(function(t){return t.due&&t.due<_td;}).length;
   var done=tasks.filter(function(t){return t.done;}).length;
   var total=tasks.length, pct=total?Math.round(done/total*100):0;
-  var st=document.getElementById('stat-text'); if(st)st.textContent=done+' of '+total+' done';
+  /* "Today" means what is live today, NOT every task ever created. The old
+     done/total counted the whole history, so a nine-item list reported
+     "146 of 165 done" and the bar sat near full permanently. Scope is: due
+     today whether ticked or not, plus anything still open and overdue, plus
+     whatever was actually finished today. */
+  var tScope=tasks.filter(function(t){
+    if(t.due===_td)return true;
+    if(t.due&&_td&&t.due<_td&&!t.done)return true;
+    if(t.done&&t.doneAt&&(new Date(t.doneAt)).toISOString().slice(0,10)===_td)return true;
+    return false;
+  });
+  var tTotal=tScope.length, tDone=tScope.filter(function(t){return t.done;}).length;
+  var st=document.getElementById('stat-text'); if(st)st.textContent=tDone+' of '+tTotal+' today';
   var bc=document.getElementById('bh-count'); if(bc)bc.textContent=open.length+' open';
   var h=new Date().getHours(), greet=h<12?'Good morning,':(h<18?'Good afternoon,':'Good evening,');
   var timeStr=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
@@ -4891,7 +4907,7 @@ function renderHome(){
     var pr=(t.priority&&t.priority!=='none')?t.priority:'';
     var over=(t.due&&_td&&t.due<_td), meta=[];
     if(t.due)meta.push(over?'Overdue':(t.due===_td?'Due today':hmDue(t.due)));
-    if(t.brand)meta.push(t.brand);
+    if(t.brand)meta.push(hmBrand(t.brand));
     return '<div class="hm2-task'+(over?' over':'')+'">'+
       '<span class="hm-rad" data-id="'+t.id+'"></span>'+
       '<div class="hm2-tb"><div class="hm2-tt">'+hmEsc(t.text)+'</div>'+
@@ -5009,10 +5025,6 @@ function renderHome(){
     if(_pb&&_pb.date===_td&&_pb.lead)planLead=hmEsc(_pb.lead);
   }catch(e){}
   var eyebrow=dateDay+' focus';
-  /* done/total counted every task ever created, which read as "146/165" against
-     a list of nine. Scope the bar to what is actually live today. */
-  var tScope=tasks.filter(function(t){return t.due&&t.due<=_td;});
-  var tTotal=tScope.length, tDone=tScope.filter(function(t){return t.done;}).length;
   var tPct=tTotal?Math.round(tDone/tTotal*100):0;
   var hCard=function(eb,title,meta,body,cls){
     return '<section class="hm-card hm2-card'+(cls?' '+cls:'')+'">'+
