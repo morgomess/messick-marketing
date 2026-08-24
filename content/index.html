@@ -1098,15 +1098,44 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     });
   }
 
+  // A long-form script call runs the better part of a minute. A status line that never
+  // changes for that long is indistinguishable from a hang, so the spinner counts
+  // seconds and relabels itself as each stage lands.
+  let loadingTimer = null, loadingLabel = '', loadingStart = 0;
+
+  function paintLoading() {
+    const secs = Math.round((Date.now() - loadingStart) / 1000);
+    document.getElementById('loading-msg').textContent = `${loadingLabel} (${secs}s)`;
+  }
+
+  function setLoadingMsg(msg) {
+    loadingLabel = msg;
+    paintLoading();
+  }
+
   function showLoading(msg) {
     document.getElementById('empty-state').style.display = 'none';
     document.getElementById('output-section').style.display = 'none';
     document.getElementById('loading-state').style.display = 'flex';
-    document.getElementById('loading-msg').textContent = msg;
+    clearInterval(loadingTimer);
+    loadingStart = Date.now();
+    loadingLabel = msg;
+    paintLoading();
+    loadingTimer = setInterval(paintLoading, 1000);
   }
   function showOutput() {
+    clearInterval(loadingTimer);
+    loadingTimer = null;
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('output-section').style.display = 'flex';
+  }
+
+  function parseAiJson(result) {
+    try {
+      return JSON.parse((result.text || '').replace(/```json|```/g, '').trim());
+    } catch {
+      throw new Error('Could not parse AI response. Try again.');
+    }
   }
 
   function show(id, visible) {
@@ -1156,7 +1185,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       .trim();
   }
 
-  function buildPrompt(d, refNote) {
+  function buildPrompt(d, refNote, part) {
     const coverLabels = { reel: 'Reel / Story Cover', landscape: 'Landscape Cover' };
     const coverLabel = coverLabels[selectedCoverFormat] || 'Reel / Story Cover';
     // Video-type metadata: friendly label + native aspect ratio for the prompt header.
@@ -1207,7 +1236,7 @@ QUALITY FOOTER (always end the prompt with this):
       reel: `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.`,
 
-      youtube: `- "reel_script": a complete long-form YouTube video script for roughly 4-8 minutes of spoken content. Structure it clearly with: 3 alternative TITLE options at the top; a HOOK (first 15 seconds) that stops the scroll; an INTRO that frames the problem and previews what the viewer will learn; 3-5 main BODY SECTIONS each with a clear subheading and full spoken-word narration written exactly as it should be read aloud; [B-roll: ...] visual direction notes in brackets throughout; and an OUTRO with a subscribe prompt and a single clear CTA. Conversational but authoritative.
+      youtube: `- "reel_script": a complete long-form YouTube video script of 900-1,200 words of narration, which is 6-8 minutes of spoken content at a natural speaking pace. Do not exceed 1,200 words. Structure it clearly with: 3 alternative TITLE options at the top; a HOOK (first 15 seconds) that stops the scroll; an INTRO that frames the problem and previews what the viewer will learn; 3-5 main BODY SECTIONS each with a clear subheading and full spoken-word narration written exactly as it should be read aloud; [B-roll: ...] visual direction notes in brackets throughout; and an OUTRO with a subscribe prompt and a single clear CTA. Conversational but authoritative.
 - "reel_video_prompt": a B-roll visual prompt describing the supporting footage for this YouTube video, written as one flowing AI video generation prompt (optimized for Sora, Runway, Kling). Cover the key scenes needed to illustrate the script with camera movement, pacing, lighting, and mood. No text overlays, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations).`,
 
       tutorial: `- "reel_script": a step-by-step tutorial / how-to script. Open with a HOOK stating the exact outcome the viewer will achieve, then a short "What you'll need" line, then numbered STEPS (Step 1, Step 2, ...). Each step has clear spoken narration plus an [On screen: ...] direction describing precisely what to show. End with a quick recap and a single CTA. Be concrete, sequential, and easy to follow.
@@ -1220,6 +1249,11 @@ QUALITY FOOTER (always end the prompt with this):
 - "reel_video_prompt": a B-roll visual prompt to cut over the talking-head narration, written as one AI video generation prompt (optimized for Sora, Runway, Kling). Describe supporting footage that illustrates each point, with camera movement, lighting, and mood. No text overlays, no on-screen titles. Keep it generic (no brand names, practice names, or locations).`,
     };
     const videoSpec = videoSpecs[selectedVideoType] || videoSpecs.reel;
+
+    // part 'copy' = caption + hashtags only. part 'script' = the video script only.
+    // Undefined keeps the old all-in-one behaviour for every non-reel content type.
+    const wantCopy   = part !== 'script';
+    const wantScript = part !== 'copy';
 
     return `You are an expert social media content strategist. You adapt fully to the brand and industry provided — you have no default industry. All content is cross-posted so avoid platform-specific references.
 
@@ -1235,10 +1269,12 @@ ${d.notes ? 'Additional Notes: ' + d.notes : ''}
 
 Respond with a single valid JSON object and nothing else — no markdown, no backticks, no explanation.
 
+Never use an em dash (—) anywhere in your output, in any field. Use a regular hyphen (-) if a dash is needed.
+
 Required JSON keys:
-${hashtagsOnly || visualOnly ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags. Never use em dashes (—) in the caption — use a regular hyphen (-) if a dash is needed.'}
-${captionOnly || visualOnly ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
-${selectedType === 'reel' ? videoSpec : ''}
+${hashtagsOnly || visualOnly || !wantCopy ? '' : '- "caption": full post caption with line breaks, emojis where appropriate, and a clear CTA. No hashtags. Never use em dashes (—) in the caption — use a regular hyphen (-) if a dash is needed.'}
+${captionOnly || visualOnly || !wantCopy ? '' : '- "hashtags": exactly 4-5 hashtags as a single space-separated string — select for high search intent and moderate use within the brand\'s specific industry. Avoid oversaturated generic tags; choose specific, searchable tags the target audience would actually search.'}
+${selectedType === 'reel' && wantScript ? videoSpec : ''}
 ${selectedType === 'graphic' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a single 3:4 portrait social media graphic. Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}
 ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt for a ${coverLabel} (${selectedCoverFormat === 'landscape' ? '16:9 landscape' : '9:16 vertical'}). Structure the prompt as: [SUBJECT & ACTION] + [COMPOSITION & FRAMING] + [LIGHTING & MOOD] + [BRAND COLORS & STYLE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]. ${selectedCoverFormat === 'landscape' ? 'Landscape cover rules: bold high-contrast visuals, key elements centered and clear at full width, nothing critical near edges, visually engaging at a glance.' : 'Reel/Story cover rules: bold high-contrast vertical composition, single strong hero subject optimized for 9:16, eye-catching thumbnail feel, important elements centered away from top/bottom edges.'} ${refNote ? 'IMPORTANT: The user has uploaded a reference image (attached). Before writing the image_prompt, extract all actual text content visible in the reference image — column headers, cell values, names, numbers, labels, and any other real content. CRITICAL EXTRACTION RULE: strictly separate data content from styling metadata — any hex color codes, font names, CSS values, or technical strings you observe in the reference are styling information only and must never be embedded in quoted cell text or row content in the image_prompt. Each extracted row must appear exactly once — never duplicated or split across multiple rows. All quoted text values in the image_prompt must be clean, readable copy only: no codes, no font names, no hex strings, no technical notation of any kind. Use the extracted real content so Imagen has accurate data to display rather than hallucinating or inventing content. Then read the Additional Notes to understand intent — if the notes indicate this image should be reproduced, recreated, or incorporated as a direct visual element, write the image_prompt so Imagen includes it as such; if the notes indicate it is a style, layout, mood, or color reference, use it as inspiration for those qualities instead. Let the notes drive how you use the image. ' : ''}${imgRules}` : ''}`;
   }
@@ -1301,18 +1337,27 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
     try {
       // Pass the reference image (if any) directly with the generation prompt in one call.
       // The worker handles vision when image is present; plain text when it isn't.
-      const claudeBody = { prompt: buildPrompt(d, !!refImageBase64) };
-      if (refImageBase64 && (selectedType === 'graphic' || selectedType === 'cover')) {
-        claudeBody.image = { data: refImageBase64, media_type: refImageMime };
-        showLoading('Analyzing reference + generating content...');
-      }
-
-      const result = await callWorker('claude', claudeBody);
       let parsed;
-      try {
-        parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
-      } catch {
-        throw new Error('Could not parse AI response. Try again.');
+
+      if (selectedType === 'reel') {
+        // Two requests, fired together. Asking ONE call for caption + hashtags + a full
+        // long-form script ran ~100s end to end, which reads as a hung spinner. Split
+        // this way the wall time is the script alone, and the status line moves as soon
+        // as the copy lands so it is visibly working.
+        const copyCall   = callWorker('claude', { prompt: buildPrompt(d, false, 'copy') });
+        const scriptCall = callWorker('claude', { prompt: buildPrompt(d, false, 'script') });
+        scriptCall.catch(() => {});  // no unhandled rejection if the copy call throws first
+        const copy = parseAiJson(await copyCall);
+        setLoadingMsg('Caption and hashtags done. Writing the script...');
+        const script = parseAiJson(await scriptCall);
+        parsed = { ...copy, ...script };
+      } else {
+        const claudeBody = { prompt: buildPrompt(d, !!refImageBase64) };
+        if (refImageBase64 && (selectedType === 'graphic' || selectedType === 'cover')) {
+          claudeBody.image = { data: refImageBase64, media_type: refImageMime };
+          setLoadingMsg('Analyzing reference + generating content...');
+        }
+        parsed = parseAiJson(await callWorker('claude', claudeBody));
       }
 
       document.getElementById('caption-output').textContent = asText(parsed.caption);
@@ -1386,7 +1431,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
           // so each gets its own unique prompt and generates independently
           for (let i = 0; i < slides.length; i++) {
             const slide = slides[i];
-            document.getElementById('loading-msg').textContent = `Generating slide ${i + 1} of 4...`;
+            setLoadingMsg(`Generating slide ${i + 1} of 4...`);
 
             // Build slide prompt: base style + this slide's single unique text element only
             // Body text intentionally omitted from image prompt — Imagen can't render sentences cleanly
@@ -1432,7 +1477,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
 
         } else {
           // Single graphic
-          document.getElementById('loading-msg').textContent = 'Generating graphic...';
+          setLoadingMsg('Generating graphic...');
           try {
             const asp2 = getImageAspect();
             const imgBody = { prompt: parsed.image_prompt + suffix, count: 1, aspectRatio: asp2.ratio };
@@ -1737,8 +1782,8 @@ Rules for the rewritten prompt:
     if (!isHashtags) document.getElementById('caption-output').textContent = 'Regenerating...';
     if (!isCaption) document.getElementById('hashtags-output').textContent = '';
     try {
-      const result = await callWorker('claude', { prompt: buildPrompt(d) });
-      const parsed = JSON.parse(result.text.replace(/```json|```/g, '').trim());
+      const result = await callWorker('claude', { prompt: buildPrompt(d, false, 'copy') });
+      const parsed = parseAiJson(result);
       if (!isHashtags) document.getElementById('caption-output').textContent = parsed.caption || '';
       if (!isCaption) document.getElementById('hashtags-output').textContent = parsed.hashtags || '';
     } catch (e) {
