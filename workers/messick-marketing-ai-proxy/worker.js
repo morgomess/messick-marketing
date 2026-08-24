@@ -1036,7 +1036,7 @@ var mm_ai_proxy_worker_default = {
           },
           body: JSON.stringify({
             model,
-            max_tokens: 4096,
+            max_tokens: 16000,
             ...claudeSystem && { system: claudeSystem },
             messages: [{ role: "user", content: userContent }]
           })
