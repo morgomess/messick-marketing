@@ -1584,47 +1584,86 @@ async function generateTitles() {
   const fmt = titleFormat;
   const longFormInstr = `You are an elite YouTube title strategist trained on 2026 ranking and click-through data. This is a LONG-FORM video. Return ONLY a valid JSON object with no markdown.
 
-2026 LONG-FORM TITLE FORMULAS (apply the strongest fit per variant):
-- FRONT-LOAD the primary keyword in the first 1-3 words so it is searchable and matches how people actually query in 2026.
-- Earn the click with exactly ONE driver: a specific number, a concrete outcome/payoff, a curiosity gap, a how/why/what hook, or a stakes/urgency word. Do not stack multiple gimmicks.
-- Be specific and concrete over vague - real numbers, real outcomes, real stakes.
+LONG-FORM TITLE CRAFT:
+- FRONT-LOAD the primary keyword in the first 1-3 words so it is searchable and matches how people actually type the query.
+- Every variant earns the click with exactly ONE driver: a specific number, a concrete outcome, a curiosity gap, a how/why/what hook, a myth or mistake, or real stakes. One driver, never two stacked.
+- Specific and concrete beats vague. Real numbers, real outcomes, real stakes.
 - Ideal length 45-60 characters (hard max 70). Shorter wins on mobile.
 - NEVER put hashtags in a long-form title. Hashtags belong in the description for long-form.
 - Natural human phrasing, never keyword-stuffed. No clickbait you cannot pay off. No em dashes.
 
+THE FOUR VARIANTS MUST BE STRUCTURALLY DIFFERENT.
+Choose the four strongest angles for THIS specific topic from the list below. Do not fall back on the same four every time, and skip any angle that does not genuinely fit:
+  keyword-led | outcome / payoff | mistake or warning | curiosity gap | direct question | number or list | comparison or versus | myth-buster | timeline (how long / how soon) | who it is for | cost or what it takes | objection (when X has not worked)
+Set "variant" to the angle you actually chose, e.g. "Mistake / Warning".
+
+BANNED TITLE PATTERNS - the ruts this tool keeps falling into. Never produce them:
+- "<Keyword>: What to Expect"
+- "<Keyword> 101", "<Keyword>, Explained", "<Keyword> Explained:"
+- "What Nobody Tells You" / "What Every Patient Should Know"
+- Defaulting the list variant to "5 Signs ..." - a number title is good, but vary the count and the noun
+- Two variants opening with the same first three words
+- Any variant that is another variant with one word swapped
+
 {
-  "primaryKeyword": "the main search phrase this video should rank for - 2 to 5 words, phrased how a real person types it into YouTube in 2026",
+  "primaryKeyword": "the main search phrase this video should rank for - 2 to 5 words, phrased how a real person types it into YouTube",
   "titles": [
-    { "variant": "A - Keyword-led", "text": "..." },
-    { "variant": "B - Benefit / Outcome", "text": "..." },
-    { "variant": "C - Curiosity / Question", "text": "..." },
-    { "variant": "D - Number / List", "text": "..." }
+    { "variant": "the angle you chose", "text": "..." },
+    { "variant": "a different angle", "text": "..." },
+    { "variant": "a different angle", "text": "..." },
+    { "variant": "a different angle", "text": "..." }
   ],
   "description": "Full YouTube description - see DESCRIPTION RULES."
 }
 
-DESCRIPTION RULES (these drive the in-app SEO score, follow exactly):
+DESCRIPTION RULES.
+Hard requirements (these drive the in-app SEO score, follow exactly):
 - The FIRST sentence must lead with the primary keyword, and the primary keyword must appear within the first 150 characters.
 - Never open with filler ("In this video", "Welcome to", "Hey guys", "Hello everyone").
-- Structure: keyword-led hook paragraph (2-3 sentences), blank line, "What You'll Learn" with 3-5 dash bullets, blank line, About section (2-3 sentences), blank line, a clear CTA line (subscribe, book a consult, or visit the link), blank line, then 2-3 relevant hashtags on their own line (the first 3 surface above the title on YouTube).
+- Include one clear call to action in the body (subscribe, book a consult, visit the link).
+- End with 2-3 relevant hashtags on their own line (the first 3 surface above the title on YouTube).
+
+SHAPE - pick the one that actually fits this video. Do not run the same shape every time:
+  A. Keyword-led hook, a short list of what the video covers, closing CTA.
+  B. Open on the viewer's problem, turn to what changes it, close on the CTA. No bullets.
+  C. Straight explainer - 2 or 3 tight paragraphs of real substance, no bullets at all.
+  D. Question and answer - 3 or 4 questions a real viewer would ask, each answered in a sentence or two.
+  E. Segment rundown - what each part of the video covers, then a closing paragraph and CTA.
+
+WRITE LIKE A PERSON, NOT A TEMPLATE:
+- The heading "What You'll Learn" is banned. If you use a list, write a heading specific to this video, or use no heading.
+- Do not append a boilerplate "About <channel>" paragraph. Mention the channel only where it earns its place.
+- Vary the CTA. "Ready to X? Book a Y" is banned.
+- Vary the length to the video. A short, simple video gets a short description.
 All titles under 70 characters. No hashtags in the title. No em dashes.`;
 
   const shortsInstr = `You are an elite YouTube SHORTS strategist (2026). This is a SHORT (vertical, under 60s). Shorts live or die on the first-second hook and on hashtag discovery. Return ONLY a valid JSON object with no markdown.
 
-2026 SHORTS TITLE FORMULAS:
+SHORTS TITLE CRAFT:
 - Lead with a punchy hook or curiosity gap - a Shorts title is a scroll-stopper, not an SEO string.
 - Put 2-3 relevant hashtags INSIDE the title (this is the Shorts convention), and ALWAYS include #Shorts. Place the hashtags at the END of the title text.
 - Still front-load the core keyword/topic before the hashtags so it stays searchable.
 - Keep the visible text (before the hashtags) tight - aim under 50 characters.
 - Natural, high-energy phrasing. No clickbait you cannot pay off. No em dashes.
 
+THE FOUR VARIANTS MUST BE STRUCTURALLY DIFFERENT.
+Choose the four strongest angles for THIS Short from the list below, and skip any that does not fit:
+  blunt hook | curiosity gap | direct question | myth or stop-doing-this | one-number payoff | before and after | called-out mistake | who this is for | bold claim | a line the viewer has said themselves
+Set "variant" to the angle you actually chose.
+
+BANNED - the ruts this tool keeps repeating:
+- "<Keyword> 101" or "<Keyword>, Explained"
+- "What Nobody Tells You"
+- Two variants opening with the same first three words
+- Any variant that is another with one word swapped
+
 {
   "primaryKeyword": "the core search phrase/topic for this Short - 2 to 4 words",
   "titles": [
-    { "variant": "A - Hook", "text": "Punchy hook #Shorts #Topic" },
-    { "variant": "B - Curiosity", "text": "..." },
-    { "variant": "C - Payoff", "text": "..." },
-    { "variant": "D - Bold claim", "text": "..." }
+    { "variant": "the angle you chose", "text": "Punchy hook #Shorts #Topic" },
+    { "variant": "a different angle", "text": "..." },
+    { "variant": "a different angle", "text": "..." },
+    { "variant": "a different angle", "text": "..." }
   ],
   "description": "Short description - see DESCRIPTION RULES."
 }
@@ -1633,7 +1672,7 @@ DESCRIPTION RULES (drive the in-app SEO score, follow exactly):
 - Keep it to 1-3 short lines. The FIRST line must lead with the primary keyword (within the first 150 characters).
 - Never open with filler ("In this video", "Welcome to", "Hey guys").
 - End with 3-5 hashtags on their own line, always including #Shorts plus topical tags.
-- Add a short follow/subscribe CTA.
+- Add a short follow/subscribe CTA, worded differently each time.
 Every title MUST include #Shorts and at least one topical hashtag. No em dashes.`;
 
   const system = buildSystem(fmt === 'short' ? shortsInstr : longFormInstr);
@@ -1868,7 +1907,17 @@ async function scoreKeyword() {
   "opportunityScore": 0 to 100,
   "rationale": "One sentence explaining the score and opportunity for this channel's niche."
 }
-OpportunityScore: high demand + low competition = high score. Calibrate to the channel niche.`);
+Judge opportunity for THIS channel, not for a national mega-channel. A local practice chasing local intent competes in a different market from the global keyword.
+- demand: real search volume for this phrase in this niche.
+- competition: how hard it is for THIS channel to rank, given its niche, locality and existing coverage. A nationally crowded term with strong local intent is Medium for a local practice, not High.
+
+opportunityScore - use these bands and use the FULL range. Do not cluster in the middle:
+  85-100  strong demand and this channel can realistically own it
+  70-84   solid demand, winnable with good execution
+  55-69   worth making, but it competes with established coverage
+  40-54   thin demand or genuinely crowded, only worth it inside a series
+  0-39    dead end, do not build a video on this
+A well-chosen keyword for this channel should land above 80. Only go below 40 when the keyword is truly a dead end.`);
 
   try {
     const raw = await callAI(system, `Score this YouTube keyword: "${kw}"`);
@@ -1955,7 +2004,7 @@ function runInlineChecklist(title, desc, tags, container, primaryKeyword, format
   // Use the explicit primary keyword; fall back to the title's leading significant words
   const primaryKw = (primaryKeyword && primaryKeyword.trim()) || seoKwWords(kwBase).slice(0, 3).join(' ');
   const titleFront = kwBase.slice(0, Math.max(28, Math.round(kwBase.length * 0.5)));
-  const hasSignal = /\d/.test(kwBase) || /[\[\(]/.test(title) || /\b(how|why|what|secret|proven|mistake|avoid|stop|best|worst|never|always|ultimate|guide|easy|fast|simple|truth|warning|before|after|vs|versus|need|should|signs|ways|tips)\b/i.test(title);
+  const hasSignal = /\d/.test(kwBase) || /[\[\(?]/.test(title) || /\b(how|why|what|who|when|secret|proven|mistake|avoid|stop|best|worst|never|always|ultimate|guide|easy|fast|simple|truth|myth|warning|risk|wrong|safe|worth|cost|really|actually|without|still|first|only|fix|relief|reason|reasons|signs|ways|tips|need|should|vs|versus|before|after)\b/i.test(title);
   const hasTags = tags.length > 0;
   const tagChars = tags.join(',').length;
 
@@ -2001,7 +2050,7 @@ function runInlineChecklist(title, desc, tags, container, primaryKeyword, format
     detail: seoPhraseIn(primaryKw, desc150) ? 'Found' : 'Lead the description with the primary keyword'
   });
   checks.push({
-    pass: ['link', 'subscribe', 'follow', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get '].some(k => descLow.includes(k)),
+    pass: ['link', 'subscribe', 'follow', 'comment', 'book', 'schedule', 'call', 'click', 'learn more', 'visit', 'download', 'register', 'sign up', 'get ', 'reach out', 'contact', 'message us', 'text us', 'talk to', 'request', 'start here', 'find out', 'stop by', 'come see'].some(k => descLow.includes(k)),
     rule: 'CTA in description',
     detail: 'subscribe, follow, book, click the link, etc.'
   });
@@ -2631,31 +2680,43 @@ async function aiRewriteTitle() {
   const system = buildSystem(`You are a YouTube SEO copywriter and analyst. Return ONLY a valid JSON array with no markdown - exactly 4 objects:
 [
   {
-    "variant": "A - Topic-led",
+    "variant": "the angle you chose",
     "text": "title under 70 chars",
     "score": 0-100,
     "scoreReason": "One short sentence explaining the score - keyword strength, click potential, length."
   },
   {
-    "variant": "B - Benefit-led",
+    "variant": "a different angle",
     "text": "title under 70 chars",
     "score": 0-100,
     "scoreReason": "One short sentence."
   },
   {
-    "variant": "C - Question",
+    "variant": "a different angle",
     "text": "title under 70 chars",
     "score": 0-100,
     "scoreReason": "One short sentence."
   },
   {
-    "variant": "D - Punchy",
+    "variant": "a different angle",
     "text": "title under 70 chars",
     "score": 0-100,
     "scoreReason": "One short sentence."
   }
 ]
-Score each title 0-100 based on: keyword clarity (does it match how people actually search?), click-through potential (is it compelling?), length efficiency (under 60 is ideal), and niche fit for this channel. No em dashes. Each title must be under 70 characters.`);
+
+THE FOUR MUST BE STRUCTURALLY DIFFERENT. Choose the four strongest angles for this topic:
+  keyword-led | outcome / payoff | mistake or warning | curiosity gap | direct question | number or list | comparison or versus | myth-buster | timeline | who it is for | objection (when X has not worked)
+Banned patterns: "<Keyword>: What to Expect", "<Keyword> 101", "<Keyword>, Explained", "What Nobody Tells You", and two variants sharing their first three words.
+
+SCORING. Judge keyword clarity (does it match how people search?), click pull, length (under 60 is ideal) and fit for this channel. Use these bands and use the FULL range, do not cluster in the middle:
+  90-100  keyword-perfect, strong click pull, under 60 chars
+  75-89   strong, one minor trade-off
+  60-74   works, but one clear weakness
+  40-59   weak keyword match or a flat hook
+  0-39    would not publish this
+Score honestly against the bands. If you wrote a strong title, score it strongly.
+No em dashes. Each title must be under 70 characters.`);
 
   try {
     const raw = await callAI(system, `Rewrite this YouTube title with 4 scored variants:\n"${currentTitle}"\nDescription context: ${(document.getElementById('edit-desc')?.value || '').slice(0, 300)}`);
