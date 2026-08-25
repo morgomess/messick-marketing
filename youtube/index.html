@@ -2352,7 +2352,17 @@ async function runAudit() {
     { "title": "Short title", "detail": "2-3 actionable sentences." }
   ]
 }
-keywordConsistencyScore: 0 = scattered, 100 = tight niche focus.
+keywordConsistencyScore: how coherently these titles read as ONE channel to YouTube's recommender.
+Judge against what this channel actually is. A practice that offers several services covers several
+topics by design - that is a service line, not a scattered channel. Penalise genuine incoherence
+(unrelated subjects, no shared vocabulary, no repeated keyword stems), not legitimate breadth.
+Use these bands and use the FULL range, do not park in the middle:
+  85-100  one clear niche, repeated keyword stems, obvious to the algorithm
+  70-84   coherent, with a few strays
+  55-69   two or three distinct clusters that do not reinforce each other
+  40-54   loosely related at best
+  0-39    no discernible through-line
+Say which band you chose in the recommendations so the number is actionable.
 titleFormulas: patterns detected (e.g. "How To + Outcome", "Number + Benefit").
 topicGaps: important topics in this niche missing from the channel.`);
 
