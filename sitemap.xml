@@ -14,9 +14,15 @@
   </url>
   <url>
     <loc>https://messickmarketing.com/blog/</loc>
-    <lastmod>2026-08-27</lastmod>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://messickmarketing.com/blog/how-to-optimize-your-website-for-ai-search</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://messickmarketing.com/blog/physician-referral-marketing-specialty-practice-growth</loc>
