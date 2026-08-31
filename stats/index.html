@@ -435,13 +435,29 @@ GOOGLE BUSINESS PROFILE (key "${GBP}") - this is a LOCAL LISTING, not a social f
 - photos = photos (and videos) added to the listing this period.
 - reviewsNew = reviews received in this period. reviewsTotal = the lifetime/total review count. rating = the average star rating (e.g. 4.8) - keep the decimal, do NOT round. reviewsReplied = reviews responded to.
 - Leave followers/likes/shares/engRate at 0 for Google Business Profile. If a figure genuinely is not in the source, use 0 rather than guessing.
+
+(1b) LOCAL SEARCH REPORT - fill the "local" object. Local-SEO tools (Localo, BrightLocal, Whitespark) report far more than the profile counters, and this is the half that makes the audit worth reading. Extract whatever is present and leave the rest empty; never invent an entry.
+- local.keywords = the keyword / search-term ranking table. For each term: "term" (the keyword as written, without the location suffix stripped), "position" (its current rank as an integer; 0 if the source gives movement but no position), and "change" (positions moved since the last report - POSITIVE for improved, NEGATIVE for slipped, 0 for stable/unchanged). "improved +1" is 1, "(-18)" is -18, "stable" is 0, "improved +6 positions" is 6. Include every term mentioned, including ones flagged as slipping or "areas to watch".
+- local.competitors.rank = where this business ranks among the local competitors named (1 if it is described as #1 or top). local.competitors.category = the category that ranking is for, as written. local.competitors.ahead = the competitor business names it is ahead of.
+- local.citations = directory / listing coverage, split three ways. "live" = listings described as active, gained, claimed or complete. "inProgress" = pending, submitted or in progress. "todo" = named directories still outstanding, missing or listed as an opportunity. Use the directory names only.
+- local.reviewNotes = short phrases capturing what the reviews actually praise - the themes and any named strengths (e.g. "one-on-one care model", "Parkinson's program", "pelvic floor and pregnancy recovery"). Max 6, a few words each. This is NOT a review count.
+- local.actionDeltas = the period-over-period change for each metric where the source shows one, captured VERBATIM with sign and unit (e.g. "+55.7%", "-2%", "+171"). Keys: views, calls, directions, clicks, maps. Leave "" where none is shown.
+- local.mapsVisibility = the maps-visibility / local-pack visibility figure or change if the source reports one, verbatim. Otherwise "".
 ` : '';
-            const extractShape = {
+            const localShape = {
+                keywords: [{ term: '', position: 0, change: 0 }],
+                competitors: { rank: 0, category: '', ahead: [''] },
+                citations: { live: [''], inProgress: [''], todo: [''] },
+                reviewNotes: [''],
+                actionDeltas: { views: '', calls: '', directions: '', clicks: '', maps: '' },
+                mapsVisibility: ''
+            };
+            const extractShape = Object.assign({
                 metrics: perPlatShape,
                 topContent: [{ title: '', platform: '', format: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
                 deltas: deltaShape,
                 period: { start: '', end: '' }
-            };
+            }, wantsGBP ? { local: localShape } : {});
 
             const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -461,6 +477,10 @@ Extract THREE things: (1) per-platform metrics, (2) the top-performing posts/con
 
 (1) METRICS — extract INTO EACH PLATFORM SEPARATELY. Do NOT combine platforms.
 Convert abbreviations: 1.2K=1200, 1.5M=1500000, +312 (Net)=312. If a metric is missing or N/A, use 0.
+
+⚠️ TWO RULES THAT OVERRIDE EVERYTHING BELOW:
+(a) PERIOD FIGURES ONLY, NEVER RUNNING TOTALS. Sources often print both, e.g. "Phone calls: 9 this month (38 total)" or "Profile views: 415 in August (1,525 total over the monitored period)". The reporting-period figure is the one you want - 9 and 415 here, NOT 38 and 1,525. Words like "total", "all time", "lifetime", "to date", "over the monitored period", "cumulative" or "since launch" mark the number you must ignore. If ONLY a running total is given and no period figure, still use it, but never prefer a total over a period figure that is right there.
+(b) NEVER INVENT A NUMBER FROM PROSE. A qualitative sentence is not data. "All 5-star reviews responded to in a timely manner" states no review count and no average rating - leave reviewsNew, reviewsTotal, rating and reviewsReplied at 0. A list of named customer reviews is not a rating either. Only fill a numeric field when an actual figure is written down. 0 is the correct answer for anything you would otherwise have to guess.
 Field synonyms:
 - followers = audience, community, total followers, subscriber count
 - followersGained = new followers, gained, net growth (positive), subscribers gained
@@ -512,7 +532,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 _name: name,
                 _topContent: Array.isArray(parsed.topContent) ? parsed.topContent : [],
                 _deltas: parsed.deltas || {},
-                _period: parsed.period || {}
+                _period: parsed.period || {},
+                _local: this.normalizeLocal(parsed.local)
             };
             platforms.forEach(p => { this.tempData[p] = metrics[p] || {}; });
             this.currentPlatforms = platforms;
@@ -521,6 +542,33 @@ ${JSON.stringify(extractShape, null, 2)}` }
             btn.disabled = false; btn.innerHTML = 'Extract & Match Metrics &rarr;';
             debug.innerText = 'Error: ' + e.message; debug.style.display = 'block';
         }
+    },
+
+    // Coerce whatever the extractor returned into the local-report shape the rest of the app expects.
+    // Anything missing becomes empty rather than undefined, so the form and the report never throw.
+    normalizeLocal(raw) {
+        const o = raw && typeof raw === 'object' ? raw : {};
+        const strList = v => (Array.isArray(v) ? v : []).map(x => String(x == null ? '' : x).trim()).filter(Boolean);
+        const num = v => { const n = parseInt(String(v == null ? '' : v).replace(/[^0-9-]/g, ''), 10); return isFinite(n) ? n : 0; };
+        const cit = o.citations || {};
+        const comp = o.competitors || {};
+        const ad = o.actionDeltas || {};
+        return {
+            keywords: (Array.isArray(o.keywords) ? o.keywords : [])
+                .map(k => ({ term: String((k && k.term) || '').trim(), position: num(k && k.position), change: num(k && k.change) }))
+                .filter(k => k.term),
+            competitors: { rank: num(comp.rank), category: String(comp.category || '').trim(), ahead: strList(comp.ahead) },
+            citations: { live: strList(cit.live), inProgress: strList(cit.inProgress), todo: strList(cit.todo) },
+            reviewNotes: strList(o.reviewNotes).slice(0, 6),
+            actionDeltas: { views: String(ad.views||'').trim(), calls: String(ad.calls||'').trim(), directions: String(ad.directions||'').trim(), clicks: String(ad.clicks||'').trim(), maps: String(ad.maps||'').trim() },
+            mapsVisibility: String(o.mapsVisibility || '').trim()
+        };
+    },
+    hasLocalDetail(l) {
+        if (!l) return false;
+        return !!(l.keywords.length || l.citations.live.length || l.citations.inProgress.length || l.citations.todo.length
+            || l.competitors.rank || l.competitors.ahead.length || l.reviewNotes.length || l.mapsVisibility
+            || Object.keys(l.actionDeltas).some(k => l.actionDeltas[k]));
     },
 
     /* ══════════════════════════════════════ CONFIRM (per-platform) */
@@ -576,6 +624,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
                     <div class="global-auto-row" id="global-auto-row">${globalTiles}</div>
                 </div>
                 ${platSections}
+                ${this.localSectionHTML(platforms, d._local)}
                 <div style="margin-top:1rem;">
                     <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; auto-pulled from the report &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
                     <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach</p>
@@ -584,6 +633,77 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.25rem;">Generate Audit</button>
             </div>`;
         this.updateGlobalTotals();
+    },
+
+    // The Localo half of a GBP report: rankings, competitors, citations, review themes.
+    // Rendered as plain editable text so Morgan can correct or hand-enter any of it.
+    localSectionHTML(platforms, local) {
+        if (!(platforms || []).includes(GBP)) return '';
+        const l = this.normalizeLocal(local);
+        const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const q = v => esc(v).replace(/"/g,'&quot;');
+        const found = this.hasLocalDetail(l);
+        const ad = l.actionDeltas;
+        const dIn = (k, ph) => `<div><label style="font-size:0.6rem;">${ph}</label><input type="text" id="loc-d-${k}" value="${q(ad[k])}" placeholder="+12%"></div>`;
+        return `
+            <div class="conf-section conf-plat-gbp">
+                <div class="conf-section-head" onclick="this.nextElementSibling.classList.toggle('collapsed'); this.querySelector('.arrow').classList.toggle('open')">
+                    <span class="arrow open">▶</span> Local Search Positioning
+                    ${found ? '<span style="font-size:0.68rem; font-weight:600; color:var(--green); margin-left:8px; text-transform:none; letter-spacing:0;">&#10003; pulled from the report</span>' : '<span style="font-size:0.68rem; font-weight:500; color:var(--text-muted); margin-left:8px; text-transform:none; letter-spacing:0;">optional &mdash; add if your report has it</span>'}
+                </div>
+                <div class="conf-section-body" style="padding-top:0.5rem;">
+                    <label>Keyword rankings</label>
+                    <p style="font-size:0.66rem; color:var(--text-muted); margin:-2px 0 6px;">One per line: <strong>Term | Position | Change</strong>. Change is positions moved, so <strong>+6</strong> improved and <strong>-18</strong> slipped. Leave Position blank if the report only gives movement.</p>
+                    <textarea id="loc-keywords" rows="5" class="paste-box" placeholder="Physical therapy clinic Louisville | 2 | +1&#10;Occupational therapy Louisville | 2 | 0&#10;speech pathologist | | -18">${esc(l.keywords.map(k => [k.term, k.position || '', (k.change > 0 ? '+' : '') + (k.change || 0)].join(' | ')).join('\n'))}</textarea>
+
+                    <div class="conf-field-grid" style="grid-template-columns:90px 1fr; margin-top:0.75rem;">
+                        <div><label style="font-size:0.6rem;">Category Rank</label><input type="number" step="1" id="loc-rank" value="${l.competitors.rank || ''}" placeholder="1"></div>
+                        <div><label style="font-size:0.6rem;">Category It Ranks For</label><input type="text" id="loc-category" value="${q(l.competitors.category)}" placeholder="Physical therapy clinic"></div>
+                    </div>
+                    <label style="margin-top:0.5rem;">Competitors it is ahead of <span style="text-transform:none; letter-spacing:0; font-weight:500; color:var(--text-muted);">(comma separated)</span></label>
+                    <input type="text" id="loc-ahead" value="${q(l.competitors.ahead.join(', '))}" placeholder="Duncan Sports Therapy, Rocky Mountain Spine &amp; Sport">
+
+                    <label style="margin-top:0.75rem;">Citations &mdash; live <span style="text-transform:none; letter-spacing:0; font-weight:500; color:var(--text-muted);">(comma separated)</span></label>
+                    <input type="text" id="loc-cit-live" value="${q(l.citations.live.join(', '))}" placeholder="Instagram, Facebook, LinkedIn, Yelp">
+                    <label style="margin-top:0.5rem;">Citations &mdash; in progress</label>
+                    <input type="text" id="loc-cit-prog" value="${q(l.citations.inProgress.join(', '))}" placeholder="BBB, Nextdoor, Bing Places">
+                    <label style="margin-top:0.5rem;">Citations &mdash; still to do</label>
+                    <input type="text" id="loc-cit-todo" value="${q(l.citations.todo.join(', '))}" placeholder="Apple Maps, Foursquare, Manta">
+
+                    <label style="margin-top:0.75rem;">What the reviews praise <span style="text-transform:none; letter-spacing:0; font-weight:500; color:var(--text-muted);">(themes, comma separated &mdash; not a count)</span></label>
+                    <input type="text" id="loc-review-notes" value="${q(l.reviewNotes.join(', '))}" placeholder="one-on-one care model, Parkinson's program, pelvic floor recovery">
+
+                    <label style="margin-top:0.75rem;">Period-over-period change</label>
+                    <div class="conf-field-grid" style="grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));">
+                        ${dIn('views','VIEWS')}${dIn('calls','CALLS')}${dIn('directions','DIRECTIONS')}${dIn('clicks','WEBSITE')}${dIn('maps','MAPS VISIBILITY')}
+                    </div>
+                </div>
+            </div>`;
+    },
+
+    // Read the Local Search block back off the form
+    readLocalSection(platforms) {
+        if (!(platforms || []).includes(GBP)) return null;
+        const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+        const list = id => gv(id).split(',').map(x => x.trim()).filter(Boolean);
+        const kw = [];
+        gv('loc-keywords').split('\n').forEach(line => {
+            if (!line.trim()) return;
+            const p = line.split('|').map(x => x.trim());
+            if (!p[0]) return;
+            const pos = parseInt(String(p[1] || '').replace(/[^0-9]/g, ''), 10);
+            const chg = parseInt(String(p[2] || '').replace(/[^0-9-]/g, ''), 10);
+            kw.push({ term: p[0], position: isFinite(pos) ? pos : 0, change: isFinite(chg) ? chg : 0 });
+        });
+        const local = {
+            keywords: kw,
+            competitors: { rank: parseInt(gv('loc-rank'), 10) || 0, category: gv('loc-category'), ahead: list('loc-ahead') },
+            citations: { live: list('loc-cit-live'), inProgress: list('loc-cit-prog'), todo: list('loc-cit-todo') },
+            reviewNotes: list('loc-review-notes').slice(0, 6),
+            actionDeltas: { views: gv('loc-d-views'), calls: gv('loc-d-calls'), directions: gv('loc-d-directions'), clicks: gv('loc-d-clicks'), maps: gv('loc-d-maps') },
+            mapsVisibility: (this.tempData && this.tempData._local && this.tempData._local.mapsVisibility) || ''
+        };
+        return this.hasLocalDetail(local) ? local : null;
     },
 
     updateGlobalTotals() {
@@ -662,7 +782,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const context = gv('rep-context'), goal = gv('rep-goal');
         const priorSame = [...this.clients].reverse().find(x => (x.name||'').trim().toLowerCase() === (this.tempData._name||'').trim().toLowerCase());
         const priorGoal = (priorSame && priorSame.goal) || '';
-        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, context, goal, priorGoal, global, perPlatform, granular, topContent, deltas, findings: null });
+        const local = this.readLocalSection(platforms);
+        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, context, goal, priorGoal, global, perPlatform, granular, topContent, deltas, local, findings: null });
         this.persist();
         this.view('profile', this.clients.length - 1);
     },
@@ -705,15 +826,23 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const rating = pd.rating || 0, newRev = pd.reviewsNew || 0;
         const ratingScore = rating > 0 ? Math.max(0, Math.min(100, ((rating - 3) / 1.8) * 100)) : 0;
         const volScore = Math.min(100, (newRev / 8) * 100);             // 8 new reviews in the period = full marks
-        const repScore = rating > 0 ? (ratingScore * 0.6) + (volScore * 0.4) : volScore;
+        // With no rating and no review count in the report, reputation is unmeasured, not zero -
+        // scoring it 0 would drag the headline number down over missing data.
+        const repScore = rating > 0 ? (ratingScore * 0.6) + (volScore * 0.4) : (newRev > 0 ? volScore : null);
         const posts = pd.postsPublished || 0, photos = pd.photos || 0;
         const actScore = Math.min(100, (Math.min(100, (posts / 4) * 100) * 0.7) + (Math.min(100, (photos / 8) * 100) * 0.3));
-        const total = Math.round((actionScore * 0.4) + (repScore * 0.3) + (actScore * 0.3));
-        return { total, breakdown: [
-            { label: 'Action Rate', score: Math.round(actionScore), color: 'var(--primary)' },
-            { label: 'Reputation', score: Math.round(repScore), color: 'var(--green)' },
-            { label: 'Activity', score: Math.round(actScore), color: 'var(--amber)' }
-        ]};
+        const vis = this.kwVisibility(this.localData(c));
+
+        // Weight only the components we can actually measure, then renormalize.
+        const parts = [
+            { label: 'Action Rate', score: actionScore, w: 35, color: 'var(--primary)' },
+            { label: 'Visibility',  score: vis,         w: 25, color: 'var(--steel-light)' },
+            { label: 'Reputation',  score: repScore,    w: 20, color: 'var(--green)' },
+            { label: 'Activity',    score: actScore,    w: 20, color: 'var(--amber)' }
+        ].filter(p => p.score !== null && p.score !== undefined);
+        const wSum = parts.reduce((n, p) => n + p.w, 0) || 1;
+        const total = Math.round(parts.reduce((n, p) => n + p.score * (p.w / wSum), 0));
+        return { total, breakdown: parts.map(p => ({ label: p.label, score: Math.round(p.score), color: p.color })) };
     },
 
     /* ══════════════════════════════════════ BOOST SUGGESTIONS */
@@ -781,6 +910,28 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 boosts.push({ tier:'week', title:'X Link Clicks Are Thin', desc:`${fmt(x.clicks)} link clicks on ${fmt(xImpr)} impressions. X suppresses posts with outbound links - put the link in a reply to the post instead of in the post itself.` });
         }
 
+        // ── Local search: rankings, competitors, citations
+        const L = this.localData(c);
+        if (L) {
+            const slipped = L.keywords.filter(k => k.change <= -3).sort((a, b) => a.change - b.change);
+            const podium = L.keywords.filter(k => k.position >= 1 && k.position <= 3);
+            const nearMiss = L.keywords.filter(k => k.position >= 4 && k.position <= 8);
+            if (slipped.length)
+                boosts.push({ tier:'asap', title:'Keyword Rankings Slipped', desc:`${slipped.map(k => `"${k.term}" ${k.change}`).join(', ')}. A drop this size usually means a competitor published against the term or the listing lost a category or service match - check those first, then build a page and a GBP update targeting it.` });
+            if (nearMiss.length)
+                boosts.push({ tier:'week', title:'Within Reach Of The Local Pack', desc:`${nearMiss.map(k => `"${k.term}" at ${k.position}`).join(', ')} sit just outside the top 3. These are the cheapest wins on the board - add the exact phrase as a GBP service, work it into the description, and post an update built around it.` });
+            if (L.citations.todo.length >= 3)
+                boosts.push({ tier:'week', title:`${L.citations.todo.length} Directory Citations Outstanding`, desc:`Still to do: ${L.citations.todo.slice(0, 8).join(', ')}${L.citations.todo.length > 8 ? ', and more' : ''}. Consistent name, address and phone across high-authority directories is a direct local-ranking factor - work through them in one sitting.` });
+            if (L.citations.inProgress.length)
+                boosts.push({ tier:'week', title:'Citations Waiting On Verification', desc:`${L.citations.inProgress.join(', ')} are submitted but not live. These stall silently - chase the verification postcards, emails and phone PINs so the work already done actually counts.` });
+            if (L.competitors.rank === 1)
+                boosts.push({ tier:'month', title:'Defend The Number One Position', desc:`Ranked #1${L.competitors.category ? ` for ${L.competitors.category}` : ''}${L.competitors.ahead.length ? `, ahead of ${L.competitors.ahead.slice(0,3).join(', ')}` : ''}. Holding is harder than taking - keep the review flow and update cadence steady, because the competitors are actively adding both.` });
+            else if (L.competitors.rank > 1)
+                boosts.push({ tier:'month', title:`Ranked #${L.competitors.rank} In Category`, desc:`Sitting at #${L.competitors.rank}${L.competitors.category ? ` for ${L.competitors.category}` : ''}. Close the gap on review volume and category completeness first - those move the local pack faster than anything on the website.` });
+            if (podium.length && !slipped.length && !nearMiss.length)
+                boosts.push({ tier:'month', title:'Hold The Top-3 Terms', desc:`${podium.map(k => `"${k.term}" at ${k.position}`).join(', ')} are in the local pack. Keep them there with a steady update cadence and fresh photos, then start tracking a second tier of service terms to grow the footprint.` });
+        }
+
         // ── Google Business Profile
         if (pp[GBP]) {
             const gb = pp[GBP];
@@ -790,7 +941,11 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 boosts.push({ tier:'asap', title:'Google Business Action Rate Below Benchmark', desc:`${fmt(actions)} actions on ${fmt(views)} profile views (${rate}%), under the 3-6% band. Fix the listing basics first: hours, services, a call button that works, and a photo set that answers "is this the right place".` });
             if (views > 200 && actions === 0)
                 boosts.push({ tier:'asap', title:'Google Business Views Are Not Converting', desc:`${fmt(views)} profile views produced zero calls, directions or website clicks. Check that the phone number, website URL and address on the listing are live and correct.` });
-            if ((gb.reviewsNew||0) === 0)
+            const reviewsUnreported = !(gb.reviewsNew||0) && !(gb.reviewsTotal||0) && !(gb.rating||0)
+                && !!(this.localData(c) && this.localData(c).reviewNotes.length);
+            if (reviewsUnreported)
+                boosts.push({ tier:'week', title:'Reviews Are Not Being Counted', desc:'The report describes reviews but gives no count or average rating, so review velocity cannot be tracked month over month. Pull the new-review count and the current average into the next report - it is the metric that moves both local ranking and conversion.' });
+            else if ((gb.reviewsNew||0) === 0)
                 boosts.push({ tier:'asap', title:'No New Google Reviews', desc:'Zero reviews came in this period. Reviews drive both local ranking and conversion - start a post-visit review request (text or email) on every completed appointment.' });
             if ((gb.reviewsNew||0) > 0 && (gb.reviewsReplied||0) < (gb.reviewsNew||0))
                 boosts.push({ tier:'week', title:'Unanswered Google Reviews', desc:`${gb.reviewsNew} new review${gb.reviewsNew===1?'':'s'} and only ${gb.reviewsReplied||0} replied to. Google weights owner responses, and prospects read them - reply to every review inside 48 hours.` });
@@ -853,6 +1008,28 @@ ${JSON.stringify(extractShape, null, 2)}` }
     },
     // Rough 2026 median engagement-rate ranges by platform (healthcare / local-service leaning)
     BENCH: { Instagram:{eng:[0.7,1.5],label:'0.7-1.5%'}, Facebook:{eng:[0.3,0.8],label:'0.3-0.8%'}, LinkedIn:{eng:[1.5,3.0],label:'1.5-3%'}, YouTube:{eng:[1.0,2.5],label:'1-2.5%'}, TikTok:{eng:[2.5,5.0],label:'2.5-5%'}, X:{eng:[0.3,0.9],label:'0.3-0.9%'}, Pinterest:{eng:[0.2,0.6],label:'0.2-0.6%'} },
+    // A keyword's worth drops off a cliff below the local pack. Position 1-3 is the prize,
+    // 4-10 is page one, past 20 is effectively invisible.
+    kwScore(pos) {
+        if (!pos || pos < 1) return null;
+        if (pos <= 3) return 100 - (pos - 1) * 5;   // 100 / 95 / 90
+        if (pos <= 10) return 80 - (pos - 4) * 6;   // 80 down to 44
+        if (pos <= 20) return 40 - (pos - 11) * 3;  // 40 down to 13
+        return 5;
+    },
+    localData(c) { return c && c.local ? this.normalizeLocal(c.local) : null; },
+    // Average visibility across the tracked terms, 0-100. Null when nothing is ranked.
+    kwVisibility(l) {
+        const scored = (l && l.keywords || []).map(k => this.kwScore(k.position)).filter(x => x !== null);
+        if (!scored.length) return null;
+        return Math.round(scored.reduce((a, b) => a + b, 0) / scored.length);
+    },
+    movementChip(chg) {
+        if (chg === 0 || chg === undefined || chg === null) return '<span style="font-size:0.6rem; color:var(--text-muted);">stable</span>';
+        const up = chg > 0, col = up ? 'var(--green)' : 'var(--red)', bg = up ? 'var(--green-bg)' : 'var(--red-bg)';
+        return `<span style="display:inline-block; font-size:0.62rem; font-weight:800; color:${col}; background:${bg}; padding:1px 6px; border-radius:6px;">${up ? '+' : ''}${chg}</span>`;
+    },
+
     // Google Business is judged on action rate (actions per profile view), not engagement rate.
     // 3-6% is the typical band for a local service / medical practice listing.
     GBP_BENCH: { rate:[3,6], label:'3-6%', discoveryLabel:'45%+' },
@@ -1033,6 +1210,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
                 ${this.gbpSummaryHTML(c)}
 
+                ${this.localSearchHTML(c)}
+
                 ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impr. &amp; Views</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${platShort(p)}</td><td>${isLocal(p) ? '<span style="color:var(--text-muted);">&mdash;</span>' : fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(this.platImpressions(pd))}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div><div style="font-size:0.66rem; color:var(--text-muted); margin-top:8px;">How we count: <strong>Posts</strong> = feed posts + reels/shorts (Stories excluded). <strong>Impressions</strong> include video views.${platforms.some(isLocal) ? ' For Google Business, <strong>Impressions</strong> are profile views and <strong>Interactions</strong> are customer actions (calls, directions, messages, bookings, website clicks).' : ''}</div></div>` : ''}
 
                 ${this.efficiencyFormatHTML(c)}
@@ -1087,6 +1266,51 @@ ${JSON.stringify(extractShape, null, 2)}` }
         </div>`;
     },
 
+    // Rankings, competitive standing and citation coverage - the local-SEO half of the audit
+    localSearchHTML(c) {
+        const l = this.localData(c);
+        if (!l || !this.hasLocalDetail(l)) return '';
+        const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const vis = this.kwVisibility(l);
+        const posCell = p => {
+            if (!p) return '<span style="color:var(--text-muted);">&mdash;</span>';
+            const col = p <= 3 ? 'var(--green)' : p <= 10 ? 'var(--amber)' : 'var(--red)';
+            const bg = p <= 3 ? 'var(--green-bg)' : p <= 10 ? 'var(--amber-bg)' : 'var(--red-bg)';
+            return `<span style="display:inline-flex; min-width:24px; justify-content:center; font-weight:800; font-size:0.75rem; color:${col}; background:${bg}; padding:2px 7px; border-radius:6px;">${p}</span>`;
+        };
+        const kwTable = l.keywords.length ? `<div style="overflow-x:auto;"><table><thead><tr><th>Search term</th><th>Position</th><th>Movement</th><th>Where it sits</th></tr></thead><tbody>${
+            l.keywords.slice().sort((a,b) => (a.position||99) - (b.position||99)).map(k => `<tr><td style="font-weight:600;">${esc(k.term)}</td><td>${posCell(k.position)}</td><td>${this.movementChip(k.change)}</td><td style="font-size:0.72rem; color:var(--text-muted);">${k.position ? (k.position <= 3 ? 'Local pack' : k.position <= 10 ? 'Page one' : 'Past page one') : 'Not ranked in report'}</td></tr>`).join('')
+        }</tbody></table></div>` : '';
+
+        const comp = l.competitors;
+        const compHTML = (comp.rank || comp.ahead.length) ? `<div style="margin-top:1rem;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Competitive Standing</div>
+            <div style="font-size:0.88rem;">${comp.rank ? `<strong style="color:${comp.rank === 1 ? 'var(--green)' : 'var(--text)'};">#${comp.rank}</strong>${comp.category ? ` for ${esc(comp.category)}` : ' in category'}` : 'Tracked against local competitors'}${comp.ahead.length ? `, ahead of ${esc(comp.ahead.join(', '))}` : ''}.</div></div>` : '';
+
+        const cit = l.citations, citTotal = cit.live.length + cit.inProgress.length + cit.todo.length;
+        const citBar = (lbl, arr, col) => arr.length ? `<div style="margin-bottom:7px;"><div style="display:flex; justify-content:space-between; font-size:0.72rem; font-weight:700;"><span>${lbl}</span><span>${arr.length} &middot; ${Math.round(arr.length/citTotal*100)}%</span></div><div class="score-bar-bg"><div class="score-bar-fill" style="width:${Math.round(arr.length/citTotal*100)}%; background:${col}"></div></div><div style="font-size:0.66rem; color:var(--text-muted); margin-top:3px;">${esc(arr.slice(0,10).join(', '))}${arr.length>10?', and more':''}</div></div>` : '';
+        const citHTML = citTotal ? `<div style="margin-top:1rem;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:8px;">Directory Citations</div>
+            ${citBar('Live', cit.live, 'var(--green)')}${citBar('In progress', cit.inProgress, 'var(--amber)')}${citBar('Still to do', cit.todo, 'var(--red)')}</div>` : '';
+
+        const ad = l.actionDeltas;
+        const adRows = [['views','Profile Views'],['calls','Calls'],['directions','Directions'],['clicks','Website Clicks'],['maps','Maps Visibility']].filter(([k]) => ad[k]);
+        const adHTML = adRows.length ? `<div style="margin-top:1rem;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">Change vs Last Report</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">${adRows.map(([k,lbl]) => `<div style="flex:1; min-width:100px; text-align:center; background:var(--bg); padding:8px 6px; border-radius:8px;">${this.deltaChipStr(ad[k])}<div style="font-size:0.62rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-top:4px;">${lbl}</div></div>`).join('')}</div></div>` : '';
+
+        const revHTML = l.reviewNotes.length ? `<div style="margin-top:1rem;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:6px;">What Reviews Keep Praising</div><div style="display:flex; gap:6px; flex-wrap:wrap;">${l.reviewNotes.map(t => `<span style="font-size:0.75rem; font-weight:600; color:var(--steel); background:var(--primary-soft); padding:3px 10px; border-radius:20px;">${esc(t)}</span>`).join('')}</div></div>` : '';
+
+        const visTile = vis !== null ? `<div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); margin-bottom:1rem;">
+            <div class="stat-tile"><div class="val" style="color:${vis>=70?'var(--green)':vis>=45?'var(--amber)':'var(--red)'}">${vis}</div><div class="lbl">Visibility Score</div></div>
+            <div class="stat-tile"><div class="val">${l.keywords.length}</div><div class="lbl">Terms Tracked</div></div>
+            <div class="stat-tile"><div class="val">${l.keywords.filter(k => k.position >= 1 && k.position <= 3).length}</div><div class="lbl">In The Local Pack</div></div>
+            ${l.mapsVisibility ? `<div class="stat-tile"><div class="val" style="font-size:1.2rem;">${esc(l.mapsVisibility)}</div><div class="lbl">Maps Visibility</div></div>` : ''}
+        </div>` : '';
+
+        return `<div class="form-container"><div class="section-label">Local Search Positioning</div>
+            ${visTile}${kwTable}${adHTML}${compHTML}${citHTML}${revHTML}
+            ${l.keywords.length ? '<div style="font-size:0.66rem; color:var(--text-muted); margin-top:10px;">Positions 1-3 are the local pack, which is where the clicks are. Movement is positions gained or lost since the last report.</div>' : ''}
+        </div>`;
+    },
+
     /* ══════════════════════════════════════ FINDINGS (AI, in-depth) */
     renderFindingsSection(i) {
         const c = this.clients[i];
@@ -1128,15 +1352,52 @@ ${JSON.stringify(extractShape, null, 2)}` }
             googleBusiness: c.perPlatform && c.perPlatform[GBP] ? (() => {
                 const gb = c.perPlatform[GBP];
                 const searches = (gb.searchesDirect||0) + (gb.searchesDiscovery||0) + (gb.searchesBranded||0);
+                // Review figures are frequently absent from a local-SEO export. Absent is null,
+                // never 0, or the model writes "reviews are at zero" about data it never saw.
+                const reviewsUnreported = !(gb.reviewsNew||0) && !(gb.reviewsTotal||0) && !(gb.rating||0);
                 return { profileViews: gb.impressions||0, totalActions: gbpActions(gb), actionRatePct: gbpActionRate(gb),
                     calls: gb.calls||0, directionRequests: gb.directions||0, websiteClicks: gb.clicks||0, messages: gb.messages||0, bookings: gb.bookings||0,
                     discoverySharePct: searches ? Math.round((gb.searchesDiscovery||0)/searches*100) : null,
-                    newReviews: gb.reviewsNew||0, reviewsReplied: gb.reviewsReplied||0, totalReviews: gb.reviewsTotal||0, avgRating: gb.rating||0,
+                    searchMixReported: !!searches,
+                    newReviews: reviewsUnreported ? null : (gb.reviewsNew||0), reviewsReplied: reviewsUnreported ? null : (gb.reviewsReplied||0),
+                    totalReviews: reviewsUnreported ? null : (gb.reviewsTotal||0), avgRating: reviewsUnreported ? null : (gb.rating||0),
                     updatesPosted: gb.postsPublished||0, photosAdded: gb.photos||0 };
             })() : null,
+            // Optional counters most local reports omit. Present only when they carry a value,
+            // so an absent one reads as "not reported" rather than as a zero to explain.
+            googleBusinessOptional: c.perPlatform && c.perPlatform[GBP] ? (() => {
+                const gb = c.perPlatform[GBP], o = {};
+                if (gb.messages) o.messages = gb.messages;
+                if (gb.bookings) o.bookings = gb.bookings;
+                if (gb.viewsSearch || gb.viewsMaps) { o.viewsFromSearch = gb.viewsSearch||0; o.viewsFromMaps = gb.viewsMaps||0; }
+                return Object.keys(o).length ? o : null;
+            })() : null,
+            citationCounts: (() => { const l = this.localData(c); return l ? { live: l.citations.live.length, inProgress: l.citations.inProgress.length, todo: l.citations.todo.length } : null; })(),
+            localSearch: (() => {
+                const l = this.localData(c);
+                if (!l) return null;
+                // position 0 is our "not stated" sentinel - send null so the model cannot
+                // report it as a literal rank of zero.
+                const comp = l.competitors;
+                return Object.assign({}, l, {
+                    keywords: l.keywords.map(k => ({ term: k.term, position: k.position || null, change: k.change })),
+                    // Unambiguous key name: "ahead" was read as "competitors ahead of us" and
+                    // inverted the competitive story in a client-facing report.
+                    competitors: { ourRankInCategory: comp.rank || null, category: comp.category, weRankAheadOfThese: comp.ahead }
+                });
+            })(),
             clientContext: c.context || '',
             lastPeriodGoal: c.priorGoal || '',
             topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, format: this.postFormat(t), date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
+        };
+        // Deterministic pass first: these are computed straight from the numbers and are always
+        // correct, so they become required coverage rather than something the AI can drop.
+        const baseline = this.computeFindings(c, i);
+        const mustCover = {
+            establishedFindings: baseline.keyFindings,
+            establishedWins: baseline.wins,
+            establishedConcerns: baseline.concerns,
+            establishedActions: (baseline.recommendations || []).map(r => r.title)
         };
         const prompt = `You are a senior social media strategist writing the "Findings & Analysis" for a client audit of ${c.name}.
 Dataset for the reporting period (numbers exact; deltas are period-over-period from the export):
@@ -1144,6 +1405,10 @@ ${JSON.stringify(dataForAI, null, 0)}
 
 Write a SPECIFIC analysis tailored to THIS account's exact numbers - no boilerplate, no advice that could apply to any account.
 VOICE: Write as Messick Marketing, the agency, speaking to the client as a partner. Use first-person plural - "we", "our", "us" - and take ownership of the work: "We grew...", "We recommend...", "Our top post...", "We'll focus on...". Do NOT use second-person "you/your" to hand out actions or advice (never "you should", "your posts need"). Keep it collaborative and we-led throughout.
+⚠️ NULL OR ABSENT MEANS NOT REPORTED, NOT ZERO. Any field that is null, or that is missing from the object entirely, was simply absent from the source report. googleBusinessOptional only carries the counters the report actually included, so if bookings or messages are not there, the report did not cover them - do not mention them, do not call them zero, and never build a recommendation on them. Use citationCounts for any count of directories rather than counting the names yourself. Never describe a null as zero, "unranked", "none" or "at 0", never build a finding, concern or recommendation on it, and never claim a number the data does not contain. A keyword with "position": null has movement but no stated rank - say it moved, not that it is unranked. If review figures are null, the correct observation is that the report did not include them, not that there are no reviews.
+⚠️ NEVER USE AN EM DASH OR EN DASH (— or –) ANYWHERE IN YOUR OUTPUT. Use a comma, a full stop, or a plain hyphen. This is a hard house style rule with no exceptions.
+⚠️ USE THE NUMBERS AS GIVEN. Every total, rate and percentage in this dataset is already computed - quote them exactly and never recalculate one yourself. A rate you derive will disagree with the rate printed in the report the client is reading.
+⚠️ Do not over-claim on the Google Business action rate. Reporting tools such as Localo count "profile views" far more narrowly than Google's own impressions, so a rate above about 15% usually means a narrower denominator rather than extraordinary performance. Report it as strong, note the benchmark, and do not multiply it out as "5x the benchmark".
 Rules: (1) newChannelsThisPeriod = platforms that just LAUNCHED (all followers gained, none lost) - treat as a fresh baseline, never criticize low counts or suggest generic "gain subscribers / add CTAs" tactics; acknowledge the launch and recommend cadence. (2) If hasPriorReportToCompare is false, don't invent month-over-month claims beyond the given deltas. (3) Every recommendation must cite a specific number/pattern from this data.
 USE THIS CONTEXT TO OPTIMIZE THE RECOMMENDATIONS:
 - clientContext: real-world context the numbers can't show - weight it HEAVILY (e.g. if they upgraded to a video package, recommend leaning into more video). If it's empty, ignore.
@@ -1153,8 +1418,12 @@ USE THIS CONTEXT TO OPTIMIZE THE RECOMMENDATIONS:
 - PLATFORM-SPECIFIC READS (apply only to platforms present in the data):
   * Pinterest is a search/discovery engine, not a feed. Judge it on saves (the ranking signal), pin clicks, and outbound clicks - NOT on follower count or likes. A low follower count with high impressions is normal and healthy. Recommend pin volume, fresh pin variations, keyword-rich titles/descriptions, and destination-page alignment. Never recommend Stories, Reels, or trending audio for Pinterest.
   * Google Business Profile is a LOCAL DISCOVERY listing, not a feed. It has no followers and no engagement rate - never mention either, and never recommend hashtags, Reels, Stories or trending audio for it. Judge it on: action rate (calls + directions + messages + bookings + website clicks, divided by profile views; 3-6% is the typical band), the search mix (discovery searches mean new customers found the listing - under 45% discovery means it is mostly being found by name), review flow and average rating, and listing activity (weekly updates, monthly photos). Recommendations belong to categories/services, listing completeness, review requests and replies, photos, and update cadence.
+  * localSearch (present when the report is a local-SEO export such as Localo or BrightLocal) is the most valuable material in the dataset - lead with it. keywords carry a current "position" and a "change" in positions since the last report, where positive improved and negative slipped. A null position means the report gave movement without a rank - describe the movement only. Top 3 is the local pack and is what matters; 4-10 is page one and is the cheapest win available; a change of -3 or worse needs an explanation and a fix. competitors.ourRankInCategory is OUR OWN standing in the named category, so 1 means we are the top-ranked business there. competitors.weRankAheadOfThese lists businesses WE BEAT - they are behind us, never ahead of us. Getting this backwards inverts the story in a client-facing report, so read it carefully. citations.todo are directories not yet claimed, which is a direct local-ranking factor. reviewNotes are qualitative themes, NOT counts - never turn them into a review number or a rating. Recommendations from this data should name the actual keyword or directory, never generic "improve local SEO" advice.
   * X rewards conversation and velocity. Judge it on replies, reposts, and bookmarks - bookmarks signal reference-worthy content and are a cue to expand a post into a thread. Cadence matters more here than anywhere else; posts with outbound links get suppressed, so recommend link-in-reply. Never recommend hashtags-for-reach on X.
 - lastPeriodGoal: if present, GRADE it against this period's actual numbers (hit / partially met / missed) and say so in keyFindings.
+ALREADY ESTABLISHED FROM THE RAW NUMBERS - these were computed directly from the data, so they are correct by construction:
+${JSON.stringify(mustCover, null, 0)}
+Treat that as required coverage. Do not contradict any of it, and do not drop a material item from it: the keyword movements, the competitive standing and the citation gaps in particular must survive into your output. Your job is to sharpen the wording, add the reasoning the raw numbers cannot show, and fold in clientContext - not to start from scratch.
 Prioritize: order recommendations by impact (High first). Each recommendation gets an "impact" (High/Medium/Low) and, where possible, a "target" (a measurable outcome). Give the 5 highest-leverage moves only.
 
 Output ONLY compact minified JSON on a SINGLE line - no markdown, no code fences, no line breaks, no prose outside the object. Keep every string tight (one sentence where possible) so the response never gets cut off. This exact shape:
@@ -1174,8 +1443,9 @@ Give exactly 5 recommendations, ordered High impact first.`;
             if (data.error) throw new Error((data.error.message || JSON.stringify(data.error)).slice(0, 160));
             const txt = data.content && data.content[0] && data.content[0].text;
             if (!txt) throw new Error('Empty AI response');
-            const parsed = this.parseFindingsJSON(txt);
+            let parsed = this.parseFindingsJSON(txt);
             if (!parsed || !parsed.recommendations) throw new Error('Could not parse analysis JSON');
+            parsed = this.sanitizeFindings(parsed);
             this.sortRecs(parsed);
             c.findings = parsed; c.findingsSource = 'ai'; c.findingsError = ''; c.selectedRecs = null;
             this.persist();
@@ -1185,6 +1455,25 @@ Give exactly 5 recommendations, ordered High impact first.`;
             console.error('Findings AI error:', e);
             useComputed(e.message || e);
         }
+    },
+
+    // House style: no em or en dashes in anything client-facing. Applied to every AI string
+    // because the model leaks them even when told not to.
+    deDash(str) {
+        return String(str)
+            .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1-$2')   // 3–6% -> 3-6%
+            .replace(/\s*[\u2013\u2014]\s*/g, ' - ')
+            .replace(/ {2,}/g, ' ')
+            .trim();
+    },
+    sanitizeFindings(f) {
+        const walk = v => {
+            if (typeof v === 'string') return this.deDash(v);
+            if (Array.isArray(v)) return v.map(walk);
+            if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach(k => o[k] = walk(v[k])); return o; }
+            return v;
+        };
+        return walk(f);
     },
 
     parseFindingsJSON(txt) {
@@ -1287,6 +1576,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
                 if ((x.postsPublished||0) > 0 && (x.postsPublished||0) < 20) recommendations.push({title:'Increase X posting cadence', detail:`${x.postsPublished} posts this period. X decays faster than any other channel, so we'll move toward 1-2 posts a day plus one thread a week.`});
             }
         }
+        const LF = this.localData(c);
         // Google Business reads on discovery and actions, never on followers or engagement rate
         if (pp[GBP]) {
             const gb = pp[GBP], views = gb.impressions || 0, actions = gbpActions(gb), rate = gbpActionRate(gb);
@@ -1299,11 +1589,48 @@ Give exactly 5 recommendations, ordered High impact first.`;
                 if ((gb.directions||0) > 0) wins.push(`${n(gb.directions)} people asked Google for directions to the practice.`);
                 if (rate > 0 && rate < 3) { concerns.push(`Google Business action rate is ${rate}%, under the 3-6% local benchmark.`); recommendations.push({title:'Convert more Google Business views', detail:`${n(views)} views produced only ${n(actions)} actions. We will tighten the listing - services, hours, call button and photo set - so the people already finding it take the next step.`, impact:'High', target:'Action rate at or above 3%'}); }
                 if (searches > 0 && discPct < 45) { concerns.push(`Only ${discPct}% of Google Business searches were discovery - most people already knew the name.`); recommendations.push({title:'Widen Google Business discovery', detail:`${discPct}% of searches were discovery. We will add every service and condition as a category, service item and description keyword so the listing surfaces on "near me" searches.`, impact:'High', target:'Discovery share above 45%'}); }
-                if ((gb.reviewsNew||0) === 0) { concerns.push('No new Google reviews came in this period.'); recommendations.push({title:'Start a review request routine', detail:'Zero reviews arrived this period. We will put a post-visit review request in front of every completed appointment, since reviews move both ranking and conversion.', impact:'High', target:'4+ new reviews next period'}); }
+                const revUnreported = !(gb.reviewsNew||0) && !(gb.reviewsTotal||0) && !(gb.rating||0) && !!(LF && LF.reviewNotes.length);
+                if (revUnreported) { recommendations.push({title:'Report review count and rating', detail:'This period gave us review themes but no numbers, so we cannot show review velocity or the current average. We will pull both into the next report and track them from there.', impact:'Medium', target:'New-review count and average rating in every report'}); }
+                else if ((gb.reviewsNew||0) === 0) { concerns.push('No new Google reviews came in this period.'); recommendations.push({title:'Start a review request routine', detail:'Zero reviews arrived this period. We will put a post-visit review request in front of every completed appointment, since reviews move both ranking and conversion.', impact:'High', target:'4+ new reviews next period'}); }
                 else { wins.push(`${n(gb.reviewsNew)} new Google review${(gb.reviewsNew||0)===1?'':'s'}${gb.rating?` at a ${gb.rating} average`:''}.`); if ((gb.reviewsReplied||0) < (gb.reviewsNew||0)) recommendations.push({title:'Reply to every Google review', detail:`${gb.reviewsNew} reviews came in and ${gb.reviewsReplied||0} were answered. We will respond to each one inside 48 hours, since Google weights owner responses and prospects read them.`, impact:'Medium', target:'100% of reviews answered'}); }
                 if ((gb.postsPublished||0) < 4) recommendations.push({title:'Post weekly to Google Business', detail:`${gb.postsPublished||0} updates published. Google Business posts expire, so we will run one a week repurposed from the social calendar to keep the listing active.`, impact:'Medium', target:'4+ updates per month'});
                 if ((gb.photos||0) < 4) recommendations.push({title:'Feed the listing fresh photos', detail:`${gb.photos||0} photos added. Fresh imagery lifts direction and call requests, so we will add 8+ a month across team, facility and exterior shots.`, impact:'Medium', target:'8+ photos per month'});
             }
+        }
+        // Local search positioning - the half of a Localo/BrightLocal report the counters miss
+        if (LF) {
+            const kws = LF.keywords, vis = this.kwVisibility(LF);
+            const podium = kws.filter(k => k.position >= 1 && k.position <= 3);
+            const slipped = kws.filter(k => k.change <= -3).sort((a,b) => a.change - b.change);
+            const gained = kws.filter(k => k.change > 0).sort((a,b) => b.change - a.change);
+            const nearMiss = kws.filter(k => k.position >= 4 && k.position <= 8);
+            if (podium.length) {
+                keyFindings.push(`${podium.length} tracked term${podium.length===1?' sits':'s sit'} in the top 3: ${podium.map(k => `"${k.term}" at ${k.position}`).join(', ')}.`);
+                wins.push(`Top-3 local ranking for ${podium.map(k => `"${k.term}"`).join(' and ')}.`);
+            }
+            if (vis !== null) platformNotes.push({platform:'Local Search', note:`Average visibility across ${kws.length} tracked term${kws.length===1?'':'s'} scores ${vis}/100${podium.length?`, with ${podium.length} in the local pack`:''}.`});
+            if (gained.length) wins.push(`${gained.map(k => `"${k.term}" up ${k.change}`).join(', ')} in the rankings.`);
+            if (slipped.length) {
+                concerns.push(`${slipped.map(k => `"${k.term}" fell ${Math.abs(k.change)} position${Math.abs(k.change)===1?'':'s'}`).join(' and ')}.`);
+                recommendations.push({title:`Recover the "${slipped[0].term}" ranking`, detail:`"${slipped[0].term}" dropped ${Math.abs(slipped[0].change)} positions. We will check the category and service match on the listing, then build a page and a Google Business update aimed squarely at that phrase.`, impact:'High', target:`"${slipped[0].term}" back inside the top 10`});
+            }
+            if (nearMiss.length) recommendations.push({title:'Push the near-miss terms into the top 3', detail:`${nearMiss.map(k => `"${k.term}" at ${k.position}`).join(', ')} ${nearMiss.length===1?'sits':'sit'} just outside the local pack. We will add ${nearMiss.length===1?'it':'each'} as an exact-match service on the listing and post an update built around it, which is the cheapest ranking movement available.`, impact:'High', target:`${nearMiss[0].term} at position 3 or better`});
+            if (LF.competitors.rank === 1) {
+                wins.push(`Ranked #1${LF.competitors.category?` for ${LF.competitors.category}`:''} among local competitors${LF.competitors.ahead.length?`, ahead of ${LF.competitors.ahead.slice(0,3).join(', ')}`:''}.`);
+                keyFindings.push(`Holding the #1 category position${LF.competitors.ahead.length?` against ${LF.competitors.ahead.length} tracked competitor${LF.competitors.ahead.length===1?'':'s'}`:''}.`);
+            } else if (LF.competitors.rank > 1) {
+                concerns.push(`Ranked #${LF.competitors.rank}${LF.competitors.category?` for ${LF.competitors.category}`:''} among local competitors.`);
+            }
+            if (LF.citations.todo.length) {
+                concerns.push(`${LF.citations.todo.length} directory citation${LF.citations.todo.length===1?'':'s'} still outstanding.`);
+                recommendations.push({title:'Finish the outstanding citations', detail:`${LF.citations.todo.length} directories are still to do${LF.citations.todo.length<=6?` (${LF.citations.todo.join(', ')})`:''}. Consistent listings across high-authority directories feed local ranking directly, so we will clear the backlog in one pass.`, impact:'Medium', target:`All ${LF.citations.todo.length} citations live`});
+            }
+            if (LF.citations.inProgress.length) recommendations.push({title:'Chase the pending verifications', detail:`${LF.citations.inProgress.join(', ')} are submitted but not yet live. We will follow the verification through so the work already done starts counting.`, impact:'Low', target:'Pending citations verified'});
+            if (LF.citations.live.length) wins.push(`${LF.citations.live.length} directory listing${LF.citations.live.length===1?'':'s'} now live and consistent.`);
+            if (LF.reviewNotes.length) keyFindings.push(`Reviews keep returning to the same strengths: ${LF.reviewNotes.slice(0,4).join(', ')}.`);
+            const adPairs = [['views','profile views'],['calls','calls'],['directions','direction requests'],['clicks','website clicks'],['maps','maps visibility']]
+                .filter(([k]) => LF.actionDeltas[k]).map(([k, lbl]) => `${lbl} ${LF.actionDeltas[k]}`);
+            if (adPairs.length) keyFindings.push(`Period over period: ${adPairs.join(', ')}.`);
         }
         const socialContent = socialOnly(plats).reduce((n, p) => n + this.platPosts(pp[p]), 0);
         if (socialOnly(plats).length && socialContent > 0 && socialContent < 12) recommendations.push({title:'Lift posting frequency', detail:`${socialContent} posts this period. We'll build toward 3+ per week to keep reach compounding between reports.`});
@@ -1395,7 +1722,9 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
             name: c.name, slug: this.shareSlug(c), period: ([c.periodStart, c.periodEnd].filter(Boolean).join(' – ') || c.date || ''), channels: c.channels || '',
-            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms
+            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms,
+            keywords: (() => { const l = this.localData(c); return l ? l.keywords.filter(k => k.position).sort((a,b) => a.position - b.position).slice(0, 8) : []; })(),
+            competitors: (() => { const l = this.localData(c); return l && (l.competitors.rank || l.competitors.ahead.length) ? l.competitors : null; })()
         };
     },
     shareLink(i) {
@@ -1462,7 +1791,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
                 const prompt = `You are refining a strategist's rough note into ONE polished, client-facing recommendation for the social media audit of ${c.name}.
 Account context: ${JSON.stringify(ctx).slice(0, 700)}
 Rough note from the strategist: "${raw}"
-Write it as Messick Marketing, first-person plural ("we", "our") - never "you should". Keep it specific and tied to this account where possible.
+Write it as Messick Marketing, first-person plural ("we", "our") - never "you should". Keep it specific and tied to this account where possible. Never use an em dash or en dash; use a comma or a plain hyphen.
 Output ONLY compact JSON on one line, nothing else: {"title":"short plain-language action","detail":"one sentence on what we'll do and why it matters","impact":"High|Medium|Low","target":"a measurable outcome, or empty string"}`;
                 const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1471,7 +1800,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
                 const data = await resp.json();
                 const txt = data && data.content && data.content[0] && data.content[0].text;
                 const parsed = txt && this.parseFindingsJSON(txt);
-                if (parsed && parsed.title) rec = { title: parsed.title, detail: parsed.detail || '', impact: parsed.impact || 'Medium', target: parsed.target || '', custom: true };
+                if (parsed && parsed.title) rec = this.sanitizeFindings({ title: parsed.title, detail: parsed.detail || '', impact: parsed.impact || 'Medium', target: parsed.target || '', custom: true });
             } catch (e) { /* fall through to raw */ }
         }
         if (!rec) rec = { title: raw, detail: '', impact: 'Medium', target: '', custom: true }; // fallback: use the note as-is
@@ -1586,6 +1915,8 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
 
                 ${topHTML ? `<div class="cr-section"><div class="cr-h">${localOnly ? 'Updates That Landed' : 'Content That Landed'}</div>${topHTML}</div>` : ''}
 
+                ${this.clientLocalHTML(c)}
+
                 <div class="cr-section"><div class="cr-h">What We Recommend Next</div>${recsHTML}</div>
 
                 <div style="text-align:center; font-size:0.66rem; color:var(--text-muted); padding:1rem 0 0.25rem;">${localOnly ? 'Profile views are the times the Google Business listing was shown on Search or Maps. Actions are calls, direction requests, messages, bookings and website clicks.' : 'Posts = feed posts + reels/shorts (Stories excluded). Impressions include video views.'}</div>
@@ -1593,6 +1924,32 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
                     <span style="font-family:'Dancing Script',cursive; font-size:1.05rem; color:var(--steel);">Messick Marketing</span> &nbsp;&middot;&nbsp; Prepared for ${esc(c.name)} &nbsp;&middot;&nbsp; ${this.periodLabel(c)}
                 </div>
             </div>`;
+    },
+
+    // Client-facing cut of the local-search data: where they rank and who they are ahead of
+    clientLocalHTML(c) {
+        const l = this.localData(c);
+        if (!l || !l.keywords.length) return '';
+        const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const ranked = l.keywords.filter(k => k.position).sort((a,b) => a.position - b.position).slice(0, 8);
+        if (!ranked.length) return '';
+        const rows = ranked.map(k => {
+            const col = k.position <= 3 ? 'var(--green)' : k.position <= 10 ? 'var(--amber)' : 'var(--red)';
+            const mv = k.change > 0 ? `<span style="color:var(--green); font-weight:700;">&uarr; ${k.change}</span>`
+                : k.change < 0 ? `<span style="color:var(--red); font-weight:700;">&darr; ${Math.abs(k.change)}</span>`
+                : '<span style="color:var(--text-muted);">no change</span>';
+            return `<tr><td style="font-weight:600;">${esc(k.term)}</td><td style="font-weight:800; color:${col};">#${k.position}</td><td>${mv}</td></tr>`;
+        }).join('');
+        const comp = l.competitors;
+        const genericCat = comp.category && /categor/i.test(comp.category);
+        const compLine = comp.rank === 1
+            ? `<p class="cr-lead" style="margin-top:0.75rem;">${genericCat ? `You are currently ranked #1 for your ${esc(comp.category)} in the local market` : `You are currently the top-ranked${comp.category ? ` ${esc(comp.category)}` : ''} in your local market`}${comp.ahead.length ? `, ahead of ${esc(comp.ahead.slice(0,3).join(', '))}` : ''}.</p>`
+            : comp.rank > 1 ? `<p class="cr-lead" style="margin-top:0.75rem;">You currently sit at #${comp.rank}${comp.category ? ` for ${esc(comp.category)}` : ''} among local competitors.</p>` : '';
+        return `<div class="cr-section"><div class="cr-h">Where You Show Up In Search</div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>When someone searches</th><th>You rank</th><th>Since last month</th></tr></thead><tbody>${rows}</tbody></table></div>
+            ${compLine}
+            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:8px;">The top three results are the map pack, which is where most local clicks go.</div>
+        </div>`;
     },
 
     showPlatformTab(auditIndex, platform, btn) {
@@ -1649,7 +2006,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         const name = document.getElementById('client-name').value || 'New Audit';
         const platforms = this.getSelectedPlatforms();
         if (platforms.length === 0) return alert('Select at least one platform.');
-        this.tempData = { _name: name }; platforms.forEach(p => this.tempData[p] = {});
+        this.tempData = { _name: name, _local: null }; platforms.forEach(p => this.tempData[p] = {});
         this.currentPlatforms = platforms; this.view('confirm');
     },
 

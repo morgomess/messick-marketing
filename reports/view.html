@@ -60,6 +60,13 @@
 
   /* platform breakdown chart */
   .chart-note{font-size:.8rem;color:var(--muted);margin:-.5rem 0 1.4rem}
+  .kw-row{display:flex;align-items:baseline;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--line)}
+  .kw-row:last-child{border-bottom:none}
+  .kw-term{flex:1;font-size:.96rem;font-weight:500;color:var(--black)}
+  .kw-pos{font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .kw-mv{font-size:.68rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;min-width:88px;text-align:right}
+  .kw-up{color:#2f7d54}.kw-down{color:#b94040}
+  .comp-line{margin-top:1.1rem;font-size:.98rem;line-height:1.6}
   .chart-row{padding:.95rem 0;border-bottom:1px solid var(--line)}
   .chart-row:last-child{border-bottom:none}
   .chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.55rem}
@@ -165,6 +172,7 @@
 
     // Platform breakdown chart (share of reach)
     var plats = (d.platforms||[]).filter(function(p){ return (p.impressions||0)>0; });
+    if(plats.length < 2) plats = [];   // a single-platform "share of reach" bar says nothing
     var chartHTML='';
     if(plats.length){
       var totalR = plats.reduce(function(s,p){ return s+(p.impressions||0); },0)||1;
@@ -188,6 +196,30 @@
         '<div class="tc-num">'+esc(vf)+'<span>'+unit+'</span></div></div>';
     }).join('');
 
+    // Local search rankings (Google Business audits)
+    var kws = (d.keywords||[]).filter(function(k){ return k && k.position; });
+    var kwHTML = '';
+    if(kws.length){
+      kwHTML = kws.map(function(k){
+        var col = k.position<=3 ? '#2f7d54' : k.position<=10 ? '#9a7b2f' : '#b94040';
+        var mv = (k.change>0) ? '<span class="kw-mv kw-up">&uarr; '+k.change+'</span>'
+               : (k.change<0) ? '<span class="kw-mv kw-down">&darr; '+Math.abs(k.change)+'</span>'
+               : '<span class="kw-mv">no change</span>';
+        return '<div class="kw-row"><span class="kw-term">'+esc(k.term)+'</span>'+
+          '<span class="kw-pos" style="color:'+col+'">#'+k.position+'</span>'+mv+'</div>';
+      }).join('');
+      var cp = d.competitors;
+      if(cp && cp.rank===1){
+        var generic = cp.category && /categor/i.test(cp.category);
+        kwHTML += '<p class="comp-line">'+(generic
+            ? 'You are currently ranked #1 for your '+esc(cp.category)+' in the local market'
+            : 'You are currently the top-ranked'+(cp.category?' '+esc(cp.category):'')+' in your local market')+
+          (cp.ahead&&cp.ahead.length?', ahead of '+esc(cp.ahead.slice(0,3).join(', ')):'')+'.</p>';
+      } else if(cp && cp.rank>1){
+        kwHTML += '<p class="comp-line">You currently sit at #'+cp.rank+(cp.category?' for '+esc(cp.category):'')+' among local competitors.</p>';
+      }
+    }
+
     var recs = (d.recs||[]).map(function(r,i){
       return '<div class="rec"><div class="rec-n">'+(i+1)+'</div><div><div class="rec-t">'+esc(r.title)+impactBadge(r.impact)+'</div>'+
         (r.detail?'<div class="rec-d">'+esc(r.detail)+'</div>':'')+
@@ -195,7 +227,7 @@
     }).join('');
 
     var html = '<section class="hero"><div class="inner">'+
-      '<div class="hero-mast rv"><img src="'+LOGO+'" alt="Messick Marketing"><div class="hero-mast-r"><div class="tag">Social Performance Report</div>'+(d.period?'<div class="per">'+esc(d.period)+'</div>':'')+'</div></div>'+
+      '<div class="hero-mast rv"><img src="'+LOGO+'" alt="Messick Marketing"><div class="hero-mast-r"><div class="tag">'+((d.metrics||[]).some(function(m){ return m.lbl==='Profile Views'; }) ? 'Local Search Performance Report' : 'Social Performance Report')+'</div>'+(d.period?'<div class="per">'+esc(d.period)+'</div>':'')+'</div></div>'+
       '<h1 class="hero-name rv">'+esc(d.name||'Report')+'</h1>'+
       (d.channels?'<div class="hero-chan rv">'+esc(d.channels)+'</div>':'')+
       (metrics?'<div class="mband rv">'+metrics+'</div>':'')+
@@ -214,6 +246,10 @@
     if(topHTML){
       html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Top Content</p>'+topHTML+'</div></section>';
     }
+    if(kwHTML){
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Where You Show Up In Search</p>'+
+        '<p class="chart-note">The top three results are the map pack, which is where most local clicks go.</p>'+kwHTML+'</div></section>';
+    }
     html += '<section class="fb">'+feedbackHTML(d)+'</section>';
     if(recs){
       html += '<section class="block rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
@@ -223,7 +259,9 @@
     document.getElementById('brandfoot').innerHTML =
       '<img src="'+LOGO+'" alt="Messick Marketing">'+
       '<div class="fp">Prepared for '+esc(d.name||'')+(d.period?' &middot; '+esc(d.period):'')+'</div>'+
-      '<div class="fn">Posts count feed posts plus reels and shorts. Stories are excluded. Impressions include video views.</div>';
+      '<div class="fn">'+(kws.length || (d.metrics||[]).some(function(m){ return m.lbl==='Profile Views'; })
+        ? 'Profile views are the times the Google Business listing was shown on Search or Maps. Actions are calls, direction requests, messages, bookings and website clicks.'
+        : 'Posts count feed posts plus reels and shorts. Stories are excluded. Impressions include video views.')+'</div>';
 
     wireFeedback(d);
     animate();
