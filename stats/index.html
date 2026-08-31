@@ -97,6 +97,11 @@
         .conf-plat-li { border-left: 4px solid #0A66C2; }
         .conf-plat-x  { border-left: 4px solid #000000; }
         .conf-plat-pin { border-left: 4px solid #E60023; }
+        .conf-plat-gbp { border-left: 4px solid #4285F4; }
+        .or-split { display:flex; align-items:center; gap:10px; margin:1rem 0 0.75rem; color:var(--text-muted); font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+        .or-split::before, .or-split::after { content:''; flex:1; height:1px; background:var(--border); }
+        .paste-box { width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:'Jost',sans-serif; font-size:0.82rem; resize:vertical; line-height:1.5; }
+        .paste-box:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft); }
         .global-auto-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; padding: 0.5rem 1.25rem 1rem; }
         .global-auto-tile { background: white; border-radius: 8px; padding: 0.6rem; text-align: center; }
         .global-auto-tile .gval { font-size: 1.2rem; font-weight: 600; font-family: 'Cormorant Garamond', serif; }
@@ -218,6 +223,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 /* ═══════════════════════════════════════════════════════════════
    PLATFORM CONFIG
    ═══════════════════════════════════════════════════════════════ */
+const GBP = 'Google Business Profile';
 const PLATFORM_FIELDS = {
     Instagram: ['followers','followersGained','followersLost','reach','impressions','likes','comments','shares','saves','postsPublished','reelsPublished','engRate','avgDailyReach'],
     TikTok:    ['followers','followersGained','followersLost','videoViews','impressions','likes','comments','shares','postsPublished','engRate','avgDailyReach','avgWatchTime'],
@@ -225,9 +231,19 @@ const PLATFORM_FIELDS = {
     Facebook:  ['followers','followersGained','followersLost','reach','impressions','likes','comments','shares','clicks','postsPublished','reelsPublished','engRate','avgDailyReach'],
     LinkedIn:  ['followers','followersGained','followersLost','impressions','likes','comments','shares','clicks','postsPublished','engRate'],
     X:         ['followers','followersGained','followersLost','impressions','videoViews','likes','comments','shares','bookmarks','clicks','postsPublished','engRate'],
-    Pinterest: ['followers','followersGained','followersLost','impressions','reach','saves','pinClicks','clicks','likes','comments','postsPublished','engRate','avgDailyReach']
+    Pinterest: ['followers','followersGained','followersLost','impressions','reach','saves','pinClicks','clicks','likes','comments','postsPublished','engRate','avgDailyReach'],
+    // Google Business Profile is a local-discovery surface, not a feed: no followers, no engagement
+    // rate. It is judged on how people FIND the listing (searches) and what they DO (actions).
+    [GBP]:     ['impressions','viewsSearch','viewsMaps','searchesDirect','searchesDiscovery','searchesBranded','calls','directions','messages','bookings','clicks','postsPublished','photos','reviewsNew','reviewsTotal','rating','reviewsReplied']
 };
-const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li', X:'x', Pinterest:'pin' };
+const PLAT_CSS = { Instagram:'ig', TikTok:'tt', YouTube:'yt', Facebook:'fb', LinkedIn:'li', X:'x', Pinterest:'pin', [GBP]:'gbp' };
+// Short labels for tight spots (tabs, table cells, chips)
+const PLAT_SHORT = { [GBP]: 'Google Business' };
+function platShort(p) { return PLAT_SHORT[p] || p; }
+function platsLabel(list) { return (list || []).map(platShort).join(' + '); }
+function isLocal(p) { return p === GBP; }
+function socialOnly(list) { return (list || []).filter(p => !isLocal(p)); }
+function isLocalOnly(list) { return (list || []).length > 0 && socialOnly(list).length === 0; }
 const FIELD_LABELS = {
     followers:'Followers', followersGained:'Gained', followersLost:'Lost',
     reach:'Reach', impressions:'Impressions', videoViews:'Video Views',
@@ -235,20 +251,33 @@ const FIELD_LABELS = {
     shares:'Shares', saves:'Saves', clicks:'Clicks', dislikes:'Dislikes',
     bookmarks:'Bookmarks', pinClicks:'Pin Clicks',
     plays:'Plays', postsPublished:'Posts', reelsPublished:'Reels',
-    engRate:'Eng. Rate %', avgWatchTime:'Avg Watch (sec)', avgDailyReach:'Avg Daily Reach'
+    engRate:'Eng. Rate %', avgWatchTime:'Avg Watch (sec)', avgDailyReach:'Avg Daily Reach',
+    viewsSearch:'Search Views', viewsMaps:'Maps Views',
+    searchesDirect:'Direct Searches', searchesDiscovery:'Discovery Searches', searchesBranded:'Branded Searches',
+    calls:'Calls', directions:'Direction Requests', messages:'Messages', bookings:'Bookings',
+    photos:'Photos Added', reviewsNew:'New Reviews', reviewsTotal:'Total Reviews',
+    rating:'Avg Rating', reviewsReplied:'Reviews Replied'
 };
 // Per-platform label overrides so each channel reads in its own native language
 const FIELD_LABELS_BY_PLAT = {
     X:         { shares:'Reposts', comments:'Replies', clicks:'Link Clicks', postsPublished:'Posts' },
     Pinterest: { postsPublished:'Pins', clicks:'Outbound Clicks', likes:'Reactions', followersGained:'Gained', impressions:'Impressions' },
-    YouTube:   { followers:'Subscribers', followersGained:'Subs Gained', followersLost:'Subs Lost', postsPublished:'Videos' }
+    YouTube:   { followers:'Subscribers', followersGained:'Subs Gained', followersLost:'Subs Lost', postsPublished:'Videos' },
+    [GBP]:     { impressions:'Profile Views', clicks:'Website Clicks', postsPublished:'Updates Posted' }
 };
 function platLabel(plat, f) {
     const o = FIELD_LABELS_BY_PLAT[plat];
     return (o && o[f]) || FIELD_LABELS[f] || f;
 }
-const GLOBAL_SUM_FIELDS = ['followers','followersGained','followersLost','reach','impressions','videoViews','likes','comments','shares','saves','bookmarks','pinClicks','clicks','dislikes','postsPublished','reelsPublished'];
+const GLOBAL_SUM_FIELDS = ['followers','followersGained','followersLost','reach','impressions','videoViews','likes','comments','shares','saves','bookmarks','pinClicks','clicks','dislikes','postsPublished','reelsPublished','calls','directions','messages','bookings','photos','reviewsNew'];
 const GLOBAL_DISPLAY = ['followers','followersGained','followersLost','impressions','likes','comments','shares','postsPublished'];
+// A Google-Business-only audit has no followers or likes, so the running totals show local metrics instead
+const GLOBAL_DISPLAY_LOCAL = ['impressions','calls','directions','clicks','postsPublished','reviewsNew'];
+function globalDisplayFor(plats) { return isLocalOnly(plats) ? GLOBAL_DISPLAY_LOCAL : GLOBAL_DISPLAY; }
+// Actions a customer takes on a Google Business Profile (the local equivalent of interactions)
+const GBP_ACTION_FIELDS = ['calls','directions','messages','bookings','clicks'];
+function gbpActions(pd) { pd = pd || {}; return GBP_ACTION_FIELDS.reduce((n, f) => n + (pd[f] || 0), 0); }
+function gbpActionRate(pd) { pd = pd || {}; const v = pd.impressions || 0; return v > 0 ? +((gbpActions(pd) / v) * 100).toFixed(2) : 0; }
 
 function fmt(n) {
     if (n === undefined || n === null) return '0';
@@ -325,7 +354,7 @@ const app = {
         }
         const cards = this.clients.map((c, i) => {
             const h = this.calcHealth(c);
-            return `<div class="card" onclick="app.view('profile', ${i})"><button class="btn-icon" onclick="app.promptDelete(${i}, event)" title="Delete" style="position:absolute; top:12px; right:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button><div style="font-weight:800; margin-bottom:2px;">${c.name}</div><div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem;">${c.platforms.join(' + ')} &middot; ${this.periodLabel(c)}</div><div style="display:flex; align-items:baseline; gap:6px;"><span style="font-size:2rem; font-weight:800; color:${h.total > 65 ? 'var(--green)' : h.total > 40 ? 'var(--amber)' : 'var(--red)'}">${h.total}</span><span style="font-size:0.8rem; color:var(--text-muted)">/100</span></div></div>`;
+            return `<div class="card" onclick="app.view('profile', ${i})"><button class="btn-icon" onclick="app.promptDelete(${i}, event)" title="Delete" style="position:absolute; top:12px; right:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button><div style="font-weight:800; margin-bottom:2px;">${c.name}</div><div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem;">${platsLabel(c.platforms)} &middot; ${this.periodLabel(c)}</div><div style="display:flex; align-items:baseline; gap:6px;"><span style="font-size:2rem; font-weight:800; color:${h.total > 65 ? 'var(--green)' : h.total > 40 ? 'var(--amber)' : 'var(--red)'}">${h.total}</span><span style="font-size:0.8rem; color:var(--text-muted)">/100</span></div></div>`;
         }).join('');
         el.innerHTML = `<h2 style="margin-bottom:1.5rem;">Audits</h2><div class="grid">${cards}</div>`;
     },
@@ -338,9 +367,13 @@ const app = {
                 <label>Client Name</label>
                 <input id="client-name" type="text" placeholder="e.g. Riverside Medical Center">
                 <label>Select Platforms (Multi-Select)</label>
-                <div class="platform-grid">${Object.keys(PLATFORM_FIELDS).map(p => `<label class="platform-item"><input type="checkbox" name="platform" value="${p}" ${p === 'Instagram' ? 'checked' : ''}> ${p}</label>`).join('')}</div>
-                <label>Upload Metricool / Analytics Report</label>
+                <div class="platform-grid">${Object.keys(PLATFORM_FIELDS).map(p => `<label class="platform-item"><input type="checkbox" name="platform" value="${p}" ${p === 'Instagram' ? 'checked' : ''}> ${platShort(p)}</label>`).join('')}</div>
+                <label>Upload Metricool / Analytics / Google Business Report</label>
                 <div id="drop-zone" class="drop-zone"><p id="drop-text">Drag & drop PDF or Screenshot</p><input type="file" id="file-input" hidden accept="image/*,application/pdf"></div>
+                <div class="or-split">or paste it</div>
+                <label>Paste your data <span style="text-transform:none; letter-spacing:0; font-weight:500; color:var(--text-muted);">&mdash; type the numbers, or paste straight out of Metricool, Google Business Profile, a spreadsheet or an email</span></label>
+                <textarea id="paste-data" class="paste-box" rows="7" placeholder="Paste or type anything readable, e.g.&#10;&#10;Google Business Profile, 1 Jun - 30 Jun 2026&#10;Profile views 4,812 (Search 3,540 / Maps 1,272)&#10;Direct 1,910  Discovery 2,604  Branded 298&#10;Calls 128   Directions 341   Website clicks 96&#10;Updates posted 6   New reviews 11   Rating 4.8"></textarea>
+                <p style="font-size:0.68rem; color:var(--text-muted); margin:6px 0 0;">Use either box, or both &mdash; a screenshot plus a few numbers you typed yourself works fine.</p>
                 <button class="btn btn-primary" id="extract-btn" onclick="app.extractData()" style="width:100%; margin-top:1.5rem;">Extract & Match Metrics &rarr;</button>
                 <p style="text-align:center; margin-top:1rem; font-size:0.8rem; color:var(--text-muted); cursor:pointer;" onclick="app.skipToManual()">Or skip to manual entry</p>
                 <div id="debug-log" style="display:none; color:var(--red); font-size:0.8rem; margin-top:10px; background:var(--red-bg); padding:10px; border-radius:8px;"></div>
@@ -364,7 +397,10 @@ const app = {
         const name = document.getElementById('client-name').value;
         const platforms = this.getSelectedPlatforms();
         const debug = document.getElementById('debug-log');
-        if (!name || !this.currentFile) return alert('Name and File are required.');
+        const pasteEl = document.getElementById('paste-data');
+        const pasted = pasteEl ? pasteEl.value.trim() : '';
+        if (!name) return alert('Client name is required.');
+        if (!this.currentFile && !pasted) return alert('Upload a report or paste your data.');
         if (platforms.length === 0) return alert('Select at least one platform.');
 
         const btn = document.getElementById('extract-btn');
@@ -372,15 +408,34 @@ const app = {
         debug.style.display = 'none';
 
         try {
-            const base64 = await new Promise(res => {
+            const base64 = this.currentFile ? await new Promise(res => {
                 const r = new FileReader(); r.readAsDataURL(this.currentFile);
                 r.onload = () => res(r.result.split(',')[1]);
-            });
+            }) : null;
 
             const perPlatShape = {};
             platforms.forEach(p => { const obj = {}; PLATFORM_FIELDS[p].forEach(f => obj[f] = 0); perPlatShape[p] = obj; });
             const deltaShape = {};
             platforms.forEach(p => { deltaShape[p] = { followers: '', impressions: '', interactions: '', posts: '' }; });
+            const wantsGBP = platforms.includes(GBP);
+            const gbpNote = wantsGBP ? `
+GOOGLE BUSINESS PROFILE (key "${GBP}") - this is a LOCAL LISTING, not a social feed. It has no followers and no engagement rate, so never invent them. Its report (Metricool's Google Business tab, or Google's own "Performance" / "Business Profile performance" export) uses these terms:
+- impressions = total profile VIEWS / "people viewed your Business Profile" / "Business Profile interactions views". If Search and Maps are listed separately and no total is given, ADD them for this field.
+- viewsSearch = views that came from Google Search (desktop + mobile search combined).
+- viewsMaps = views that came from Google Maps (desktop + mobile maps combined).
+- searchesDirect = "Direct" searches (people searched the business name or address).
+- searchesDiscovery = "Discovery" searches (people searched a category, product or service and found the listing).
+- searchesBranded = "Branded" searches (people searched a brand related to the business). Use 0 if not shown.
+- calls = phone calls / "call clicks" / "Calls".
+- directions = "Directions" / direction requests / "Get directions" clicks.
+- messages = messages / chats started.
+- bookings = bookings / appointment or reservation clicks.
+- clicks = WEBSITE clicks only ("Website clicks", "Website visits", "Clicks to website"). Do not put call or direction taps here.
+- postsPublished = Google Business posts / "Updates" / "What's new" posts published in the period.
+- photos = photos (and videos) added to the listing this period.
+- reviewsNew = reviews received in this period. reviewsTotal = the lifetime/total review count. rating = the average star rating (e.g. 4.8) - keep the decimal, do NOT round. reviewsReplied = reviews responded to.
+- Leave followers/likes/shares/engRate at 0 for Google Business Profile. If a figure genuinely is not in the source, use 0 rather than guessing.
+` : '';
             const extractShape = {
                 metrics: perPlatShape,
                 topContent: [{ title: '', platform: '', format: '', date: '', impressions: 0, likes: 0, comments: 0, shares: 0, reach: 0 }],
@@ -395,9 +450,12 @@ const app = {
                     payload: {
                         model: 'claude-haiku-4-5-20251001', max_tokens: 4096,
                         messages: [{ role: 'user', content: [
-                            { type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } },
-                            { type: 'text', text: `You are extracting a social media analytics report (likely a Metricool export) into structured JSON.
-The report has per-platform columns (Facebook, Instagram, TikTok, YouTube, LinkedIn, X/Twitter, Pinterest) and possibly a Global Total column.
+                            ...(base64 ? [{ type: this.currentFile.type === 'application/pdf' ? 'document' : 'image', source: { type: 'base64', media_type: this.currentFile.type || 'image/jpeg', data: base64 } }] : []),
+                            ...(pasted ? [{ type: 'text', text: `PASTED DATA - the user typed or pasted these figures directly. Treat it as a report source of equal weight to any attached file. It may be loose notes, a copied table, or a few labelled numbers, so read it generously.
+
+${pasted}` }] : []),
+                            { type: 'text', text: `You are extracting an analytics report into structured JSON. The source is ${base64 && pasted ? 'an attached file PLUS pasted text - merge them, and where they disagree prefer the pasted text' : base64 ? 'an attached file (a Metricool export, dashboard screenshot or PDF)' : 'pasted text the user typed or copied out of a dashboard'}.
+The report may have per-platform columns (Facebook, Instagram, TikTok, YouTube, LinkedIn, X/Twitter, Pinterest, Google Business Profile) and possibly a Global Total column.
 Platform naming: a column labelled "X", "Twitter", "X (Twitter)" or showing the X/bird logo is the platform X. A column labelled "Pinterest" or showing the Pinterest "P" logo is Pinterest.
 Extract THREE things: (1) per-platform metrics, (2) the top-performing posts/content, (3) the period-over-period deltas.
 
@@ -427,8 +485,8 @@ Field synonyms:
 - engRate = engagement rate % (as decimal e.g. 2.5)
 - avgWatchTime = average watch time (seconds)
 - avgDailyReach = average daily reach
-
-(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, format, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array []. For "format", use one of: Reel, Short, Video, Carousel, Image, Story, Text, Pin, Idea Pin - infer it from the post type/label or the caption (e.g. a vertical video is a Reel on Instagram/Facebook or a Short on YouTube); use "" only if truly unknown.
+${gbpNote}
+(2) topContent — the report's best-performing posts (a "Top Posts" / "Best content" section). For EACH post return: title (the caption/title text, trimmed), platform, format, date (as shown, else ""), impressions, likes, comments, shares, reach. Include every post the report lists, up to 10, ordered by impressions (highest first). If the report shows no individual posts, return an empty array []. For "format", use one of: Reel, Short, Video, Carousel, Image, Story, Text, Pin, Idea Pin - infer it from the post type/label or the caption (e.g. a vertical video is a Reel on Instagram/Facebook or a Short on YouTube); use "" only if truly unknown. For Google Business Profile use the format "Update" and treat its published posts as content; if the source lists no individual Google Business posts, contribute nothing to this array.
 
 (3) deltas — the period-over-period % change the report shows for each platform (e.g. "+101.71%", "-49.39%", "n/a"). Capture the change strings verbatim (keep the sign and %). Map: followers=follower growth %, impressions=impressions %, interactions=interactions/engagement %, posts=posts %. If a platform shows no % for a metric, use "".
 
@@ -483,7 +541,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 </div>`;
         }).join('');
 
-        const globalTiles = GLOBAL_DISPLAY.map(f => `<div class="global-auto-tile"><div class="gval" id="gtotal-${f}">0</div><div class="glbl">${FIELD_LABELS[f]||f}</div></div>`).join('');
+        const localOnly = isLocalOnly(platforms);
+        const globalTiles = globalDisplayFor(platforms).map(f => `<div class="global-auto-tile"><div class="gval" id="gtotal-${f}">0</div><div class="glbl">${localOnly ? platLabel(GBP, f) : (FIELD_LABELS[f]||f)}</div></div>`).join('');
 
         // Carry context + last period's goal forward from this client's most recent audit
         const priorSame = [...this.clients].reverse().find(x => (x.name||'').trim().toLowerCase() === (d._name||'').trim().toLowerCase());
@@ -533,7 +592,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
             const f = inp.dataset.field;
             if (GLOBAL_SUM_FIELDS.includes(f)) totals[f] += parseFloat(inp.value) || 0;
         });
-        GLOBAL_DISPLAY.forEach(f => { const el = document.getElementById('gtotal-' + f); if (el) el.textContent = fmt(totals[f]); });
+        globalDisplayFor(this.currentPlatforms).forEach(f => { const el = document.getElementById('gtotal-' + f); if (el) el.textContent = fmt(totals[f]); });
     },
 
     /* ══════════════════════════════════════ SAVE AUDIT */
@@ -551,7 +610,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
         global.followerBalance = (global.followersGained || 0) - (global.followersLost || 0);
         // RULE: "Posts" = evergreen content published = feed posts + reels/shorts. Stories are excluded (never counted).
         global.totalContent = (global.postsPublished || 0) + (global.reelsPublished || 0);
-        global.totalInteractions = (global.likes||0) + (global.comments||0) + (global.shares||0) + (global.saves||0) + (global.bookmarks||0) + (global.pinClicks||0) + (global.clicks||0);
+        // Google Business actions (calls, directions, messages, bookings) are that channel's interactions
+        global.totalInteractions = (global.likes||0) + (global.comments||0) + (global.shares||0) + (global.saves||0) + (global.bookmarks||0) + (global.pinClicks||0) + (global.clicks||0) + (global.calls||0) + (global.directions||0) + (global.messages||0) + (global.bookings||0);
         // RULE: Impressions headline folds in video views (YouTube/TikTok), applied consistently.
         global.videoViews = global.videoViews || 0;
         global.impressions = (global.impressions || 0) + global.videoViews; // = "Impressions & Views"
@@ -559,8 +619,21 @@ ${JSON.stringify(extractShape, null, 2)}` }
         let totalImp = 0, weightedEng = 0;
         platforms.forEach(p => { const imp = (perPlatform[p].impressions || 0) + (perPlatform[p].videoViews || 0); const eng = perPlatform[p].engRate || 0; if (imp > 0 && eng > 0) { totalImp += imp; weightedEng += eng * imp; } });
         global.engRate = totalImp > 0 ? parseFloat((weightedEng / totalImp).toFixed(2)) : 0;
-        if (!global.engRate && global.impressions > 0) global.engRate = parseFloat(((global.totalInteractions / global.impressions) * 100).toFixed(2));
+        // Google Business has no engagement rate - never let its actions stand in for one
+        if (!global.engRate && global.impressions > 0 && socialOnly(platforms).length) global.engRate = parseFloat(((global.totalInteractions / global.impressions) * 100).toFixed(2));
         global.avgDailyReach = platforms.reduce((sum, p) => sum + (perPlatform[p].avgDailyReach || 0), 0);
+
+        // Local (Google Business) rollups, kept separate so the social maths stays clean
+        const gbpData = perPlatform[GBP];
+        if (gbpData) {
+            global.gbpViews = gbpData.impressions || 0;
+            global.gbpActions = gbpActions(gbpData);
+            global.gbpActionRate = gbpActionRate(gbpData);
+            global.gbpDiscovery = gbpData.searchesDiscovery || 0;
+            global.gbpDirect = gbpData.searchesDirect || 0;
+            global.rating = gbpData.rating || 0;
+            global.reviewsTotal = gbpData.reviewsTotal || 0;
+        }
 
         const granular = { likes: global.likes||0, comments: global.comments||0, shares: global.shares||0, saves: global.saves||0, bookmarks: global.bookmarks||0, pinClicks: global.pinClicks||0, clicks: global.clicks||0, dislikes: global.dislikes||0 };
 
@@ -606,6 +679,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
     /* ══════════════════════════════════════ HEALTH SCORE */
     calcHealth(c) {
+        if (isLocalOnly(c.platforms || [])) return this.calcLocalHealth(c);
         const g = c.global || {};
         const engRate = g.engRate || c.engRate || 0;
         const engScore = Math.min(100, (engRate / 4) * 100);
@@ -622,23 +696,48 @@ ${JSON.stringify(extractShape, null, 2)}` }
         ]};
     },
 
+    // A Google-Business-only audit has no followers and no engagement rate, so health is scored on
+    // Action Rate (did views convert?), Reputation (review flow + rating) and Activity (updates + photos).
+    calcLocalHealth(c) {
+        const g = c.global || {}, pd = (c.perPlatform && c.perPlatform[GBP]) || {};
+        const rate = g.gbpActionRate || gbpActionRate(pd);
+        const actionScore = Math.min(100, (rate / 6) * 100);           // 6%+ of views acting = full marks
+        const rating = pd.rating || 0, newRev = pd.reviewsNew || 0;
+        const ratingScore = rating > 0 ? Math.max(0, Math.min(100, ((rating - 3) / 1.8) * 100)) : 0;
+        const volScore = Math.min(100, (newRev / 8) * 100);             // 8 new reviews in the period = full marks
+        const repScore = rating > 0 ? (ratingScore * 0.6) + (volScore * 0.4) : volScore;
+        const posts = pd.postsPublished || 0, photos = pd.photos || 0;
+        const actScore = Math.min(100, (Math.min(100, (posts / 4) * 100) * 0.7) + (Math.min(100, (photos / 8) * 100) * 0.3));
+        const total = Math.round((actionScore * 0.4) + (repScore * 0.3) + (actScore * 0.3));
+        return { total, breakdown: [
+            { label: 'Action Rate', score: Math.round(actionScore), color: 'var(--primary)' },
+            { label: 'Reputation', score: Math.round(repScore), color: 'var(--green)' },
+            { label: 'Activity', score: Math.round(actScore), color: 'var(--amber)' }
+        ]};
+    },
+
     /* ══════════════════════════════════════ BOOST SUGGESTIONS */
     getBoosts(c) {
         const boosts = [], g = c.global || {}, gr = c.granular || {}, pp = c.perPlatform || {};
-        const engRate = g.engRate||0, impressions = g.impressions||0, totalContent = g.totalContent||0;
+        const social = socialOnly(c.platforms || []);
+        // Feed metrics measured across the social platforms only - a Google Business listing
+        // contributes views and actions, not impressions and engagement rate.
+        const socialImpr = social.reduce((n, p) => n + this.platImpressions(pp[p]), 0);
+        const socialContent = social.reduce((n, p) => n + this.platPosts(pp[p]), 0);
+        const engRate = social.length ? (g.engRate||0) : 0, impressions = socialImpr, totalContent = socialContent;
 
         if (gr.dislikes > 0 && gr.likes > 0 && (gr.dislikes / gr.likes) > 0.15)
             boosts.push({ tier:'asap', title:'High Dislike Ratio', desc:`Dislike-to-like ratio is ${((gr.dislikes/gr.likes)*100).toFixed(1)}%. Review content for polarizing hooks or misleading thumbnails.` });
-        if (impressions > 500 && engRate < 1.5)
+        if (social.length && impressions > 500 && engRate < 1.5)
             boosts.push({ tier:'asap', title:'Low Interaction Despite Impressions', desc:`${fmt(impressions)} impressions but only ${engRate}% engagement. Fix hooks and CTAs immediately.` });
         if (engRate > 0 && engRate < 2.5)
             boosts.push({ tier:'asap', title:'Engagement Below Benchmark', desc:`Current rate (${engRate}%) is under the 2.5% benchmark. Prioritize reply-worthy captions and strong visual hooks.` });
         if (pp.YouTube && pp.YouTube.dislikes > 0 && pp.YouTube.likes > 0 && (pp.YouTube.dislikes / pp.YouTube.likes) > 0.1)
             boosts.push({ tier:'asap', title:'YouTube Dislike Warning', desc:`YouTube dislike ratio is ${((pp.YouTube.dislikes/pp.YouTube.likes)*100).toFixed(1)}%. Check thumbnails/titles for clickbait mismatch.` });
 
-        if (impressions > 0 && engRate < 3)
+        if (social.length && impressions > 0 && engRate < 3)
             boosts.push({ tier:'week', title:'Hashtag & Hook Optimization', desc:'Audit top 5 hashtags for reach vs. competition. Replace broad tags with niche-specific ones. Test 3 new hook formats.' });
-        if (totalContent > 0 && totalContent < 8)
+        if (social.length && totalContent > 0 && totalContent < 8)
             boosts.push({ tier:'week', title:'Increase Post Frequency', desc:`Only ${totalContent} posts this period. Aim for 3+/week. Batch-create carousel and short-form video content.` });
 
         if (pp.YouTube && (pp.YouTube.followersGained||0) < 10 && (c.platforms||[]).includes('YouTube') && !this.isNewChannel(c, 'YouTube'))
@@ -682,6 +781,31 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 boosts.push({ tier:'week', title:'X Link Clicks Are Thin', desc:`${fmt(x.clicks)} link clicks on ${fmt(xImpr)} impressions. X suppresses posts with outbound links - put the link in a reply to the post instead of in the post itself.` });
         }
 
+        // ── Google Business Profile
+        if (pp[GBP]) {
+            const gb = pp[GBP];
+            const views = gb.impressions || 0, actions = gbpActions(gb), rate = gbpActionRate(gb);
+            const searches = (gb.searchesDirect||0) + (gb.searchesDiscovery||0) + (gb.searchesBranded||0);
+            if (views > 200 && rate > 0 && rate < 3)
+                boosts.push({ tier:'asap', title:'Google Business Action Rate Below Benchmark', desc:`${fmt(actions)} actions on ${fmt(views)} profile views (${rate}%), under the 3-6% band. Fix the listing basics first: hours, services, a call button that works, and a photo set that answers "is this the right place".` });
+            if (views > 200 && actions === 0)
+                boosts.push({ tier:'asap', title:'Google Business Views Are Not Converting', desc:`${fmt(views)} profile views produced zero calls, directions or website clicks. Check that the phone number, website URL and address on the listing are live and correct.` });
+            if ((gb.reviewsNew||0) === 0)
+                boosts.push({ tier:'asap', title:'No New Google Reviews', desc:'Zero reviews came in this period. Reviews drive both local ranking and conversion - start a post-visit review request (text or email) on every completed appointment.' });
+            if ((gb.reviewsNew||0) > 0 && (gb.reviewsReplied||0) < (gb.reviewsNew||0))
+                boosts.push({ tier:'week', title:'Unanswered Google Reviews', desc:`${gb.reviewsNew} new review${gb.reviewsNew===1?'':'s'} and only ${gb.reviewsReplied||0} replied to. Google weights owner responses, and prospects read them - reply to every review inside 48 hours.` });
+            if (searches > 0 && ((gb.searchesDiscovery||0)/searches*100) < 45)
+                boosts.push({ tier:'week', title:'Listing Found Mostly By Name', desc:`Only ${Math.round((gb.searchesDiscovery||0)/searches*100)}% of searches were discovery - most people already knew the practice. Add every service as a category or service item, and put condition keywords in the description to surface for "near me" searches.` });
+            if ((gb.postsPublished||0) < 4)
+                boosts.push({ tier:'month', title:'Google Business Posting Is Light', desc:`${gb.postsPublished||0} update${(gb.postsPublished||0)===1?'':'s'} published. Google Business posts expire, so aim for one a week - repurpose the social calendar rather than writing new copy.` });
+            if ((gb.photos||0) < 4)
+                boosts.push({ tier:'month', title:'Add Photos To The Listing', desc:`Only ${gb.photos||0} photo${(gb.photos||0)===1?'':'s'} added. Listings with fresh photos get materially more requests - target 8+ a month: team, facility, exterior, and procedure-appropriate shots.` });
+            if ((gb.rating||0) > 0 && (gb.rating||0) < 4.3)
+                boosts.push({ tier:'asap', title:'Rating Below The Local Bar', desc:`Average rating is ${gb.rating}. Under 4.3 costs clicks in the map pack - respond to every negative review and push a steady flow of new positive ones to lift the average.` });
+            if (views > 0 && (gb.calls||0) > 0 && (gb.clicks||0) > 0 && (gb.calls / gb.clicks) > 3)
+                boosts.push({ tier:'week', title:'Calls Far Outweigh Website Clicks', desc:`${fmt(gb.calls)} calls vs ${fmt(gb.clicks)} website clicks. Phone is how this audience converts - make sure calls are answered live during listed hours and that the hours on the listing are accurate.` });
+        }
+
         return boosts;
     },
 
@@ -716,7 +840,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const neg = s.replace(/[^0-9.+-]/g, '').startsWith('-'), col = neg ? 'var(--red)' : 'var(--green)', bg = neg ? 'var(--red-bg)' : 'var(--green-bg)';
         return `<span style="display:inline-block; font-size:0.68rem; font-weight:700; color:${col}; background:${bg}; padding:1px 7px; border-radius:6px;">${s}</span>`;
     },
-    platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.bookmarks||0)+(pd.pinClicks||0)+(pd.clicks||0); },
+    platInteractions(pd) { pd = pd || {}; return (pd.likes||0)+(pd.comments||0)+(pd.shares||0)+(pd.saves||0)+(pd.bookmarks||0)+(pd.pinClicks||0)+(pd.clicks||0)+(pd.calls||0)+(pd.directions||0)+(pd.messages||0)+(pd.bookings||0); },
     // Posts = evergreen content (feed posts + reels/shorts). Stories excluded.
     platPosts(pd) { pd = pd || {}; return (pd.postsPublished||0)+(pd.reelsPublished||0); },
     // Impressions folds in video views (YouTube/TikTok), consistent with the headline rule.
@@ -729,10 +853,21 @@ ${JSON.stringify(extractShape, null, 2)}` }
     },
     // Rough 2026 median engagement-rate ranges by platform (healthcare / local-service leaning)
     BENCH: { Instagram:{eng:[0.7,1.5],label:'0.7-1.5%'}, Facebook:{eng:[0.3,0.8],label:'0.3-0.8%'}, LinkedIn:{eng:[1.5,3.0],label:'1.5-3%'}, YouTube:{eng:[1.0,2.5],label:'1-2.5%'}, TikTok:{eng:[2.5,5.0],label:'2.5-5%'}, X:{eng:[0.3,0.9],label:'0.3-0.9%'}, Pinterest:{eng:[0.2,0.6],label:'0.2-0.6%'} },
+    // Google Business is judged on action rate (actions per profile view), not engagement rate.
+    // 3-6% is the typical band for a local service / medical practice listing.
+    GBP_BENCH: { rate:[3,6], label:'3-6%', discoveryLabel:'45%+' },
     benchmarkNotes(c) {
         const out = [];
         (c.platforms||[]).forEach(p => {
-            const pd = (c.perPlatform && c.perPlatform[p]) || {}; const er = pd.engRate || 0; const b = this.BENCH[p];
+            const pd = (c.perPlatform && c.perPlatform[p]) || {};
+            if (isLocal(p)) {
+                const rate = gbpActionRate(pd), b = this.GBP_BENCH;
+                if (rate > 0) { const verdict = rate >= b.rate[1] ? 'above' : rate >= b.rate[0] ? 'within' : 'below'; out.push(`Google Business action rate ${rate}% is ${verdict} the typical ${b.label} range.`); }
+                const searches = (pd.searchesDirect||0) + (pd.searchesDiscovery||0) + (pd.searchesBranded||0);
+                if (searches > 0) { const disc = Math.round(((pd.searchesDiscovery||0)/searches)*100); out.push(`${disc}% of Google Business searches were discovery (people who did not know the practice) against the ${b.discoveryLabel} we aim for.`); }
+                return;
+            }
+            const er = pd.engRate || 0; const b = this.BENCH[p];
             if (er > 0 && b) { const verdict = er >= b.eng[1] ? 'above' : er >= b.eng[0] ? 'within' : 'below'; out.push(`${p} engagement ${er}% is ${verdict} the typical ${b.label} range.`); }
         });
         return out;
@@ -768,6 +903,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
         };
     },
     efficiencyFormatHTML(c) {
+        // Reach-per-post is a feed read. Google Business views come from search, not from updates.
+        if (isLocalOnly(c.platforms || [])) return '';
         const eff = this.efficiency(c);
         if (!eff.posts) return '';
         const tiles = [
@@ -784,6 +921,11 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (c.periodStart || c.periodEnd) return `${c.periodStart || ''}${c.periodStart && c.periodEnd ? ' &ndash; ' : ''}${c.periodEnd || ''}`;
         return c.date || '';
     },
+    // Same range as plain text - findings prose is HTML-escaped, so the entity would show literally
+    periodText(c) {
+        if (c.periodStart || c.periodEnd) return `${c.periodStart || ''}${c.periodStart && c.periodEnd ? ' - ' : ''}${c.periodEnd || ''}`;
+        return c.date || '';
+    },
     sparkline(vals, color) {
         const v = (vals || []).filter(x => typeof x === 'number' && isFinite(x));
         if (v.length < 2) return '';
@@ -795,7 +937,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
     renderTrendHTML(i) {
         const series = this.sameClientSeries(i);
         if (series.length < 2) return '';
-        const followers = series.map(a => (a.global && a.global.followers) || 0);
+        const localOnly = isLocalOnly((this.clients[i] || {}).platforms || []);
+        const followers = series.map(a => (a.global && (localOnly ? a.global.calls : a.global.followers)) || 0);
         const impressions = series.map(a => (a.global && a.global.impressions) || 0);
         const interactions = series.map(a => (a.global && a.global.totalInteractions) || 0);
         const labels = series.map(a => a.periodEnd || a.date || '').filter(Boolean);
@@ -805,9 +948,9 @@ ${JSON.stringify(extractShape, null, 2)}` }
         };
         return `<div class="form-container"><div class="section-label">Trend &mdash; ${series.length} reports</div>
             <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
-                ${metric('Followers', followers, 'var(--primary)')}
-                ${metric('Impressions', impressions, 'var(--steel-light)')}
-                ${metric('Interactions', interactions, 'var(--green)')}
+                ${metric(localOnly ? 'Calls' : 'Followers', followers, 'var(--primary)')}
+                ${metric(localOnly ? 'Profile Views' : 'Impressions', impressions, 'var(--steel-light)')}
+                ${metric(localOnly ? 'Customer Actions' : 'Interactions', interactions, 'var(--green)')}
             </div>
             ${labels.length ? `<div style="font-size:0.65rem; color:var(--text-muted); margin-top:8px;">Oldest &rarr; newest: ${labels.join(' &middot; ')}</div>` : ''}
         </div>`;
@@ -821,7 +964,15 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
         const prevAudit = this.prevAuditFor(i), pg = (prevAudit && prevAudit.global) || null;
         const md = (cur, prevVal) => pg ? this.deltaChip(this.momPct(cur, prevVal)) : '';
-        const globalStats = [
+        const localOnly = isLocalOnly(platforms);
+        const globalStats = localOnly ? [
+            { lbl:'Profile Views', val:fmt(g.gbpViews||g.impressions||0), delta: md(g.impressions||0, pg && pg.impressions||0) },
+            { lbl:'Customer Actions', val:fmt(g.gbpActions||g.totalInteractions||0), delta: md(g.totalInteractions||0, pg && pg.totalInteractions||0) },
+            { lbl:'Action Rate', val:(g.gbpActionRate||0)+'%', delta: md(g.gbpActionRate||0, pg && pg.gbpActionRate||0) },
+            { lbl:'Calls', val:fmt(g.calls||0), delta: md(g.calls||0, pg && pg.calls||0) },
+            { lbl:'Direction Requests', val:fmt(g.directions||0), delta: md(g.directions||0, pg && pg.directions||0) },
+            { lbl:'Website Clicks', val:fmt(g.clicks||0), delta: md(g.clicks||0, pg && pg.clicks||0) }
+        ] : [
             { lbl:'Followers', val:fmt(g.followers||0), delta: md(g.followers||0, pg && pg.followers||0) },
             { lbl:'Net Growth', val:(g.followerBalance>=0?'+':'')+fmt(g.followerBalance||0), delta:'' },
             { lbl:'Impressions &amp; Views', val:fmt(g.impressions||0), delta: md(g.impressions||0, pg && pg.impressions||0) },
@@ -829,12 +980,16 @@ ${JSON.stringify(extractShape, null, 2)}` }
             { lbl:'Eng. Rate', val:(g.engRate||0)+'%', delta: md(g.engRate||0, pg && pg.engRate||0) },
             { lbl:'Total Content', val:g.totalContent||0, delta: md(g.totalContent||0, pg && pg.totalContent||0) }
         ];
-        const interactionStats = [
+        const interactionStats = isLocalOnly(platforms) ? [
+            { lbl:'Calls', val:fmt(g.calls||0) }, { lbl:'Direction Requests', val:fmt(g.directions||0) },
+            { lbl:'Website Clicks', val:fmt(g.clicks||0) }, { lbl:'Messages', val:fmt(g.messages||0) },
+            { lbl:'Bookings', val:fmt(g.bookings||0) }, { lbl:'New Reviews', val:fmt(g.reviewsNew||0) }
+        ] : [
             { lbl:'Likes', val:fmt(gr.likes||0) }, { lbl:'Comments', val:fmt(gr.comments||0) },
             { lbl:'Shares', val:fmt(gr.shares||0) }, { lbl:'Saves', val:fmt(gr.saves||0) },
             { lbl:'Bookmarks', val:fmt(gr.bookmarks||0) }, { lbl:'Pin Clicks', val:fmt(gr.pinClicks||0) },
             { lbl:'Clicks', val:fmt(gr.clicks||0) }, { lbl:'Dislikes', val:fmt(gr.dislikes||0) }
-        ].filter(s => parseFloat(String(s.val).replace(/[^0-9.]/g,'')) > 0 || s.lbl === 'Likes');
+        ].filter(s => parseFloat(String(s.val).replace(/[^0-9.]/g,'')) > 0 || s.lbl === 'Likes' || s.lbl === 'Calls');
 
         const topContent = (c.topContent||[]).slice().sort((a,b) => (b.impressions||0) - (a.impressions||0) || (b.totalEng||0) - (a.totalEng||0)).slice(0, 10);
         const hasImpr = topContent.some(t => (t.impressions||0) > 0);
@@ -845,15 +1000,15 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 <div class="pdf-header">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-family:'Dancing Script',cursive; font-size:1.5rem; color:#3a6b8a;">Messick Marketing</span>
-                        <span style="font-size:0.75rem; color:#5a6b74;">Social Audit Report &middot; Confidential</span>
+                        <span style="font-size:0.75rem; color:#5a6b74;">${localOnly ? 'Google Business Profile Audit' : 'Social Audit Report'} &middot; Confidential</span>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
-                    <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><div style="font-size:0.8rem; color:var(--text-muted);">${platforms.join(' + ')} &middot; ${this.periodLabel(c)}</div>${c.channels ? `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">${c.channels}</div>` : ''}</div>
+                    <div><h1 style="font-size:1.8rem; font-weight:800;">${c.name}</h1><div style="font-size:0.8rem; color:var(--text-muted);">${platsLabel(platforms)} &middot; ${this.periodLabel(c)}</div>${c.channels ? `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">${c.channels}</div>` : ''}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;"><button class="btn btn-danger btn-sm" onclick="app.promptDelete(${i}, event)">Delete</button><button class="btn btn-ghost btn-sm no-print" onclick="app.view('dashboard')">&larr; Back</button><button class="btn btn-ghost btn-sm no-print" onclick="app.shareLink(${i})" style="gap:6px;">&#128279; Share link</button><button class="btn btn-primary btn-sm no-print" onclick="app.savePDF()" style="gap:6px;">&#x2193; PDF</button></div>
                 </div>
 
-                <div class="pitch-box" id="pitch-box"><strong>Pitch Summary:</strong><br>"This ecosystem has a Health Score of ${health.total}/100 across ${platforms.join(' + ')}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"</div>
+                <div class="pitch-box" id="pitch-box"><strong>Pitch Summary:</strong><br>"This ecosystem has a Health Score of ${health.total}/100 across ${platsLabel(platforms)}. ${health.total < 50 ? 'There are critical engagement gaps that need immediate attention.' : health.total < 70 ? 'Performance is moderate with clear room for growth.' : 'The foundation is solid but optimization will drive measurably better results.'}"</div>
 
                 ${topContent.length > 0 ? `<div class="form-container"><div class="section-label">Top Performing Content ${hasImpr ? '(by impressions)' : '(by interactions)'}</div><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Date</th><th>Platform</th><th>Content</th>${hasImpr ? '<th>Impressions</th>' : ''}<th>Likes</th><th>Comments</th><th>Shares</th><th>Interactions</th></tr></thead><tbody>${topContent.map((tc,idx) => `<tr><td><span class="rank-num">${idx+1}</span></td><td style="white-space:nowrap; color:var(--text-muted);">${tc.date||'&mdash;'}</td><td>${tc.platform}</td><td style="font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tc.title}</td>${hasImpr ? `<td style="font-weight:700;">${fmt(tc.impressions)}</td>` : ''}<td>${fmt(tc.likes)}</td><td>${fmt(tc.comments)}</td><td>${fmt(tc.shares)}</td><td style="font-weight:700;">${fmt(tc.totalEng)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
 
@@ -876,20 +1031,60 @@ ${JSON.stringify(extractShape, null, 2)}` }
 
                 ${this.renderTrendHTML(i)}
 
-                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impr. &amp; Views</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${p}</td><td>${fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(this.platImpressions(pd))}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div><div style="font-size:0.66rem; color:var(--text-muted); margin-top:8px;">How we count: <strong>Posts</strong> = feed posts + reels/shorts (Stories excluded). <strong>Impressions</strong> include video views.</div></div>` : ''}
+                ${this.gbpSummaryHTML(c)}
+
+                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Platform Breakdown</div><div style="overflow-x:auto;"><table><thead><tr><th>Platform</th><th>Followers</th><th>&Delta;</th><th>Impr. &amp; Views</th><th>&Delta;</th><th>Interactions</th><th>&Delta;</th><th>Posts</th><th>&Delta;</th></tr></thead><tbody>${platforms.map(p => { const pd=c.perPlatform[p]||{}; const dl=(c.deltas&&c.deltas[p])||{}; return `<tr><td style="font-weight:700;">${platShort(p)}</td><td>${isLocal(p) ? '<span style="color:var(--text-muted);">&mdash;</span>' : fmt(pd.followers||0)}</td><td>${this.deltaChipStr(dl.followers)}</td><td>${fmt(this.platImpressions(pd))}</td><td>${this.deltaChipStr(dl.impressions)}</td><td>${fmt(this.platInteractions(pd))}</td><td>${this.deltaChipStr(dl.interactions)}</td><td>${fmt(this.platPosts(pd))}</td><td>${this.deltaChipStr(dl.posts)}</td></tr>`; }).join('')}</tbody></table></div><div style="font-size:0.66rem; color:var(--text-muted); margin-top:8px;">How we count: <strong>Posts</strong> = feed posts + reels/shorts (Stories excluded). <strong>Impressions</strong> include video views.${platforms.some(isLocal) ? ' For Google Business, <strong>Impressions</strong> are profile views and <strong>Interactions</strong> are customer actions (calls, directions, messages, bookings, website clicks).' : ''}</div></div>` : ''}
 
                 ${this.efficiencyFormatHTML(c)}
 
                 <div class="form-container" id="findings-section"><div class="section-label">Findings &amp; Analysis</div><div id="findings-body"></div></div>
 
-                <div class="form-container"><div class="section-label">Granular Interactions</div><div class="stat-grid">${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div></div>
+                <div class="form-container"><div class="section-label">${localOnly ? 'Customer Actions' : 'Granular Interactions'}</div><div class="stat-grid">${interactionStats.map(s => `<div class="stat-tile"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('')}</div></div>
 
-                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Per-Platform Detail</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${p}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
+                ${c.perPlatform ? `<div class="form-container"><div class="section-label">Per-Platform Detail</div><div class="platform-tab-row">${platforms.map((p,idx) => `<button class="platform-tab-btn ${idx===0?'active':''}" onclick="app.showPlatformTab(${i},'${p}',this)">${platShort(p)}</button>`).join('')}</div><div id="platform-detail"></div></div>` : ''}
 
                 <div class="form-container"><div class="section-label">Automated Alerts</div><p style="font-size:0.72rem; color:var(--text-muted); margin:-4px 0 10px;">Rule-based flags from the raw numbers. Your tailored recommendations live in Findings &amp; Analysis above.</p>${boostHTML}</div>
             </div>`;
         if (c.perPlatform && platforms.length > 0) this.showPlatformTab(i, platforms[0]);
         this.renderFindingsSection(i);
+    },
+
+    // Google Business gets its own panel: views are worthless without the actions they produced,
+    // and the search mix is the only read on whether new patients are finding the listing at all.
+    gbpSummaryHTML(c) {
+        const gb = (c.perPlatform && c.perPlatform[GBP]) || null;
+        if (!gb) return '';
+        const views = gb.impressions || 0, actions = gbpActions(gb), rate = gbpActionRate(gb);
+        const searches = (gb.searchesDirect||0) + (gb.searchesDiscovery||0) + (gb.searchesBranded||0);
+        const b = this.GBP_BENCH;
+        const rateCol = rate >= b.rate[1] ? 'var(--green)' : rate >= b.rate[0] ? 'var(--amber)' : 'var(--red)';
+        const tiles = [
+            { lbl:'Profile Views', val:fmt(views) },
+            { lbl:'Customer Actions', val:fmt(actions) },
+            { lbl:'Action Rate', val:rate + '%', col:rateCol },
+            { lbl:'Calls', val:fmt(gb.calls||0) },
+            { lbl:'Direction Requests', val:fmt(gb.directions||0) },
+            { lbl:'Website Clicks', val:fmt(gb.clicks||0) },
+            { lbl:'New Reviews', val:fmt(gb.reviewsNew||0) },
+            { lbl:'Avg Rating', val:(gb.rating||0) ? Number(gb.rating).toFixed(1) : '&mdash;' }
+        ];
+        const bar = (lbl, val, col) => {
+            if (!searches) return '';
+            const pct = Math.round((val/searches)*100);
+            return `<div style="margin-bottom:7px;"><div style="display:flex; justify-content:space-between; font-size:0.72rem; font-weight:700;"><span>${lbl}</span><span>${fmt(val)} &middot; ${pct}%</span></div><div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%; background:${col}"></div></div></div>`;
+        };
+        const mix = searches ? `<div style="margin-top:1rem;"><div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:8px;">How People Found The Listing</div>
+            ${bar('Discovery &mdash; searched a service or category', gb.searchesDiscovery||0, 'var(--green)')}
+            ${bar('Direct &mdash; searched the name or address', gb.searchesDirect||0, 'var(--steel-light)')}
+            ${bar('Branded &mdash; searched a related brand', gb.searchesBranded||0, 'var(--purple)')}
+            <div style="font-size:0.66rem; color:var(--text-muted); margin-top:6px;">Discovery searches are new customers finding the practice for the first time. We aim for ${b.discoveryLabel} of the mix.</div></div>` : '';
+        const surfaces = ((gb.viewsSearch||0) + (gb.viewsMaps||0)) > 0
+            ? `<div style="font-size:0.7rem; color:var(--text-muted); margin-top:10px;">Views split: <strong>${fmt(gb.viewsSearch||0)}</strong> from Google Search &middot; <strong>${fmt(gb.viewsMaps||0)}</strong> from Google Maps.</div>` : '';
+        return `<div class="form-container"><div class="section-label">Google Business Profile &mdash; Local Discovery</div>
+            <div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));">${tiles.map(t => `<div class="stat-tile"><div class="val"${t.col?` style="color:${t.col}"`:''}>${t.val}</div><div class="lbl">${t.lbl}</div></div>`).join('')}</div>
+            ${mix}${surfaces}
+            <div style="font-size:0.66rem; color:var(--text-muted); margin-top:10px;">Action rate = calls + directions + messages + bookings + website clicks, over profile views. Typical local range is ${b.label}.</div>
+        </div>`;
     },
 
     /* ══════════════════════════════════════ FINDINGS (AI, in-depth) */
@@ -930,6 +1125,15 @@ ${JSON.stringify(extractShape, null, 2)}` }
             formatPerformance: this.formatBreakdown(c),
             efficiency: this.efficiency(c),
             platformBenchmarks: this.benchmarkNotes(c),
+            googleBusiness: c.perPlatform && c.perPlatform[GBP] ? (() => {
+                const gb = c.perPlatform[GBP];
+                const searches = (gb.searchesDirect||0) + (gb.searchesDiscovery||0) + (gb.searchesBranded||0);
+                return { profileViews: gb.impressions||0, totalActions: gbpActions(gb), actionRatePct: gbpActionRate(gb),
+                    calls: gb.calls||0, directionRequests: gb.directions||0, websiteClicks: gb.clicks||0, messages: gb.messages||0, bookings: gb.bookings||0,
+                    discoverySharePct: searches ? Math.round((gb.searchesDiscovery||0)/searches*100) : null,
+                    newReviews: gb.reviewsNew||0, reviewsReplied: gb.reviewsReplied||0, totalReviews: gb.reviewsTotal||0, avgRating: gb.rating||0,
+                    updatesPosted: gb.postsPublished||0, photosAdded: gb.photos||0 };
+            })() : null,
             clientContext: c.context || '',
             lastPeriodGoal: c.priorGoal || '',
             topContent: (c.topContent || []).map(t => ({ title: t.title, platform: t.platform, format: this.postFormat(t), date: t.date, impressions: t.impressions, likes: t.likes, comments: t.comments, shares: t.shares, reach: t.reach }))
@@ -948,6 +1152,7 @@ USE THIS CONTEXT TO OPTIMIZE THE RECOMMENDATIONS:
 - platformBenchmarks: cite these ranges so "good/underperforming" is credible, not arbitrary.
 - PLATFORM-SPECIFIC READS (apply only to platforms present in the data):
   * Pinterest is a search/discovery engine, not a feed. Judge it on saves (the ranking signal), pin clicks, and outbound clicks - NOT on follower count or likes. A low follower count with high impressions is normal and healthy. Recommend pin volume, fresh pin variations, keyword-rich titles/descriptions, and destination-page alignment. Never recommend Stories, Reels, or trending audio for Pinterest.
+  * Google Business Profile is a LOCAL DISCOVERY listing, not a feed. It has no followers and no engagement rate - never mention either, and never recommend hashtags, Reels, Stories or trending audio for it. Judge it on: action rate (calls + directions + messages + bookings + website clicks, divided by profile views; 3-6% is the typical band), the search mix (discovery searches mean new customers found the listing - under 45% discovery means it is mostly being found by name), review flow and average rating, and listing activity (weekly updates, monthly photos). Recommendations belong to categories/services, listing completeness, review requests and replies, photos, and update cadence.
   * X rewards conversation and velocity. Judge it on replies, reposts, and bookmarks - bookmarks signal reference-worthy content and are a cue to expand a post into a thread. Cadence matters more here than anywhere else; posts with outbound links get suppressed, so recommend link-in-reply. Never recommend hashtags-for-reach on X.
 - lastPeriodGoal: if present, GRADE it against this period's actual numbers (hit / partially met / missed) and say so in keyFindings.
 Prioritize: order recommendations by impact (High first). Each recommendation gets an "impact" (High/Medium/Low) and, where possible, a "target" (a measurable outcome). Give the 5 highest-leverage moves only.
@@ -1023,7 +1228,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const newChans = stats.filter(x=>x.isNew);
         const keyFindings=[], wins=[], concerns=[], recommendations=[], platformNotes=[];
 
-        if (top && top.impressions>0 && totalImpr>0) {
+        if (top && top.impressions>0 && totalImpr>0 && plats.length > 1) {
             const pct = Math.round((top.impressions/totalImpr)*100);
             keyFindings.push(`${top.p} drove the most reach: ${n(top.impressions)} impressions (${pct}% of the ${n(totalImpr)} total).`);
             if (pct>=40) recommendations.push({title:`Lean into ${top.p}`, detail:`${top.p} delivered ${pct}% of the reach this period. We'll concentrate our best content and posting rhythm there while it's outperforming.`});
@@ -1056,9 +1261,9 @@ Give exactly 5 recommendations, ordered High impact first.`;
         stats.forEach(x => {
             if (x.isNew) return;
             // Pinterest and X get their own bespoke notes below - don't double up here
-            if (x.impressions>0 && x.p !== 'Pinterest' && x.p !== 'X') platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
+            if (x.impressions>0 && x.p !== 'Pinterest' && x.p !== 'X' && !isLocal(x.p)) platformNotes.push({platform:x.p, note:`${n(x.impressions)} impressions and ${n(x.interactions)} interactions across ${x.posts} post${x.posts===1?'':'s'}${x.engRate?` (${x.engRate}% eng. rate)`:''}.`});
             // Pinterest runs well under 1% by nature (discovery surface) - it's judged on saves/clicks instead
-            if (x.p !== 'Pinterest' && x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. We'll open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
+            if (x.p !== 'Pinterest' && !isLocal(x.p) && x.impressions>=500 && x.interactions>0 && (x.interactions/x.impressions*100)<1) { concerns.push(`${x.p} engagement is thin: ${n(x.interactions)} interactions on ${n(x.impressions)} impressions (under 1%).`); recommendations.push({title:`Sharpen hooks on ${x.p}`, detail:`${x.p} reached ${n(x.impressions)} but few interacted. We'll open posts with a stronger hook and close with a clear ask to lift the rate.`}); }
         });
         // Pinterest reads on its own terms: saves and outbound clicks, not followers
         if (pp.Pinterest && !this.isNewChannel(c, 'Pinterest')) {
@@ -1082,7 +1287,26 @@ Give exactly 5 recommendations, ordered High impact first.`;
                 if ((x.postsPublished||0) > 0 && (x.postsPublished||0) < 20) recommendations.push({title:'Increase X posting cadence', detail:`${x.postsPublished} posts this period. X decays faster than any other channel, so we'll move toward 1-2 posts a day plus one thread a week.`});
             }
         }
-        if ((g.totalContent||0) > 0 && (g.totalContent||0) < 12) recommendations.push({title:'Lift posting frequency', detail:`${g.totalContent} posts this period. We'll build toward 3+ per week to keep reach compounding between reports.`});
+        // Google Business reads on discovery and actions, never on followers or engagement rate
+        if (pp[GBP]) {
+            const gb = pp[GBP], views = gb.impressions || 0, actions = gbpActions(gb), rate = gbpActionRate(gb);
+            const searches = (gb.searchesDirect||0) + (gb.searchesDiscovery||0) + (gb.searchesBranded||0);
+            const discPct = searches > 0 ? Math.round((gb.searchesDiscovery||0)/searches*100) : 0;
+            if (views > 0) {
+                platformNotes.push({platform:'Google Business Profile', note:`${n(views)} profile views produced ${n(actions)} customer actions (${rate}% action rate): ${n(gb.calls||0)} calls, ${n(gb.directions||0)} direction requests and ${n(gb.clicks||0)} website clicks.`});
+                keyFindings.push(`Google Business turned ${n(views)} profile views into ${n(actions)} actions (${rate}% action rate)${searches?`, with ${discPct}% of searches coming from discovery`:''}.`);
+                if ((gb.calls||0) > 0) wins.push(`${n(gb.calls)} calls came straight off the Google Business listing.`);
+                if ((gb.directions||0) > 0) wins.push(`${n(gb.directions)} people asked Google for directions to the practice.`);
+                if (rate > 0 && rate < 3) { concerns.push(`Google Business action rate is ${rate}%, under the 3-6% local benchmark.`); recommendations.push({title:'Convert more Google Business views', detail:`${n(views)} views produced only ${n(actions)} actions. We will tighten the listing - services, hours, call button and photo set - so the people already finding it take the next step.`, impact:'High', target:'Action rate at or above 3%'}); }
+                if (searches > 0 && discPct < 45) { concerns.push(`Only ${discPct}% of Google Business searches were discovery - most people already knew the name.`); recommendations.push({title:'Widen Google Business discovery', detail:`${discPct}% of searches were discovery. We will add every service and condition as a category, service item and description keyword so the listing surfaces on "near me" searches.`, impact:'High', target:'Discovery share above 45%'}); }
+                if ((gb.reviewsNew||0) === 0) { concerns.push('No new Google reviews came in this period.'); recommendations.push({title:'Start a review request routine', detail:'Zero reviews arrived this period. We will put a post-visit review request in front of every completed appointment, since reviews move both ranking and conversion.', impact:'High', target:'4+ new reviews next period'}); }
+                else { wins.push(`${n(gb.reviewsNew)} new Google review${(gb.reviewsNew||0)===1?'':'s'}${gb.rating?` at a ${gb.rating} average`:''}.`); if ((gb.reviewsReplied||0) < (gb.reviewsNew||0)) recommendations.push({title:'Reply to every Google review', detail:`${gb.reviewsNew} reviews came in and ${gb.reviewsReplied||0} were answered. We will respond to each one inside 48 hours, since Google weights owner responses and prospects read them.`, impact:'Medium', target:'100% of reviews answered'}); }
+                if ((gb.postsPublished||0) < 4) recommendations.push({title:'Post weekly to Google Business', detail:`${gb.postsPublished||0} updates published. Google Business posts expire, so we will run one a week repurposed from the social calendar to keep the listing active.`, impact:'Medium', target:'4+ updates per month'});
+                if ((gb.photos||0) < 4) recommendations.push({title:'Feed the listing fresh photos', detail:`${gb.photos||0} photos added. Fresh imagery lifts direction and call requests, so we will add 8+ a month across team, facility and exterior shots.`, impact:'Medium', target:'8+ photos per month'});
+            }
+        }
+        const socialContent = socialOnly(plats).reduce((n, p) => n + this.platPosts(pp[p]), 0);
+        if (socialOnly(plats).length && socialContent > 0 && socialContent < 12) recommendations.push({title:'Lift posting frequency', detail:`${socialContent} posts this period. We'll build toward 3+ per week to keep reach compounding between reports.`});
         if (!wins.length && (g.impressions || g.totalInteractions)) wins.push(`${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions across ${plats.length} platform${plats.length===1?'':'s'}.`);
         if (!recommendations.length) recommendations.push({title:'Keep the momentum', detail:`We'll maintain the cadence and double down on ${top?top.p:'the top platform'}, the strongest channel this period.`});
 
@@ -1094,7 +1318,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         }
         // Efficiency / funnel read
         const eff = this.efficiency(c);
-        if (eff.posts > 0) keyFindings.push(`Per-post efficiency: ${n(eff.imprPerPost)} reach and ${n(eff.engPerPost)} interactions per post${eff.followerConv?`, and ${eff.followerConv}% of reach converted to a follow`:''}.`);
+        if (eff.posts > 0 && !isLocalOnly(plats)) keyFindings.push(`Per-post efficiency: ${n(eff.imprPerPost)} reach and ${n(eff.engPerPost)} interactions per post${eff.followerConv?`, and ${eff.followerConv}% of reach converted to a follow`:''}.`);
         // Benchmarks - flag anything below the typical range
         this.benchmarkNotes(c).forEach(bn => { if (/below/.test(bn)) concerns.push(bn); });
         // Goal carryover
@@ -1102,9 +1326,15 @@ Give exactly 5 recommendations, ordered High impact first.`;
         // Impact tags + target defaults
         recommendations.forEach((r, idx) => { if (!r.impact) r.impact = idx === 0 ? 'High' : idx <= 2 ? 'Medium' : 'Low'; if (r.target === undefined) r.target = ''; });
 
-        const biggestWin = wins[0] || `${n(g.impressions)} impressions this period.`;
-        const executiveSummary = `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.join(', ')||'social'} during ${this.periodLabel(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
-        const clientSummary = `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'The content kept the audience engaged'}, and the top post did a lot of the heavy lifting. Here's where we'll push next.`;
+        const gbOnly = isLocalOnly(plats);
+        const gbd = pp[GBP] || {};
+        const biggestWin = wins[0] || (gbOnly ? `${n(gbd.impressions||0)} Google Business profile views this period.` : `${n(g.impressions)} impressions this period.`);
+        const executiveSummary = gbOnly
+            ? `${c.name}'s Google Business Profile drew ${n(gbd.impressions||0)} views during ${this.periodText(c)} and turned them into ${n(gbpActions(gbd))} customer actions (${gbpActionRate(gbd)}% action rate): ${n(gbd.calls||0)} calls, ${n(gbd.directions||0)} direction requests and ${n(gbd.clicks||0)} website clicks.`
+            : `${c.name} published ${g.totalContent||0} post${(g.totalContent||0)===1?'':'s'} across ${plats.map(platShort).join(', ')||'social'} during ${this.periodText(c)}, reaching ${n(g.impressions)} impressions and ${n(g.totalInteractions)} interactions${(top&&top.impressions)?`, led by ${top.p}`:''}.`;
+        const clientSummary = gbOnly
+            ? `${biggestWin} The listing was seen ${n(gbd.impressions||0)} times and ${n(gbpActions(gbd))} of those people took an action, so the profile is doing real work in local search. Here's where we'll push next.`
+            : `${biggestWin} ${(top&&top.impressions)?`${top.p} led on reach`:'The content kept the audience engaged'}, and the top post did a lot of the heavy lifting. Here's where we'll push next.`;
 
         const out = { executiveSummary, clientSummary, keyFindings: keyFindings.slice(0,8), platformNotes, wins: wins.slice(0,5), concerns: concerns.slice(0,4), recommendations: recommendations.slice(0,7) };
         this.sortRecs(out);
@@ -1144,7 +1374,12 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const c = this.clients[i], g = c.global || {}, f = c.findings;
         const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
         const md = (cur, prv) => pg ? this.momPct(cur, prv) : null;
-        const metrics = [
+        const metrics = isLocalOnly(c.platforms || []) ? [
+            { lbl: 'Profile Views', val: fmt(g.gbpViews || g.impressions || 0), delta: md(g.impressions || 0, pg && pg.impressions || 0) },
+            { lbl: 'Calls', val: fmt(g.calls || 0), delta: md(g.calls || 0, pg && pg.calls || 0) },
+            { lbl: 'Direction Requests', val: fmt(g.directions || 0), delta: md(g.directions || 0, pg && pg.directions || 0) },
+            { lbl: 'Website Clicks', val: fmt(g.clicks || 0), delta: md(g.clicks || 0, pg && pg.clicks || 0) }
+        ] : [
             { lbl: 'Followers', val: fmt(g.followers || 0), delta: md(g.followers || 0, pg && pg.followers || 0) },
             { lbl: 'Impressions & Views', val: fmt(g.impressions || 0), delta: md(g.impressions || 0, pg && pg.impressions || 0) },
             { lbl: 'Interactions', val: fmt(g.totalInteractions || 0), delta: md(g.totalInteractions || 0, pg && pg.totalInteractions || 0) },
@@ -1155,7 +1390,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         // Per-platform reach/interactions for the client report's Platform Breakdown chart
         const platforms = (c.platforms || []).map(p => {
             const pd = (c.perPlatform && c.perPlatform[p]) || {};
-            return { platform: p, impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd) };
+            return { platform: platShort(p), impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd) };
         }).filter(x => x.impressions > 0 || x.interactions > 0);
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
@@ -1300,7 +1535,13 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         }
 
         const prev = this.prevAuditFor(i), pg = (prev && prev.global) || null;
-        const heroTiles = [
+        const localOnly = isLocalOnly(platforms);
+        const heroTiles = localOnly ? [
+            { lbl:'Profile Views', val:fmt(g.gbpViews||g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
+            { lbl:'Calls', val:fmt(g.calls||0), d: pg ? this.momPct(g.calls||0, pg.calls||0) : null },
+            { lbl:'Direction Requests', val:fmt(g.directions||0), d: pg ? this.momPct(g.directions||0, pg.directions||0) : null },
+            { lbl:'Website Clicks', val:fmt(g.clicks||0), d: pg ? this.momPct(g.clicks||0, pg.clicks||0) : null }
+        ] : [
             { lbl:'Followers', val:fmt(g.followers||0), d: pg ? this.momPct(g.followers||0, pg.followers||0) : null },
             { lbl:'Impressions &amp; Views', val:fmt(g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
             { lbl:'Interactions', val:fmt(g.totalInteractions||0), d: pg ? this.momPct(g.totalInteractions||0, pg.totalInteractions||0) : null },
@@ -1334,7 +1575,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
 
                 <div class="cr-hero">
                     <h1>${esc(c.name)}</h1>
-                    <div class="cr-sub">Social Media Performance &middot; ${this.periodLabel(c)}</div>
+                    <div class="cr-sub">${localOnly ? 'Google Business Profile Performance' : 'Social Media Performance'} &middot; ${this.periodLabel(c)}</div>
                     ${c.channels ? `<div class="cr-sub" style="margin-top:1px;">${esc(c.channels)}</div>` : ''}
                     <div class="cr-wins">${heroHTML}</div>
                 </div>
@@ -1343,11 +1584,11 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
 
                 ${winsHTML ? `<div class="cr-section"><div class="cr-h">Wins Worth Celebrating</div>${winsHTML}</div>` : ''}
 
-                ${topHTML ? `<div class="cr-section"><div class="cr-h">Content That Landed</div>${topHTML}</div>` : ''}
+                ${topHTML ? `<div class="cr-section"><div class="cr-h">${localOnly ? 'Updates That Landed' : 'Content That Landed'}</div>${topHTML}</div>` : ''}
 
                 <div class="cr-section"><div class="cr-h">What We Recommend Next</div>${recsHTML}</div>
 
-                <div style="text-align:center; font-size:0.66rem; color:var(--text-muted); padding:1rem 0 0.25rem;">Posts = feed posts + reels/shorts (Stories excluded). Impressions include video views.</div>
+                <div style="text-align:center; font-size:0.66rem; color:var(--text-muted); padding:1rem 0 0.25rem;">${localOnly ? 'Profile views are the times the Google Business listing was shown on Search or Maps. Actions are calls, direction requests, messages, bookings and website clicks.' : 'Posts = feed posts + reels/shorts (Stories excluded). Impressions include video views.'}</div>
                 <div style="text-align:center; font-size:0.72rem; color:var(--text-muted); padding:0.25rem 0 2rem;">
                     <span style="font-family:'Dancing Script',cursive; font-size:1.05rem; color:var(--steel);">Messick Marketing</span> &nbsp;&middot;&nbsp; Prepared for ${esc(c.name)} &nbsp;&middot;&nbsp; ${this.periodLabel(c)}
                 </div>
@@ -1366,12 +1607,28 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         const reach = ['reach','impressions','videoViews','watchTime','avgDailyReach'];
         const interactions = ['likes','comments','shares','saves','bookmarks','pinClicks','clicks','dislikes'];
         const meta = ['postsPublished','reelsPublished','engRate','avgWatchTime'];
+        const discovery = ['viewsSearch','viewsMaps','searchesDirect','searchesDiscovery','searchesBranded'];
+        const actions = ['calls','directions','messages','bookings'];
+        const reputation = ['reviewsNew','reviewsReplied','reviewsTotal','rating','photos'];
 
         const renderGroup = (title, keys) => {
             const items = keys.filter(k => fields.includes(k)).map(k => ({ k, v: pData[k]||0 }));
             if (items.length === 0) return '';
             return `<div class="section-label" style="margin-top:0.75rem;">${title}</div><div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-bottom:0.75rem;">${items.map(i => `<div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${fmt(i.v)}</div><div class="lbl">${platLabel(platform, i.k)}</div></div>`).join('')}</div>`;
         };
+        if (isLocal(platform)) {
+            const rate = gbpActionRate(pData);
+            const searches = (pData.searchesDirect||0) + (pData.searchesDiscovery||0) + (pData.searchesBranded||0);
+            const discPct = searches ? Math.round((pData.searchesDiscovery||0)/searches*100) : 0;
+            const summary = `<div class="stat-grid" style="grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:8px; margin-bottom:0.75rem;">
+                <div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${fmt(pData.impressions||0)}</div><div class="lbl">Profile Views</div></div>
+                <div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${fmt(gbpActions(pData))}</div><div class="lbl">Customer Actions</div></div>
+                <div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${rate}%</div><div class="lbl">Action Rate</div></div>
+                ${searches ? `<div class="stat-tile" style="padding:0.75rem;"><div class="val" style="font-size:1.1rem;">${discPct}%</div><div class="lbl">Discovery Share</div></div>` : ''}
+            </div>`;
+            detail.innerHTML = summary + renderGroup('Actions Taken', actions) + renderGroup('Website Clicks', ['clicks']) + renderGroup('How People Found It', discovery) + renderGroup('Reviews & Photos', reputation) + renderGroup('Activity', ['postsPublished']);
+            return;
+        }
         detail.innerHTML = renderGroup('Audience', audience) + renderGroup('Reach & Views', reach) + renderGroup('Interactions', interactions) + renderGroup('Activity & Rate', meta);
     },
 
