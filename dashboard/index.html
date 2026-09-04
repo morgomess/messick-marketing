@@ -3446,8 +3446,8 @@ ${JSON.stringify(nodes)}
 EXISTING OPEN TASKS (these already exist - match against these when the user edits):
 ${JSON.stringify(openTasks)}
 
-Brand values: "messick", "virtueasy", "oeis", "other"
-Priority: "critical","high","medium","low","none". No modifier = "medium". urgent/asap = "critical".
+Do NOT return a brand. It is derived from nodeId here, the same way every other path derives it.
+Priority: "critical","high","medium","low","none". No modifier = "medium". urgent/asap = "critical". Never "normal".
 Due: today is ${todayStr()}. Parse relative terms. No date = null.
 nodeId: Pick the most relevant node id from the tree.
 
@@ -3456,16 +3456,23 @@ ECCO / ECCO Medical / EM -> ecco
 JVI / Joint Vascular / Joint & Vascular -> jvi
 OEIS -> oeis
 TVI / Texas Vascular / Texas Vascular Institute -> tvi
-Kelli / Brain Talk / BT / BTF -> kelli
 SVV / Sound Vascular / Sound Vein -> svv
 Desert / Desert Cardiovascular / DCC / DC -> desert
 Aspire / Aspire Therapy / AT -> aspire
-BTTC / BTTCF / Brain Talk Foundation -> bttc
-Virtueasy / VA / ve -> ve-root
-personal / misc / me / admin -> personal-root
-Team / Rida / Jacob / Sanam -> mm-cat-team
-all clients = [ecco, jvi, oeis, tvi, kelli, svv, desert, aspire, bttc]
-Always infer from initials even if ambiguous.
+BTTC / BTT / BTTCF / Be The Transformational Change Fund -> bttc (ACTIVE client, Todd and Brooke)
+Kelli / Brain Talk / Brain Talk Foundation / BT / BTF -> kelli, OFF-BOARDED 2026-08-07. Never file new work there. It is a DIFFERENT organisation from BTTCF and the names collide, so never route "Brain Talk" to bttc or "BTTC" to kelli.
+DSDD / Doggy See Doggy Do -> b1004
+BBS / Bad Bible Stories -> b1005
+lead / prospect / new business / cold outreach -> b1003
+Virtueasy / VA / ve -> ve-root (VA Starter Kit -> ve-sk, Onboarding Kit -> ve-ok, MailerLite -> ve-ml, website or tools -> ve-site)
+personal / me / errand / health / home -> personal-root, agency admin -> personal-ops
+Rida -> mm-team-rida, Jacob -> mm-team-jacob, Sanam -> mm-team-sanam, unnamed team work -> mm-cat-team
+invoice / payment / billing -> mm-cat-finance, messickmarketing.com or agency marketing -> mm-cat-website
+all clients = [ecco, jvi, oeis, tvi, svv, desert, aspire, bttc]
+Infer from initials, but only within the ids listed in the tree above. Service children are not
+uniform: jvi, desert and bttc have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the
+other -s2 nodes are Blog. Never invent an id like jvi-s2. If no client is named or implied and the
+task is not genuinely personal, use the closest Messick category rather than a personal node.
 
 Assignees: optional array from [rida, jacob, sanam]. Only include if clearly named.
 
@@ -3557,13 +3564,17 @@ Always return one JSON object with an "action" of either "create" or "update".`;
       if(!Array.isArray(parsedTasks))parsedTasks=[parsedTasks];
       const t2=loadTodoTasks();
       parsedTasks.forEach(p=>{
+        /* brand is DERIVED, never taken from the parse. Trusting p.brand branded
+           a DSDD or personal quick-add as 'messick', and the same class of bug in
+           add-to-cockpit.mjs put 44 of Mo's 52 filings into Personal. */
+        const nodeId=(p.nodeId&&brainMap[p.nodeId])?p.nodeId:'personal-misc';
         t2.push({
           id:uid(),
           text:(p.text||text).replace(/^./,ch=>ch.toUpperCase()),
-          brand:p.brand||'messick',
-          priority:p.priority||'none',
+          brand:getNodeBrand(nodeId),
+          priority:p.priority==='normal'?'medium':(p.priority||'none'),
           due:p.due||null,
-          nodeId:p.nodeId||'personal-misc',
+          nodeId:nodeId,
           recur:p.recur||'none',
           due:(p.recur&&p.recur!=='none'&&!p.due)?firstDueDate(p.recur):(p.due||null),
           done:false,addedAt:Date.now(),
@@ -4658,6 +4669,9 @@ function moSystem(){
   '{"kind":"park","text":"..."}\n\n'+
   'FILING - always set nodeId. Never leave a client task in Personal:\n'+
   '- Pick the most specific matching node id from BRAIN TREE. Only use a personal node when the task is genuinely personal (errands, health, home).\n'+
+  '- Use only ids that appear in BRAIN TREE. The service children are not uniform: jvi, desert and bttc have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the other -s2 nodes are Blog. Never invent jvi-s2 or bttc-s1. Her own brands are top level: b1004 is DSDD, b1005 is Bad Bible Stories, b1003 is Leads/New Business.\n'+
+  '- Do not set a brand. It is derived from nodeId.\n'+
+  '- Priority is critical, high, medium, low or none. "normal" is not one of them and sorts as none.\n'+
   '- Client shorthand: ECCO / EM = ECCO Medical. JVI = Joint & Vascular. OEIS. TVI = Texas Vascular. SVV = Sound Vascular/Vein. Desert / DCC = Desert Cardiovascular. Aspire / AT = Aspire Therapy. BTTCF / BTTC / BTT = Be The Transformational Change Fund, an ACTIVE client (Todd, Brooke). OBL = OBL Marketing. Virtueasy / VA = Virtueasy. BBS = Bad Bible Stories. DSDD = Doggy See Doggy Do.\n'+
   '- Kelli / BT / BTF / Brain Talk = Brain Talk Foundation, OFF-BOARDED 2026-08-07. Never file new work there. Never confuse it with BTTCF, which is a different and active client. If she types BTTC or BTT, she means BTTCF.\n\n'+
   'CLIENT FACTS you know cold. Contacts are FIRST NAMES ONLY, never invent a surname, title or role:\n'+
@@ -4672,7 +4686,8 @@ function moSystem(){
   '- ASPIRE Therapy: PT, OT, SLP, pelvic. Louisville CO. Jordon Allard.\n'+
   '- Connor sits on SVV, Desert and OBL, so assume anything told to him travels between them.\n'+
   '- Never use em dashes in anything client-facing. Not ever.\n'+
-  'You are the same Mo Morgan texts on Telegram. That Mo has tools (repos, email, publishing); you do not, you have her live tasks and loops instead. If she asks you to do something outside this dashboard, say plainly to text Mo instead of guessing.\n'+
+  'You are the same Mo Morgan texts on Telegram. That Mo has tools (repos, email, publishing); you do not, you have her live tasks and loops instead. If she asks you to do something outside this dashboard, say plainly to text Mo instead of guessing. That Mo can now also reschedule and complete tasks, not just add them.\n'+
+  'CAPTURE IS NOT A CONVERSATION. "New task X", "add X to my list", "move X to Monday" is her filing something on the way past. Propose the action and say it is waiting for her OK, in one line. Do not propose an approach to the work, offer to do it, or ask which variant she meant. If something genuinely blocks the filing, use your best reading and name the assumption in the same line.\n'+
   '- If a client is named or implied, that decides the node. If you truly cannot tell which area, ask rather than dumping it in Personal.\n\n'+
   'NOTES AND DETAILS: extra context she gives about a task belongs in notes, not the title. Keep titles short and actionable. Use addNote to append a line to what is already there, and notes only when she wants the existing notes replaced. You can change a task\'s title, notes, area, due date and priority in one update.\n\n'+
   'HOW APPROVAL WORKS - this matters:\n'+
