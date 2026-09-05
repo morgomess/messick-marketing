@@ -20,6 +20,8 @@
  *     "category": "Reputation",                     // breadcrumb + post-category + card
  *     "metaDescription": "Patients read reviews before they call...",
  *     "date": "July 2026",                          // post-meta "Month Year"
+ *     "isoDate": "2026-07-14",                      // optional; else derived from date as "2026-07"
+ *     "ogImage": "/portfolio-assets/reviews.jpg",   // optional; else the site-wide /og-image.jpg
  *     "read": "6 min read",
  *     "excerpt": "Before a patient calls, they read your reviews...",  // index card blurb
  *     "bodyHtml": "<p>...</p>\n<h2>...</h2>...",     // inner of .post-body .inner (no author-bar)
@@ -64,8 +66,23 @@ for (const p of posts) {
   if (fs.existsSync(dest)) { console.log(`  skip (exists): ${p.slug}`); continue; }
   if (index.includes(`/blog/${p.slug}.html`)) { console.log(`  skip (card exists): ${p.slug}`); continue; }
 
-  const url = `https://messickmarketing.com/blog/${p.slug}.html`;
+  // Canonical form is extensionless, matching sitemap.xml. GitHub Pages serves both
+  // /blog/<slug> and /blog/<slug>.html with a 200, so the canonical is what settles it.
+  const url = `https://messickmarketing.com/blog/${p.slug}`;
   const titleTag = `${esc(p.title)} | Messick Marketing Blog`;
+  const ogImage = p.ogImage
+    ? (/^https?:/.test(p.ogImage) ? p.ogImage : `https://messickmarketing.com${p.ogImage}`)
+    : 'https://messickmarketing.com/og-image.jpg';
+  // "July 2026" -> "2026-07". Month precision unless the manifest supplies isoDate.
+  const MONTHS = ['january','february','march','april','may','june',
+                  'july','august','september','october','november','december'];
+  const isoDate = p.isoDate || (() => {
+    const m = String(p.date).trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+    if (!m) die(`post "${p.slug}": date "${p.date}" is not "Month YYYY" and no isoDate given`);
+    const i = MONTHS.indexOf(m[1].toLowerCase());
+    if (i < 0) die(`post "${p.slug}": unrecognised month in date "${p.date}"`);
+    return `${m[2]}-${String(i + 1).padStart(2, '0')}`;
+  })();
   const h1 = p.emAccent
     ? `${esc(p.title)} <em>${esc(p.emAccent)}</em>`
     : esc(p.title);
@@ -79,6 +96,39 @@ for (const p of posts) {
     `<meta property="og:title" content="${esc(p.title)}"/>`);
   html = html.replace(/<meta property="og:url" content="[\s\S]*?"\/>/,
     `<meta property="og:url" content="${url}"/>`);
+  html = html.replace(/<link rel="canonical" href="[\s\S]*?"\/>/,
+    `<link rel="canonical" href="${url}"/>`);
+  html = html.replace(/<meta property="og:description" content="[\s\S]*?"\/>/,
+    `<meta property="og:description" content="${esc(p.metaDescription)}"/>`);
+  html = html.replace(/<meta property="og:image" content="[\s\S]*?"\/>/,
+    `<meta property="og:image" content="${ogImage}"/>`);
+  html = html.replace(/<meta name="twitter:title" content="[\s\S]*?"\/>/,
+    `<meta name="twitter:title" content="${esc(p.title)}"/>`);
+  html = html.replace(/<meta name="twitter:description" content="[\s\S]*?"\/>/,
+    `<meta name="twitter:description" content="${esc(p.metaDescription)}"/>`);
+  html = html.replace(/<meta name="twitter:image" content="[\s\S]*?"\/>/,
+    `<meta name="twitter:image" content="${ogImage}"/>`);
+
+  // BlogPosting: the template carries one, so swap its fields rather than appending a second.
+  const blogPosting = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: p.title,
+    description: p.metaDescription,
+    datePublished: isoDate,
+    dateModified: isoDate,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    image: ogImage,
+    author: { '@type': 'Organization', name: 'Messick Marketing', url: 'https://messickmarketing.com' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Messick Marketing',
+      logo: { '@type': 'ImageObject', url: 'https://messickmarketing.com/logo.png' }
+    }
+  }, null, 2);
+  const ldRe = /<script type="application\/ld\+json">\s*\{\s*"@context"[\s\S]*?"@type":\s*"BlogPosting"[\s\S]*?<\/script>/;
+  if (!ldRe.test(html)) die(`post "${p.slug}": BlogPosting block not found in the template skeleton`);
+  html = html.replace(ldRe, `<script type="application/ld+json">\n${blogPosting}\n</script>`);
 
   const hero =
 `<section class="post-hero">

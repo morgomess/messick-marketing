@@ -11,5 +11,11 @@ Disallow: /youtube/
 Disallow: /reports/
 Disallow: /leads.html
 Disallow: /report-feedback-form.html
+Disallow: /dashboard2/
+Disallow: /engagement/
+Disallow: /websites/
+Disallow: /workers/
+Disallow: /leads-sheet-script.gs
+Disallow: /report-feedback-sheet-script.gs
 
 Sitemap: https://messickmarketing.com/sitemap.xml
