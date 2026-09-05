@@ -119,14 +119,21 @@ for (const p of posts) {
     dateModified: isoDate,
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     image: ogImage,
-    author: { '@type': 'Organization', name: 'Messick Marketing', url: 'https://messickmarketing.com' },
+    author: {
+      '@type': 'Person',
+      name: 'Morgan Messick',
+      jobTitle: 'Founder',
+      worksFor: { '@type': 'Organization', name: 'Messick Marketing', url: 'https://messickmarketing.com/' }
+    },
     publisher: {
       '@type': 'Organization',
       name: 'Messick Marketing',
       logo: { '@type': 'ImageObject', url: 'https://messickmarketing.com/logo.png' }
     }
   }, null, 2);
-  const ldRe = /<script type="application\/ld\+json">\s*\{\s*"@context"[\s\S]*?"@type":\s*"BlogPosting"[\s\S]*?<\/script>/;
+  // Tempered so the wildcard cannot cross a </script>. A plain [\s\S]*? here would start at an
+  // earlier VideoObject or FAQPage block in the skeleton and swallow it.
+  const ldRe = /<script type="application\/ld\+json">(?:(?!<\/script>)[\s\S])*?"@type":\s*"BlogPosting"(?:(?!<\/script>)[\s\S])*?<\/script>/;
   if (!ldRe.test(html)) die(`post "${p.slug}": BlogPosting block not found in the template skeleton`);
   html = html.replace(ldRe, `<script type="application/ld+json">\n${blogPosting}\n</script>`);
 
