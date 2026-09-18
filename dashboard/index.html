@@ -2580,6 +2580,8 @@ const BRAIN_SEED=[
     {id:'aspire',label:'Aspire Therapy',type:'mm-client',parent:'mm-root'},
       {id:'aspire-s1',label:'Blog + GBP',type:'mm-service',parent:'aspire'},
     {id:'bttc',label:'BTTC',type:'mm-client',parent:'mm-root'},
+    {id:'nvavi',label:'NVAVI',type:'mm-client',parent:'mm-root'},
+      {id:'nvavi-s1',label:'Social media',type:'mm-service',parent:'nvavi'},
   {id:'mm-cat-team',label:'Team',type:'mm-client',parent:'mm-root'},
   {id:'mm-team-rida',label:'Rida',type:'mm-service',parent:'mm-cat-team'},
   {id:'mm-team-jacob',label:'Jacob',type:'mm-service',parent:'mm-cat-team'},
@@ -2610,6 +2612,7 @@ function brainLoad(){
   brainNodes.forEach(n=>brainMap[n.id]=n);
   // Migrate categories
   migrateBrainCategories();
+  ensureNvaviClient();
   // Ensure personal root exists
   ensurePersonalRoot();
   let _max=1000;
@@ -2639,6 +2642,25 @@ function migrateBrainCategories(){
   });
   brainSave();
   localStorage.setItem('mm_brain_cats','1');
+}
+
+// NVAVI signed on 2026-09-18. BRAIN_SEED only reaches an empty brain, so an
+// installed dashboard gets the client here instead. Flagged so that a node
+// Morgan later deletes stays deleted.
+function ensureNvaviClient(){
+  if(localStorage.getItem('mm_brain_nvavi')==='1')return;
+  if(!brainMap['mm-root'])return;
+  const parent=brainMap['mm-cat-clients']?'mm-cat-clients':'mm-root';
+  if(!brainMap['nvavi']){
+    const n={id:'nvavi',label:'NVAVI',type:'mm-client',parent:parent,x:0,y:0};
+    brainNodes.push(n);brainMap[n.id]=n;
+  }
+  if(!brainMap['nvavi-s1']){
+    const n={id:'nvavi-s1',label:'Social media',type:'mm-service',parent:'nvavi',x:0,y:0};
+    brainNodes.push(n);brainMap[n.id]=n;
+  }
+  localStorage.setItem('mm_brain_nvavi','1');
+  brainSave();
 }
 
 function ensurePersonalRoot(){
@@ -3460,6 +3482,7 @@ SVV / Sound Vascular / Sound Vein -> svv
 Desert / Desert Cardiovascular / DCC / DC -> desert
 Aspire / Aspire Therapy / AT -> aspire
 BTTC / BTT / BTTCF / Be The Transformational Change Fund -> bttc (ACTIVE client, Todd and Brooke)
+NVAVI / Nashville / Nashville Vascular / Nashville Vascular and Vein Institute -> nvavi (work for the parent group AVA also files here)
 Kelli / Brain Talk / Brain Talk Foundation / BT / BTF -> kelli, OFF-BOARDED 2026-08-07. Never file new work there. It is a DIFFERENT organisation from BTTCF and the names collide, so never route "Brain Talk" to bttc or "BTTC" to kelli.
 DSDD / Doggy See Doggy Do -> b1004
 BBS / Bad Bible Stories -> b1005
@@ -3468,9 +3491,9 @@ Virtueasy / VA / ve -> ve-root (VA Starter Kit -> ve-sk, Onboarding Kit -> ve-ok
 personal / me / errand / health / home -> personal-root, agency admin -> personal-ops
 Rida -> mm-team-rida, Jacob -> mm-team-jacob, Sanam -> mm-team-sanam, unnamed team work -> mm-cat-team
 invoice / payment / billing -> mm-cat-finance, messickmarketing.com or agency marketing -> mm-cat-website
-all clients = [ecco, jvi, oeis, tvi, svv, desert, aspire, bttc]
+all clients = [ecco, jvi, oeis, tvi, svv, desert, aspire, bttc, nvavi]
 Infer from initials, but only within the ids listed in the tree above. Service children are not
-uniform: jvi, desert and bttc have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the
+uniform: jvi, desert, bttc and nvavi have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the
 other -s2 nodes are Blog. Never invent an id like jvi-s2. If no client is named or implied and the
 task is not genuinely personal, use the closest Messick category rather than a personal node.
 
@@ -4655,7 +4678,7 @@ function moContext(){
 function moSystem(){
   return 'You are Mo, Morgan\'s assistant inside her marketing-agency operations dashboard. You are having an ongoing conversation with her.\n'+
   'Voice: warm, direct, concise. 1-3 sentences. Plain text, no markdown, no bullet characters.\n'+
-  'You understand agency shorthand. "JVI blog fri high" means create a task "JVI blog" due this coming Friday with high priority. "ECCO reel done" means complete the ECCO reel task. Clients include JVI, ECCO, TVI, SVV, Desert Cardiovascular, OEIS, OBL Marketing, BTTCF and Aspire, plus her own brands Virtueasy, BBS, DSDD and Messick.\n'+
+  'You understand agency shorthand. "JVI blog fri high" means create a task "JVI blog" due this coming Friday with high priority. "ECCO reel done" means complete the ECCO reel task. Clients include JVI, ECCO, TVI, SVV, Desert Cardiovascular, OEIS, OBL Marketing, BTTCF, NVAVI and Aspire, plus her own brands Virtueasy, BBS, DSDD and Messick.\n'+
   'Resolve relative dates (today, tomorrow, fri, next week) against TODAY into YYYY-MM-DD.\n'+
   'Use the conversation history for follow-ups: "what about next week", "make that one high" refer to what was just discussed.\n\n'+
   'ALWAYS reply with a single JSON object and nothing else:\n'+
@@ -4669,10 +4692,10 @@ function moSystem(){
   '{"kind":"park","text":"..."}\n\n'+
   'FILING - always set nodeId. Never leave a client task in Personal:\n'+
   '- Pick the most specific matching node id from BRAIN TREE. Only use a personal node when the task is genuinely personal (errands, health, home).\n'+
-  '- Use only ids that appear in BRAIN TREE. The service children are not uniform: jvi, desert and bttc have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the other -s2 nodes are Blog. Never invent jvi-s2 or bttc-s1. Her own brands are top level: b1004 is DSDD, b1005 is Bad Bible Stories, b1003 is Leads/New Business.\n'+
+  '- Use only ids that appear in BRAIN TREE. The service children are not uniform: jvi, desert, bttc and nvavi have no -s2, aspire-s1 is Blog + GBP, oeis-s2 is YouTube where the other -s2 nodes are Blog. Never invent jvi-s2 or bttc-s1. Her own brands are top level: b1004 is DSDD, b1005 is Bad Bible Stories, b1003 is Leads/New Business.\n'+
   '- Do not set a brand. It is derived from nodeId.\n'+
   '- Priority is critical, high, medium, low or none. "normal" is not one of them and sorts as none.\n'+
-  '- Client shorthand: ECCO / EM = ECCO Medical. JVI = Joint & Vascular. OEIS. TVI = Texas Vascular. SVV = Sound Vascular/Vein. Desert / DCC = Desert Cardiovascular. Aspire / AT = Aspire Therapy. BTTCF / BTTC / BTT = Be The Transformational Change Fund, an ACTIVE client (Todd, Brooke). OBL = OBL Marketing. Virtueasy / VA = Virtueasy. BBS = Bad Bible Stories. DSDD = Doggy See Doggy Do.\n'+
+  '- Client shorthand: ECCO / EM = ECCO Medical. JVI = Joint & Vascular. OEIS. TVI = Texas Vascular. SVV = Sound Vascular/Vein. Desert / DCC = Desert Cardiovascular. Aspire / AT = Aspire Therapy. BTTCF / BTTC / BTT = Be The Transformational Change Fund, an ACTIVE client (Todd, Brooke). OBL = OBL Marketing. NVAVI / Nashville = Nashville Vascular and Vein Institute. Virtueasy / VA = Virtueasy. BBS = Bad Bible Stories. DSDD = Doggy See Doggy Do.\n'+
   '- Kelli / BT / BTF / Brain Talk = Brain Talk Foundation, OFF-BOARDED 2026-08-07. Never file new work there. Never confuse it with BTTCF, which is a different and active client. If she types BTTC or BTT, she means BTTCF.\n\n'+
   'CLIENT FACTS you know cold. Contacts are FIRST NAMES ONLY, never invent a surname, title or role:\n'+
   '- JVI: IR and MSK embolization, Libertyville + Rockford IL. Osman, Mikin, Jessica, the physicians themselves.\n'+
@@ -4683,8 +4706,10 @@ function moSystem(){
   '- OEIS: a national physician SOCIETY, B2B, not patient-facing. Julie, NOT Dr. Ryan.\n'+
   '- OBL Marketing: a marketing AGENCY, not a practice, not patient-facing. Denver. Greg, Connor, Stephanie.\n'+
   '- BTTCF: LGBTQIA+ equity. Todd (client), Brooke (CMS).\n'+
+  '- NVAVI: Nashville Vascular and Vein Institute. Arterial and PAD, Nashville TN. Patrick, Renea. Parent group AVA: Theresa, Devon. New Sep 2026 on a 90-day trial. LinkedIn aimed at referring providers, NOT vein or GAE.\n'+
   '- ASPIRE Therapy: PT, OT, SLP, pelvic. Louisville CO. Jordon Allard.\n'+
   '- Connor sits on SVV, Desert and OBL, so assume anything told to him travels between them.\n'+
+  '- Patrick (Dr. Ryan) sits on NVAVI and is OEIS president, so assume anything told to him travels between the two. Julie is still the OEIS contact.\n'+
   '- Never use em dashes in anything client-facing. Not ever.\n'+
   'You are the same Mo Morgan texts on Telegram. That Mo has tools (repos, email, publishing); you do not, you have her live tasks and loops instead. If she asks you to do something outside this dashboard, say plainly to text Mo instead of guessing. That Mo can now also reschedule and complete tasks, not just add them.\n'+
   'CAPTURE IS NOT A CONVERSATION. "New task X", "add X to my list", "move X to Monday" is her filing something on the way past. Propose the action and say it is waiting for her OK, in one line. Do not propose an approach to the work, offer to do it, or ask which variant she meant. If something genuinely blocks the filing, use your best reading and name the assumption in the same line.\n'+
@@ -6240,7 +6265,7 @@ function bdRun(){
     'SVV (Sound Vascular & Vein, Federal Way WA, Cassandra, Holly, Connor). '+
     'Desert Cardiovascular (cardiology + endovascular, Las Vegas, Melissa, Holly, Connor). '+
     'OEIS (national physician society, B2B, Julie). OBL Marketing (a marketing agency, Denver, Greg, Connor, Stephanie). '+
-    'BTTCF (LGBTQIA+ equity, Todd, Brooke). ASPIRE Therapy & Wellness (PT/OT/SLP/pelvic, Louisville CO, Jordon). '+
+    'BTTCF (LGBTQIA+ equity, Todd, Brooke). NVAVI (Nashville Vascular and Vein Institute, arterial/PAD, Nashville TN, LinkedIn for referring providers, not vein or GAE, Patrick, Renea, parent group AVA). ASPIRE Therapy & Wellness (PT/OT/SLP/pelvic, Louisville CO, Jordon). '+
     'Her own brands: Virtueasy, Bad Bible Stories, Doggy See Doggy Do, Messick Marketing.\n\n'+
     '=== HER TOOLING ===\n'+
     'Airtable holds content calendars and keywords. AIOS is the worker that drafts blog posts and social copy into Airtable. '+
