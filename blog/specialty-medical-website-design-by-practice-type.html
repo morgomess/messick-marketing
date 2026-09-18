@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>One Website Template Does Not Fit Every Specialty | Messick Marketing Blog</title>
+<meta name="description" content="Generic medical website templates miss the mark. Learn how specialty-specific design changes by practice type and which page does the heaviest lifting."/>
+<meta property="og:title" content="One Website Template Does Not Fit Every Specialty"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="https://messickmarketing.com/blog/specialty-medical-website-design-by-practice-type"/>
+<link rel="canonical" href="https://messickmarketing.com/blog/specialty-medical-website-design-by-practice-type"/>
+<meta property="og:site_name" content="Messick Marketing"/>
+<meta property="og:description" content="Generic medical website templates miss the mark. Learn how specialty-specific design changes by practice type and which page does the heaviest lifting."/>
+<meta property="og:image" content="https://messickmarketing.com/og-image.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="One Website Template Does Not Fit Every Specialty"/>
+<meta name="twitter:description" content="Generic medical website templates miss the mark. Learn how specialty-specific design changes by practice type and which page does the heaviest lifting."/>
+<meta name="twitter:image" content="https://messickmarketing.com/og-image.jpg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/tex-gyre-heros" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#111111;--white:#faf8f5;--gray:#f0eeeb;--steel:#3a6b8a;--steel-light:#5a9ab8;--steel-pale:#d4e8f2;--text-muted:#6b6560;--text-dark:#e8e4de;--text-muted-dark:#9a928c;
+  --font-heading:'TeX Gyre Heros','Helvetica Neue',Arial,sans-serif;
+  --font-body:'Roboto','Helvetica Neue',Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--white);color:var(--black);line-height:1.7;font-weight:300;overflow-x:hidden}
+img{max-width:100%;height:auto}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:88px;transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.nav-logo img{height:68px;width:auto;max-width:340px;object-fit:contain;display:block}
+.nav-links{display:flex;gap:1.7rem;list-style:none;align-items:center}
+.nav-links a{font-size:.72rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links .nav-cta{background:var(--steel);color:#fff!important;padding:.62rem 1rem;border-radius:2px;transition:background .2s,box-shadow .2s!important}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:#fff}
+@media(max-width:768px){.nav-links{display:none;position:fixed;top:88px;left:0;right:0;background:var(--black);flex-direction:column;align-items:flex-start;padding:1.5rem 5% 2rem;gap:1.2rem;border-top:1px solid rgba(255,255,255,.1)}.nav-links.open{display:flex}.hamburger{display:flex}}
+.post-hero{margin-top:88px;background:var(--black);padding:80px 5% 70px}
+.post-hero .inner{max-width:780px;margin:0 auto}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem}
+.breadcrumb a{font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none}
+.breadcrumb a:hover{color:#fff}
+.breadcrumb span{font-size:.68rem;color:rgba(255,255,255,.25)}
+.post-category{display:inline-block;font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);background:rgba(58,107,138,.25);padding:.3rem .75rem;border-radius:1px;margin-bottom:1.2rem}
+.post-hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,4vw,3.6rem);font-weight:300;color:#fff;line-height:1.15;margin-bottom:1.2rem}
+.post-hero h1 em{font-style:italic;color:var(--steel-light)}
+.post-meta{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.post-meta span{font-size:.72rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase}
+.post-meta .divider{width:1px;height:12px;background:rgba(255,255,255,.15)}
+.post-body{padding:72px 5% 80px}
+.post-body .inner{max-width:780px;margin:0 auto}
+.post-body p{font-size:1.05rem;line-height:1.9;color:#2a2a2a;margin-bottom:1.6rem;font-weight:300}
+.post-body h2{font-family:var(--font-heading);font-size:1.9rem;font-weight:400;color:var(--black);margin:3rem 0 1rem;line-height:1.2}
+.post-body h3{font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin:2.4rem 0 .8rem}
+.post-body strong{font-weight:600;color:var(--black)}
+.post-body ul,.post-body ol{margin:1rem 0 1.6rem 1.4rem}
+.post-body li{font-size:1.05rem;line-height:1.8;color:#2a2a2a;margin-bottom:.5rem;font-weight:300}
+.pull-quote{border-left:3px solid var(--steel);padding:1.2rem 1.6rem;margin:2.4rem 0;background:var(--gray)}
+.pull-quote p{font-family:var(--font-heading);font-size:1.5rem;font-weight:300;font-style:italic;color:var(--black);margin:0;line-height:1.5}
+.step-block{counter-reset:steps;margin:2.4rem 0}
+.step{display:flex;gap:1.4rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid #e2dfd9}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{flex-shrink:0;width:44px;height:44px;background:var(--steel);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:1.4rem;font-weight:300;border-radius:2px}
+.step-content h4{font-size:1rem;font-weight:600;color:var(--black);margin-bottom:.5rem}
+.step-content p{font-size:.95rem;line-height:1.85;color:#2a2a2a;margin:0;font-weight:300}
+.author-bar{border-top:1px solid #e2dfd9;padding-top:2.4rem;margin-top:3rem}
+.author-info .author-name{font-size:.88rem;font-weight:600;color:var(--black);margin-bottom:.2rem}
+.author-info .author-bio{font-size:.83rem;font-weight:300;color:var(--text-muted);line-height:1.65}
+.related-section{background:var(--gray);padding:64px 5%}
+.related-section .inner{max-width:1100px;margin:0 auto}
+.related-section .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:2rem}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+@media(max-width:768px){.related-grid{grid-template-columns:1fr}}
+.related-card{background:var(--white);border:1px solid #e2dfd9;padding:1.6rem;text-decoration:none;color:inherit;transition:transform .2s;display:block}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.related-card .rc-cat{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);margin-bottom:.7rem}
+.related-card .rc-title{font-family:var(--font-heading);font-size:1.3rem;font-weight:400;line-height:1.3;color:var(--black);margin-bottom:.6rem}
+.related-card .rc-arrow{font-size:.85rem;color:var(--steel)}
+.cta-strip{background:var(--steel);padding:64px 5%;text-align:center}
+.cta-strip h2{font-family:var(--font-heading);font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:.8rem}
+.cta-strip h2 em{font-style:italic}
+.cta-strip p{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.8}
+.btn-white{display:inline-block;background:#fff;color:var(--steel);font-family:var(--font-body);font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:.85rem 2.2rem;border-radius:2px}
+footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo img{height:30px;width:auto;object-fit:contain;display:block}
+.footer-copy{font-size:.7rem;color:var(--text-muted-dark)}
+.footer-email a{font-size:.72rem;color:var(--steel-light);text-decoration:none}
+.footer-email a:hover{color:#fff}
+.footer-social{width:100%;display:flex;justify-content:center;gap:20px;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)}
+.footer-social a{display:flex;align-items:center;justify-content:center;color:var(--steel-light);transition:color .2s,transform .2s}
+.footer-social a:hover{color:var(--white);transform:translateY(-2px)}
+@media(max-width:600px){
+  nav{padding:0 6%}
+  .nav-logo img{height:56px;max-width:280px}
+  .blog-hero,.post-hero{padding:70px 6% 56px}
+  .blog-hero .inner,.post-hero .inner,.post-body .inner{width:100%;max-width:100%}
+  .blog-hero h1{font-size:clamp(2.05rem,12vw,2.55rem);line-height:1.08;overflow-wrap:break-word}
+  .post-hero h1{font-size:clamp(1.95rem,10vw,2.45rem);line-height:1.12;overflow-wrap:break-word}
+  .blog-hero p,.post-body p,.post-body li{font-size:1rem;max-width:100%;overflow-wrap:break-word}
+  .eyebrow{font-size:.62rem;letter-spacing:.18em}
+  .blog-section,.post-body{padding:64px 6%}
+  .card-body,.card-featured .card-body{padding:1.6rem 1.4rem 1.4rem}
+  .card-title,.card-featured .card-title{font-size:1.6rem}
+  .post-meta{gap:.85rem}
+  .post-meta .divider{display:none}
+}</style>
+  <!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xc2edikxg7");
+</script>
+<!-- End Microsoft Clarity -->
+  <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1294794672598859');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "One Website Template Does Not Fit Every Specialty",
+  "description": "Generic medical website templates miss the mark. Learn how specialty-specific design changes by practice type and which page does the heaviest lifting.",
+  "datePublished": "2026-09-17",
+  "dateModified": "2026-09-17",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://messickmarketing.com/blog/specialty-medical-website-design-by-practice-type"
+  },
+  "image": "https://messickmarketing.com/og-image.jpg",
+  "author": {
+    "@type": "Person",
+    "name": "Morgan Messick",
+    "jobTitle": "Founder",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Messick Marketing",
+      "url": "https://messickmarketing.com/"
+    }
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Messick Marketing",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://messickmarketing.com/logo.png"
+    }
+  }
+}
+</script>
+</head>
+<body>
+<nav id="mainNav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt="Messick Marketing"></a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/#ai-tools">Specialties</a></li>
+    <li><a href="/#visibility">Services</a></li>
+    <li><a href="/portfolio">Work</a></li>
+    <li><a href="/blog/" class="active">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Growth Assessment</a></li>
+  </ul>
+</nav>
+
+<section class="post-hero">
+  <div class="inner">
+    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><a href="#">Strategy</a></div>
+    <span class="post-category">Strategy</span>
+    <h1>One Website Template Does Not Fit Every Specialty <em>What Actually Changes by Practice Type</em></h1>
+    <div class="post-meta">
+      <span>Messick Marketing</span><span class="divider"></span>
+      <span>September 2026</span><span class="divider"></span>
+      <span>6 min read</span>
+    </div>
+  </div>
+</section>
+
+<article class="post-body">
+  <div class="inner">
+    <p>Most medical website demos look the same. A hero image, a service list, a staff photo, a contact form. If you have ever sat through a demo that was clearly built for a different kind of practice, you already felt the problem. The template was not wrong because it was ugly. It was wrong because it was built around a patient decision that is nothing like yours.</p>
+
+<p>That is the gap we are going to close here.</p>
+
+<p>The patient's decision is not the same across specialties, and the page doing the heaviest lifting on your website should reflect the decision your patient is actually making. Generic templates treat all medical websites as though patients arrive with the same question, the same urgency, and the same readiness to book. They do not. A framework that starts with your patient's real decision, not your service list, will get you to a better website faster than any off-the-shelf demo will.</p>
+
+<p><strong>Related:</strong> <a href="/blog/medical-practice-website-optimization-convert-visitors.html">What a medical practice website needs to turn visitors into booked appointments</a></p>
+
+<h2>The Decision Your Patient Is Actually Making</h2>
+
+<p>Before you evaluate any design, ask one question: what does my patient need to believe before they book?</p>
+
+<p>The answer is different for every specialty. The page structure, the calls to action, the imagery, the proof points, all of it flows from that answer. When the template does not match the patient's real decision, the site loses people at the moment it should be converting them.</p>
+
+<p>Here is how that plays out across four different practice types.</p>
+
+<h2>A Therapy Practice Is Selling a Person and a Low-Stakes First Contact</h2>
+
+<p>A person searching for a therapist is carrying a lot. They may have circled a decision for weeks. They are not comparison-shopping a procedure. They are asking whether they will feel safe with this provider and whether reaching out will be uncomfortable.</p>
+
+<p>That means the bio page and the intake path are the money pages for a therapy practice, not the service list.</p>
+
+<p>The bio should feel like a real introduction. A professional photo that reads warm rather than clinical, a paragraph written in first person, a brief statement about what the therapist believes and who they do their best work with. Credentials matter, but they belong below the human moment, not above it.</p>
+
+<p>The intake path needs to feel low stakes. A self-scheduling link is ideal. If intake requires a phone call, say so and say why. If there is a waitlist, acknowledge it honestly rather than hiding it behind a generic contact form. The patient who clicks away is not always impatient. Sometimes they are just afraid the next step will feel hard.</p>
+
+<p>What falls lower in priority: the service list, the FAQs, the general practice history. A therapy site that leads with a long list of modalities before it introduces the therapist has its priorities backwards.</p>
+
+<p><strong>Related:</strong> <a href="/blog/how-patient-reviews-decide-who-gets-the-appointment.html">How patient reviews decide who gets the appointment</a></p>
+
+<h2>A Dermatology or Med Spa Practice Is Selling a Visible Result at a Known Price</h2>
+
+<p>The patient here has done research. They have probably seen before-and-after content on social media. They want to know what a result looks like and what it costs before they book.</p>
+
+<p>That means the gallery and transparent pricing carry the most weight. A gallery without clinical context is just imagery. The strongest galleries show consistent photographic conditions, brief descriptions of what was treated, and realistic range statements rather than only the most dramatic results. Pricing does not have to be exact, but a starting-from figure removes a barrier that causes people to abandon the booking flow.</p>
+
+<p>Regulatory note: before-and-after imagery in aesthetic medicine is subject to truth-in-advertising standards. FTC guidance and state medical board rules vary. Your legal and compliance team should review gallery content before it publishes.</p>
+
+<p>What falls lower in priority for this practice type: long-form educational content about skin conditions. Patients searching a dermatology or med spa site are often in a buying mode, not a research mode. Educational depth belongs in a blog or FAQ section, not competing with the gallery for attention above the fold.</p>
+
+<p><strong>Related:</strong> <a href="/blog/hipaa-algorithms-healthcare-social-media.html">HIPAA, algorithms, and why healthcare social media plays by different rules</a></p>
+
+<h2>An Orthopedic Practice Is Often Selling Against the Referral Timeline</h2>
+
+<p>Orthopedic patients frequently arrive uncertain. They have imaging, a referral, or a diagnosis from another provider. They want to understand what happens after they walk through the door, because the gap between "I need to see someone" and "I am booked for surgery" feels opaque and stressful.</p>
+
+<p>The money page here is a clear, plain-language timeline: what the first visit includes, when they will get imaging results or a second opinion, what the decision path looks like, and who is involved. A specialty practice that answers "what happens next" before the patient has to ask it earns trust that a generic service list never will.</p>
+
+<p>What falls lower in priority: a homepage that leads with the practice's awards and years of experience. That proof matters, but it answers a question the patient is not asking first. They want orientation before they want credentials.</p>
+
+<p><strong>Related:</strong> <a href="/blog/what-is-aeo-for-healthcare.html">What is AEO for healthcare, and why structured answers matter</a></p>
+
+<h2>An OB/GYN Practice Is Selling Continuity and Being Heard</h2>
+
+<p>The patient choosing an OB/GYN is choosing someone who will be present through some of the most significant moments of their life. The question they arrive with is not "what procedures do you offer." It is "will this practice actually listen to me, and will I still feel like a person here."</p>
+
+<p>That means the highest-priority pages are the provider profiles and the content that demonstrates the practice's philosophy. A page that says the practice welcomes questions about birth preferences, menopause care, or fertility concerns signals attentiveness in a way that a credential list does not.</p>
+
+<p>For a practice treating a range of ages and concerns, the site navigation should also make it easy for a patient to locate themselves. A 28-year-old managing a new diagnosis and a 52-year-old navigating perimenopause are on the same site but looking for very different entry points.</p>
+
+<p>What falls lower in priority: the generic "we accept most insurance" statement buried at the bottom. Insurance and access questions are high-stakes for this patient. A transparent insurance and scheduling page reduces friction more than most practices realize.</p>
+
+<h2>The Framework: Finding Your Money Page</h2>
+
+<p>Before your next redesign conversation, answer these three questions for your practice.</p>
+
+<p><strong>What does my patient need to believe before they book?</strong> Identify the single biggest trust barrier. For a therapy practice, it is safety with the provider. For a dermatology practice, it is confidence in the result and the price. For an orthopedic practice, it is clarity about what comes next. For an OB/GYN practice, it is the belief that they will be heard.</p>
+
+<p><strong>Where does my current site answer that question?</strong> If the answer is nowhere visible, or buried three clicks in, you have found the gap.</p>
+
+<p><strong>What is the first thing a patient sees on that page, and does it address the barrier directly?</strong> If the top of the page talks about the practice instead of the patient, the hierarchy is off.</p>
+
+<p>Healthcare website customization is not a design exercise first. It is a patient-decision exercise that design then supports. A generic template built for a different kind of practice will not pass this test, no matter how well it photographs.</p>
+
+<p>If you are evaluating a redesign or looking at demos that feel built for someone else's patients, that feeling is diagnostic. Start with the patient's decision, and the right structure will follow.</p>
+
+<p><strong>Related:</strong> <a href="/blog/marketing-agency-ufe-specialty.html">Your marketing agency doesn't know what a UFE is, and that's a problem</a></p>
+
+    <div class="author-bar">
+      <div class="author-info">
+        <div class="author-name">Messick Marketing</div>
+        <div class="author-bio">We build content strategies for healthcare practices and mission-driven businesses, then execute them. If you want content that goes beyond a calendar, let's talk about what that looks like for your practice.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<section class="related-section">
+  <div class="inner">
+    <p class="eyebrow">Keep Reading</p>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/medical-practice-website-optimization-convert-visitors.html">
+        <div class="rc-cat">Strategy</div>
+        <div class="rc-title">What a Medical Practice Website Needs to Turn Visitors Into Booked Appointments</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+      <a class="related-card" href="/blog/interactive-tools-medical-practice-website-conversions.html">
+        <div class="rc-cat">Strategy</div>
+        <div class="rc-title">Interactive Tools on Medical Websites: Do They Convert?</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+      <a class="related-card" href="/blog/marketing-agency-ufe-specialty.html">
+        <div class="rc-cat">Industry</div>
+        <div class="rc-title">Your Marketing Agency Does Not Know What a UFE Is</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>Content that actually<br><em>moves the needle.</em></h2>
+  <p>We build your content strategy and handle the execution, so the right people find your practice. You focus on patients.</p>
+  <a href="/#contact" class="btn-white">Let's Get Started</a>
+</section>
+
+<footer>
+  <a href="/" class="footer-logo"><img src="/logo.png" alt="Messick Marketing"></a>
+  <div class="footer-email"><a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></div>
+  <div class="footer-copy">&copy; 2026 Messick Marketing. All rights reserved.</div>
+  <div class="footer-social">
+    <a href="https://www.facebook.com/profile.php?id=61588691457371" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+    <a href="https://www.instagram.com/messickmarketing" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+    <a href="https://www.linkedin.com/company/messick-marketing/" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on LinkedIn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+    <a href="https://www.youtube.com/@messickmarketing" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on YouTube"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47a2.78 2.78 0 0 0-1.95 1.95A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" fill="currentColor"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#111111"/></svg></a>
+  </div>
+</footer>
+<script>
+const nav=document.getElementById('mainNav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>30));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+</script>
+</body>
+</html>
