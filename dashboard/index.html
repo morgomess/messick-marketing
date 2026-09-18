@@ -2613,6 +2613,7 @@ function brainLoad(){
   // Migrate categories
   migrateBrainCategories();
   ensureNvaviClient();
+  ensureNvaviDirectory();
   // Ensure personal root exists
   ensurePersonalRoot();
   let _max=1000;
@@ -2661,6 +2662,26 @@ function ensureNvaviClient(){
   }
   localStorage.setItem('mm_brain_nvavi','1');
   brainSave();
+}
+
+// Same one-shot idea for the Client Directory tab (mm_clients). Its own flag,
+// because mm_brain_nvavi was already set on her devices when this shipped.
+function ensureNvaviDirectory(){
+  if(localStorage.getItem('mm_clients_nvavi')==='1')return;
+  let clients=[];
+  try{clients=JSON.parse(localStorage.getItem('mm_clients')||'[]');}catch(e){return;}
+  if(!clients.some(c=>/nvavi|nashville vascular/i.test(c.name||''))){
+    clients.push({id:'nvavi',name:'NVAVI (Nashville Vascular and Vein Institute)',
+      industry:'Vascular, arterial and PAD. Parent group AVA',
+      phone:'(615) 321-6100',
+      email:'Renea <rtaylor@nvavi.com>, Dr. Patrick Ryan <pryan@nvavi.com>, Theresa Alvaro, AVA <talvaro@americanvascular.com>, Devon Kirk, AVA <dkirk@americanvascular.com>',
+      address:'310 25th Ave. North, Suite 100, Nashville, TN 37203',
+      website:'https://nvavi.com',
+      services:['Social Media Management (Basic)']});
+    localStorage.setItem('mm_clients',JSON.stringify(clients));
+  }
+  localStorage.setItem('mm_clients_nvavi','1');
+  scheduleSave();
 }
 
 function ensurePersonalRoot(){
