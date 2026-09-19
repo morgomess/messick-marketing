@@ -904,6 +904,14 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="output-area" id="titles-out"></div>
       </div>
 
+      <!-- Section 1b: Chapters -->
+      <div class="opt-section">
+        <div class="section-title">Chapters</div>
+        <div class="section-sub">Timestamped chapters built from the .srt uploaded above. Every timestamp comes straight from the transcript, ready to paste into the description.</div>
+        <button class="btn-primary" onclick="generateChapters()">Generate Chapters</button>
+        <div class="output-area" id="chapters-out"></div>
+      </div>
+
       <!-- Section 2: Tags -->
       <div class="opt-section">
         <div class="section-title">Tag Builder</div>
@@ -1516,6 +1524,26 @@ function emptyState(icon, title, sub, btnLabel, btnAction) {
 // SRT HANDLING
 // ============================================================
 let _srtTranscript = "";
+let _srtCues = [];   // [{ t: startSeconds, text }] - kept for the chapter generator
+
+// Same cleanup as parseSrt, but keeps each cue's start time.
+function parseSrtCues(text) {
+  const cues = [];
+  const re = /(?:(\d{1,2}):)?(\d{2}):(\d{2})[,.]\d{1,3}\s*-->/;
+  let cur = null;
+  text.replace(/\r/g, "").split("\n").forEach(line => {
+    const m = line.match(re);
+    if (m) {
+      cur = { t: (+m[1] || 0) * 3600 + (+m[2]) * 60 + (+m[3]), text: "" };
+      cues.push(cur);
+      return;
+    }
+    const l = line.replace(/<[^>]+>/g, "").replace(/\{[^}]+\}/g, "").trim();
+    if (!cur || !l || /^\d+$/.test(l)) return;
+    cur.text += (cur.text ? " " : "") + l;
+  });
+  return cues.filter(c => c.text);
+}
 
 function parseSrt(text) {
   return text
@@ -1537,6 +1565,8 @@ function handleSrtFile(file) {
   reader.onload = e => {
     const parsed = parseSrt(e.target.result);
     _srtTranscript = parsed;
+    _srtCues = parseSrtCues(e.target.result);
+    document.getElementById("chapters-out").innerHTML = "";
     const words = parsed.split(" ").length;
     document.getElementById("srt-drop-label").textContent = "\u2713 " + file.name;
     document.getElementById("srt-drop-sub").textContent = words + " words loaded";
@@ -1562,6 +1592,8 @@ function handleSrtDrop(e) {
 function clearSrt(e) {
   e.stopPropagation();
   _srtTranscript = "";
+  _srtCues = [];
+  document.getElementById("chapters-out").innerHTML = "";
   document.getElementById("srt-drop-label").textContent = "Drop .srt file or click to upload";
   document.getElementById("srt-drop-sub").textContent = "Exported from Descript, Premiere, or YouTube Studio";
   document.getElementById("srt-drop-zone").style.borderColor = "var(--border2)";
@@ -1761,6 +1793,114 @@ function renderTitlesOutput(json, out) {
   if (_lastTitle && _lastDesc) {
     runInlineChecklist(_lastTitle, _lastDesc, _lastTags, out, _lastPrimaryKw, _lastFormat);
   }
+}
+
+// ============================================================
+// FEATURE 1b: CHAPTERS (from the uploaded .srt)
+// ============================================================
+// The AI never writes a timestamp. It picks the index of the transcript block
+// where a chapter starts, and the time is read back off the real cue, so a
+// chapter can't land on a moment that isn't in the video.
+function buildChapterBlocks(cues) {
+  const total = cues[cues.length - 1].t;
+  const span = Math.max(10, Math.ceil(total / 400)); // ~10s blocks, capped near 400 lines
+  const blocks = [];
+  cues.forEach(c => {
+    const last = blocks[blocks.length - 1];
+    if (!last || c.t - last.t >= span) blocks.push({ t: c.t, text: c.text });
+    else last.text += " " + c.text;
+  });
+  return blocks;
+}
+
+function fmtChapterTime(sec, withHours) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const ss = String(s).padStart(2, "0");
+  return withHours ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+async function generateChapters() {
+  const out = document.getElementById('chapters-out');
+  if (!_srtCues.length) {
+    out.innerHTML = errHtml(_srtTranscript
+      ? 'That file has no timestamps. Chapters need an .srt export, not plain text.'
+      : 'Upload an .srt transcript above first.');
+    return;
+  }
+  const total = _srtCues[_srtCues.length - 1].t;
+  if (total < 60) { out.innerHTML = errHtml('This video is too short for chapters. YouTube needs at least 3 chapters of 10 seconds each.'); return; }
+  out.innerHTML = spinner('Finding the topic changes...');
+
+  const blocks = buildChapterBlocks(_srtCues);
+  const withHours = total >= 3600;
+  const mins = Math.round(total / 60);
+  const maxCh = mins <= 10 ? 8 : mins <= 30 ? 12 : 20;
+  const topic = document.getElementById('t-topic').value.trim();
+
+  const system = buildSystem(`Build YouTube chapters from a timestamped transcript. Each transcript line is "[index] time text".
+Return ONLY valid JSON, no markdown:
+{ "chapters": [ { "i": 0, "title": "..." } ] }
+
+RULES:
+- "i" is the index of the transcript line where that chapter begins. Only use indexes that appear in the transcript. Never write a timestamp yourself.
+- The first chapter must be i 0.
+- Start a chapter where the subject actually changes, not at even intervals. A new speaker, a new question, or a new section of the talk is a chapter.
+- This video runs about ${mins} minutes. Use between 3 and ${maxCh} chapters, fewer if the content does not truly shift.
+- Chapters must be at least 10 seconds apart.
+- Titles are 2 to 6 words and under 45 characters. Say specifically what is covered, using the words a viewer would search for. No numbering, no timestamps, no ending punctuation, no clickbait.
+- Do not title the first chapter just "Intro" or "Introduction" if the opening has a real subject.
+- Use only what is said in the transcript. Do not name a speaker unless the transcript names them.`);
+
+  const lines = blocks.map((b, i) => `[${i}] ${fmtChapterTime(b.t, withHours)} ${b.text}`).join("\n");
+  const userMsg = (topic ? `Topic hint: ${topic}\n\n` : "") + `Transcript:\n${lines}`;
+
+  try {
+    const json = parseJSON(await callAI(system, userMsg));
+    const list = Array.isArray(json) ? json : (json.chapters || []);
+    const picked = list
+      .map(c => ({ i: parseInt(c.i, 10), title: String(c.title || "").replace(/[—–]/g, "-").replace(/\s+/g, " ").trim() }))
+      .filter(c => blocks[c.i] && c.title)
+      .sort((a, b) => a.i - b.i);
+
+    // Enforce YouTube's rules in code: starts at 0:00, 10s+ apart, 3 or more.
+    const chapters = [];
+    picked.forEach(c => {
+      const t = chapters.length ? blocks[c.i].t : 0;
+      if (chapters.length && t - chapters[chapters.length - 1].t < 10) return;
+      chapters.push({ t, title: c.title });
+    });
+    if (chapters.length < 3) { out.innerHTML = errHtml('Could not find 3 clear chapters in this transcript. Try again.'); return; }
+    renderChaptersOutput(chapters, withHours, out);
+  } catch (e) {
+    out.innerHTML = errHtml('Chapter generation failed. Try again.');
+    console.error(e);
+  }
+}
+
+function renderChaptersOutput(chapters, withHours, out) {
+  const text = chapters.map(c => `${fmtChapterTime(c.t, withHours)} ${c.title}`).join("\n");
+  out.innerHTML = `<div class="output-label">Chapters</div>`;
+  const box = document.createElement('div');
+  box.className = 'description-block';
+  const header = document.createElement('div');
+  header.className = 'description-header';
+  header.innerHTML = `<span style="font-size:13px;color:var(--text-muted)">${chapters.length} chapters - paste into the description</span>`;
+  const btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:8px;';
+  btns.appendChild(makeCopyBtn(text));
+  if (_lastDesc) {
+    // Chapters go above a trailing hashtag line so the hashtags stay last.
+    const dLines = _lastDesc.trimEnd().split("\n");
+    const tail = /^\s*#\S/.test(dLines[dLines.length - 1]) ? dLines.pop() : "";
+    const combined = dLines.join("\n").trimEnd() + "\n\nChapters:\n" + text + (tail ? "\n\n" + tail : "");
+    btns.appendChild(makeCopyBtn(combined, 'Copy with description'));
+  }
+  header.appendChild(btns);
+  const body = document.createElement('div');
+  body.className = 'description-text';
+  body.textContent = text;
+  box.appendChild(header); box.appendChild(body);
+  out.appendChild(box);
 }
 
 // ============================================================
