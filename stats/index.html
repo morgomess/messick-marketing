@@ -219,6 +219,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     </div>
 </div>
 
+<script src="/assets/mm-auth.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    PLATFORM CONFIG
@@ -304,7 +305,7 @@ const app = {
     persist() { localStorage.setItem('eb_audit_data_v3', JSON.stringify(this.clients)); },
 
     init() {
-        if (!sessionStorage.getItem('eb_auth')) this.renderLogin();
+        if (!mmAuth.token()) this.renderLogin();
         else this.view('dashboard');
     },
 
@@ -319,10 +320,12 @@ const app = {
             </div>`;
     },
 
-    checkPass() {
-        if (document.getElementById('pass-input').value === 'Messick2026') {
-            sessionStorage.setItem('eb_auth', 'true'); this.view('dashboard');
-        } else alert('Incorrect Password');
+    // Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+    async checkPass() {
+        try {
+            await mmAuth.login(document.getElementById('pass-input').value);
+            this.view('dashboard');
+        } catch (e) { alert(e.message); }
     },
 
     view(name, index = null) {
@@ -459,7 +462,7 @@ GOOGLE BUSINESS PROFILE (key "${GBP}") - this is a LOCAL LISTING, not a social f
                 period: { start: '', end: '' }
             }, wantsGBP ? { local: localShape } : {});
 
-            const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
+            const resp = await mmAuth.fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     apiKey: this.apiKey,
@@ -1431,7 +1434,7 @@ Output ONLY compact minified JSON on a SINGLE line - no markdown, no code fences
 Give exactly 5 recommendations, ordered High impact first.`;
 
         try {
-            const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
+            const resp = await mmAuth.fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey: this.apiKey, payload: {
                     model: 'claude-haiku-4-5-20251001', max_tokens: 4096,
@@ -1793,7 +1796,7 @@ Account context: ${JSON.stringify(ctx).slice(0, 700)}
 Rough note from the strategist: "${raw}"
 Write it as Messick Marketing, first-person plural ("we", "our") - never "you should". Keep it specific and tied to this account where possible. Never use an em dash or en dash; use a comma or a plain hyphen.
 Output ONLY compact JSON on one line, nothing else: {"title":"short plain-language action","detail":"one sentence on what we'll do and why it matters","impact":"High|Medium|Low","target":"a measurable outcome, or empty string"}`;
-                const resp = await fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
+                const resp = await mmAuth.fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ apiKey: this.apiKey, payload: { model: 'claude-haiku-4-5-20251001', max_tokens: 400, messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }] } })
                 });

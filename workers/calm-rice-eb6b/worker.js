@@ -3,10 +3,28 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, GET, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
     const url = new URL(request.url);
+
+    // ── AUTH ──
+    // Every /sync call and the Anthropic proxy need either a dashboard login
+    // token (issued by messick-marketing-ai-proxy /login, same DASH_TOKEN_SECRET)
+    // or the machine key (SYNC_ADMIN_KEY). The one open door is appending to the
+    // engagement inbox, which Chrome harvest jobs post to from arbitrary pages;
+    // it can only add posts (deduped, capped at 2000), never read or replace.
+    // AUTH_MODE "log" lets unauthenticated calls through and logs them, for
+    // rollout; "enforce" rejects them.
+    const isInboxAppend = url.pathname === "/sync" && request.method === "POST"
+      && url.searchParams.get("key") === "engagement_inbox" && url.searchParams.get("append") === "1";
+    const needsAuth = url.pathname === "/sync" || (request.method === "POST" && url.pathname !== "/moxie-sync");
+    if (needsAuth && !isInboxAppend && !(await isAuthorized(request, env))) {
+      if (env.AUTH_MODE === "enforce") {
+        return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      console.log("unauthenticated", request.method, url.pathname, url.searchParams.get("key") || "", request.headers.get("Origin") || "");
+    }
 
     // ── MOXIE SYNC: manual run, admin key required ──
     if (url.pathname === "/moxie-sync") {
@@ -226,4 +244,35 @@ async function syncToMoxie(env, { dry }) {
     }
   }
   return { sent, failed, dry: !!dry };
+}
+
+// ── AUTH HELPERS ──
+// Token format matches messick-marketing-ai-proxy: "<expiryMs>.<base64url HMAC-SHA256(expiryMs)>".
+async function isAuthorized(request, env) {
+  const m = /^Bearer (.+)$/.exec(request.headers.get("Authorization") || "");
+  if (!m) return false;
+  const token = m[1];
+  if (env.SYNC_ADMIN_KEY && timingSafeEq(token, env.SYNC_ADMIN_KEY)) return true;
+  if (!env.DASH_TOKEN_SECRET) return false;
+  const dot = token.indexOf(".");
+  if (dot < 1) return false;
+  const exp = token.slice(0, dot), sig = token.slice(dot + 1);
+  if (!/^\d+$/.test(exp) || Date.now() > Number(exp)) return false;
+  return timingSafeEq(sig, await hmacSign(env.DASH_TOKEN_SECRET, exp));
+}
+
+async function hmacSign(secret, msg) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(msg)));
+  let s = "";
+  for (const b of sig) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function timingSafeEq(a, b) {
+  a = String(a); b = String(b);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

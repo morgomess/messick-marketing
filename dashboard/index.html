@@ -4376,7 +4376,7 @@ async function ovSyncExternal(){
         if(js!==localStorage.getItem('mm_leads')){localStorage.setItem('mm_leads',js); changed=true;}}}
   }catch(e){}
   try{
-    const r=await fetch(EXPENSES_SYNC_URL,{cache:'no-store'});
+    const r=await fetch(EXPENSES_SYNC_URL,{cache:'no-store',headers:{'Authorization':'Bearer '+(authToken()||'')}});
     if(r.ok){const j=await r.json(); const rows=j&&j.expenses;
       if(Array.isArray(rows) && rows.length){
         const js=JSON.stringify(rows);

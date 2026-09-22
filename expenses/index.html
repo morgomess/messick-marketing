@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Messick Marketing — Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
+<script src="/assets/mm-auth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <style>
@@ -557,7 +558,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 const CONFIG = {
-  PASSWORD: "Messick2026",
   // AI via Cloudflare Worker proxy (no API key exposed in client)
   AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
   // Cloudflare Worker KV sync
@@ -583,21 +583,26 @@ let syncTimer = null;
 let fBiz = "", fCat = "", fTax = "", fSearch = "";
 
 // ─── AUTH ─────────────────────────────────────────────────────
+// Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
 function checkAuth() {
-  if (sessionStorage.getItem("mm_auth") === "1") showApp();
+  if (mmAuth.token()) showApp();
 }
 
-function handleLogin() {
-  if (document.getElementById("auth-pw").value === CONFIG.PASSWORD) {
-    sessionStorage.setItem("mm_auth", "1");
+async function handleLogin() {
+  const err = document.getElementById("auth-error");
+  err.style.display = "none";
+  try {
+    await mmAuth.login(document.getElementById("auth-pw").value);
+    document.getElementById("auth-pw").value = "";
     showApp();
-  } else {
-    document.getElementById("auth-error").style.display = "block";
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = "block";
   }
 }
 
 function handleLogout() {
-  sessionStorage.removeItem("mm_auth");
+  mmAuth.logout();
   location.reload();
 }
 
@@ -664,7 +669,7 @@ function scheduleSheetsSync() {
 
 async function pushToSheets() {
   try {
-    const res = await fetch(CONFIG.SHEETS_URL, {
+    const res = await mmAuth.fetch(CONFIG.SHEETS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ expenses })
@@ -679,7 +684,7 @@ async function pushToSheets() {
 
 async function restoreFromSheets() {
   try {
-    const res = await fetch(CONFIG.SHEETS_URL, { cache: 'no-store' });
+    const res = await mmAuth.fetch(CONFIG.SHEETS_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     const rows = (json.expenses) || [];

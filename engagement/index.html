@@ -396,12 +396,12 @@ tr:last-child td{border-bottom:none}
 
 <div class="toast" id="toast"></div>
 
+<script src="/assets/mm-auth.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    CONFIG
    ═══════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  PASSWORD: "Messick2026",
   AI_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
   SYNC: "https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=",
 };
@@ -472,12 +472,17 @@ let syncTimer = null;
 /* ═══════════════════════════════════════════════════════════════
    AUTH
    ═══════════════════════════════════════════════════════════════ */
-function handleLogin(){
-  if(document.getElementById("auth-pw").value === CONFIG.PASSWORD){
-    sessionStorage.setItem("eng_auth","1"); showApp();
-  } else { document.getElementById("auth-error").style.display="block"; }
+// Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+async function handleLogin(){
+  const err=document.getElementById("auth-error");
+  err.style.display="none";
+  try{
+    await mmAuth.login(document.getElementById("auth-pw").value);
+    document.getElementById("auth-pw").value="";
+    showApp();
+  }catch(e){ err.textContent=e.message; err.style.display="block"; }
 }
-function handleLogout(){ sessionStorage.removeItem("eng_auth"); location.reload(); }
+function handleLogout(){ mmAuth.logout(); location.reload(); }
 function showApp(){
   document.getElementById("auth-page").style.display="none";
   document.getElementById("app").style.display="block";
@@ -514,12 +519,12 @@ function setSync(s){
   t.textContent = s==="synced"?"Synced":s==="syncing"?"Syncing…":s==="error"?"Sync failed":"Idle";
 }
 async function kvPut(key,val){
-  const r = await fetch(CONFIG.SYNC+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(val)});
+  const r = await mmAuth.fetch(CONFIG.SYNC+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(val)});
   if(!r.ok) throw new Error("HTTP "+r.status);
   return r.json();
 }
 async function kvGet(key){
-  const r = await fetch(CONFIG.SYNC+key,{cache:"no-store"});
+  const r = await mmAuth.fetch(CONFIG.SYNC+key,{cache:"no-store"});
   if(!r.ok) throw new Error("HTTP "+r.status);
   return r.json();
 }
@@ -1929,7 +1934,7 @@ function init(){
 document.querySelectorAll(".modal").forEach(m=>{
   m.addEventListener("click", e=>{ if(e.target===m) m.classList.remove("show"); });
 });
-if(sessionStorage.getItem("eng_auth")==="1") showApp();
+if(mmAuth.token()) showApp();
 </script>
 </body>
 </html>
