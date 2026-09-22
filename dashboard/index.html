@@ -3554,7 +3554,7 @@ You may update multiple existing tasks in one response. Only include the fields 
 Always return one JSON object with an "action" of either "create" or "update".`;
 
     const resp=await fetch(WORKER+'/claude',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(typeof authToken==='function'?(authToken()||''):'')},
       body:JSON.stringify({prompt:systemPrompt+'\n\nTask to parse: '+text})
     });
     const data=await resp.json();
@@ -4258,7 +4258,7 @@ Rules:
   try{
     const body={prompt,system};
     if(repImage)body.image=repImage;
-    const resp=await fetch(WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const resp=await fetch(WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(typeof authToken==='function'?(authToken()||''):'')},body:JSON.stringify(body)});
     const data=await resp.json();
     if(data.error){out.innerHTML=`<div class="rep-err">${bEsc(data.error)}</div>`;}
     else{
@@ -4383,7 +4383,7 @@ async function ovSyncExternal(){
         if(js!==localStorage.getItem('mm_expenses')){localStorage.setItem('mm_expenses',js); changed=true;}}}
   }catch(e){}
   try{
-    const r=await fetch(REVENUE_SYNC_URL,{cache:'no-store'});
+    const r=await fetch(REVENUE_SYNC_URL,{cache:'no-store',headers:{'Authorization':'Bearer '+(authToken()||'')}});
     if(r.ok){const j=await r.json();
       // Store even when zero — the money-in figure is a total, not a list.
       if(j && typeof j.thisMonth==='number'){
@@ -4751,7 +4751,7 @@ function moSend(q){
   var prompt=moSystem()+'\n\n=== CURRENT DATA ===\n'+moContext()+
     (convo?('\n\n=== CONVERSATION SO FAR ===\n'+convo):'')+
     '\n\nMorgan: '+q+'\n\nRespond with the JSON object only.';
-  return fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+  return fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(typeof authToken==='function'?(authToken()||''):'')},
     body:JSON.stringify({prompt:prompt})})
     .then(function(r){return r.json();})
     .then(function(d){
@@ -6309,7 +6309,7 @@ function bdRun(){
     'The "rules" array must name the rules that ACTUALLY bear on THIS request, not a generic list; if a client is '+
     'named, include the rule specific to that client. Do not use em dashes anywhere. No markdown.';
 
-  fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+  fetch(MO_WORKER+'/claude',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(typeof authToken==='function'?(authToken()||''):'')},
     body:JSON.stringify({prompt:prompt})})
     .then(r=>r.json())
     .then(d=>{

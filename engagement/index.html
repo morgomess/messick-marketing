@@ -1217,7 +1217,7 @@ ${items}
 Return ONLY a JSON array, one object per post in the same order, no other text:
 [{"i":0,"rel":80,"clin":75,"exp":90,"why":"...","angle":"..."}]`;
 
-  const r = await fetch(CONFIG.AI_URL,{
+  const r = await mmAuth.fetch(CONFIG.AI_URL,{
     method:"POST", headers:{"Content-Type":"application/json"},
     // Headroom matters: a truncated response fails JSON.parse outright, losing
     // the whole batch. 12 posts x ~90 tokens of why+angle needs well over 2000.
@@ -1531,7 +1531,7 @@ Return ONLY JSON, no other text:
 or
 {"action":"skip","reason":"short reason"}`;
 
-  const r = await fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},
+  const r = await mmAuth.fetch(CONFIG.AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ prompt, max_tokens: 700 })});
   if(!r.ok) throw new Error("proxy "+r.status);
   const j = await r.json();

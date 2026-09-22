@@ -529,7 +529,7 @@
   var monAmt=document.getElementById('mon-amt'),monYtd=document.getElementById('mon-ytd-v');
   function renderMoney(rev){if(rev&&typeof rev==='object'){if(rev.thisMonth!=null)monAmt.textContent=money(rev.thisMonth);if(rev.ytd!=null)monYtd.textContent=money(rev.ytd);}}
   renderMoney(load('d2_revenue',null));
-  fetch(REVENUE_URL,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(js){if(js){save('d2_revenue',js);renderMoney(js);}}).catch(function(){});
+  fetch(REVENUE_URL,{cache:'no-store',headers:{'Authorization':'Bearer '+((function(){try{return JSON.parse(localStorage.getItem('mm_auth')||'{}').t||''}catch(e){return ''}})())}}).then(function(r){return r.ok?r.json():null;}).then(function(js){if(js){save('d2_revenue',js);renderMoney(js);}}).catch(function(){});
 
   /* time-by-type donut removed - no data source without the tracker/calendar */
 

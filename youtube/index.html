@@ -11,6 +11,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/assets/mm-auth.js"></script>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -1174,7 +1175,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 const WORKER_URL = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
 const GOOGLE_CLIENT_ID = '244861493495-2om8jgma6s97t3eommu54e1ovktddrt4.apps.googleusercontent.com';
 const YT_API = 'https://www.googleapis.com/youtube/v3';
-const PASSWORD = 'Messick2026';
 
 // ============================================================
 // STATE
@@ -1189,7 +1189,7 @@ let currentResearchTab = 'audit';
 // BOOT
 // ============================================================
 (function boot() {
-  if (localStorage.getItem('mm_yt_auth') === '1') showApp();
+  if (mmAuth.token()) showApp();
   handleOAuthReturn();
 })();
 
@@ -1361,7 +1361,7 @@ ${featureInstructions}`;
 // ============================================================
 async function callAI(system, userMsg, extraBody) {
   const body = { system, messages: [{ role: 'user', content: userMsg }], ...extraBody };
-  const res = await fetch(WORKER_URL, {
+  const res = await mmAuth.fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -1384,12 +1384,14 @@ function parseJSON(text) {
 // ============================================================
 // PASSWORD
 // ============================================================
-function checkPassword() {
-  if (document.getElementById('gate-pw').value === PASSWORD) {
-    localStorage.setItem('mm_yt_auth', '1');
+// Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+async function checkPassword() {
+  try {
+    await mmAuth.login(document.getElementById('gate-pw').value);
+    document.getElementById('gate-pw').value = '';
     showApp();
-  } else {
-    document.getElementById('gate-error').textContent = 'Incorrect password.';
+  } catch (e) {
+    document.getElementById('gate-error').textContent = e.message;
   }
 }
 
@@ -3104,7 +3106,7 @@ async function auditThumbnail() {
       ? [imageContent, { type: 'text', text: `Analyze this YouTube thumbnail for the video titled: "${sn.title}"` }]
       : `Analyze the YouTube thumbnail for a video titled: "${sn.title}". Description: ${(sn.description || '').slice(0, 200)}. I cannot provide the image directly - please score based on what you can infer and flag that you couldn't see the actual image.`;
 
-    const res = await fetch(WORKER_URL, {
+    const res = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system, messages: [{ role: 'user', content: userContent }] })
@@ -3200,7 +3202,7 @@ Quality footer (always end with exactly this):
 Output the prompt text ONLY — no JSON, no quotes around it, no preamble, no explanation.`);
 
   try {
-    const promptRes = await fetch(WORKER_URL, {
+    const promptRes = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3227,7 +3229,7 @@ Apply all 2026 best practices: 70/30 split, rim light sticker effect, bold cente
 
     const results = [];
     for (const ratio of ratios) {
-      const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: ratio })
@@ -3298,7 +3300,7 @@ async function applyThumbRefinement(fmt) {
   const refineSystem = buildSystem(`You are an Imagen 4 prompt editor for YouTube thumbnails. Rewrite the prompt incorporating the refinement notes while keeping all 2026 best practices (70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout, single emotional hook). Output the revised prompt text ONLY — no explanation, no preamble. Never include hex codes as visible text.`);
 
   try {
-    const res = await fetch(WORKER_URL, {
+    const res = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3517,7 +3519,7 @@ Return this exact JSON:
     out.innerHTML = spinner(`Generating ${both ? 'both formats' : ratio} thumbnail...`);
     const results = [];
     for (const r of ratios) {
-      const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: r })
@@ -3574,14 +3576,14 @@ async function refineCoverBrief() {
   out.innerHTML = spinner('Refining and regenerating...');
   const refineSystem = buildSystem('You are an Imagen 4 prompt editor for social thumbnails. Rewrite the prompt incorporating the refinement notes while keeping all 2026 best practices. Output revised prompt text ONLY — no explanation, no preamble.');
   try {
-    const res = await fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ system: refineSystem, messages:[{ role:'user', content:`Original:\n${base}\n\nRefinement:\n${notes||'Improve visual impact and contrast'}` }] }) });
+    const res = await mmAuth.fetch(WORKER_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ system: refineSystem, messages:[{ role:'user', content:`Original:\n${base}\n\nRefinement:\n${notes||'Improve visual impact and contrast'}` }] }) });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     window._lastManualCoverPrompt = (data.text||'').trim();
     // Regenerate images with refined prompt
     const results = [];
     for (const r of ratios) {
-      const imgRes = await fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: window._lastManualCoverPrompt, count:1, aspectRatio:r }) });
+      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: window._lastManualCoverPrompt, count:1, aspectRatio:r }) });
       const imgData = await imgRes.json();
       const pred = (imgData.predictions||[])[0];
       results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
@@ -3691,7 +3693,7 @@ Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "
     out.innerHTML = spinner(`Generating ${both?'both formats':ratio} thumbnail...`);
     const results = [];
     for (const r of ratios) {
-      const imgRes = await fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: imagePrompt, count:1, aspectRatio:r }) });
+      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: imagePrompt, count:1, aspectRatio:r }) });
       const imgData = await imgRes.json();
       const pred = (imgData.predictions||[])[0];
       results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
@@ -3781,7 +3783,7 @@ Score and critique it as a cover thumbnail designer. Return ONLY valid JSON:
   const system = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
 
   try {
-    const res = await fetch(WORKER_URL, {
+    const res = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3967,7 +3969,7 @@ ${compNotes ? 'Composition notes: ' + compNotes : ''}
 Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout. The generated thumbnail must feel on-brand for this specific channel - use the brand colors on overlays and text blocks, not generic teal-orange unless those ARE the brand colors.`;
 
   try {
-    const promptRes = await fetch(WORKER_URL, {
+    const promptRes = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3991,7 +3993,7 @@ Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, 
 
     const results = [];
     for (const ratio of ratios) {
-      const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: ratio })
@@ -4039,7 +4041,7 @@ async function regenWithNotes() {
   const refineSystem = `You are an Imagen 4 prompt editor. You will receive an existing image generation prompt and refinement notes from the user. Rewrite the prompt incorporating the notes while keeping all 2026 thumbnail best practices (rim light, 70/30 contrast split, bold centered safe-zone layout, teal-orange grading). Output the revised prompt text ONLY - no explanation, no preamble. NEVER include hex codes as text.`;
 
   try {
-    const promptRes = await fetch(WORKER_URL, {
+    const promptRes = await mmAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4056,7 +4058,7 @@ ${notes || 'Improve contrast and visual impact'}` }]
     const refinedPrompt = (promptData.text || '').trim();
 
     out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating refined cover...</div>';
-    const imgRes = await fetch(`${WORKER_URL}/imagen`, {
+    const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: refinedPrompt, count: 1, aspectRatio: (document.getElementById('rl-aspect-ratio')?.value === '16:9' ? '16:9' : '9:16') })

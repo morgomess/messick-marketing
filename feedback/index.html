@@ -52,6 +52,7 @@
 </nav>
 <main id="app"></main>
 
+<script src="/assets/mm-auth.js"></script>
 <script>
 const app = {
   endpoint: localStorage.getItem('mm_fb_endpoint') || 'https://script.google.com/macros/s/AKfycbwg1DsRvziOZC7X0f1YOwjejCLbCnmjOyZtz_Bpz9ytXQdrkkCqYJrngvBc5-AqzXR-/exec',
@@ -60,7 +61,8 @@ const app = {
   filter: '',
   loadMsg: '',
 
-  init(){ if(sessionStorage.getItem('mm_fb_auth')) this.render(); else this.gate(); },
+  // Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+  init(){ if(mmAuth.token()) this.render(); else this.gate(); },
 
   gate(){
     document.getElementById('app').innerHTML = `
@@ -70,7 +72,7 @@ const app = {
         <button class="btn" style="width:100%;margin-top:.75rem" onclick="app.check()">Unlock</button>
       </div>`;
   },
-  check(){ if(document.getElementById('pw').value==='Messick2026'){ sessionStorage.setItem('mm_fb_auth','1'); this.render(); } else alert('Incorrect code'); },
+  async check(){ try{ await mmAuth.login(document.getElementById('pw').value); this.render(); }catch(e){ alert(e.message); } },
 
   saveEndpoint(){ this.endpoint=document.getElementById('ep').value.trim(); this.key=document.getElementById('epkey').value.trim(); localStorage.setItem('mm_fb_endpoint',this.endpoint); localStorage.setItem('mm_fb_key',this.key); this.load(); },
 

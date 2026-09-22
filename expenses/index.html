@@ -749,7 +749,7 @@ Merchant: ${merchant}
 Note: ${note || "none"}`;
 
   try {
-    const res = await fetch(CONFIG.AI_PROXY_URL, {
+    const res = await mmAuth.fetch(CONFIG.AI_PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

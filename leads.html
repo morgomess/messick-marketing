@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/assets/mm-auth.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Messick Marketing | Leads </title>
@@ -952,7 +953,6 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 
 <script>
   const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
-  const PASSWORD = "Messick2026";
   const LEADS_KEY = "mm_leads";
   const LEADS_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec";
   // The pipeline vocabulary, in stage order. Kept in one place so the table, the
@@ -965,14 +965,20 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   let leadsSyncTimer = null;
 
   // ── LOGIN ──
-  function checkPw() {
-    if (document.getElementById('pwInput').value === PASSWORD) {
-      const g = document.getElementById('loginGate');
-      g.style.opacity = '0';
-      setTimeout(() => g.style.display = 'none', 400);
-      initLeads();
-    } else {
-      document.getElementById('loginError').textContent = 'Incorrect password. Try again.';
+  // Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+  function unlockLeads() {
+    const g = document.getElementById('loginGate');
+    g.style.opacity = '0';
+    setTimeout(() => g.style.display = 'none', 400);
+    initLeads();
+  }
+  async function checkPw() {
+    try {
+      await mmAuth.login(document.getElementById('pwInput').value);
+      document.getElementById('pwInput').value = '';
+      unlockLeads();
+    } catch (e) {
+      document.getElementById('loginError').textContent = e.message;
       document.getElementById('pwInput').value = '';
       document.getElementById('pwInput').focus();
     }
@@ -1342,7 +1348,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 
     try {
       document.getElementById('loadStatus').textContent = 'Scraping homepage...';
-      const homepageRes = await fetch(WORKER_URL, {
+      const homepageRes = await mmAuth.fetch(WORKER_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'scrape', website: state.web, bizName: state.biz, location: state.loc })
       }).then(r => r.json());
@@ -1355,7 +1361,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         const toScrape = subpageCandidates.slice(0, 4);
         await Promise.allSettled(toScrape.map(async (url) => {
           try {
-            const res = await fetch(WORKER_URL, {
+            const res = await mmAuth.fetch(WORKER_URL, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'scrape', website: url, bizName: state.biz, location: state.loc })
             }).then(r => r.json());
@@ -1882,7 +1888,7 @@ TONE: No exclamation points. No em dashes. No "just checking in" or "circling ba
 
   // ── API ──
   async function callAI(system, userMsg) {
-    const res = await fetch(WORKER_URL, {
+    const res = await mmAuth.fetch(WORKER_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system, messages: [{ role: 'user', content: userMsg }] })
     }).then(r => r.json());
@@ -1891,7 +1897,7 @@ TONE: No exclamation points. No em dashes. No "just checking in" or "circling ba
   }
 
   async function callAIWithHistory(system, messages) {
-    const res = await fetch(WORKER_URL, {
+    const res = await mmAuth.fetch(WORKER_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ system, messages })
     }).then(r => r.json());

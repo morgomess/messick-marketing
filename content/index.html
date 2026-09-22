@@ -687,8 +687,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   </div>
 </div>
 
+<script src="/assets/mm-auth.js"></script>
 <script>
-  const PASSWORD = 'Messick2026';
   const WORKER = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
   let selectedType = 'graphic';
   let selectedCoverFormat = 'reel';
@@ -1041,18 +1041,26 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     document.getElementById('upload-zone').classList.remove('has-image');
   }
 
-  function checkPassword() {
-    if (document.getElementById('pw-input').value === PASSWORD) {
-      document.getElementById('pw-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-    } else {
+  // Login is checked by the worker (see /assets/mm-auth.js), shared with the dashboard.
+  function unlockApp() {
+    document.getElementById('pw-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+  async function checkPassword() {
+    try {
+      await mmAuth.login(document.getElementById('pw-input').value);
+      document.getElementById('pw-input').value = '';
+      unlockApp();
+    } catch (e) {
       const err = document.getElementById('pw-error');
+      err.textContent = e.message;
       err.classList.add('show');
       document.getElementById('pw-input').value = '';
       setTimeout(() => err.classList.remove('show'), 3000);
     }
   }
   document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+  if (mmAuth.token()) unlockApp();
 
   // Build the brand-kit dropdown from the presets + anything saved locally
   renderKitOptions();
@@ -1280,7 +1288,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
   }
 
   async function callWorker(route, body) {
-    const res = await fetch(`${WORKER}/${route}`, {
+    const res = await mmAuth.fetch(`${WORKER}/${route}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)

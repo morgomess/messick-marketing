@@ -1014,10 +1014,21 @@ var mm_ai_proxy_worker_default = {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
     const url = new URL(request.url);
+    // The AI, image and scrape routes spend money, so they need a dashboard
+    // login token or the admin key. The admin-only routes below check their
+    // own key. AUTH_MODE "log" lets calls through and logs them (rollout);
+    // "enforce" rejects them.
+    const adminRoutes = ["/run-generation", "/run-inbox", "/backfill-markdown"];
+    if (!adminRoutes.includes(url.pathname) && !(await requireAuthOrAdmin(request, env))) {
+      if (env.AUTH_MODE === "enforce") {
+        return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      console.log("unauthenticated", request.method, url.pathname, request.headers.get("Origin") || "");
+    }
     try {
       if (url.pathname === "/claude") {
         const { prompt, image, system: claudeSystem } = await request.json();
@@ -1209,6 +1220,15 @@ async function requireAuth(request, env) {
   return m ? verifyToken(env, m[1]) : false;
 }
 __name(requireAuth, "requireAuth");
+async function requireAuthOrAdmin(request, env) {
+  if (await requireAuth(request, env)) return true;
+  const admin = String(env.ADMIN_KEY || "").trim();
+  if (!admin) return false;
+  const m = /^Bearer (.+)$/.exec(request.headers.get("Authorization") || "");
+  const given = (m ? m[1] : request.headers.get("x-admin-key") || "").trim();
+  return timingSafeEq(given, admin);
+}
+__name(requireAuthOrAdmin, "requireAuthOrAdmin");
 async function handleLogin(request, env) {
   if (request.method === "OPTIONS") return new Response(null, { headers: CORS_STATE });
   if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS_STATE });
@@ -1290,7 +1310,14 @@ __name(revSummary, "revSummary");
 async function handleRevenue(request, env) {
   if (request.method === "OPTIONS") return new Response(null, { headers: CORS_STATE });
   const rev = await loadRevenue(env);
-  if (request.method === "GET") return jsonState(revSummary(rev));
+  if (request.method === "GET") {
+    // Revenue is business-private: login token or admin key (see AUTH_MODE).
+    if (!await requireAuthOrAdmin(request, env)) {
+      if (env.AUTH_MODE === "enforce") return jsonState({ error: "unauthorized" }, 401);
+      console.log("unauthenticated GET /revenue", request.headers.get("Origin") || "");
+    }
+    return jsonState(revSummary(rev));
+  }
   if (request.method === "POST") {
     if ((request.headers.get("x-admin-key") || "").trim() !== String(env.ADMIN_KEY || "").trim()) {
       return jsonState({ error: "forbidden" }, 403);
