@@ -120,7 +120,11 @@ export default {
       // Push new Messick entries to Moxie right after every expenses save. The
       // account's cron slots are all taken, so the save is the trigger.
       if (key === "expenses") {
-        ctx.waitUntil(syncToMoxie(env, {})
+        // Hand over the body just saved: a KV read straight after the put can
+        // return the previous copy, which made the sync miss the new entries.
+        let saved = null;
+        try { saved = JSON.parse(body).expenses; } catch (e) {}
+        ctx.waitUntil(syncToMoxie(env, { expenses: saved })
           .then(r => console.log("moxie sync", JSON.stringify(r)))
           .catch(e => console.error("moxie sync failed", e)));
       }
@@ -190,16 +194,23 @@ export default {
 const MOXIE_STATE_KEY = "moxie_sync";
 const MOXIE_CATEGORY = { Software: "Software Subscriptions" };
 
+// Contractor pay is matched by name too: entries sometimes land in "Other".
+const CONTRACTOR_RE = /\b(rida|jacob|mutnansky|maqbool|payoneer|emelou)\b/i;
+
 function moxieEligible(e) {
   return e && e.id && e.business === "Messick Marketing"
     && e.merchant !== "Stripe Fees" && e.category !== "Contractors"
+    && !CONTRACTOR_RE.test(e.merchant || "")
     && Number(e.amount) > 0;
 }
 
-async function syncToMoxie(env, { dry }) {
+async function syncToMoxie(env, { dry, expenses: given }) {
   if (!env.MOXIE_API_KEY || !env.MOXIE_BASE_URL) return { error: "MOXIE_API_KEY or MOXIE_BASE_URL secret missing" };
-  const raw = await env.MM_SYNC.get("expenses");
-  const expenses = (raw && JSON.parse(raw).expenses) || [];
+  let expenses = Array.isArray(given) ? given : null;
+  if (!expenses) {
+    const raw = await env.MM_SYNC.get("expenses");
+    expenses = (raw && JSON.parse(raw).expenses) || [];
+  }
   const today = new Date().toISOString().slice(0, 10);
 
   const stateRaw = await env.MM_SYNC.get(MOXIE_STATE_KEY);
@@ -216,7 +227,8 @@ async function syncToMoxie(env, { dry }) {
   const sent = [], failed = [];
   for (const e of due) {
     const body = {
-      date: e.date,
+      // Moxie wants a full timestamp; noon UTC keeps the same calendar day in US time zones.
+      date: e.date + "T12:00:00Z",
       amount: Number(e.amount),
       currency: "USD",
       vendor: e.merchant,
@@ -224,6 +236,9 @@ async function syncToMoxie(env, { dry }) {
       category: MOXIE_CATEGORY[e.category] || e.category,
       paid: true,
       reimbursable: false,
+      // Required in practice: without it Moxie creates the expense, then fails
+      // writing its response (500 "markupPercent is null").
+      markupPercentage: 0,
       notes: e.note || "",
     };
     if (dry) { sent.push({ id: e.id, ...body }); continue; }
