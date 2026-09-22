@@ -2408,7 +2408,8 @@ const WORKER   = 'https://messick-marketing-ai-proxy.morgan-2bf.workers.dev';
    stores (leads → a Google Sheet, expenses → its own worker). The dashboard
    reads them straight from source and must NOT sync them through its own KV —
    otherwise a 30s KV pull overwrites a freshly-added lead with a stale copy. */
-const LEADS_SHEETS_URL  = 'https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec';
+// Leads moved from the open Apps Script sheet to the login-protected store, 2026-09-22.
+const LEADS_SHEETS_URL  = 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=leads';
 const EXPENSES_SYNC_URL = 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses';
 /* Collected revenue ("money in") — accumulated from Moxie's PaymentReceived webhook
    by the dashboard worker; GET returns {thisMonth,ytd,total,byMonth,updatedAt}. */
@@ -4368,8 +4369,8 @@ async function ovSyncExternal(){
   ovSyncing=true;
   let changed=false;
   try{
-    const r=await fetch(LEADS_SHEETS_URL,{cache:'no-store'});
-    if(r.ok){const rows=await r.json();
+    const r=await fetch(LEADS_SHEETS_URL,{cache:'no-store',headers:{'Authorization':'Bearer '+(authToken()||'')}});
+    if(r.ok){const rows=((await r.json())||{}).leads;
       // Only overwrite from a NON-EMPTY response — an empty read must never wipe local.
       if(Array.isArray(rows) && rows.length){
         const js=JSON.stringify(ovNormalizeLeads(rows));
@@ -4421,9 +4422,10 @@ function lmPersist(leads){
   clearTimeout(lmSyncTimer);
   lmSyncTimer=setTimeout(async()=>{
     try{
-      await fetch(LEADS_SHEETS_URL,{method:'POST',redirect:'follow',
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'data='+encodeURIComponent(JSON.stringify(leads))});
+      const r=await fetch(LEADS_SHEETS_URL,{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(authToken()||'')},
+        body:JSON.stringify({leads})});
+      if(!r.ok)throw new Error('HTTP '+r.status);
       lmSetSync('synced');
     }catch(e){lmSetSync('failed');}
   },800);

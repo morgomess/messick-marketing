@@ -954,7 +954,9 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 <script>
   const WORKER_URL = "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev";
   const LEADS_KEY = "mm_leads";
-  const LEADS_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw8llV9jb6s_s3GIEaKE11_f0xvpKNclxIE4NlLaKo7fnh3rZYWAkQqxx4f5C3WxBWZ/exec";
+  // Leads live in the login-protected calm-rice store as {leads:[...]} (moved off the
+  // open Apps Script sheet 2026-09-22). Name kept so the sync code below reads the same.
+  const LEADS_SHEETS_WEBHOOK_URL = "https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=leads";
   // The pipeline vocabulary, in stage order. Kept in one place so the table, the
   // add-lead form, the filter and the dashboard all stay in step.
   const LEAD_STATUSES = ['Emailed','Follow Up Needed','Followed Up','Responded','Closed','Not Interested'];
@@ -1036,11 +1038,12 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     clearTimeout(leadsSyncTimer);
     leadsSyncTimer = setTimeout(async () => {
       try {
-        await fetch(LEADS_SHEETS_WEBHOOK_URL, {
-          method: 'POST', redirect: 'follow',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'data=' + encodeURIComponent(JSON.stringify(leads))
+        const res = await mmAuth.fetch(LEADS_SHEETS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leads })
         });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         setLeadsSyncStatus('synced');
       } catch { setLeadsSyncStatus('failed'); }
     }, 800);
@@ -1050,12 +1053,12 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     if (!LEADS_SHEETS_WEBHOOK_URL) return;
     try {
       setLeadsSyncStatus('syncing');
-      const res = await fetch(LEADS_SHEETS_WEBHOOK_URL);
-      const rows = await res.json();
+      const res = await mmAuth.fetch(LEADS_SHEETS_WEBHOOK_URL, { cache: 'no-store' });
+      const rows = ((await res.json()) || {}).leads;
       if (Array.isArray(rows) && rows.length) {
         leads = rows.map(normalizeLead);
         localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
-        toast('Restored ' + leads.length + ' leads from Sheets', 'success');
+        toast('Restored ' + leads.length + ' leads from the cloud', 'success');
       }
       setLeadsSyncStatus('synced');
     } catch { setLeadsSyncStatus('failed'); }
