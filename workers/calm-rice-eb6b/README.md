@@ -18,6 +18,18 @@ Breaking any of these breaks a live app:
 | `GET/POST /sync?key=engagement_*` | Engagement Finder |
 | `POST /` (root) | Stats app AI calls |
 
+## Auth (since 2026-09-22)
+
+Every `/sync` call and the Anthropic proxy need `Authorization: Bearer <token>`, where the token is
+either a dashboard login token (from `messick-marketing-ai-proxy /login`, verified with the shared
+`DASH_TOKEN_SECRET` secret, which must match in both workers) or `SYNC_ADMIN_KEY` (machine use; copy in
+`~/.secrets/mm-sync-admin-key.txt`). The pages sign in through `/assets/mm-auth.js`.
+
+The one open door is `POST /sync?key=engagement_inbox&append=1`, which Chrome harvest jobs post to
+from arbitrary pages. It can only add posts. `AUTH_MODE` var: `enforce` rejects, `log` lets calls
+through and logs them (use for rollouts). A bare `curl` of the verify commands below now returns 401;
+add the admin key header.
+
 ## Routes
 
 **`GET /sync?key=<name>`** — returns the stored JSON, or `{}` if the key is unset.
