@@ -10,8 +10,13 @@ account_id = "2bfca046889b3aa600b9cf0f39228024"
 binding = "MM_SYNC"
 id = "aa76673f04354e25b5d56e4ace371c74"
 
+# Moxie sync runs after every expenses save (see syncToMoxie in worker.js), not on
+# a cron: the free plan allows 5 cron triggers per account and all 5 are in use.
+
 [vars]
 SHEET_WEBHOOK_URL = "https://script.google.com/a/macros/messickmarketing.com/s/AKfycbwkBvuOg7immqLLOD3SB4nt5Qsu8Ul0AavX81PXtiF1UZnxkafn3h0jfd3JREm9p5POLg/exec"
 
 # ANTHROPIC_KEY is a secret and is preserved across deploys automatically.
 # Do NOT add it here as a var, that would expose it in source control.
+# MOXIE_API_KEY, MOXIE_BASE_URL and SYNC_ADMIN_KEY are secrets too. The base URL
+# is workspace-specific and this repo is public, so it stays out of source.

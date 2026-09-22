@@ -8,6 +8,21 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
     const url = new URL(request.url);
 
+    // ── MOXIE SYNC: manual run, admin key required ──
+    if (url.pathname === "/moxie-sync") {
+      const auth = request.headers.get("Authorization") || "";
+      if (!env.SYNC_ADMIN_KEY || auth !== "Bearer " + env.SYNC_ADMIN_KEY) {
+        return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (url.searchParams.get("ping") === "1") {
+        // Read-only auth check: status code only, never the response body.
+        const r = await fetch(env.MOXIE_BASE_URL.replace(/\/+$/, "") + "/action/clients/list", { headers: { "X-API-KEY": env.MOXIE_API_KEY } });
+        return new Response(JSON.stringify({ moxieStatus: r.status }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const result = await syncToMoxie(env, { dry: url.searchParams.get("dry") === "1" });
+      return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ── SYNC: GET /sync?key=dashboard or /sync?key=expenses ──
     if (url.pathname === "/sync" && request.method === "GET") {
       const key = url.searchParams.get("key");
@@ -84,6 +99,14 @@ export default {
 
       await env.MM_SYNC.put(key, body);
 
+      // Push new Messick entries to Moxie right after every expenses save. The
+      // account's cron slots are all taken, so the save is the trigger.
+      if (key === "expenses") {
+        ctx.waitUntil(syncToMoxie(env, {})
+          .then(r => console.log("moxie sync", JSON.stringify(r)))
+          .catch(e => console.error("moxie sync failed", e)));
+      }
+
       // Mirror expenses to Google Sheet (non-blocking; a Sheet failure never breaks KV sync)
       if (key === "expenses" && env.SHEET_WEBHOOK_URL) {
         ctx.waitUntil(
@@ -132,3 +155,75 @@ export default {
     return new Response("Bridge Ready", { headers: corsHeaders });
   }
 };
+
+// ── MOXIE SYNC ──
+// Pushes new Messick Marketing entries from the expenses store into Moxie, so an
+// expense is logged once and lands in both. Moxie's API can create expenses but
+// cannot list them, so what has been sent is tracked here in KV (moxie_sync).
+//
+// The first run only records a baseline: everything already dated today or
+// earlier is marked as seen and nothing is sent, because those entries were
+// reconciled into Moxie by hand. Future-dated entries (planned renewals, the
+// first charge of a recurring template) are sent once their date arrives.
+//
+// Skipped on purpose: Virtueasy entries, "Stripe Fees" (they are copied FROM
+// Moxie), and Contractors (Moxie records the ACH/Payoneer payment itself, and
+// the app splits one payment across work items).
+const MOXIE_STATE_KEY = "moxie_sync";
+const MOXIE_CATEGORY = { Software: "Software Subscriptions" };
+
+function moxieEligible(e) {
+  return e && e.id && e.business === "Messick Marketing"
+    && e.merchant !== "Stripe Fees" && e.category !== "Contractors"
+    && Number(e.amount) > 0;
+}
+
+async function syncToMoxie(env, { dry }) {
+  if (!env.MOXIE_API_KEY || !env.MOXIE_BASE_URL) return { error: "MOXIE_API_KEY or MOXIE_BASE_URL secret missing" };
+  const raw = await env.MM_SYNC.get("expenses");
+  const expenses = (raw && JSON.parse(raw).expenses) || [];
+  const today = new Date().toISOString().slice(0, 10);
+
+  const stateRaw = await env.MM_SYNC.get(MOXIE_STATE_KEY);
+  const state = stateRaw ? JSON.parse(stateRaw) : null;
+
+  if (!state) {
+    const seen = {};
+    for (const e of expenses) if (e.id && e.date <= today) seen[e.id] = "baseline";
+    if (!dry) await env.MM_SYNC.put(MOXIE_STATE_KEY, JSON.stringify({ baselineAt: today, seen }));
+    return { baseline: true, marked: Object.keys(seen).length, dry: !!dry };
+  }
+
+  const due = expenses.filter(e => moxieEligible(e) && !state.seen[e.id] && e.date <= today);
+  const sent = [], failed = [];
+  for (const e of due) {
+    const body = {
+      date: e.date,
+      amount: Number(e.amount),
+      currency: "USD",
+      vendor: e.merchant,
+      description: e.merchant,
+      category: MOXIE_CATEGORY[e.category] || e.category,
+      paid: true,
+      reimbursable: false,
+      notes: e.note || "",
+    };
+    if (dry) { sent.push({ id: e.id, ...body }); continue; }
+    try {
+      const res = await fetch(env.MOXIE_BASE_URL.replace(/\/+$/, "") + "/action/expenses/create", {
+        method: "POST",
+        headers: { "X-API-KEY": env.MOXIE_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      if (!res.ok) { failed.push({ id: e.id, status: res.status, error: text.slice(0, 300) }); continue; }
+      state.seen[e.id] = "sent:" + new Date().toISOString();
+      // Save after every success so a later failure can never cause a resend.
+      await env.MM_SYNC.put(MOXIE_STATE_KEY, JSON.stringify(state));
+      sent.push({ id: e.id, merchant: e.merchant, amount: body.amount, date: e.date });
+    } catch (err) {
+      failed.push({ id: e.id, error: String(err) });
+    }
+  }
+  return { sent, failed, dry: !!dry };
+}
