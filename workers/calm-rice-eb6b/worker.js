@@ -19,7 +19,11 @@ export default {
     const isInboxAppend = url.pathname === "/sync" && request.method === "POST"
       && url.searchParams.get("key") === "engagement_inbox" && url.searchParams.get("append") === "1";
     const needsAuth = url.pathname === "/sync" || (request.method === "POST" && url.pathname !== "/moxie-sync");
-    if (needsAuth && !isInboxAppend && !(await isAuthorized(request, env))) {
+    // The expenses Google Sheet pulls on a timer with SHEET_READ_KEY, which can
+    // read the expenses key and nothing else.
+    const isSheetRead = request.method === "GET" && url.pathname === "/sync" && url.searchParams.get("key") === "expenses"
+      && !!env.SHEET_READ_KEY && timingSafeEq((request.headers.get("Authorization") || "").replace(/^Bearer /, ""), env.SHEET_READ_KEY);
+    if (needsAuth && !isInboxAppend && !isSheetRead && !(await isAuthorized(request, env))) {
       if (env.AUTH_MODE === "enforce") {
         return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -129,16 +133,9 @@ export default {
           .catch(e => console.error("moxie sync failed", e)));
       }
 
-      // Mirror expenses to Google Sheet (non-blocking; a Sheet failure never breaks KV sync)
-      if (key === "expenses" && env.SHEET_WEBHOOK_URL) {
-        ctx.waitUntil(
-          fetch(env.SHEET_WEBHOOK_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body,
-          }).catch((e) => console.error("Sheet mirror failed:", e))
-        );
-      }
+      // The expenses Google Sheet used to be pushed from here, but its Apps Script
+      // is domain-restricted, so every anonymous push landed on a sign-in page.
+      // The sheet now pulls instead (expenses-sheet-script.gs, SHEET_READ_KEY).
 
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
