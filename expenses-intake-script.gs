@@ -21,7 +21,7 @@
 // 3. Project Settings > Script properties > Add property: INTAKE_KEY = contents of
 //    ~/.secrets/mm-intake-key.txt (never paste it anywhere else).
 // 4. Run > setup. Approve access (Gmail read-only, external requests, triggers).
-//    setup() creates the daily trigger (6 to 7am) and does a first pull of the last 3 days.
+//    setup() creates the daily trigger (5 to 6am ET, before the morning brief) and does a first pull of the last 3 days.
 // 5. Optional: Run > runIntake any time for a manual pull.
 
 var STORE_URL = "https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses_inbox&append=1";
@@ -32,7 +32,7 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
     if (t.getHandlerFunction() === "runIntake") ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger("runIntake").timeBased().everyDays(1).atHour(6).create();
+  ScriptApp.newTrigger("runIntake").timeBased().everyDays(1).atHour(5).create();   // 5 to 6am ET, ahead of the 6:45 morning brief
   runIntake();
 }
 
@@ -191,11 +191,15 @@ var SENDERS = [
         return { id: "bluevine:ach:" + payee.toLowerCase().replace(/\W+/g, "") + ":" + amt + ":" + (run || Utilities.formatDate(msg.getDate(), "America/New_York", "yyyy-MM-dd")),
                  merchant: titleCase(payee), amount: amt, date: run, detail: "ACH from Bluevine Payroll" };
       }
-      if (/transaction|purchase|charged|card/i.test(subj)) {
-        var amt2 = money(b); if (!amt2) return null;
-        return { merchant: grab(/(?:at|with|to)\s+([A-Z0-9][A-Z0-9 &*.'-]{2,40})/, b) || subj.slice(0, 60), amount: amt2, detail: "Bluevine card alert: " + subj.slice(0, 100) };
-      }
-      return null;
+      if (/statement|verification code|sign.?in|password/i.test(subj)) return null;
+      // Debit card alerts (enabled 2026-09-23, purchases over $1). Exact wording unknown until the
+      // first one lands, so anything else from Bluevine with an amount is delivered for review.
+      var amt2 = money(b) || money(subj); if (!amt2) return null;
+      var who = grab(/(?:purchase|transaction|charge|payment)[^.\n]{0,40}?\b(?:at|with|to|from)\s+([A-Za-z0-9][^\n|.]{2,50}?)(?:\s+(?:on|for|was|has|in)\b|[.\n|]|$)/i, b)
+             || grab(/\$[\d,.]+\s+(?:at|with|to)\s+([A-Za-z0-9][^\n|.]{2,50}?)(?:\s+(?:on|for|was|has|in)\b|[.\n|]|$)/i, b);
+      return { merchant: (who || subj).replace(/\s+/g, " ").trim().slice(0, 60), amount: amt2,
+               date: usDate(grab(/\b(\d{2}\/\d{2}\/\d{4})\b/, b) || grab(/\b([A-Za-z]{3,9} \d{1,2}, \d{4})\b/, b)),
+               detail: "Bluevine alert: " + subj.slice(0, 100) };
     } },
   // Payoneer: Rida's payments.
   { from: "NoReply@payoneer.com", subject: "Thanks for your payment", source: "payoneer", parse: function (msg) {

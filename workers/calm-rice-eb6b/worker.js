@@ -89,8 +89,12 @@ export default {
         if (key === "expenses_inbox") {
           const r = appendInboxItems(prev, incoming);
           if (r.error) return new Response(JSON.stringify({ error: r.error }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          // Resolve what needs no decision right here, so the ledger stays current
+          // without the app being opened: already logged, skipped merchant, a
+          // template-day entry to re-date, or a known merchant to log outright.
+          const auto = await processInbox(env, r.merged, ctx);
           await env.MM_SYNC.put(key, JSON.stringify(r.merged));
-          return new Response(JSON.stringify({ ok: true, appended: r.added, duplicates: r.dupes, rejected: r.rejected, total: r.merged.items.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: true, appended: r.added, duplicates: r.dupes, rejected: r.rejected, total: r.merged.items.length, ...auto }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         const prevPosts = Array.isArray(prev.posts) ? prev.posts : [];
@@ -235,6 +239,100 @@ function appendInboxItems(prev, incoming) {
   if (items.length > 1000) items = items.slice(-1000);
   const merged = { ...prev, items, lastAppendAt: new Date().toISOString() };
   return { merged, added, dupes, rejected };
+}
+
+// ── INBOX AUTO-PROCESSING ──
+// Runs on every intake delivery. Rules, in order, for each pending expense item:
+//  1. merchant on the skip list                          -> skipped
+//  2. same merchant and amount already logged within 3d  -> matched
+//  3. same merchant and amount within 12d on an entry a
+//     recurring template generated                       -> that entry is re-dated to the
+//                                                          receipt, template follows (accepted)
+//  4. merchant has 2+ prior entries agreeing on category
+//     and business                                       -> logged now from that history (accepted)
+//  5. anything else                                      -> stays pending for the Inbox tab
+// Income items are never touched. A ledger write here goes through the same Moxie
+// sync as a save from the app.
+const normM = v => String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+const dayDiff = (a, b) => Math.abs(Math.round((new Date(a + "T12:00:00Z") - new Date(b + "T12:00:00Z")) / 86400000));
+function advanceDate(dateStr, freq, anchorDay) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = anchorDay || d, pad = n => String(n).padStart(2, "0");
+  const clamp = (yy, mm0) => { const last = new Date(Date.UTC(yy, mm0 + 1, 0)).getUTCDate(); return yy + "-" + pad(mm0 + 1) + "-" + pad(Math.min(day, last)); };
+  if (freq === "weekly") { const t = new Date(Date.UTC(y, m - 1, d + 7)); return t.toISOString().slice(0, 10); }
+  if (freq === "yearly") return clamp(y + 1, m - 1);
+  return clamp(m === 12 ? y + 1 : y, m % 12);
+}
+function newId() { return "x" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+async function processInbox(env, inbox, ctx) {
+  const pending = (inbox.items || []).filter(it => it.status === "pending" && it.kind !== "income");
+  const out = { autoMatched: 0, autoSkipped: 0, autoRedated: 0, autoLogged: 0, leftPending: 0 };
+  if (!pending.length) return out;
+  const raw = await env.MM_SYNC.get("expenses");
+  const store = raw ? JSON.parse(raw) : { expenses: [] };
+  const expenses = Array.isArray(store.expenses) ? store.expenses : [];
+  const skip = new Set((inbox.skipMerchants || []).map(normM));
+  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date().toISOString();
+  let ledgerChanged = false;
+
+  for (const it of pending) {
+    const key = normM(it.merchant);
+    if (!key) { out.leftPending++; continue; }
+    if (skip.has(key)) { it.status = "skipped"; it.auto = true; it.resolvedAt = now; out.autoSkipped++; continue; }
+    if (it.amount == null) { out.leftPending++; continue; }
+    const sameAmt = expenses.filter(e => !e.recurring && normM(e.merchant) === key && Math.abs(Number(e.amount) - Number(it.amount)) < 0.01);
+    const hit = sameAmt.find(e => dayDiff(e.date, it.date) <= 3);
+    if (hit) { it.status = "matched"; it.auto = true; it.expenseId = hit.id; it.resolvedAt = now; out.autoMatched++; continue; }
+    const near = sameAmt.find(e => e.fromTemplate && dayDiff(e.date, it.date) <= 12);
+    if (near) {
+      near.date = it.date;
+      const day = Number(it.date.slice(8, 10));
+      for (const t of expenses.filter(t => t.recurring && normM(t.merchant) === key && Math.abs(Number(t.amount) - Number(it.amount)) < 0.01)) {
+        let next = advanceDate(it.date, t.recurringFrequency, day), guard = 0;
+        while (next <= today && guard++ < 120) next = advanceDate(next, t.recurringFrequency, day);
+        t.recurringNextDue = next; t.recurringDay = day;
+      }
+      it.status = "accepted"; it.auto = true; it.expenseId = near.id; it.resolvedAt = now; it.note = "re-dated";
+      ledgerChanged = true; out.autoRedated++; continue;
+    }
+    const prior = expenses.filter(e => normM(e.merchant) === key);
+    if (prior.length >= 2) {
+      const top = f => { const c = {}; prior.forEach(e => { const v = String(e[f]); c[v] = (c[v] || 0) + 1; }); const [val, n] = Object.entries(c).sort((a, b) => b[1] - a[1])[0]; return { val, share: n / prior.length }; };
+      const cat = top("category"), biz = top("business"), tax = top("taxDeductible"), name = top("merchant");
+      if (cat.share >= 0.7 && biz.share >= 0.7) {
+        const entry = {
+          id: newId(), date: it.date, merchant: name.val, amount: Number(it.amount),
+          note: ((it.detail || "").slice(0, 140) + " · auto-logged from Gmail receipt").trim(),
+          category: cat.val, business: biz.val, taxDeductible: tax.val === "true", aiCategorized: false,
+          recurring: false, recurringFrequency: null, recurringNextDue: null, recurringDay: null, fromTemplate: null
+        };
+        expenses.push(entry);
+        it.status = "accepted"; it.auto = true; it.expenseId = entry.id; it.resolvedAt = now; it.note = "logged from history";
+        ledgerChanged = true; out.autoLogged++; continue;
+      }
+    }
+    out.leftPending++;
+  }
+
+  if (ledgerChanged) {
+    // Re-read right before writing so a save from the app in the meantime is not lost.
+    const fresh = await env.MM_SYNC.get("expenses");
+    const freshStore = fresh ? JSON.parse(fresh) : store;
+    if (JSON.stringify((freshStore.expenses || []).map(e => e.id)) !== JSON.stringify((store.expenses || []).map(e => e.id))) {
+      // The ledger moved under us: drop our changes, leave the items pending for the app to settle.
+      for (const it of pending) if (it.auto && it.status === "accepted") { it.status = "pending"; delete it.auto; delete it.expenseId; delete it.resolvedAt; delete it.note; }
+      out.conflict = true; out.autoRedated = 0; out.autoLogged = 0;
+      return out;
+    }
+    store.expenses = expenses;
+    await env.MM_SYNC.put("expenses", JSON.stringify(store));
+    ctx.waitUntil(syncToMoxie(env, { expenses, deleted: store.deleted || [] })
+      .then(r => console.log("moxie sync (inbox)", JSON.stringify(r)))
+      .catch(e => console.error("moxie sync (inbox) failed", e)));
+  }
+  return out;
 }
 
 // ── MOXIE SYNC ──
