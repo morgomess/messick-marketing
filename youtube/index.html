@@ -2285,15 +2285,16 @@ async function generateIdeas() {
   let shown = [];
   try { shown = JSON.parse(localStorage.getItem(memKey) || '[]'); } catch (e) { shown = []; }
 
-  // Rotate an angle each run so the model explores different territory
+  // Rotate an angle each run so the model explores different territory.
+  // Angles are audience-neutral: the channel's target viewer decides who they are written for.
   const angles = [
-    'patient-decision and "is this right for me" angles',
+    'decision and "is this right for me" angles',
     'myth-busting and common-misconception angles',
     'comparison and "X vs Y" angles',
-    'recovery, timeline, and what-to-expect angles',
-    'cost, insurance, and access angles',
-    'symptom-driven "should I see a specialist" angles',
-    'behind-the-procedure and how-it-works angles',
+    'step-by-step, timeline, and what-to-expect angles',
+    'cost, budget, and return-on-investment angles',
+    'mistakes, red flags, and warning-sign angles',
+    'behind-the-scenes and how-it-works angles',
     'newest-research and trending-question angles'
   ];
   const seed = angles[Math.floor(Math.random() * angles.length)];
@@ -2301,6 +2302,8 @@ async function generateIdeas() {
   const avoid = [...(brand.recentVideos || []).slice(0, 10), ...shown].slice(0, 40);
 
   const system = buildSystem(`You are a YouTube content strategist with access to current web data. Search for trending topics, popular video formats, and competitor content in this channel's niche. Then generate ideas that are timely and informed by what is actually performing well right now.
+
+WHO THE IDEAS ARE FOR: every idea must serve the channel's Target audience above, and nobody else. If the channel serves businesses or professionals in an industry (for example a marketing agency whose clients are medical practices), write for those professionals and their problems, not for the industry's end customers or patients. A patient-education topic is only right for a channel whose viewers are patients.
 
 This run, lean into ${seed}. Avoid generic evergreen ideas you would suggest every time - be specific, fresh, and varied.
 
