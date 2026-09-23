@@ -853,8 +853,9 @@ function setSyncStatus(st) {
 }
 
 // ─── CATEGORIZE: history first, then AI ───────────────────────
+// Letters and digits only, so "Opus Clip" and "Opusclip" are the same merchant.
 function normMerchant(s) {
-  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 // A merchant logged before gets the same category, business and tax flag as

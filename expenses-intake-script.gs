@@ -83,7 +83,18 @@ function runIntake() {
 }
 
 // ─── helpers ───
+// Names the store already uses, so a candidate matches its history and its template.
+var ALIASES = { "automattic": "WordPress.com", "eleven labs": "Elevenlabs", "opusclip": "Opus Clip",
+  "anthropic": "Anthropic/Claude", "mailerlite": "Mailerlite Upgrade", "spotify usa": "Spotify",
+  "boomerang": "Boomerang (Baydin Inc.)", "baydin": "Boomerang (Baydin Inc.)", "wispr flow": "Wispr Flow",
+  "descript": "Descript AI", "openai": "Chat GPT Pro", "airtable": "Airtable", "metricool": "Metricool" };
+function alias(name) {
+  var k = String(name || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  for (var a in ALIASES) if (k === a || k.indexOf(a + " ") === 0) return ALIASES[a];
+  return name;
+}
 function finish(it, msg, source) {
+  it.merchant = alias(it.merchant);
   var d = it.date || Utilities.formatDate(msg.getDate(), "America/New_York", "yyyy-MM-dd");
   var idBase = it.id || (source + ":" + msg.getId() + (it.idx != null ? ":" + it.idx : ""));
   return {
@@ -151,7 +162,8 @@ var SENDERS = [
       vendor = vendor.replace(/,?\s*(Inc\.?|PBC|LLC|Ltd\.?)$/i, "").trim();
       var amt = money(grab(/Receipt from .+? (\$[\d,]+\.\d{2}) Paid/, b) || "") || money(b);
       var date = usDate(grab(/Paid ([A-Za-z]+ \d{1,2}, \d{4})/, b));
-      var plan = grab(/Receipt #[\d-]+ (?:[A-Za-z]{3} \d{1,2}(?:–|-)[A-Za-z]{3} \d{1,2}, \d{4} )?(.{3,60}?) Qty/, b);
+      var plan = null, lre = /(?:\d{4} |^|\$[\d,.]+ (?:each )?)([A-Za-z][^$]{2,60}?) Qty [\d,]+ \$([\d,]+\.\d{2})/g, lm;
+      while ((lm = lre.exec(b))) { var la = Number(lm[2].replace(/,/g, "")); if (amt == null || Math.abs(la - amt) < 0.005) plan = lm[1].trim(); }
       if (/anthropic/i.test(vendor) && /Auto-recharge/i.test(b)) vendor = "Anthropic Console";
       return { merchant: vendor, amount: amt, date: date, detail: (plan || "Stripe receipt").slice(0, 120) };
     } },
@@ -161,7 +173,7 @@ var SENDERS = [
       if (/Workspace/i.test(subj)) return { id: "google:ws:" + Utilities.formatDate(msg.getDate(), "America/New_York", "yyyy-MM"), merchant: "Google Workspace", amount: money(b), detail: "Monthly Workspace invoice (amount in the PDF if blank)" };
       var pid = grab(/Payment ID:\s*([A-Z ]*[A-Za-z0-9]+)/, b);
       var amt = money(grab(/payment amount of (\$[\d,.]+)/, b) || "");
-      var forWhat = grab(/Payment for:\s*([^\n|]+)/, b) || "Google";
+      var forWhat = grab(/Payment for:\s*(.+?)(?:\s+Payment ID|\s+Payment method|\n|$)/, b) || "Google";
       if (!amt) return null;
       return { id: pid ? "google:" + pid.replace(/\s+/g, "") : null, merchant: /cloud/i.test(forWhat) ? "Google Cloud" : forWhat.trim(),
                amount: amt, date: usDate(grab(/received on ([A-Za-z]{3} \d{1,2}, \d{4})/, b)), detail: forWhat.trim() + (pid ? " · " + pid : "") };
