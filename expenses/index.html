@@ -293,6 +293,16 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     <!-- MAIN -->
     <main class="main-content">
 
+      <!-- Moxie cleanup: edits and deletes of entries already sent to Moxie cannot be
+           pushed automatically (Moxie's API has no delete, and some sends returned no id). -->
+      <div id="moxie-todo" class="hidden" style="margin:20px 32px 0;padding:12px 16px;border-radius:3px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);font-size:.86rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <strong style="color:var(--warn)">Moxie needs a hand</strong>
+          <button class="btn btn-outline btn-sm" onclick="clearMoxieTodo()">All done in Moxie</button>
+        </div>
+        <ul id="moxie-todo-list" style="margin:8px 0 0 18px;padding:0;line-height:1.6"></ul>
+      </div>
+
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page active">
         <div class="page-header">
@@ -562,13 +572,21 @@ const CONFIG = {
   AI_PROXY_URL: "https://messick-marketing-ai-proxy.morgan-2bf.workers.dev/claude",
   // Cloudflare Worker KV sync
   SHEETS_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses',
+  // Manual Moxie follow-ups written by the store's Moxie sync (see workers/calm-rice-eb6b).
+  MOXIE_TODO_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=moxie_todo',
 };
 
 const STORAGE_KEY = "mm_expenses";
+// Tombstones for deleted entries, and the ids this browser has changed but not
+// yet pushed. Together they stop a deleted entry coming back from a browser
+// that still holds it (the old "deletes resurrect" bug).
+const DELETED_KEY = "mm_expenses_deleted";
+const PENDING_KEY = "mm_expenses_pending";
 const CATS = ["Ads","Software","Contractors","Equipment","Travel","Meals","Education","Other"];
 
 // ─── STATE ────────────────────────────────────────────────────
 let expenses = [];
+let deleted = [];   // [{id, at, merchant, amount, date}]
 let filtered = [];
 let currentPage = 1;
 const PER_PAGE = 50;
@@ -627,6 +645,7 @@ async function initApp() {
   renderDashboard();
   renderTable();
   setupDropzone();
+  loadMoxieTodo();
 }
 
 function today() {
@@ -648,10 +667,37 @@ function navigateTo(page) {
 function loadLocal() {
   try { expenses = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
   catch { expenses = []; }
+  try { deleted = JSON.parse(localStorage.getItem(DELETED_KEY) || "[]"); }
+  catch { deleted = []; }
+  if (!Array.isArray(deleted)) deleted = [];
 }
 
-function persist() {
+function pendingIds() {
+  try { return new Set(JSON.parse(localStorage.getItem(PENDING_KEY) || "[]")); }
+  catch { return new Set(); }
+}
+function markPending(ids) {
+  const s = pendingIds(); ids.forEach(i => s.add(i));
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...s]));
+}
+function clearPending(ids) {
+  const s = pendingIds(); ids.forEach(i => s.delete(i));
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...s]));
+}
+
+// Keep tombstones for a year, at most 1000, so the payload stays small.
+function pruneDeleted(list) {
+  const cutoff = new Date(Date.now() - 365 * 86400000).toISOString();
+  const seen = new Set();
+  return list.filter(d => d && d.id && !seen.has(d.id) && (seen.add(d.id), true) && (d.at || "9") >= cutoff).slice(-1000);
+}
+
+// changedIds: ids created or edited by this call. They stay "pending" until a
+// push succeeds, so a closed tab or a failed push never loses an entry.
+function persist(changedIds) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+  localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+  if (changedIds && changedIds.length) markPending(changedIds);
   scheduleSheetsSync();
 }
 
@@ -669,12 +715,14 @@ function scheduleSheetsSync() {
 
 async function pushToSheets() {
   try {
+    const snapshotIds = expenses.map(e => e.id);
     const res = await mmAuth.fetch(CONFIG.SHEETS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expenses })
+      body: JSON.stringify({ expenses, deleted })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    clearPending(snapshotIds);
     setSyncStatus('synced');
   } catch(err) {
     console.error('KV push failed:', err);
@@ -690,11 +738,32 @@ async function restoreFromSheets() {
     const rows = (json.expenses) || [];
     if (Array.isArray(rows) && rows.length > 0) {
       const remote = rows.map(normalizeRow);
+      const remoteDeleted = Array.isArray(json.deleted) ? json.deleted : [];
+      const tomb = new Set(remoteDeleted.map(d => d.id).concat(deleted.map(d => d.id)));
       const remoteIds = new Set(remote.map(e => e.id));
-      const localOnly = expenses.filter(e => !remoteIds.has(e.id));
-      expenses = [...remote, ...localOnly];
+      const pending = pendingIds();
+      const localById = new Map(expenses.map(e => [e.id, e]));
+
+      // The store is the truth. A local entry the store lacks is kept only if
+      // this browser created or edited it and has not pushed yet; anything else
+      // was deleted somewhere else and stays deleted. Unpushed local edits of
+      // an entry the store still has win over the store's copy.
+      const localOnly = expenses.filter(e => !remoteIds.has(e.id) && pending.has(e.id) && !tomb.has(e.id));
+      const merged = remote.filter(e => !tomb.has(e.id))
+        .map(e => (pending.has(e.id) && localById.has(e.id)) ? localById.get(e.id) : e);
+      expenses = [...merged, ...localOnly];
+
+      const knownDel = new Set(remoteDeleted.map(d => d.id));
+      const newTombs = deleted.filter(d => !knownDel.has(d.id));
+      deleted = pruneDeleted([...remoteDeleted, ...newTombs]);
+
       localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-      if (localOnly.length > 0) {
+      localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+      // Pending ids that no longer exist anywhere are stale; forget them.
+      const live = new Set(expenses.map(e => e.id));
+      clearPending([...pending].filter(id => !live.has(id)));
+
+      if (localOnly.length > 0 || newTombs.length > 0 || [...pending].some(id => live.has(id))) {
         await pushToSheets();
       }
       toast('Synced ' + expenses.length + ' expenses', 'success');
@@ -721,7 +790,10 @@ function normalizeRow(r) {
     aiCategorized:      r.aiCategorized === true || r.aiCategorized === "true",
     recurring:          r.recurring === true || r.recurring === "true",
     recurringFrequency: r.recurringFrequency || null,
-    recurringNextDue:   r.recurringNextDue || null
+    recurringNextDue:   r.recurringNextDue || null,
+    // Day of month the charge lands on; keeps monthly schedules from drifting.
+    recurringDay:       r.recurringDay ? Number(r.recurringDay) : null,
+    fromTemplate:       r.fromTemplate || null
   };
 }
 
@@ -736,8 +808,36 @@ function setSyncStatus(st) {
   else txt.textContent = "Not connected";
 }
 
-// ─── AI via CLOUDFLARE WORKER ─────────────────────────────────
+// ─── CATEGORIZE: history first, then AI ───────────────────────
+function normMerchant(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+// A merchant logged before gets the same category, business and tax flag as
+// its past entries (most common value wins). Free, instant, and it learns
+// from every correction you make.
+function suggestFromHistory(merchant) {
+  const key = normMerchant(merchant);
+  if (!key) return null;
+  const prior = expenses.filter(e => normMerchant(e.merchant) === key);
+  if (!prior.length) return null;
+  const pick = f => {
+    const c = {};
+    prior.forEach(e => { const v = String(e[f]); c[v] = (c[v] || 0) + 1; });
+    return Object.entries(c).sort((a, b) => b[1] - a[1])[0][0];
+  };
+  return {
+    category: pick("category"),
+    business: pick("business"),
+    taxDeductible: pick("taxDeductible") === "true",
+    matches: prior.length,
+    source: "history"
+  };
+}
+
+// The proxy's /claude route takes {system, prompt} and answers {text}.
 async function aiCategorize(merchant, note) {
+  const system = "You categorize business expenses. Answer with JSON only.";
   const prompt = `You are an expense categorizer for two businesses:
 - Messick Marketing: a healthcare-focused social media and content marketing agency (ads, software tools, contractors, client work)
 - Virtueasy: a digital products brand for virtual assistants (software, ads, platform fees)
@@ -752,21 +852,22 @@ Note: ${note || "none"}`;
     const res = await mmAuth.fetch(CONFIG.AI_PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 150,
-        messages: [{ role: "user", content: prompt }]
-      })
+      body: JSON.stringify({ system, prompt })
     });
     if (!res.ok) {
       const errText = await res.text();
       throw new Error("Worker returned " + res.status + ": " + errText);
     }
     const d = await res.json();
-    const text = (d.content?.[0]?.text || "").trim();
+    if (d.error) throw new Error(d.error);
+    const text = (d.text || "").trim();
     const m = text.match(/\{[\s\S]*?\}/);
     if (!m) throw new Error("No JSON in response: " + text);
-    return JSON.parse(m[0]);
+    const out = JSON.parse(m[0]);
+    if (!CATS.includes(out.category)) out.category = "Other";
+    if (!BIZ.includes(out.business)) out.business = "Messick Marketing";
+    out.source = "ai";
+    return out;
   } catch(err) {
     console.error("AI categorize error:", err);
     return null;
@@ -844,13 +945,13 @@ async function saveExpense() {
     document.getElementById("ai-loading").classList.remove("hidden");
     document.getElementById("save-btn").disabled = true;
 
-    const result = await aiCategorize(merchant, note);
+    const result = suggestFromHistory(merchant) || await aiCategorize(merchant, note);
 
     document.getElementById("ai-loading").classList.add("hidden");
     document.getElementById("save-btn").disabled = false;
 
     if (result) {
-      aiCategorized = true;
+      aiCategorized = result.source === "ai";
       if (!category && result.category) {
         category = result.category;
         document.getElementById("e-cat").value = category;
@@ -865,7 +966,10 @@ async function saveExpense() {
       }
       const box = document.getElementById("ai-done");
       box.classList.remove("hidden");
-      box.textContent = "AI suggested: " + category + " · " + business + " · " + (taxDeductible ? "Tax deductible" : "Not deductible");
+      box.textContent = (result.source === "history"
+          ? "Matched " + result.matches + " earlier " + merchant + " entr" + (result.matches === 1 ? "y" : "ies") + ": "
+          : "AI suggested: ")
+        + category + " · " + business + " · " + (taxDeductible ? "Tax deductible" : "Not deductible");
       await new Promise(r => setTimeout(r, 600));
     } else {
       // AI failed — show error but don't block saving
@@ -887,20 +991,27 @@ async function saveExpense() {
   const recurring = document.getElementById("e-recurring").checked;
   const recurringFrequency = recurring ? document.getElementById("e-freq").value : null;
   let recurringNextDue = null;
+  let recurringDay = null;
 
   if (recurring) {
+    recurringDay = Number(date.slice(8, 10));
     if (editingId) {
       const prev = expenses.find(x => x.id === editingId);
-      if (prev && prev.recurring && prev.recurringFrequency === recurringFrequency && prev.recurringNextDue) {
+      if (prev && prev.recurring && prev.recurringFrequency === recurringFrequency && prev.recurringNextDue && prev.date === date) {
         recurringNextDue = prev.recurringNextDue;
+        recurringDay = prev.recurringDay || recurringDay;
       } else {
-        recurringNextDue = advanceDate(date, recurringFrequency);
+        recurringNextDue = advanceDate(date, recurringFrequency, recurringDay);
       }
     } else {
-      recurringNextDue = advanceDate(date, recurringFrequency);
+      recurringNextDue = advanceDate(date, recurringFrequency, recurringDay);
     }
+    // Two templates for one vendor post every charge twice (it happened with Wispr Flow).
+    const twin = expenses.find(x => x.id !== editingId && x.recurring && normMerchant(x.merchant) === normMerchant(merchant));
+    if (twin) toast("Heads up: " + twin.merchant + " already repeats from " + fmtDate(twin.date) + ". Two templates will log every charge twice.", "error");
   }
 
+  let savedId;
   if (editingId) {
     const idx = expenses.findIndex(x => x.id === editingId);
     if (idx !== -1) {
@@ -910,19 +1021,23 @@ async function saveExpense() {
         date, merchant, amount, note, category, business,
         taxDeductible,
         aiCategorized: aiCategorized || prev.aiCategorized,
-        recurring, recurringFrequency, recurringNextDue
+        recurring, recurringFrequency, recurringNextDue, recurringDay
       };
+      // Re-dating a charge to the day the bank shows moves its template too.
+      if (!recurring && prev.date !== date) realignTemplates(expenses[idx]);
     }
+    savedId = editingId;
     toast("Expense updated", "success");
   } else {
+    savedId = uid();
     expenses.push({
-      id: uid(), date, merchant, amount, note, category, business,
-      taxDeductible, aiCategorized, recurring, recurringFrequency, recurringNextDue
+      id: savedId, date, merchant, amount, note, category, business,
+      taxDeductible, aiCategorized, recurring, recurringFrequency, recurringNextDue, recurringDay
     });
     toast("Expense saved", "success");
   }
 
-  persist();
+  persist([savedId]);
   closeModal();
   renderTable();
   if (document.getElementById("page-dashboard").classList.contains("active")) renderDashboard();
@@ -941,7 +1056,14 @@ function closeDelModal() {
 
 function confirmDelete() {
   if (!deletingId) return;
+  const gone = expenses.find(e => e.id === deletingId);
   expenses = expenses.filter(e => e.id !== deletingId);
+  // The tombstone travels with the store, so no other browser can bring it back.
+  deleted = pruneDeleted([...deleted, {
+    id: deletingId, at: new Date().toISOString(),
+    merchant: gone ? gone.merchant : "", amount: gone ? gone.amount : null, date: gone ? gone.date : ""
+  }]);
+  clearPending([deletingId]);
   persist();
   closeDelModal();
   renderTable();
@@ -1282,12 +1404,12 @@ async function processCSV(rows) {
   const BATCH = 5;
   for (let i = 0; i < parsed.length; i += BATCH) {
     await Promise.all(parsed.slice(i, i + BATCH).map(async exp => {
-      const r = await aiCategorize(exp.merchant, exp.note);
+      const r = suggestFromHistory(exp.merchant) || await aiCategorize(exp.merchant, exp.note);
       if (r) {
         exp.category      = r.category      || exp.category;
         exp.business      = r.business      || exp.business;
         exp.taxDeductible = r.taxDeductible !== undefined ? r.taxDeductible : exp.taxDeductible;
-        exp.aiCategorized = true;
+        exp.aiCategorized = r.source === "ai";
       }
     }));
     const done = Math.min(i + BATCH, parsed.length);
@@ -1338,13 +1460,14 @@ function confirmImport() {
   const toImport = pendingImport.map((e, i) => {
     const makeTemplate = e._recurringTemplate && checkedIdxs.has(i);
     const { _detectedRecurring, _detectedFreq, _recurringTemplate, ...clean } = e;
+    const day = Number(String(e.date).slice(8, 10)) || null;
     return makeTemplate
-      ? { ...clean, recurring: true, recurringFrequency: e._detectedFreq, recurringNextDue: advanceDate(e.date, e._detectedFreq) }
-      : { ...clean, recurring: false, recurringFrequency: null, recurringNextDue: null };
+      ? { ...clean, recurring: true, recurringFrequency: e._detectedFreq, recurringNextDue: advanceDate(e.date, e._detectedFreq, day), recurringDay: day }
+      : { ...clean, recurring: false, recurringFrequency: null, recurringNextDue: null, recurringDay: null };
   });
 
   expenses.push(...toImport);
-  persist();
+  persist(toImport.map(e => e.id));
   pendingImport = [];
   document.getElementById("import-preview").classList.add("hidden");
   document.getElementById("import-progress").classList.add("hidden");
@@ -1391,46 +1514,130 @@ function toggleAllRecurring(checked) {
   document.querySelectorAll(".recur-chk").forEach(cb => cb.checked = checked);
 }
 
-function advanceDate(dateStr, freq) {
-  const d = new Date(dateStr + "T12:00:00");
-  if (freq === "weekly")   d.setDate(d.getDate() + 7);
-  else if (freq === "monthly")  d.setMonth(d.getMonth() + 1);
-  else if (freq === "yearly")   d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().split("T")[0];
+// anchorDay keeps a monthly or yearly charge on its day of the month. Without
+// it, setMonth() on the 31st rolls into the next month and the date drifts
+// (Jan 31 -> Mar 3), and short months would pull every later charge earlier.
+function advanceDate(dateStr, freq, anchorDay) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = anchorDay || d;
+  const pad = n => String(n).padStart(2, "0");
+  const clamp = (yy, mm0) => {           // mm0 is 0-based
+    const last = new Date(yy, mm0 + 1, 0).getDate();
+    return yy + "-" + pad(mm0 + 1) + "-" + pad(Math.min(day, last));
+  };
+  if (freq === "weekly") {
+    const t = new Date(y, m - 1, d + 7);
+    return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
+  }
+  if (freq === "yearly") return clamp(y + 1, m - 1);
+  return clamp(m === 12 ? y + 1 : y, m % 12); // monthly
+}
+
+function daysBetween(a, b) {
+  return Math.abs(Math.round((new Date(a + "T12:00:00") - new Date(b + "T12:00:00")) / 86400000));
+}
+
+// When a charge is re-dated to what the bank shows, its template follows: the
+// next due date moves to that day of the month.
+function realignTemplates(entry) {
+  const key = normMerchant(entry.merchant);
+  const todayStr = today();
+  const templates = expenses.filter(t => t.recurring && normMerchant(t.merchant) === key
+    && (t.id === entry.fromTemplate || Math.abs(Number(t.amount) - Number(entry.amount)) < 0.01));
+  templates.forEach(t => {
+    const day = Number(entry.date.slice(8, 10));
+    let next = advanceDate(entry.date, t.recurringFrequency, day);
+    let guard = 0;
+    while (next <= todayStr && guard++ < 120) next = advanceDate(next, t.recurringFrequency, day);
+    if (next !== t.recurringNextDue || t.recurringDay !== day) {
+      t.recurringNextDue = next;
+      t.recurringDay = day;
+      markPending([t.id]);
+      toast(t.merchant + " now repeats on the " + ordinal(day) + " (next " + fmtDate(next) + ")", "info");
+    }
+  });
+}
+
+function ordinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 function processRecurring() {
   const todayStr = today();
   const newEntries = [];
+  const changed = [];
 
   expenses.forEach(tmpl => {
     if (!tmpl.recurring || !tmpl.recurringNextDue) return;
+    const anchor = tmpl.recurringDay || Number(tmpl.recurringNextDue.slice(8, 10));
     let iterations = 0;
     while (tmpl.recurringNextDue <= todayStr && iterations < 365) {
       iterations++;
-      newEntries.push({
-        id:                 uid(),
-        date:               tmpl.recurringNextDue,
-        merchant:           tmpl.merchant,
-        amount:             tmpl.amount,
-        note:               tmpl.note,
-        category:           tmpl.category,
-        business:           tmpl.business,
-        taxDeductible:      tmpl.taxDeductible,
-        aiCategorized:      false,
-        recurring:          false,
-        recurringFrequency: null,
-        recurringNextDue:   null
-      });
-      tmpl.recurringNextDue = advanceDate(tmpl.recurringNextDue, tmpl.recurringFrequency);
+      const due = tmpl.recurringNextDue;
+      // Skip when this charge was already logged by hand or at reconciliation:
+      // same merchant, same amount, within three days of the due date.
+      const already = expenses.some(e => !e.recurring && e.id !== tmpl.id
+        && normMerchant(e.merchant) === normMerchant(tmpl.merchant)
+        && Math.abs(Number(e.amount) - Number(tmpl.amount)) < 0.01
+        && daysBetween(e.date, due) <= 3);
+      if (!already) {
+        newEntries.push({
+          id:                 uid(),
+          date:               due,
+          merchant:           tmpl.merchant,
+          amount:             tmpl.amount,
+          note:               tmpl.note,
+          category:           tmpl.category,
+          business:           tmpl.business,
+          taxDeductible:      tmpl.taxDeductible,
+          aiCategorized:      false,
+          recurring:          false,
+          recurringFrequency: null,
+          recurringNextDue:   null,
+          recurringDay:       null,
+          fromTemplate:       tmpl.id
+        });
+      }
+      tmpl.recurringNextDue = advanceDate(due, tmpl.recurringFrequency, anchor);
+      if (!tmpl.recurringDay) tmpl.recurringDay = anchor;
+      changed.push(tmpl.id);
     }
   });
 
-  if (newEntries.length) {
+  if (changed.length) {
     expenses.push(...newEntries);
-    persist();
-    toast(newEntries.length + " recurring expense" + (newEntries.length !== 1 ? "s" : "") + " added", "success");
+    persist(changed.concat(newEntries.map(e => e.id)));
+    if (newEntries.length) toast(newEntries.length + " recurring expense" + (newEntries.length !== 1 ? "s" : "") + " added", "success");
   }
+}
+
+// ─── MOXIE FOLLOW-UPS ─────────────────────────────────────────
+async function loadMoxieTodo() {
+  try {
+    const res = await mmAuth.fetch(CONFIG.MOXIE_TODO_URL, { cache: "no-store" });
+    if (!res.ok) return;
+    const j = await res.json();
+    const items = Array.isArray(j.items) ? j.items : [];
+    const box = document.getElementById("moxie-todo");
+    if (!items.length) { box.classList.add("hidden"); return; }
+    document.getElementById("moxie-todo-list").innerHTML = items.map(it =>
+      `<li>${it.type === "delete" ? "Delete" : "Edit"} in Moxie: <strong>${esc(it.merchant || "")}</strong> ${fmt(it.amount || 0)} on ${fmtDate(it.date || "")}${it.detail ? " · " + esc(it.detail) : ""}</li>`
+    ).join("");
+    box.classList.remove("hidden");
+  } catch (e) { /* banner is best-effort */ }
+}
+
+async function clearMoxieTodo() {
+  try {
+    const res = await mmAuth.fetch(CONFIG.MOXIE_TODO_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: [], clearedAt: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    document.getElementById("moxie-todo").classList.add("hidden");
+    toast("Moxie follow-ups cleared", "success");
+  } catch (e) { toast("Could not clear the list", "error"); }
 }
 
 function detectRecurring(parsed) {

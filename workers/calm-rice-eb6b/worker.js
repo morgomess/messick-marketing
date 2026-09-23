@@ -126,9 +126,9 @@ export default {
       if (key === "expenses") {
         // Hand over the body just saved: a KV read straight after the put can
         // return the previous copy, which made the sync miss the new entries.
-        let saved = null;
-        try { saved = JSON.parse(body).expenses; } catch (e) {}
-        ctx.waitUntil(syncToMoxie(env, { expenses: saved })
+        let saved = null, removed = null;
+        try { const b = JSON.parse(body); saved = b.expenses; removed = b.deleted; } catch (e) {}
+        ctx.waitUntil(syncToMoxie(env, { expenses: saved, deleted: removed })
           .then(r => console.log("moxie sync", JSON.stringify(r)))
           .catch(e => console.error("moxie sync failed", e)));
       }
@@ -188,7 +188,52 @@ export default {
 // Skipped on purpose: Virtueasy entries, "Stripe Fees" (they are copied FROM
 // Moxie), and Contractors (Moxie records the ACH/Payoneer payment itself, and
 // the app splits one payment across work items).
+//
+// Edits: each send records Moxie's id and a fingerprint of the fields that
+// matter; when the app later saves a different fingerprint, Moxie is PATCHed.
+// Deletes: Moxie has no delete endpoint, so a deleted entry that was sent goes
+// on a follow-up list (KV moxie_todo) that the app shows as a banner. Entries
+// sent before ids were recorded, and the 309 hand-reconciled baseline entries,
+// cannot be edited automatically either; those edits go on the same list.
 const MOXIE_STATE_KEY = "moxie_sync";
+const MOXIE_TODO_KEY = "moxie_todo";
+
+function moxieFingerprint(e) {
+  return [e.date, Number(e.amount).toFixed(2), e.merchant || "", e.category || "", e.note || ""].join("|");
+}
+
+function moxieBody(e) {
+  return {
+    // Moxie wants a full timestamp; noon UTC keeps the same calendar day in US time zones.
+    date: e.date + "T12:00:00Z",
+    amount: Number(e.amount),
+    currency: "USD",
+    vendor: e.merchant,
+    description: e.merchant,
+    category: MOXIE_CATEGORY[e.category] || e.category,
+    paid: true,
+    reimbursable: false,
+    // Required in practice: without it Moxie creates the expense, then fails
+    // writing its response (500 "markupPercent is null").
+    markupPercentage: 0,
+    notes: e.note || "",
+  };
+}
+
+async function addMoxieTodo(env, items) {
+  if (!items.length) return;
+  const raw = await env.MM_SYNC.get(MOXIE_TODO_KEY);
+  let cur = { items: [] };
+  if (raw) { try { cur = JSON.parse(raw) || { items: [] }; } catch (e) {} }
+  if (!Array.isArray(cur.items)) cur.items = [];
+  const have = new Set(cur.items.map(i => i.type + ":" + i.id + ":" + (i.fp || "")));
+  for (const it of items) {
+    const k = it.type + ":" + it.id + ":" + (it.fp || "");
+    if (!have.has(k)) { have.add(k); cur.items.push(it); }
+  }
+  cur.items = cur.items.slice(-200);
+  await env.MM_SYNC.put(MOXIE_TODO_KEY, JSON.stringify(cur));
+}
 const MOXIE_CATEGORY = { Software: "Software Subscriptions" };
 
 // Contractor pay is matched by name too: entries sometimes land in "Other".
@@ -201,14 +246,19 @@ function moxieEligible(e) {
     && Number(e.amount) > 0;
 }
 
-async function syncToMoxie(env, { dry, expenses: given }) {
+async function syncToMoxie(env, { dry, expenses: given, deleted: givenDeleted }) {
   if (!env.MOXIE_API_KEY || !env.MOXIE_BASE_URL) return { error: "MOXIE_API_KEY or MOXIE_BASE_URL secret missing" };
   let expenses = Array.isArray(given) ? given : null;
-  if (!expenses) {
+  let deleted = Array.isArray(givenDeleted) ? givenDeleted : null;
+  if (!expenses || !deleted) {
     const raw = await env.MM_SYNC.get("expenses");
-    expenses = (raw && JSON.parse(raw).expenses) || [];
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (!expenses) expenses = parsed.expenses || [];
+    if (!deleted) deleted = Array.isArray(parsed.deleted) ? parsed.deleted : [];
   }
   const today = new Date().toISOString().slice(0, 10);
+  const base = env.MOXIE_BASE_URL.replace(/\/+$/, "");
+  const headers = { "X-API-KEY": env.MOXIE_API_KEY, "Content-Type": "application/json" };
 
   const stateRaw = await env.MM_SYNC.get(MOXIE_STATE_KEY);
   const state = stateRaw ? JSON.parse(stateRaw) : null;
@@ -219,43 +269,85 @@ async function syncToMoxie(env, { dry, expenses: given }) {
     if (!dry) await env.MM_SYNC.put(MOXIE_STATE_KEY, JSON.stringify({ baselineAt: today, seen }));
     return { baseline: true, marked: Object.keys(seen).length, dry: !!dry };
   }
+  // moxie[id] = { moxieId, fp, todoFp?, deleteNoted? } for entries this worker sent.
+  if (!state.moxie) state.moxie = {};
+  const save = () => dry ? Promise.resolve() : env.MM_SYNC.put(MOXIE_STATE_KEY, JSON.stringify(state));
 
+  // ── 1. New entries ──
   const due = expenses.filter(e => moxieEligible(e) && !state.seen[e.id] && e.date <= today);
-  const sent = [], failed = [];
+  const sent = [], failed = [], updated = [], todo = [];
   for (const e of due) {
-    const body = {
-      // Moxie wants a full timestamp; noon UTC keeps the same calendar day in US time zones.
-      date: e.date + "T12:00:00Z",
-      amount: Number(e.amount),
-      currency: "USD",
-      vendor: e.merchant,
-      description: e.merchant,
-      category: MOXIE_CATEGORY[e.category] || e.category,
-      paid: true,
-      reimbursable: false,
-      // Required in practice: without it Moxie creates the expense, then fails
-      // writing its response (500 "markupPercent is null").
-      markupPercentage: 0,
-      notes: e.note || "",
-    };
+    const body = moxieBody(e);
     if (dry) { sent.push({ id: e.id, ...body }); continue; }
     try {
-      const res = await fetch(env.MOXIE_BASE_URL.replace(/\/+$/, "") + "/action/expenses/create", {
-        method: "POST",
-        headers: { "X-API-KEY": env.MOXIE_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(base + "/action/expenses/create", { method: "POST", headers, body: JSON.stringify(body) });
       const text = await res.text();
       if (!res.ok) { failed.push({ id: e.id, status: res.status, error: text.slice(0, 300) }); continue; }
+      let moxieId = null;
+      try { moxieId = (JSON.parse(text) || {}).id || null; } catch (err) {}
       state.seen[e.id] = "sent:" + new Date().toISOString();
+      state.moxie[e.id] = { moxieId, fp: moxieFingerprint(e) };
       // Save after every success so a later failure can never cause a resend.
-      await env.MM_SYNC.put(MOXIE_STATE_KEY, JSON.stringify(state));
-      sent.push({ id: e.id, merchant: e.merchant, amount: body.amount, date: e.date });
+      await save();
+      sent.push({ id: e.id, moxieId, merchant: e.merchant, amount: body.amount, date: e.date });
     } catch (err) {
       failed.push({ id: e.id, error: String(err) });
     }
   }
-  return { sent, failed, dry: !!dry };
+
+  // ── 2. Edits to entries already sent ──
+  const byId = new Map(expenses.map(e => [e.id, e]));
+  for (const [id, rec] of Object.entries(state.moxie)) {
+    const e = byId.get(id);
+    if (!e) continue;
+    const fp = moxieFingerprint(e);
+    if (fp === rec.fp) continue;
+    if (!rec.moxieId) {
+      // Sent, but Moxie never returned an id (its 500-after-create quirk): hand it over.
+      if (rec.todoFp !== fp) {
+        todo.push({ type: "edit", id, fp, merchant: e.merchant, amount: e.amount, date: e.date,
+          detail: "now " + e.category + (e.note ? ", " + e.note : ""), at: new Date().toISOString() });
+        rec.todoFp = fp;
+      }
+      continue;
+    }
+    // The update route resolves vendor by object, not name (a string is a 500),
+    // so the vendor is left alone; a renamed merchant is handed over instead.
+    const { vendor, ...rest } = moxieBody(e);
+    const patch = { id: rec.moxieId, ...rest };
+    const prevMerchant = String(rec.fp || "").split("|")[2];
+    if (prevMerchant && prevMerchant !== e.merchant && rec.todoFp !== fp) {
+      todo.push({ type: "edit", id, fp, merchant: e.merchant, amount: e.amount, date: e.date,
+        detail: "vendor renamed from " + prevMerchant, at: new Date().toISOString() });
+      rec.todoFp = fp;
+    }
+    if (dry) { updated.push({ id, ...patch }); continue; }
+    try {
+      const res = await fetch(base + "/action/expenses/update", { method: "PATCH", headers, body: JSON.stringify(patch) });
+      const text = await res.text();
+      if (!res.ok) { failed.push({ id, op: "update", status: res.status, error: text.slice(0, 300) }); continue; }
+      rec.fp = fp;
+      await save();
+      updated.push({ id, moxieId: rec.moxieId, merchant: e.merchant, amount: Number(e.amount), date: e.date });
+    } catch (err) {
+      failed.push({ id, op: "update", error: String(err) });
+    }
+  }
+
+  // ── 3. Deletes of entries already sent: no API for it, so list them ──
+  for (const d of deleted) {
+    if (!d || !d.id) continue;
+    const wasSent = String(state.seen[d.id] || "").startsWith("sent");
+    if (!wasSent) continue;
+    const rec = state.moxie[d.id] || (state.moxie[d.id] = { moxieId: null, fp: null });
+    if (rec.deleteNoted) continue;
+    todo.push({ type: "delete", id: d.id, merchant: d.merchant || "", amount: d.amount, date: d.date || "",
+      detail: rec.moxieId ? "Moxie id " + rec.moxieId : "", at: new Date().toISOString() });
+    rec.deleteNoted = true;
+  }
+  if (todo.length && !dry) { await addMoxieTodo(env, todo); await save(); }
+
+  return { sent, updated, todo, failed, dry: !!dry };
 }
 
 // ── AUTH HELPERS ──
