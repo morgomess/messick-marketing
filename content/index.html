@@ -527,6 +527,10 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
             <span class="lbl" style="font-size:11px;">Talking Head</span>
           </button>
         </div>
+        <div class="form-group" id="fx-style-row" style="display:none; margin-top:12px;">
+          <label>FX Direction <span class="opt">(fills from the brand kit)</span></label>
+          <textarea id="fx-style" rows="4" placeholder="e.g. Cards on white plates, navy kickers, one accent color, lower thirds for the physician..."></textarea>
+        </div>
       </div>
 
       <div id="cover-format-row" style="display:none;">
@@ -626,7 +630,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
             <h3 id="reel-prompt-title">Visual Prompt</h3>
             <div class="header-actions">
               <button class="action-btn" id="edit-reel-prompt-btn" onclick="toggleReelPromptEdit()">Edit Prompt</button>
-              <button class="action-btn" onclick="copyEl('reel-prompt-output', this)">Copy Prompt</button>
+              <button class="action-btn" id="reel-prompt-copy-btn" onclick="copyEl('reel-prompt-output', this)">Copy Prompt</button>
             </div>
           </div>
           <div class="reel-note">Copy this prompt into one of the recommended tools below.</div>
@@ -823,6 +827,25 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     }
   };
 
+  // On-screen FX direction per brand, fed to the YouTube Script type's FX list. Pulled from the
+  // brand memory (client-brand-specifics.md, messick-fx-graphics-build.md, the BBS device notes).
+  // Kept apart from BRAND_KITS so the kit fields stay short; a saved kit's own `fx` wins.
+  const BRAND_FX = {
+    ecco: `Palette: navy #11235B plates, green #8CB362 as the accent for kickers and key numbers, periwinkle #C1CCE5 tints, white. Type: Orkney for headlines and labels, Roboto for secondary lines. Clean clinical cards with natural undertones, calm motion. Physician lower thirds with full credentials. End card names both locations as "Lone Tree and Pueblo West" (never shorten to Pueblo), phones (720) 668-8818 Lone Tree and (719) 569-3226 Pueblo West.`,
+    jvi: `Follow the JVI social kit, not the website: maroon #81252E and blue #0B2766, white default ground, stone #C6C0BC only for small accents. Futura Bold uppercase headlines set big with one or two emphasis words in Playfair Display italic, Montserrat for sublines. A card carries the message only: no logo, practice name, phone or website on any card, and no label box that repeats the headline. One idea per card. Modern and sleek: no cartoon or illustrated scenes, no stock imagery, drawn diagrams must be clean line work in the two brand colors. Dr. Patel is usually the on-camera physician; confirm before writing a lower third.`,
+    tvi: `Palette: deep navy #06192F plates, primary blue #004976, light blue #8FBFE6 for accents on navy, light tint #EFF3F5 plates, slate #9BA3AC for muted strikes. League Spartan bold headlines, Mulish for body lines. Bold and modern, confident motion. Logo is navy, recolor to white on dark plates. Physician lower thirds with credentials.`,
+    svv: `Palette: primary navy #0A4E84, deep navy #0A395E plates, light blue tint #C6E0FF, slate #4B617C for muted text and strikes, white. Plus Jakarta Sans throughout. Clean and trustworthy, community-focused, calm motion. Physician lower thirds with credentials.`,
+    desert: `Palette: deep navy #002763 plates, white, red #ff1136 used sparingly as the one alert accent (a key number or warning sign, not decoration). Carlito or a clean sans. Bold and clinical. Cardiology framing, never IR. Every clinical claim attributes to Dr. Zia Khan, MD, FACC, FSCAI in his lower third. End card phone written (702) 822-CARE.`,
+    braintalk: `Palette: white plates, green #4cb963 and blue #345fac accents. Canva Sans or a friendly rounded sans. Vibrant and approachable, plain-language labels, simple icon-style drawn scenes of the brain concept being explained.`,
+    obl: `Palette: navy #0f4b8f plates, bright blue #3183dc accent, white, black. Gotham or a clean geometric sans. B2B agency register for OBL owners: metric tickers, before/after dashboards drawn as generic UI, checklists. Never reference another client's work.`,
+    messick: `House FX system. Cards float on warm white #faf8f5 paper plates in one side column away from the speaker; a few chapter cards and the single money quote flip to ink #111111 plates. Steel blue #3a6b8a for kickers, light blue #5a9ab8 for dashes and rules. The non-brand red #c2413a is spent exactly ONCE per video on the most important strike or number; every other strike-through is muted grey. Jost for functional text, Cormorant Garamond with lining numerals for big numbers, pull quotes and the signature. Card blocks to draw from: kicker, big number (ticker counts up), claim, pull quote, rows (list builds one by one), strike (one line only, never wraps), signature, full-frame takeover under 12 seconds. About a third of cues should be drawn scenes rather than text: an analogy drawn, a phone showing a generic AI chat, a before and after of two websites, a path with stops, one thing branching into many. Generic UI in the brand palette, no real app imitated, no invented practice names (blank bars), no logos. Boxless read-along captions with the active word in steel blue. Real white logo on an ink chip as a small corner bug. Never sticker pills, floating white caption bubbles or centered meme text. No chapter numbers unless the script counts out loud. Spring motion with a slight overshoot.`,
+    virtueasy: `Palette: white ground, hot pink #ef129a as the single accent, dark gray #414141 body, black. Libre Baskerville headlines, Montserrat labels and numbers. Speak to the VA on screen: rate and income tickers, checklists that build line by line, before and after of a client message or inbox, a generic scheduling or invoice screen drawn in the brand palette (no real app imitated). Product cards (VA Starter Kit, Client Onboarding Kit, Pricing Tool, VA Job Board) only at the CTA, never mid-lesson.`,
+    bbs: `Hand-drawn cartoon world on cream parchment #efe4cf with thick brush-ink #1c1712 outlines. Plan ONE storytelling overlay device per major beat, in both halves of the video: comic panels rising like photo cards, a character fading to a pencil outline, storybook page frames, empty speech bubbles, name tags on characters. Text cards are Anton caps on golden-yellow plank signs with red kicker labels, hot pink #ff2f6e for the single most shocking word. Every text card lands ON the spoken word, never ahead of it. Scripture reference cards (Book chapter:verse) whenever the text is quoted, and every countable claim must match the passage. Darker music bed under the story body. No silence before the subscribe card: the music rides through the last line and fades with the picture.`,
+    dsdd: `Playful neo-brutalist cards: hard 2.5px black outlines, flat 4px offset drop shadows, chunky rounded corners. Yellow #FFD600 highlight boxes behind Bangers headlines, orange #FF5C00 and sky blue #00C2FF accents, red #FF3B3B for warnings, Nunito for body lines, real dog photo inserts. Quick tip checklists and do/don't splits. Anything medical gets a "Ask your vet" callout card, never a diagnosis.`,
+    aspire: `Signature gradient electric blue #2b3fe8 to purple #7b2fd4 to hot pink #d42fa0 on near-black #0d0e1a plates or lavender #e4e1f0 light plates, slate #6b6f8a muted text. Plus Jakarta Sans throughout. Logo is built for dark grounds. Warm and empowering for patients, data-forward (outcome tickers) for partner audiences. Pelvic health is occupational therapy with Ellen Hiestand, never "physical therapy".`,
+    oeis: `Palette pinned to brand, never drifting cyan or royal: dark navy #171d4b plates, deep blue #013366, light blue #62a1d7 accents, white, black. Clean sans. Medical-society register, peer to peer: reimbursement and policy numbers as tickers, legislation or CPT codes as cards, speaker lower thirds with full credentials and society role. The red YouTube subscribe button is the only red allowed.`
+  };
+
   // ─── Brand Kit Manager (add / edit / remove without touching code) ────────
   // Presets above are the shipped defaults. Anything Morgan saves or removes in
   // the UI lives in localStorage and is layered on top of them, so the built-in
@@ -932,6 +955,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       audience: document.getElementById('audience').value.trim(),
       industry: document.getElementById('industry').value.trim(),
       tone: document.getElementById('tone').value,
+      fx: document.getElementById('fx-style').value.trim(),
       group: document.getElementById('kit-group').value === 'mine' ? 'mine' : 'clients'
     };
     // Saving over a preset you'd previously removed brings it back as your own version
@@ -985,6 +1009,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       document.getElementById('audience').value = '';
       document.getElementById('industry').value = '';
       document.getElementById('tone').value = '';
+      document.getElementById('fx-style').value = '';
       note.classList.toggle('visible', kitKey === 'custom');
       return;
     }
@@ -997,6 +1022,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     document.getElementById('audience').value    = kit.audience || '';
     document.getElementById('industry').value    = kit.industry || '';
     if (kit.tone) document.getElementById('tone').value = kit.tone;
+    document.getElementById('fx-style').value = kit.fx !== undefined ? kit.fx : (BRAND_FX[kitKey] || '');
     note.classList.remove('visible');
   }
   // ─────────────────────────────────────────────────────────────────────────
@@ -1083,6 +1109,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
     document.querySelectorAll('#video-type-grid .type-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedVideoType = btn.dataset.vtype;
+    document.getElementById('fx-style-row').style.display = selectedVideoType === 'youtube' ? '' : 'none';
   }
 
   function copyEl(id, btn) {
@@ -1180,6 +1207,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       tone: document.getElementById('tone').value,
       industry: document.getElementById('industry').value.trim(),
       notes: document.getElementById('notes').value.trim(),
+      fxStyle: document.getElementById('fx-style').value.trim(),
     };
   }
 
@@ -1244,8 +1272,16 @@ QUALITY FOOTER (always end the prompt with this):
       reel: `- "reel_script": a short, punchy script for a 10-30 second vertical video. Include a strong HOOK (first 2-3 seconds), 2-4 lines of recommended voiceover OR text on screen (not both — label each line as either [Voiceover] or [Text on Screen]), and a single closing CTA. Keep it tight — this is not a long-form video.
 - "reel_video_prompt": a single cohesive cinematic narrative written as an AI video generation prompt (optimized for Sora, Runway, Kling). Describe the full visual story as one flowing scene that matches the topic, audience, and industry of the content — for example a patient journey for healthcare, a transformation arc for wellness, a day-in-the-life for professional services, an emotional before/after for advocacy content, etc. Include camera movement, pacing, lighting, and mood. Cover multiple scenes naturally within the narrative but write it as one continuous prompt. No text overlays, no graphics, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations). Make it specific, emotionally resonant, and production-ready for AI video generation.`,
 
-      youtube: `- "reel_script": a complete long-form YouTube video script of 900-1,200 words of narration, which is 6-8 minutes of spoken content at a natural speaking pace. Do not exceed 1,200 words. Structure it clearly with: 3 alternative TITLE options at the top; a HOOK (first 15 seconds) that stops the scroll; an INTRO that frames the problem and previews what the viewer will learn; 3-5 main BODY SECTIONS each with a clear subheading and full spoken-word narration written exactly as it should be read aloud; [B-roll: ...] visual direction notes in brackets throughout; and an OUTRO with a subscribe prompt and a single clear CTA. Conversational but authoritative.
-- "reel_video_prompt": a B-roll visual prompt describing the supporting footage for this YouTube video, written as one flowing AI video generation prompt (optimized for Sora, Runway, Kling). Cover the key scenes needed to illustrate the script with camera movement, pacing, lighting, and mood. No text overlays, no on-screen titles — pure B-roll visuals only. Keep it generic (no brand names, practice names, or locations).`,
+      youtube: `- "reel_script": a complete long-form YouTube video script of 900-1,200 words of narration, which is 6-8 minutes of spoken content at a natural speaking pace. Do not exceed 1,200 words. Structure it clearly with: 3 alternative TITLE options at the top; a HOOK (first 15 seconds) that stops the scroll; an INTRO that frames the problem and previews what the viewer will learn; 3-5 main BODY SECTIONS each with a clear subheading and full spoken-word narration written exactly as it should be read aloud; and an OUTRO with a subscribe prompt and a single clear CTA. Conversational but authoritative. The script is narration only: no B-roll notes, no bracketed visual or stage directions anywhere. All visuals go in "fx_list".
+- "fx_list": the on-screen FX list for the editor, as one plain-text string with line breaks, separate from the script. Write 18-28 numbered cues in script order, each in this shape:
+FX 01 | <cue type> | on "<the exact 3-8 spoken words it lands on, copied verbatim from the script>"
+On screen: <the exact copy shown, short, never a sentence the narrator is not saying>
+Look: <placement, plate or surface, colors and type from the FX direction>
+SFX: <optional, one short sound cue or omit the line>
+Cue types: section card, big number, claim, pull quote, list rows (builds line by line), strike-through, lower third, drawn scene, full-frame takeover, end card. Make roughly a third of the cues drawn scenes that picture an analogy, a screen, a before and after, a process or a comparison the script describes, not just more text. Every cue lands ON its spoken words, never ahead of them. Only number chapters on screen if the script counts them out loud. Never invent statistics, names, logos or practice names that are not in the script. End with an end card timed to the CTA with no silent gap before it.${d.fxStyle ? `
+FX direction for this brand (follow it exactly, it overrides any generic choice above):
+${d.fxStyle}` : `
+No brand FX direction was given: derive the look from the Visual Style / Colors line, use one accent color sparingly, and keep cards minimal.`}`,
 
       tutorial: `- "reel_script": a step-by-step tutorial / how-to script. Open with a HOOK stating the exact outcome the viewer will achieve, then a short "What you'll need" line, then numbered STEPS (Step 1, Step 2, ...). Each step has clear spoken narration plus an [On screen: ...] direction describing precisely what to show. End with a quick recap and a single CTA. Be concrete, sequential, and easy to follow.
 - "reel_video_prompt": a visual prompt describing the screen-capture, demonstration, and B-roll footage needed to show each tutorial step, written as one AI video generation prompt (optimized for Sora, Runway, Kling). Specify framing for demonstration and close-up shots, camera movement, and lighting. No text overlays. Keep it generic (no brand names, practice names, or locations).`,
@@ -1356,7 +1392,9 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         const scriptCall = callWorker('claude', { prompt: buildPrompt(d, false, 'script') });
         scriptCall.catch(() => {});  // no unhandled rejection if the copy call throws first
         const copy = parseAiJson(await copyCall);
-        setLoadingMsg('Caption and hashtags done. Writing the script...');
+        setLoadingMsg(selectedVideoType === 'youtube'
+          ? 'Caption and hashtags done. Writing the script and FX list...'
+          : 'Caption and hashtags done. Writing the script...');
         const script = parseAiJson(await scriptCall);
         parsed = { ...copy, ...script };
       } else {
@@ -1386,8 +1424,18 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
       show('card-image', isGraphic || isCover);
       show('card-carousel-slides', false);
       show('card-reel', isReel);
+      // YouTube swaps the AI-video prompt for an FX list, so the prompt editor and the
+      // text-to-video tool picks have nothing to act on there.
+      const isFxList = isReel && selectedVideoType === 'youtube';
       show('card-reel-prompt', isReel);
-      show('card-reel-apps', isReel);
+      show('card-reel-apps', isReel && !isFxList);
+      document.getElementById('edit-reel-prompt-btn').style.display = isFxList ? 'none' : '';
+      document.getElementById('reel-prompt-copy-btn').textContent = isFxList ? 'Copy FX List' : 'Copy Prompt';
+      document.querySelector('#card-reel-prompt .reel-note').style.display = isFxList ? 'none' : '';
+      if (isFxList) {
+        document.getElementById('reel-prompt-edit-panel').classList.remove('open');
+        document.getElementById('edit-reel-prompt-btn').textContent = 'Edit Prompt';
+      }
       show('download-all-btn', false);
       const regenGraphicBtn = document.getElementById('regen-graphic-btn');
       if (regenGraphicBtn) regenGraphicBtn.style.display = (isGraphic || isCover) ? '' : 'none';
@@ -1400,7 +1448,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
       if (isReel) {
         const videoTitles = {
           reel:      ['Reel Script', 'Visual Prompt'],
-          youtube:   ['YouTube Script', 'B-Roll Visual Prompt'],
+          youtube:   ['YouTube Script', 'FX List'],
           tutorial:  ['Tutorial Script', 'Screen & B-Roll Prompt'],
           cinematic: ['Shot List', 'Cinematic Video Prompt'],
           talking:   ['Talking Head Script', 'B-Roll Visual Prompt'],
@@ -1409,7 +1457,7 @@ ${selectedType === 'cover' ? `- "image_prompt": Highly detailed Imagen 4 prompt 
         document.getElementById('reel-script-title').textContent = titles[0];
         document.getElementById('reel-prompt-title').textContent = titles[1];
         document.getElementById('reel-script-output').textContent = asText(parsed.reel_script);
-        document.getElementById('reel-prompt-output').textContent = asText(parsed.reel_video_prompt);
+        document.getElementById('reel-prompt-output').textContent = asText(isFxList ? parsed.fx_list : parsed.reel_video_prompt);
       } else if (isGraphic || isCover) {
         document.getElementById('image-card-title').textContent = isCover ? coverLabel : 'Generated Graphic';
         document.getElementById('edit-graphic-btn').style.display = '';
