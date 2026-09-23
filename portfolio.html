@@ -436,7 +436,31 @@
     .web-meta h3 { font-family: var(--font-editorial); font-size: 1.5rem; color: var(--black); margin: .4rem 0 .5rem; line-height: 1.2; }
     .web-meta p { font-family: var(--font-body); font-size: .86rem; color: var(--gray); line-height: 1.6; margin-bottom: .9rem; }
     .web-cta { font-family: var(--font-body); font-size: .8rem; font-weight: 600; color: var(--blue); letter-spacing: .02em; }
-    @media(max-width:760px){ .web-grid { grid-template-columns: 1fr; } .web-section { padding: 70px 24px; } }
+
+    /* ── VIDEO ── */
+    .video-section { background: var(--white); padding: 100px 40px; }
+    .video-section .section-header { text-align: center; margin-bottom: 56px; }
+    .video-section .section-header h2 { font-family: var(--font-editorial); font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 400; color: var(--black); }
+    .video-section .section-header p { font-family: var(--font-editorial); font-size: 1.05rem; font-style: italic; color: var(--gray); margin-top: 10px; }
+    .video-feature { max-width: 900px; margin: 0 auto 56px; }
+    .video-frame { position: relative; width: 100%; background: var(--black); border-radius: 6px; overflow: hidden; }
+    .video-frame.wide { aspect-ratio: 16 / 9; }
+    .video-frame.tall { aspect-ratio: 9 / 16; }
+    .video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .video-meta { margin-top: 12px; }
+    .video-client { display: block; font-size: .68rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--blue); }
+    .video-title { display: block; font-size: .9rem; color: var(--black); line-height: 1.4; margin-top: 4px; }
+    .video-feature .video-title { font-family: var(--font-editorial); font-size: 1.3rem; }
+    .shorts-grid { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+    @media(max-width:1000px){ .shorts-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media(max-width:640px){ .shorts-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } .video-section { padding: 70px 16px; } }
+
+    .web-subhead { max-width: 1160px; margin: 3rem auto 0; font-family: var(--font-body); font-size: .72rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); }
+    .web-subhead + .web-grid { margin-top: 1.2rem; }
+    .web-grid.three { grid-template-columns: repeat(3, 1fr); }
+    .web-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+    @media(max-width:1000px){ .web-grid.three { grid-template-columns: repeat(2, 1fr); } }
+    @media(max-width:760px){ .web-grid, .web-grid.three { grid-template-columns: 1fr; } .web-section { padding: 70px 24px; } }
     .tools-section { background: var(--white); padding: 100px 40px; }
     .tool-embeds { max-width: 1080px; margin: 3rem auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     .tool-embed { background: #fff; border: 1px solid #ded9d2; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.06); }
@@ -1219,6 +1243,41 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   </div>
 </section>
 
+<!-- VIDEO -->
+<section class="video-section">
+  <div class="section-header">
+    <span class="section-label">Video</span>
+    <h2>Video people actually watch.</h2>
+    <p>Short-form and long-form video for specialty practices, and for our own channel.</p>
+  </div>
+  <div class="video-feature">
+    <div class="video-frame wide"><iframe src="https://www.youtube-nocookie.com/embed/AiTJkLf2LVM" title="ChatGPT Now Connects to Epic: What It Means for Your Practice" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+    <div class="video-meta"><span class="video-client">Messick Marketing</span><span class="video-title">ChatGPT Now Connects to Epic: What It Means for Your Practice</span></div>
+  </div>
+  <div class="shorts-grid">
+    <div class="short-card">
+      <div class="video-frame tall"><iframe src="https://www.youtube-nocookie.com/embed/7wRJm9KH65A" title="What 2 Years of GAE Outcomes Data Actually Shows" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="video-meta"><span class="video-client">Sound Vascular &amp; Vein</span><span class="video-title">What 2 Years of GAE Outcomes Data Actually Shows</span></div>
+    </div>
+    <div class="short-card">
+      <div class="video-frame tall"><iframe src="https://www.youtube-nocookie.com/embed/CrPalddTItM" title="One Conversation Could Change Your Quality of Life" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="video-meta"><span class="video-client">Sound Vascular &amp; Vein</span><span class="video-title">One Conversation Could Change Your Quality of Life</span></div>
+    </div>
+    <div class="short-card">
+      <div class="video-frame tall"><iframe src="https://www.youtube-nocookie.com/embed/Cq7I3igsshw" title="Shoulder Pain from Padel &amp; Volleyball: Cody&#39;s Recovery" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="video-meta"><span class="video-client">Aspire Therapy &amp; Wellness</span><span class="video-title">Shoulder Pain from Padel &amp; Volleyball: Cody&#39;s Recovery</span></div>
+    </div>
+    <div class="short-card">
+      <div class="video-frame tall"><iframe src="https://www.youtube-nocookie.com/embed/Ie8tQWgKP3A" title="Train Today. Conquer Tomorrow." loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="video-meta"><span class="video-client">Aspire Therapy &amp; Wellness</span><span class="video-title">Train Today. Conquer Tomorrow.</span></div>
+    </div>
+    <div class="short-card">
+      <div class="video-frame tall"><iframe src="https://www.youtube-nocookie.com/embed/1Hd-bQyGOp0" title="How We Rebranded an IR Practice for Real Patient Search" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+      <div class="video-meta"><span class="video-client">Messick Marketing</span><span class="video-title">How We Rebranded an IR Practice for Real Patient Search</span></div>
+    </div>
+  </div>
+</section>
+
 <!-- BLOG PREVIEWS -->
 <section class="blog-section">
   <div class="section-header">
@@ -1404,8 +1463,41 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   <div class="section-header">
     <span class="section-label">Website Design</span>
     <h2>Sites built to convert.</h2>
-    <p>Concept builds showing how we design conversion-focused healthcare websites - fast, responsive, and built to turn visitors into booked appointments.</p>
+    <p>Live builds for a client and for our own brands, plus concept sites showing how we design conversion-focused healthcare websites.</p>
   </div>
+  <div class="web-subhead">Live builds</div>
+  <div class="web-grid three">
+    <div class="web-card">
+      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">coastalvetclinic.com</span></div>
+      <div class="web-preview"><img src="/portfolio-assets/site-coastalvet.jpg" alt="Coastal Veterinary Clinic website homepage" loading="lazy" decoding="async"></div>
+      <div class="web-meta">
+        <span class="web-type">Veterinary Clinic</span>
+        <h3>Coastal Veterinary Clinic</h3>
+        <p>A full site for a Bluffton, SC veterinary practice, built around its providers, services, pharmacy, and an easy path to booking a visit.</p>
+      </div>
+    </div>
+    <a class="web-card" href="https://virtueasy.com/" target="_blank" rel="noopener">
+      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">virtueasy.com</span></div>
+      <div class="web-preview"><img src="/portfolio-assets/site-virtueasy.jpg" alt="Virtueasy website homepage" loading="lazy" decoding="async"></div>
+      <div class="web-meta">
+        <span class="web-type">Our Brand · Digital Products</span>
+        <h3>Virtueasy</h3>
+        <p>A conversion-focused storefront and resource hub for new virtual assistants, with product funnels, free tools, a job board, and a blog.</p>
+        <span class="web-cta">Visit site &#x2192;</span>
+      </div>
+    </a>
+    <a class="web-card" href="https://doggyseedoggydo.com/" target="_blank" rel="noopener">
+      <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">doggyseedoggydo.com</span></div>
+      <div class="web-preview"><img src="/portfolio-assets/site-dsdd.jpg" alt="Doggy See, Doggy Do website homepage" loading="lazy" decoding="async"></div>
+      <div class="web-meta">
+        <span class="web-type">Our Brand · Content Site</span>
+        <h3>Doggy See, Doggy Do</h3>
+        <p>A search-first content site for dog owners, with a quick-answer library and deep-dive guides built to rank.</p>
+        <span class="web-cta">Visit site &#x2192;</span>
+      </div>
+    </a>
+  </div>
+  <div class="web-subhead">Concept builds</div>
   <div class="web-grid">
     <a class="web-card" href="/websites/lumen.html" target="_blank" rel="noopener">
       <div class="web-chrome"><span class="web-dot"></span><span class="web-dot"></span><span class="web-dot"></span><span class="web-url">lumenir.com</span></div>
