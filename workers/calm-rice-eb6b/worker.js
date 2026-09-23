@@ -272,6 +272,8 @@ async function processInbox(env, inbox, ctx) {
   const raw = await env.MM_SYNC.get("expenses");
   const store = raw ? JSON.parse(raw) : { expenses: [] };
   const expenses = Array.isArray(store.expenses) ? store.expenses : [];
+  // Snapshot of the ledger as read, for the drift check before writing.
+  const readFingerprint = JSON.stringify(expenses.map(e => e.id + ":" + e.date));
   const skip = new Set((inbox.skipMerchants || []).map(normM));
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
@@ -319,8 +321,9 @@ async function processInbox(env, inbox, ctx) {
   if (ledgerChanged) {
     // Re-read right before writing so a save from the app in the meantime is not lost.
     const fresh = await env.MM_SYNC.get("expenses");
-    const freshStore = fresh ? JSON.parse(fresh) : store;
-    if (JSON.stringify((freshStore.expenses || []).map(e => e.id)) !== JSON.stringify((store.expenses || []).map(e => e.id))) {
+    const freshStore = fresh ? JSON.parse(fresh) : { expenses: [] };
+    const freshFingerprint = JSON.stringify((freshStore.expenses || []).map(e => e.id + ":" + e.date));
+    if (freshFingerprint !== readFingerprint) {
       // The ledger moved under us: drop our changes, leave the items pending for the app to settle.
       for (const it of pending) if (it.auto && it.status === "accepted") { it.status = "pending"; delete it.auto; delete it.expenseId; delete it.resolvedAt; delete it.note; }
       out.conflict = true; out.autoRedated = 0; out.autoLogged = 0;
