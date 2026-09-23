@@ -18,12 +18,18 @@ export default {
     // rollout; "enforce" rejects them.
     const isInboxAppend = url.pathname === "/sync" && request.method === "POST"
       && url.searchParams.get("key") === "engagement_inbox" && url.searchParams.get("append") === "1";
+    // The Gmail receipt parser (Apps Script, expenses-intake-script.gs) holds INTAKE_KEY. That key
+    // can do exactly one thing: append candidate charges to expenses_inbox. It cannot read any
+    // key, replace any key, or touch the ledger. The body is validated below.
+    const isIntakeAppend = url.pathname === "/sync" && request.method === "POST"
+      && url.searchParams.get("key") === "expenses_inbox" && url.searchParams.get("append") === "1"
+      && !!env.INTAKE_KEY && timingSafeEq((request.headers.get("Authorization") || "").replace(/^Bearer /, ""), env.INTAKE_KEY);
     const needsAuth = url.pathname === "/sync" || (request.method === "POST" && url.pathname !== "/moxie-sync");
     // The expenses Google Sheet pulls on a timer with SHEET_READ_KEY, which can
     // read the expenses key and nothing else.
     const isSheetRead = request.method === "GET" && url.pathname === "/sync" && url.searchParams.get("key") === "expenses"
       && !!env.SHEET_READ_KEY && timingSafeEq((request.headers.get("Authorization") || "").replace(/^Bearer /, ""), env.SHEET_READ_KEY);
-    if (needsAuth && !isInboxAppend && !isSheetRead && !(await isAuthorized(request, env))) {
+    if (needsAuth && !isInboxAppend && !isIntakeAppend && !isSheetRead && !(await isAuthorized(request, env))) {
       if (env.AUTH_MODE === "enforce") {
         return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -79,6 +85,13 @@ export default {
         let prev = {};
         const prevRaw = await env.MM_SYNC.get(key);
         if (prevRaw) { try { prev = JSON.parse(prevRaw) || {}; } catch (e) { prev = {}; } }
+
+        if (key === "expenses_inbox") {
+          const r = appendInboxItems(prev, incoming);
+          if (r.error) return new Response(JSON.stringify({ error: r.error }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          await env.MM_SYNC.put(key, JSON.stringify(r.merged));
+          return new Response(JSON.stringify({ ok: true, appended: r.added, duplicates: r.dupes, rejected: r.rejected, total: r.merged.items.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
 
         const prevPosts = Array.isArray(prev.posts) ? prev.posts : [];
         const newPosts = Array.isArray(incoming.posts) ? incoming.posts : [];
@@ -174,6 +187,55 @@ export default {
     return new Response("Bridge Ready", { headers: corsHeaders });
   }
 };
+
+// ── EXPENSES INBOX (receipt candidates from Gmail) ──
+// Items are small, typed records; anything else is dropped. Only `items` from the
+// caller is honoured, so an append can never change skip rules or resolved statuses.
+const INBOX_STR = { id: 120, kind: 10, date: 10, merchant: 80, detail: 200, source: 40, msgId: 40, viewUrl: 300, currency: 3 };
+function cleanInboxItem(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const it = {};
+  for (const [k, max] of Object.entries(INBOX_STR)) {
+    if (raw[k] == null) continue;
+    if (typeof raw[k] !== "string") return null;
+    it[k] = raw[k].slice(0, max);
+  }
+  if (!it.id || !it.merchant) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(it.date || "")) return null;
+  if (it.kind !== "income") it.kind = "expense";
+  if (raw.amount != null) {
+    const a = Number(raw.amount);
+    if (!isFinite(a) || a < 0 || a > 1000000) return null;
+    it.amount = Math.round(a * 100) / 100;
+  } else it.amount = null;
+  if (Array.isArray(raw.lines)) {
+    it.lines = raw.lines.slice(0, 20).map(l => ({ name: String(l && l.name || "").slice(0, 80), amount: Number(l && l.amount) || 0 }));
+  }
+  if (!/^https:\/\/mail\.google\.com\//.test(it.viewUrl || "")) delete it.viewUrl;
+  it.status = "pending";
+  it.receivedAt = new Date().toISOString();
+  return it;
+}
+function appendInboxItems(prev, incoming) {
+  const list = Array.isArray(incoming.items) ? incoming.items : null;
+  if (!list) return { error: "Body must be {items:[...]}" };
+  if (list.length > 200) return { error: "At most 200 items per call" };
+  const prevItems = Array.isArray(prev.items) ? prev.items : [];
+  const seen = new Set(prevItems.map(i => i.id));
+  let added = 0, dupes = 0, rejected = 0;
+  for (const raw of list) {
+    const it = cleanInboxItem(raw);
+    if (!it) { rejected++; continue; }
+    if (seen.has(it.id)) { dupes++; continue; }
+    seen.add(it.id); prevItems.push(it); added++;
+  }
+  // Keep the newest 1000; resolved items older than a year fall off.
+  const cutoff = new Date(Date.now() - 365 * 86400000).toISOString();
+  let items = prevItems.filter(i => i.status === "pending" || (i.receivedAt || "9") >= cutoff);
+  if (items.length > 1000) items = items.slice(-1000);
+  const merged = { ...prev, items, lastAppendAt: new Date().toISOString() };
+  return { merged, added, dupes, rejected };
+}
 
 // ── MOXIE SYNC ──
 // Pushes new Messick Marketing entries from the expenses store into Moxie, so an

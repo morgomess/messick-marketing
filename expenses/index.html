@@ -211,6 +211,15 @@ select.pv-in{cursor:pointer}
 .page.active{display:block}
 .mt-4{margin-top:16px}
 .hidden{display:none!important}
+.inbox-item{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid var(--gray-200);border-radius:4px;background:white;margin-bottom:10px}
+.inbox-item.resolved{opacity:.6}
+.inbox-main{flex:1;min-width:0}
+.inbox-merchant{font-weight:600}
+.inbox-meta{font-size:.78rem;color:var(--gray-500);margin-top:2px}
+.inbox-amt{font-weight:700;white-space:nowrap;min-width:80px;text-align:right}
+.inbox-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.inbox-tag{display:inline-block;font-size:.7rem;padding:2px 7px;border-radius:10px;background:var(--gray-100);color:var(--gray-600);margin-left:6px;vertical-align:middle}
+.nav-badge{margin-left:auto;background:var(--warn);color:white;font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:10px}
 .flex-between{display:flex;align-items:center;justify-content:space-between}
 </style>
   <!-- Meta Pixel Code -->
@@ -272,6 +281,10 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="nav-item" id="nav-add" onclick="openAddModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Add Expense
+        </div>
+        <div class="nav-item" id="nav-inbox" onclick="navigateTo('inbox')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          Inbox <span class="nav-badge hidden" id="inbox-badge">0</span>
         </div>
         <div class="nav-item" id="nav-import" onclick="navigateTo('import')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -351,6 +364,31 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
               <div id="biz-split"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- INBOX: receipt candidates the Gmail parser found -->
+      <div id="page-inbox" class="page">
+        <div class="page-header">
+          <div class="page-header-inner">
+            <div>
+              <h1 class="page-title">Inbox</h1>
+              <div class="page-subtitle" id="inbox-subtitle">Charges found in Gmail, waiting for a yes or no</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <label style="font-size:.8rem;color:var(--gray-500);display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" id="inbox-show-resolved" onchange="renderInbox()"> Show handled
+              </label>
+              <button class="btn btn-outline btn-sm" onclick="loadInbox(true)">Refresh</button>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 32px 32px">
+          <div id="inbox-list"></div>
+          <details style="margin-top:24px">
+            <summary style="cursor:pointer;font-size:.86rem;color:var(--gray-600)">Income seen in Gmail (<span id="inbox-income-count">0</span>)</summary>
+            <div id="inbox-income" style="margin-top:10px"></div>
+          </details>
         </div>
       </div>
 
@@ -574,6 +612,8 @@ const CONFIG = {
   SHEETS_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses',
   // Manual Moxie follow-ups written by the store's Moxie sync (see workers/calm-rice-eb6b).
   MOXIE_TODO_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=moxie_todo',
+  // Receipt candidates appended by the Gmail parser (expenses-intake-script.gs) with an append-only key.
+  INBOX_URL: 'https://calm-rice-eb6b.morgan-2bf.workers.dev/sync?key=expenses_inbox',
 };
 
 const STORAGE_KEY = "mm_expenses";
@@ -587,6 +627,8 @@ const CATS = ["Ads","Software","Contractors","Equipment","Travel","Meals","Educa
 // ─── STATE ────────────────────────────────────────────────────
 let expenses = [];
 let deleted = [];   // [{id, at, merchant, amount, date}]
+let inbox = { items: [], skipMerchants: [] };
+let acceptingInboxId = null;   // inbox item being turned into an expense through the Add modal
 let filtered = [];
 let currentPage = 1;
 const PER_PAGE = 50;
@@ -646,6 +688,7 @@ async function initApp() {
   renderTable();
   setupDropzone();
   loadMoxieTodo();
+  loadInbox();
 }
 
 function today() {
@@ -661,6 +704,7 @@ function navigateTo(page) {
   if (nav) nav.classList.add("active");
   if (page === "dashboard") renderDashboard();
   if (page === "expenses") renderTable();
+  if (page === "inbox") renderInbox();
 }
 
 // ─── STORAGE ──────────────────────────────────────────────────
@@ -916,6 +960,7 @@ function openEditModal(id) {
 
 function closeModal() {
   document.getElementById("exp-modal").classList.remove("open");
+  acceptingInboxId = null;
 }
 
 function hideAIBoxes() {
@@ -1038,6 +1083,7 @@ async function saveExpense() {
   }
 
   persist([savedId]);
+  if (acceptingInboxId && !editingId) resolveInbox(acceptingInboxId, "accepted", savedId);
   closeModal();
   renderTable();
   if (document.getElementById("page-dashboard").classList.contains("active")) renderDashboard();
@@ -1610,6 +1656,174 @@ function processRecurring() {
     persist(changed.concat(newEntries.map(e => e.id)));
     if (newEntries.length) toast(newEntries.length + " recurring expense" + (newEntries.length !== 1 ? "s" : "") + " added", "success");
   }
+}
+
+// ─── INBOX: receipt candidates from Gmail ─────────────────────
+// The Apps Script parser can only append to this key. Everything else (status,
+// skip rules) is written from here with the login, as a full replace.
+async function loadInbox(manual) {
+  try {
+    const res = await mmAuth.fetch(CONFIG.INBOX_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json();
+    inbox = {
+      ...j,
+      items: Array.isArray(j.items) ? j.items : [],
+      skipMerchants: Array.isArray(j.skipMerchants) ? j.skipMerchants : []
+    };
+    if (classifyInbox()) await persistInbox();
+    renderInboxBadge();
+    if (document.getElementById("page-inbox").classList.contains("active")) renderInbox();
+    if (manual) toast("Inbox refreshed", "success");
+  } catch (e) {
+    console.error("inbox load failed", e);
+    if (manual) toast("Could not load the inbox", "error");
+  }
+}
+
+function inboxMatch(it, maxDays) {
+  if (it.amount == null) return null;
+  const key = normMerchant(it.merchant);
+  return expenses.find(e => !e.recurring && normMerchant(e.merchant) === key
+    && Math.abs(Number(e.amount) - Number(it.amount)) < 0.01 && daysBetween(e.date, it.date) <= maxDays) || null;
+}
+
+// Auto-resolve what needs no decision: already logged, or a merchant she said to skip.
+function classifyInbox() {
+  let changed = false;
+  const skip = new Set(inbox.skipMerchants.map(normMerchant));
+  inbox.items.forEach(it => {
+    if (it.status !== "pending" || it.kind === "income") return;
+    if (skip.has(normMerchant(it.merchant))) { it.status = "skipped"; it.auto = true; it.resolvedAt = new Date().toISOString(); changed = true; return; }
+    const m = inboxMatch(it, 3);
+    if (m) { it.status = "matched"; it.expenseId = m.id; it.auto = true; it.resolvedAt = new Date().toISOString(); changed = true; }
+  });
+  return changed;
+}
+
+async function persistInbox() {
+  try {
+    const res = await mmAuth.fetch(CONFIG.INBOX_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inbox)
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+  } catch (e) {
+    console.error("inbox save failed", e);
+    toast("Inbox change did not save", "error");
+  }
+}
+
+function renderInboxBadge() {
+  const n = inbox.items.filter(it => it.status === "pending" && it.kind !== "income").length;
+  const b = document.getElementById("inbox-badge");
+  b.textContent = n;
+  b.classList.toggle("hidden", n === 0);
+}
+
+function renderInbox() {
+  renderInboxBadge();
+  const showResolved = document.getElementById("inbox-show-resolved").checked;
+  const exp = inbox.items.filter(it => it.kind !== "income");
+  const pending = exp.filter(it => it.status === "pending").sort((a, b) => b.date.localeCompare(a.date));
+  const resolved = exp.filter(it => it.status !== "pending").sort((a, b) => (b.resolvedAt || "").localeCompare(a.resolvedAt || ""));
+  const sub = document.getElementById("inbox-subtitle");
+  sub.textContent = pending.length
+    ? pending.length + " charge" + (pending.length !== 1 ? "s" : "") + " waiting" + (inbox.lastAppendAt ? " · last delivery " + new Date(inbox.lastAppendAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "")
+    : "Nothing waiting" + (inbox.lastAppendAt ? " · last delivery " + new Date(inbox.lastAppendAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "");
+
+  const row = it => {
+    const near = it.status === "pending" ? inboxMatch(it, 12) : null;   // same charge logged on the template day?
+    const lines = (it.lines || []).map(l => esc(l.name) + " " + fmt(l.amount)).join(" · ");
+    const statusTag = it.status !== "pending" ? `<span class="inbox-tag">${it.status === "matched" ? "already logged" : it.status}${it.auto ? " (auto)" : ""}</span>` : "";
+    const actions = it.status === "pending" ? `
+        ${near ? `<button class="btn btn-outline btn-sm" title="Move the ${fmtDate(near.date)} entry to ${fmtDate(it.date)}" onclick="redateInbox('${esc(it.id)}')">Re-date ${fmtDate(near.date)} entry</button>` : ""}
+        <button class="btn btn-primary btn-sm" onclick="acceptInbox('${esc(it.id)}')">${it.amount == null ? "Add (enter amount)" : "Add"}</button>
+        <button class="btn btn-ghost btn-sm" onclick="skipInbox('${esc(it.id)}')">Skip</button>`
+      : `<button class="btn btn-ghost btn-sm" onclick="reopenInbox('${esc(it.id)}')">Reopen</button>`;
+    return `
+      <div class="inbox-item ${it.status !== "pending" ? "resolved" : ""}">
+        <div class="inbox-main">
+          <div><span class="inbox-merchant">${esc(it.merchant)}</span>${statusTag}</div>
+          <div class="inbox-meta">${fmtDate(it.date)} · ${esc(it.source || "gmail")}${it.detail ? " · " + esc(it.detail) : ""}${lines ? "<br>" + lines : ""}${it.viewUrl ? ` · <a href="${esc(it.viewUrl)}" target="_blank" rel="noopener">open email</a>` : ""}</div>
+        </div>
+        <div class="inbox-amt">${it.amount == null ? "?" : fmt(it.amount)}</div>
+        <div class="inbox-actions">${actions}</div>
+      </div>`;
+  };
+  const list = document.getElementById("inbox-list");
+  list.innerHTML = (pending.length ? pending.map(row).join("") : `<div style="padding:32px;text-align:center;color:var(--gray-500)">No charges waiting. The Gmail parser delivers every morning.</div>`)
+    + (showResolved && resolved.length ? `<div style="margin:22px 0 10px;font-size:.78rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.06em">Handled</div>` + resolved.slice(0, 100).map(row).join("") : "");
+
+  const income = inbox.items.filter(it => it.kind === "income").sort((a, b) => b.date.localeCompare(a.date));
+  document.getElementById("inbox-income-count").textContent = income.length;
+  document.getElementById("inbox-income").innerHTML = income.slice(0, 60).map(it => `
+      <div class="inbox-item resolved" style="padding:8px 14px">
+        <div class="inbox-main"><span class="inbox-merchant">${esc(it.merchant)}</span><div class="inbox-meta">${fmtDate(it.date)} · ${esc(it.source || "")}${it.detail ? " · " + esc(it.detail) : ""}</div></div>
+        <div class="inbox-amt" style="color:var(--success, #1e8449)">${it.amount == null ? "?" : fmt(it.amount)}</div>
+      </div>`).join("") || `<div style="font-size:.84rem;color:var(--gray-500)">None yet.</div>`;
+}
+
+function inboxItem(id) { return inbox.items.find(it => it.id === id); }
+
+async function resolveInbox(id, status, expenseId) {
+  const it = inboxItem(id); if (!it) return;
+  it.status = status; it.auto = false; it.resolvedAt = new Date().toISOString();
+  if (expenseId) it.expenseId = expenseId;
+  await persistInbox();
+  renderInboxBadge();
+  if (document.getElementById("page-inbox").classList.contains("active")) renderInbox();
+}
+
+// Add: open the normal Add modal prefilled, so history/AI categorize and every
+// field edit work as usual. Saving marks the item accepted.
+function acceptInbox(id) {
+  const it = inboxItem(id); if (!it) return;
+  openAddModal();
+  acceptingInboxId = id;
+  document.getElementById("modal-title").textContent = "Add from Inbox";
+  document.getElementById("e-date").value = it.date;
+  document.getElementById("e-merchant").value = it.merchant;
+  if (it.amount != null) document.getElementById("e-amount").value = it.amount;
+  document.getElementById("e-note").value = (it.detail || "").slice(0, 120);
+  const h = suggestFromHistory(it.merchant);
+  if (h) {
+    document.getElementById("e-cat").value = h.category;
+    document.getElementById("e-biz").value = h.business;
+    document.getElementById("e-tax").checked = h.taxDeductible;
+  }
+  setTimeout(() => document.getElementById(it.amount == null ? "e-amount" : "save-btn").focus(), 120);
+}
+
+// Re-date: the same charge is already logged (usually on the template day); move it to the receipt date.
+async function redateInbox(id) {
+  const it = inboxItem(id); if (!it) return;
+  const near = inboxMatch(it, 12); if (!near) { toast("No matching entry to re-date", "error"); return; }
+  const from = near.date;
+  near.date = it.date;
+  realignTemplates(near);
+  persist([near.id]);
+  renderTable();
+  toast(near.merchant + " moved from " + fmtDate(from) + " to " + fmtDate(it.date), "success");
+  await resolveInbox(id, "accepted", near.id);
+}
+
+async function skipInbox(id) {
+  const it = inboxItem(id); if (!it) return;
+  const remember = confirm("Skip " + it.merchant + " " + (it.amount == null ? "" : fmt(it.amount)) + "?\n\nOK = skip and auto-skip " + it.merchant + " from now on.\nCancel = skip just this one.");
+  if (remember && !inbox.skipMerchants.some(m => normMerchant(m) === normMerchant(it.merchant))) inbox.skipMerchants.push(it.merchant);
+  it.status = "skipped"; it.auto = false; it.resolvedAt = new Date().toISOString();
+  if (remember) classifyInbox();
+  await persistInbox();
+  renderInbox();
+}
+
+async function reopenInbox(id) {
+  const it = inboxItem(id); if (!it) return;
+  inbox.skipMerchants = inbox.skipMerchants.filter(m => normMerchant(m) !== normMerchant(it.merchant));
+  it.status = "pending"; it.auto = false; delete it.resolvedAt;
+  await persistInbox();
+  renderInbox();
 }
 
 // ─── MOXIE FOLLOW-UPS ─────────────────────────────────────────
