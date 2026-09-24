@@ -192,8 +192,19 @@ var SENDERS = [
                  merchant: titleCase(payee), amount: amt, date: run, detail: "ACH from Bluevine Payroll" };
       }
       if (/statement|verification code|sign.?in|password/i.test(subj)) return null;
-      // Debit card alerts (enabled 2026-09-23, purchases over $1). Exact wording unknown until the
-      // first one lands, so anything else from Bluevine with an amount is delivered for review.
+      // Debit card alert, format seen 2026-09-24: "A debit card transaction of $10.00 to GOOGLE *CLOUD
+      // 7VQKHC MOUNTAIN VIEW, CA initiated by ... on 09-24-2026 exceeded ...". The descriptor is cut at
+      // the first token with a digit (the reference code), which drops the city too: "Google Cloud".
+      var card = /card transaction of \$([\d,]+\.\d{2}) to (.+?) initiated by/i.exec(b);
+      if (card) {
+        var desc = card[2].replace(/\s+/g, " ").replace(/,\s*[A-Z]{2}$/, "").trim(), words = desc.replace(/\*/g, " ").trim().split(/\s+/), keep = [];
+        for (var i = 0; i < words.length; i++) { if (i > 0 && /\d/.test(words[i])) break; keep.push(words[i]); }
+        var name = keep.join(" ");
+        var on = grab(/ on (\d{2}-\d{2}-\d{4}) exceeded/, b);
+        return { merchant: titleCase(name || desc).slice(0, 60), amount: Number(card[1].replace(/,/g, "")),
+                 date: on ? usDate(on.replace(/-/g, "/")) : null, detail: "Bluevine card: " + desc.slice(0, 80) };
+      }
+      // Anything else from Bluevine with an amount is delivered for review.
       var amt2 = money(b) || money(subj); if (!amt2) return null;
       var who = grab(/(?:purchase|transaction|charge|payment)[^.\n]{0,40}?\b(?:at|with|to|from)\s+([A-Za-z0-9][^\n|.]{2,50}?)(?:\s+(?:on|for|was|has|in)\b|[.\n|]|$)/i, b)
              || grab(/\$[\d,.]+\s+(?:at|with|to)\s+([A-Za-z0-9][^\n|.]{2,50}?)(?:\s+(?:on|for|was|has|in)\b|[.\n|]|$)/i, b);
