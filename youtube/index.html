@@ -1596,7 +1596,8 @@ You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREN
 1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video: a clear focal person, big short text, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
 2. Pick up to 3 PERSON photos for the image model, the first being the expression and angle the design should use. Prefer clear, well-lit, front or three-quarter faces.
 3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
-4. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
+4. From the VIDEO FRAMES, describe what the host wears on top in this video: color and type, e.g. "olive green crew-neck t-shirt" or "navy blazer over a white shirt". If there are no frames or the host is not in them, use the CURRENT thumbnail; if neither shows the host, leave it empty. The page adds this to the prompt, so do not describe clothing in the prompt yourself.
+5. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
 
 PROMPT RULES:
 - Borrow the trend's composition: where the person sits, how large they are, where the text sits, the graphic device (arrow, circle, split, badge) and the energy. Never copy its people, its words, its logos or its brand colors.
@@ -1609,7 +1610,7 @@ PROMPT RULES:
 - The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
 
 Return ONLY this JSON, no markdown:
-{"core_idea": "<one sentence: what the video teaches>", "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
 
 // The Redesign look: vidIQ-level energy (big outlined type, a reaction pose, one prop, a
 // blurred topical setting) carried out in the channel's own colors and type. Always
@@ -1762,6 +1763,22 @@ async function fetchVideoTranscript(videoId, token) {
   } catch (e) { console.warn('captions', e); return ''; }
 }
 
+// Frames YouTube captures from inside the video (roughly a quarter, half and three
+// quarters in). They show what the host actually wears in this video, which changes
+// from video to video; the face bank photos are all one outfit.
+async function fetchVideoFrames(videoId) {
+  const out = [];
+  for (const n of [1, 2, 3]) {
+    try {
+      const r = await fetch(`https://i.ytimg.com/vi/${videoId}/hq${n}.jpg`);
+      if (!r.ok) continue;
+      const ref = await toRefImage(await r.blob(), 480);
+      out.push({ mimeType: ref.mimeType, data: ref.data });
+    } catch (e) { /* skip this frame */ }
+  }
+  return out;
+}
+
 // --- Redesign pipeline ---
 async function redesignThumbnail(fmt) {
   const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
@@ -1793,11 +1810,13 @@ async function redesignThumbnail(fmt) {
 
     genOut.innerHTML = spinner('Reading the video captions...');
     const transcript = await fetchVideoTranscript(video?.id, token);
+    const frames = await fetchVideoFrames(video?.id);
 
     genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
     const content = [];
     people.forEach((p, i) => { content.push({ type: 'text', text: `PERSON ${i + 1}` }); content.push(refForClaude(p)); });
     if (source && faces.length) { content.push({ type: 'text', text: `CURRENT THUMBNAIL${shortsFrame ? ' (vertical Short frame)' : ''}` }); content.push(refForClaude(source)); }
+    frames.forEach((f, i) => { content.push({ type: 'text', text: `VIDEO FRAME ${i + 1} (what the host wears in this video)` }); content.push(refForClaude(f)); });
     trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
     content.push({ type: 'text', text: `Video title: "${sn.title}"
 Full description: ${(sn.description || '').slice(0, 2000)}
@@ -1812,7 +1831,9 @@ Format: ${ratios.join(' and ')}` });
     const identity = picked.length ? picked : people.slice(0, 3);
     const trend = trends[(plan.trend || 0) - 1] || null;
     const refs = [...identity, ...(trend ? [trend] : [])];
-    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}`;
+    // Wardrobe goes last so it wins over the one outfit every face bank photo shares.
+    const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face.` : '';
+    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${wardrobe}`;
 
     const results = [];
     for (const ratio of ratios) {
@@ -1868,6 +1889,7 @@ function renderRedesign(plan, trend, results, video) {
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
         Headline: <strong>${esc(plan.headline || '')}</strong><br>
         ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
+        ${plan.outfit ? `Wardrobe from the video: ${esc(plan.outfit)}<br>` : ''}
         Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
