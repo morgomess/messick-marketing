@@ -1434,7 +1434,7 @@ REFERENCE PHOTO RULES:
 - Change only what a thumbnail needs: reframing or a tighter crop, background cleanup or blur, contrast and a color grade that heightens the photo's existing palette, one bold headline, simple graphic accents in the brand colors.
 - If the photo already has a headline, keep it word for word, with the same casing, colors and layout. Only change it when the request below gives a new headline or explicitly asks for different text. Never stack new text on top of old text.
 - Any new text may only state what the video title or the request states. Do not invent claims, outcomes or angles.
-- Never add logos, app icons or brand marks of other companies or products. Only keep logos already in the photo.
+- Keep logos already in the photo. Logos: add the logo of a company, product or platform only when the video title or topic names it (Google for a Google search video, ChatGPT for a ChatGPT video, Epic for an Epic video). Render it accurately, at most one or two, as a supporting element rather than the focal point. Never add logos of unrelated brands.
 - Every graphic element (divider line, shape, badge) appears once. Say exactly how many of each you want.
 - Accent colors come only from the photo itself or the brand colors given below. Never introduce a new color.
 - Cutout edges: where a person meets the background, the edge must be clean and sharp, with no halo, glow, blur, fringe or background color bleeding into the hair, glasses, skin or clothing. Any glow, gradient or grade goes behind the person, never over their outline. Do not add an outline, stroke, sticker border or drop shadow around them. Say this explicitly in the prompt.
@@ -1604,7 +1604,7 @@ PROMPT RULES:
 - Clean cutout: sharp edges on hair, glasses, skin and clothing, with no halo, glow, fringe, outline, sticker border or background color bleeding into the person.
 - Headline written as a quoted string with exact placement, bold condensed sans-serif, high contrast. Keep text and face inside the center 80% of the frame.
 - Never write hex codes, font names, or labels like "Line 1" or "Header:" in the prompt. Name colors in words.
-- No logos, app icons or brand marks of other companies. Each graphic element appears once.
+- Logos: add the logo of a company, product or platform only when the video title or topic names it (Google for a Google search video, ChatGPT for a ChatGPT video, Epic for an Epic video). Render it accurately, at most one or two, as a supporting element rather than the focal point. Never add logos of unrelated brands. Each graphic element appears once.
 - The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
 
 Return ONLY this JSON, no markdown:
@@ -1612,14 +1612,14 @@ Return ONLY this JSON, no markdown:
 
 // High-energy style, modeled on vidIQ's generator: loud type, a reaction pose, one prop,
 // a blurred topical setting. Appended to REDESIGN_SYSTEM when that style is picked; it
-// overrides the channel house-style rule, the rest (likeness, no logos, text rules) stands.
+// overrides the channel house-style rule, the rest (likeness, logo and text rules) stands.
 const REDESIGN_ENERGY = `
 
 STYLE OVERRIDE: HIGH-ENERGY. Ignore the channel house-style rule above and build a loud, high-CTR thumbnail in this style. Still borrow the chosen trend's composition where it helps.
 - Headline: 2-5 words in huge, heavy, condensed sans-serif, all caps. One or two key words in bright yellow, the rest in white, every letter with a thick black outline and a soft drop shadow. End with "!" or "?" when it fits the title. The text block fills about half the frame.
 - Optional subline: 3-6 words in small white text with a shadow (or in a small rounded pill) that only restates the title.
 - The host is big, head and shoulders filling one side and often cropped by the frame edge, with a strong reaction that fits the headline: pointing at the headline or prop, hands on the head, or wide-eyed shock. Pick the PERSON photo with the closest expression; hands and pose may be added, but the face must stay theirs.
-- One prop that shows the topic, drawn simply and large: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. Generic icons only, never a real company's logo or app icon.
+- One prop that shows the topic, drawn simply and large: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. When the title names a company, product or platform, the prop may carry its real logo (a Google search bar, the ChatGPT logo); otherwise use generic icons.
 - Background: a softly blurred, cool blue-lit real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), darker at the edges so the text pops.
 - At most one bright arrow or circle, pointing at the prop or the headline.
 - The headline may be 2-5 words; still only claims the title makes.`;
