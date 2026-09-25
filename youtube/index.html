@@ -1461,6 +1461,400 @@ function thumbRefRules(ratio) {
   return THUMB_REF_RULES.replace('{FORMAT}', fmt);
 }
 
+// ============================================================
+// REDESIGN MODE: trending layout + face bank identity
+// ============================================================
+// Touch-up keeps the current thumbnail's design. Redesign builds a new layout
+// modeled on top-ranking thumbnails for the topic, and the channel's face bank
+// photos hold the person's likeness. A likeness check re-rolls once; if the face
+// still drifts, the real person is cut out of a face bank photo and composited
+// onto the generated design, so the face is never a lookalike.
+
+const LIKENESS_PASS = 7;
+const faceBankCache = {};
+
+async function faceBankCall(body) {
+  const res = await mmAuth.fetch(`${WORKER_URL}/facebank`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function getFaceBank(channelId, force) {
+  if (!channelId) return [];
+  if (!force && faceBankCache[channelId]) return faceBankCache[channelId];
+  const { photos } = await faceBankCall({ action: 'list', channel: channelId });
+  faceBankCache[channelId] = photos || [];
+  return faceBankCache[channelId];
+}
+
+async function addFaceBankFiles(files) {
+  const brand = getActive();
+  if (!brand || !files?.length) return;
+  const panel = document.getElementById('facebank-panel');
+  if (panel) panel.querySelector('.fb-status').textContent = 'Uploading...';
+  for (const f of files) {
+    const ref = await toRefImage(f, 1024);
+    await faceBankCall({ action: 'add', channel: brand.channelId, mimeType: ref.mimeType, data: ref.data });
+  }
+  await getFaceBank(brand.channelId, true);
+  renderFaceBank();
+}
+
+async function deleteFaceBankPhoto(key) {
+  const brand = getActive();
+  if (!brand) return;
+  await faceBankCall({ action: 'delete', channel: brand.channelId, key });
+  await getFaceBank(brand.channelId, true);
+  renderFaceBank();
+}
+
+async function toggleFaceBank() {
+  const panel = document.getElementById('facebank-panel');
+  if (!panel) return;
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  panel.innerHTML = '<div class="fb-status" style="font-size:12px;color:var(--text-dim);">Loading face bank...</div>';
+  try { await getFaceBank(getActive()?.channelId); } catch (e) { console.warn(e); }
+  renderFaceBank();
+}
+
+function renderFaceBank() {
+  const panel = document.getElementById('facebank-panel');
+  const brand = getActive();
+  if (!panel || !brand) return;
+  const photos = faceBankCache[brand.channelId] || [];
+  panel.innerHTML = `
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-weight:600;margin-bottom:6px;">Face bank: ${esc(brand.channelName || '')}</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Redesign uses these to keep the host's real face. Best set: straight on, a three-quarter turn each way, a big smile and a surprised look. Window light, plain wall, glasses on, no portrait mode or filters.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      ${photos.map(p => `<div style="position:relative;">
+        <img src="data:${p.mimeType};base64,${p.data}" style="width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);display:block;">
+        <button onclick="deleteFaceBankPhoto('${p.key}')" title="Remove" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;padding:1px 5px;">x</button>
+      </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);">No photos yet. Redesign will fall back to the current thumbnail, which holds the likeness less well.</div>'}
+    </div>
+    <label class="btn-copy" style="display:inline-block;cursor:pointer;">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addFaceBankFiles(Array.from(this.files))"></label>
+    <span class="fb-status" style="font-size:12px;color:var(--text-dim);margin-left:8px;">${photos.length} photo${photos.length === 1 ? '' : 's'}</span>`;
+}
+
+function b64Mime(b64) {
+  return b64.startsWith('/9j/') ? 'image/jpeg' : b64.startsWith('UklG') ? 'image/webp' : 'image/png';
+}
+
+async function b64ToBitmap(b64) {
+  return createImageBitmap(await (await fetch(`data:${b64Mime(b64)};base64,${b64}`)).blob());
+}
+
+// Shorts get a pillarboxed 16:9 thumbnail: the vertical frame between blurred
+// bars. Returns the center 9:16 strip when that pattern is found, else null.
+// Thresholds calibrated on the Messick channel: Shorts score 23-110 at the strip
+// edges against 1-4 elsewhere; regular thumbnails fail one side or the control.
+async function extractShortsFrame(ref) {
+  const bmp = await b64ToBitmap(ref.data);
+  const W = bmp.width, H = bmp.height;
+  if (W / H < 1.6) return null;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+  const px = ctx.getImageData(0, 0, W, H).data;
+  const lum = (x, y) => { const i = (y * W + x) * 4; return 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]; };
+  const edge = x => { let s = 0, n = 0; for (let y = 0; y < H; y += 4) { s += Math.abs(lum(Math.min(W - 1, x + 2), y) - lum(Math.max(0, x - 3), y)); n++; } return s / n; };
+  const stripW = Math.round(H * 9 / 16), left = Math.round((W - stripW) / 2);
+  const l = edge(left), r = edge(left + stripW);
+  const control = (edge(Math.round(W * 0.2)) + edge(Math.round(W * 0.8))) / 2;
+  if (Math.min(l, r) < 15 || Math.min(l, r) < control * 4) return null;
+  const out = document.createElement('canvas'); out.width = stripW; out.height = H;
+  out.getContext('2d').drawImage(bmp, left, 0, stripW, H, 0, 0, stripW, H);
+  return { mimeType: 'image/jpeg', data: out.toDataURL('image/jpeg', 0.92).split(',')[1] };
+}
+
+// Top-viewed videos on the topic from the last year, as small reference thumbnails.
+async function fetchTrendThumbs(query, token, excludeChannelId) {
+  if (!token || !query) return [];
+  const after = new Date(Date.now() - 365 * 864e5).toISOString();
+  const res = await fetch(`${YT_API}/search?part=snippet&q=${encodeURIComponent(query)}&type=video&order=viewCount&maxResults=10&publishedAfter=${after}&access_token=${token}`);
+  const data = await res.json();
+  const out = [];
+  for (const it of (data.items || [])) {
+    if (out.length >= 6 || !it.id?.videoId || it.snippet?.channelId === excludeChannelId) continue;
+    try {
+      const r = await fetch(`https://i.ytimg.com/vi/${it.id.videoId}/hqdefault.jpg`);
+      if (!r.ok) continue;
+      const ref = await toRefImage(await r.blob(), 640);
+      out.push({ mimeType: ref.mimeType, data: ref.data, title: it.snippet?.title || '', channel: it.snippet?.channelTitle || '' });
+    } catch (e) { /* skip this one */ }
+  }
+  return out;
+}
+
+const REDESIGN_SYSTEM = `You are an elite YouTube thumbnail art director. You design a new thumbnail for a video by borrowing the layout of a proven top-ranking thumbnail, while the real host from the PERSON photos stays unmistakably themselves.
+
+You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREND thumbnails that rank for this topic.
+
+1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video: a clear focal person, big short text, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
+2. Pick up to 3 PERSON photos for the image model, the first being the expression and angle the design should use. Prefer clear, well-lit, front or three-quarter faces.
+3. Write a 2-4 word headline. It may only state what the title states, and should carry the title's specific hook (product, condition or news item).
+4. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
+
+PROMPT RULES:
+- Borrow the trend's composition: where the person sits, how large they are, where the text sits, the graphic device (arrow, circle, split, badge) and the energy. Never copy its people, its words, its logos or its brand colors.
+- The host fills a large share of the frame (face at least a quarter of the frame height), with the expression from the first chosen PERSON photo. Do not describe their face, hair, skin or body; the photos carry that.
+- Replace the photos' messy room backgrounds with a clean designed background in the channel's brand colors.
+- Clean cutout: sharp edges on hair, glasses, skin and clothing, with no halo, glow, fringe, outline, sticker border or background color bleeding into the person.
+- Headline written as a quoted string with exact placement, bold condensed sans-serif, high contrast. Keep text and face inside the center 80% of the frame.
+- Never write hex codes, font names, or labels like "Line 1" or "Header:" in the prompt. Name colors in words.
+- No logos, app icons or brand marks of other companies. Each graphic element appears once.
+- The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
+
+Return ONLY this JSON, no markdown:
+{"trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+
+function redesignRoleHeader(nPeople, hasTrend) {
+  const people = nPeople > 1 ? `Images 1-${nPeople} are photos of the same real person` : 'Image 1 is a photo of the real person';
+  return `${people}. Use them only for identity: the thumbnail must show this exact person, with the same face shape, eyes, nose, mouth, teeth, skin tone, hair, glasses, age and build. Do not beautify, slim, de-age or blend them with anyone else. Ignore the rooms behind them. Do not add any white outline, stroke, sticker border or glow around the person; their edge meets the background directly.` +
+    (hasTrend ? ` Image ${nPeople + 1} is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors.` : '');
+}
+
+async function checkLikeness(identity, b64) {
+  const content = [];
+  identity.forEach((f, i) => { content.push({ type: 'text', text: `REFERENCE ${i + 1}` }); content.push(refForClaude(f)); });
+  content.push({ type: 'text', text: 'GENERATED THUMBNAIL' });
+  content.push({ type: 'image', source: { type: 'base64', media_type: b64Mime(b64), data: b64 } });
+  content.push({ type: 'text', text: 'Compare the host in the generated thumbnail with the reference photos.' });
+  const system = `You check whether the person in a GENERATED THUMBNAIL is recognizably the same real person as in the REFERENCE photos. Judge face shape, eyes, nose, mouth, teeth, skin tone, hairline and hair, glasses, apparent age and build. Ignore pose, expression, lighting, color grade, background and clothing.
+Scores: 9-10 unmistakably the same person; 7-8 same person with minor drift; 4-6 a lookalike or relative; 0-3 a different person.
+Return ONLY JSON: {"score": <0-10>, "issues": "<what differs, short; empty if nothing>"}`;
+  const json = parseJSON(await callAI(system, content)) || {};
+  return { score: Number(json.score) || 0, issues: json.issues || '' };
+}
+
+// --- Real-face composite (fallback) ---
+// MediaPipe selfie segmentation (Apache-2.0), loaded only when the fallback runs.
+let _segmenter = null;
+async function getSegmenter() {
+  if (_segmenter) return _segmenter;
+  const base = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1';
+  const vision = await import(`${base}/+esm`);
+  const fileset = await vision.FilesetResolver.forVisionTasks(`${base}/wasm`);
+  _segmenter = await vision.ImageSegmenter.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite' },
+    runningMode: 'IMAGE', outputConfidenceMasks: true, outputCategoryMask: false
+  });
+  return _segmenter;
+}
+
+// Cuts the person out of an image. Returns { canvas (transparent background), box }.
+async function cutoutPerson(b64) {
+  const seg = await getSegmenter();
+  const bmp = await b64ToBitmap(b64);
+  const result = seg.segment(bmp);
+  const bgMask = result.confidenceMasks[0];
+  const mw = bgMask.width, mh = bgMask.height, bg = bgMask.getAsFloat32Array();
+  // Alpha from 1 - background confidence, with a tight ramp so edges stay crisp.
+  const maskCanvas = document.createElement('canvas'); maskCanvas.width = mw; maskCanvas.height = mh;
+  const md = maskCanvas.getContext('2d').createImageData(mw, mh);
+  for (let i = 0; i < bg.length; i++) {
+    const a = Math.max(0, Math.min(1, ((1 - bg[i]) - 0.35) / 0.3));
+    md.data[i * 4 + 3] = Math.round(a * 255);
+  }
+  maskCanvas.getContext('2d').putImageData(md, 0, 0);
+  result.close();
+  const W = bmp.width, H = bmp.height;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(bmp, 0, 0);
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.drawImage(maskCanvas, 0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+  // Bounding box of solid pixels
+  const d = ctx.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) {
+    if (d[(y * W + x) * 4 + 3] > 128) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  if (x1 <= x0 || y1 <= y0) throw new Error('No person found to cut out.');
+  // Head: walk down from the top until the silhouette widens into the shoulders.
+  // Bodies get cropped differently in each image, so heads are what we align.
+  const rows = [];
+  for (let y = y0; y <= y1; y += 2) {
+    let a = -1, b = -1;
+    for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 128) { if (a < 0) a = x; b = x; }
+    if (a >= 0) rows.push({ y, a, b, w: b - a });
+  }
+  let end = rows.length;
+  for (let i = 8; i < rows.length; i++) {
+    const prior = rows.slice(Math.max(0, i - 8), i).map(r => r.w).sort((p, q) => p - q);
+    if (rows[i].w > prior[prior.length >> 1] * 1.45) { end = i; break; }
+  }
+  const band = rows.slice(Math.floor(end * 0.3), Math.max(Math.floor(end * 0.7), Math.floor(end * 0.3) + 1));
+  const head = {
+    top: y0,
+    w: band.map(r => r.w).sort((p, q) => p - q)[band.length >> 1],
+    cx: band.reduce((s, r) => s + (r.a + r.b) / 2, 0) / band.length
+  };
+  return { canvas: c, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, head, W, H };
+}
+
+async function compositeRealPerson(designB64, personRef, ratio) {
+  // 1. The same design with the person removed
+  const plateB64 = await genThumbImage('Remove the person from image 1 completely and fill the space with the surrounding background so it looks like no one was ever there. Keep every piece of text, every graphic, every color and the whole layout exactly unchanged.', ratio, [{ mimeType: b64Mime(designB64), data: designB64 }]);
+  // 2. Where the person sat in the design, and the real person
+  const [design, real] = await Promise.all([cutoutPerson(designB64), cutoutPerson(personRef.data)]);
+  const plate = await b64ToBitmap(plateB64);
+  const out = document.createElement('canvas'); out.width = plate.width; out.height = plate.height;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(plate, 0, 0);
+  // Match the real head to the designed head: same width, same center, same top.
+  // The body below simply runs to wherever it runs (usually off the bottom edge).
+  const sx = plate.width / design.W, sy = plate.height / design.H;
+  const scale = (design.head.w * sx) / real.head.w;
+  const dx = design.head.cx * sx - (real.head.cx - real.box.x) * scale;
+  const dy = design.head.top * sy - (real.head.top - real.box.y) * scale;
+  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scale, real.box.h * scale);
+  return out.toDataURL('image/jpeg', 0.92).split(',')[1];
+}
+
+// --- Redesign pipeline ---
+async function redesignThumbnail(fmt) {
+  const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
+  const btn = document.getElementById('gen-thumb-btn');
+  const genOut = document.getElementById('thumb-gen-out');
+  if (!genOut) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Redesigning...'; }
+  const video = currentVideoData;
+  const sn = video?.snippet || {};
+  const brand = getActive();
+  const token = sessionTokens[brand?.channelId];
+
+  try {
+    genOut.innerHTML = spinner('Loading face bank and current thumbnail...');
+    let faces = [];
+    try { faces = await getFaceBank(brand?.channelId); } catch (e) { console.warn('face bank', e); }
+    const thumbUrl = sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || '';
+    const current = await fetchVideoThumbRef(video?.id, thumbUrl);
+    const shortsFrame = current ? await extractShortsFrame(current).catch(() => null) : null;
+    const source = shortsFrame || current;
+    const people = faces.length ? faces : (source ? [source] : []);
+    if (!people.length) throw new Error('No face bank photos and no current thumbnail to take the host from.');
+
+    genOut.innerHTML = spinner('Pulling top-ranking thumbnails for this topic...');
+    // Search the topic, not the title: a full title mostly finds only this video.
+    const query = (await callAI('Return only a 2-5 word YouTube search query for the general topic of this video, in the words a viewer would type. No quotes, no punctuation, nothing else.',
+      `Title: ${sn.title}\nDescription: ${(sn.description || '').slice(0, 300)}`).catch(() => '')).trim().split('\n')[0].slice(0, 80) || sn.title;
+    const trends = await fetchTrendThumbs(query, token, brand?.channelId).catch(e => { console.warn('trends', e); return []; });
+
+    genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
+    const content = [];
+    people.forEach((p, i) => { content.push({ type: 'text', text: `PERSON ${i + 1}` }); content.push(refForClaude(p)); });
+    if (source && faces.length) { content.push({ type: 'text', text: `CURRENT THUMBNAIL${shortsFrame ? ' (vertical Short frame)' : ''}` }); content.push(refForClaude(source)); }
+    trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
+    content.push({ type: 'text', text: `Video title: "${sn.title}"
+Description excerpt: ${(sn.description || '').slice(0, 400)}
+Channel: ${brand?.channelName || ''}
+${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
+Format: ${ratios.join(' and ')}` });
+    const plan = parseJSON(await callAI(buildSystem(REDESIGN_SYSTEM), content)) || {};
+    if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
+
+    const picked = (plan.photos || []).map(n => people[n - 1]).filter(Boolean).slice(0, 3);
+    const identity = picked.length ? picked : people.slice(0, 3);
+    const trend = trends[(plan.trend || 0) - 1] || null;
+    const refs = [...identity, ...(trend ? [trend] : [])];
+    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}`;
+
+    const results = [];
+    for (const ratio of ratios) {
+      genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
+      let b64 = await genThumbImage(prompt, ratio, refs);
+      let check = await checkLikeness(identity, b64);
+      let method = 'generated';
+      if (check.score < LIKENESS_PASS) {
+        genOut.innerHTML = spinner(`Likeness ${check.score}/10, re-rolling with corrections...`);
+        const retry = await genThumbImage(`${prompt}\n\nA previous attempt drifted from the real person: ${check.issues || 'the face did not match'}. Match the face in the person photos exactly.`, ratio, refs);
+        const retryCheck = await checkLikeness(identity, retry);
+        if (retryCheck.score > check.score) { b64 = retry; check = retryCheck; }
+      }
+      if (check.score < LIKENESS_PASS) {
+        genOut.innerHTML = spinner('Still drifting. Compositing the real person onto the design...');
+        try {
+          b64 = await compositeRealPerson(b64, identity[0], ratio);
+          method = 'composite';
+        } catch (e) { console.warn('composite', e); method = 'generated (composite failed: ' + e.message + ')'; }
+      }
+      results.push({ ratio, b64, score: check.score, issues: check.issues, method });
+    }
+
+    generatedThumbB64 = results[0].b64;
+    window._redesign = { results, identity, prompt, fmt, plan, trend };
+    renderRedesign(plan, trend, results, video);
+  } catch (e) {
+    genOut.innerHTML = errHtml(e.message || 'Redesign failed. Try again.');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Thumbnail'; }
+}
+
+function renderRedesign(plan, trend, results, video) {
+  const genOut = document.getElementById('thumb-gen-out');
+  const newImg = document.getElementById('new-thumb-img');
+  const newPreview = document.getElementById('new-thumb-preview');
+  if (newImg && newPreview) { newImg.src = `data:${b64Mime(results[0].b64)};base64,${results[0].b64}`; newPreview.style.display = 'block'; }
+  const badge = r => r.method === 'composite'
+    ? `<span style="color:var(--blue-light);">Real-face composite</span> (generated face scored ${r.score}/10)`
+    : `Likeness ${r.score}/10${r.issues ? ' - ' + esc(r.issues) : ''}${r.method !== 'generated' ? ' - ' + esc(r.method) : ''}`;
+  genOut.innerHTML = `
+    <div style="margin-top:14px;">
+      ${results.map(r => `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:7px;font-weight:600;">${r.ratio === '9:16' ? '9:16 - Shorts / Reel Cover' : '16:9 - YouTube Thumbnail'} redesign</div>
+          <div style="text-align:center;margin-bottom:8px;${r.ratio === '9:16' ? 'max-width:180px;' : ''}"><img src="data:${b64Mime(r.b64)};base64,${r.b64}" style="width:100%;border-radius:8px;border:1px solid var(--border2);display:block;"></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${badge(r)}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-push-thumb" onclick="pushThumbnail('${video.id}')" style="flex:1;font-size:12px;padding:8px 14px;">Push to YouTube</button>
+            <a class="btn-dl-thumb" href="data:${b64Mime(r.b64)};base64,${r.b64}" download="redesign-${video.id}-${r.ratio.replace(':', '-')}.${b64Mime(r.b64) === 'image/jpeg' ? 'jpg' : 'png'}" style="flex:1;font-size:12px;padding:8px 14px;text-align:center;">Download ${r.ratio}</a>
+          </div>
+        </div>`).join('')}
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
+        Headline: <strong>${esc(plan.headline || '')}</strong><br>
+        Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-gen-thumb" style="flex:1;" onclick="generateThumbnail('${window._redesign.fmt}')">Regenerate</button>
+        <button class="btn-gen-thumb" style="flex:1;background:var(--surface3);color:var(--text-muted);border:1px solid var(--border2);" onclick="document.getElementById('redesign-refine-area').style.display='block'">Refine...</button>
+      </div>
+      <div id="redesign-refine-area" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <textarea id="redesign-refine-input" class="form-textarea" rows="2" placeholder="e.g. Bigger headline, move me to the left, swap the arrow for a circle..." style="font-size:13px;margin-bottom:8px;"></textarea>
+        <button class="btn-primary" style="width:100%;" onclick="refineRedesign()">Apply to this image</button>
+      </div>
+      <div style="margin-top:10px;"><details><summary style="font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">Prompt used</summary><div style="font-size:12px;color:var(--text-dim);line-height:1.6;padding-top:8px;white-space:pre-wrap;">${esc(window._redesign.prompt)}</div></details></div>
+      <div class="push-status" id="thumb-push-status" style="margin-top:8px;display:block"></div>
+    </div>`;
+}
+
+// Refine edits the finished image itself, so each round builds on the last one.
+async function refineRedesign() {
+  const notes = (document.getElementById('redesign-refine-input')?.value || '').trim();
+  const st = window._redesign;
+  const genOut = document.getElementById('thumb-gen-out');
+  if (!st || !notes) return;
+  const n = st.identity.length;
+  const prompt = `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. Images 2-${n + 1} show the real person in it; their face must keep matching those photos exactly.`;
+  try {
+    const results = [];
+    for (const r of st.results) {
+      genOut.innerHTML = spinner(`Applying changes to ${r.ratio}...`);
+      const b64 = await genThumbImage(prompt, r.ratio, [{ mimeType: b64Mime(r.b64), data: r.b64 }, ...st.identity]);
+      const check = await checkLikeness(st.identity, b64);
+      results.push({ ratio: r.ratio, b64, score: check.score, issues: check.issues, method: 'generated' });
+    }
+    st.results = results;
+    generatedThumbB64 = results[0].b64;
+    renderRedesign(st.plan, st.trend, results, currentVideoData);
+  } catch (e) {
+    genOut.innerHTML = errHtml(e.message || 'Refine failed.');
+  }
+}
+
 function parseJSON(text) {
   let s = text.trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').trim();
   const start = Math.min(
@@ -3251,14 +3645,21 @@ function renderThumbAudit(json) {
         <option value="9:16">9:16 — Shorts Cover</option>
         <option value="both">Both Formats</option>
       </select>
+      <select id="thumb-mode-select" title="Touch up keeps the current design; Redesign builds a new layout from top-ranking thumbnails" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;cursor:pointer;outline:none;">
+        <option value="touchup">Touch up current design</option>
+        <option value="redesign">Redesign from top thumbnails</option>
+      </select>
+      <button class="btn-copy" onclick="toggleFaceBank()">Face bank</button>
       <button class="btn-gen-thumb" id="gen-thumb-btn" onclick="generateThumbnail()">✦ Generate Thumbnail</button>
-    </div>`;
+    </div>
+    <div id="facebank-panel" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;"></div>`;
 }
 
 async function generateThumbnail(format, reusePrompt) {
   // format: '16:9' | '9:16' | 'both' — defaults to '16:9' if not passed
   // reusePrompt: true after a refinement, so the refined prompt is rendered as-is
   const fmt = format || document.getElementById('thumb-format-select')?.value || '16:9';
+  if (!reusePrompt && document.getElementById('thumb-mode-select')?.value === 'redesign') return redesignThumbnail(fmt);
   const bothFormats = fmt === 'both';
   const ratios = bothFormats ? ['16:9', '9:16'] : [fmt];
 

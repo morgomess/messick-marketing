@@ -1065,6 +1065,37 @@ var mm_ai_proxy_worker_default = {
         if (data2.error) return new Response(JSON.stringify({ error: data2.error.message }), { status: 400, headers: corsHeaders });
         return new Response(JSON.stringify({ text: data2.content[0].text }), { headers: corsHeaders });
       }
+      if (url.pathname === "/facebank") {
+        // Per-channel identity photos for Thumbnail Studio's Redesign mode, kept in R2
+        // so both machines see the same set. POST { action: list|add|delete, channel, ... }.
+        const { action, channel, mimeType, data, key } = await request.json();
+        if (!/^[A-Za-z0-9_-]{6,64}$/.test(channel || "")) return new Response(JSON.stringify({ error: "bad channel" }), { status: 400, headers: corsHeaders });
+        const prefix = `facebank/${channel}/`;
+        if (action === "add") {
+          if (!/^image\/(png|jpeg|webp)$/.test(mimeType || "") || typeof data !== "string" || !data) return new Response(JSON.stringify({ error: "bad image" }), { status: 400, headers: corsHeaders });
+          const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+          const k = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          await env.MM_MEDIA.put(k, b64ToBytes(data), { httpMetadata: { contentType: mimeType } });
+          return new Response(JSON.stringify({ key: k }), { headers: corsHeaders });
+        }
+        if (action === "delete") {
+          if (typeof key !== "string" || !key.startsWith(prefix)) return new Response(JSON.stringify({ error: "bad key" }), { status: 400, headers: corsHeaders });
+          await env.MM_MEDIA.delete(key);
+          return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
+        }
+        // list: returns the photos inline (base64) so the page can hand them to the image model
+        const listed = await env.MM_MEDIA.list({ prefix, limit: 12 });
+        const photos = [];
+        for (const o of listed.objects) {
+          const obj = await env.MM_MEDIA.get(o.key);
+          if (!obj) continue;
+          const bytes = new Uint8Array(await obj.arrayBuffer());
+          let bin = "";
+          for (let i = 0; i < bytes.length; i += 32768) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+          photos.push({ key: o.key, mimeType: obj.httpMetadata?.contentType || "image/jpeg", data: btoa(bin) });
+        }
+        return new Response(JSON.stringify({ photos }), { headers: corsHeaders });
+      }
       if (url.pathname === "/imagen") {
         const { prompt, count = 1, aspectRatio = "3:4", tier = "visual", refImages = [] } = await request.json();
         try {
