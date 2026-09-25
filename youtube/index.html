@@ -1432,7 +1432,13 @@ REFERENCE PHOTO RULES:
 - Keep every real person exactly as photographed: same face, facial features, skin tone, hair, age, build, glasses and clothing. Never beautify, slim, de-age, re-pose or replace them. State this explicitly in the prompt.
 - Keep the real setting, equipment and logos unless told otherwise. Match the photo's own lighting direction, color temperature and grain so anything added looks like part of the same shot.
 - Change only what a thumbnail needs: reframing or a tighter crop, background cleanup or blur, contrast and a color grade that heightens the photo's existing palette, one bold headline, simple graphic accents in the brand colors.
-- If the photo already has headline text or graphics on it, replace them instead of stacking new text on top.
+- If the photo already has a headline, keep it word for word, with the same casing, colors and layout. Only change it when the request below gives a new headline or explicitly asks for different text. Never stack new text on top of old text.
+- Any new text may only state what the video title or the request states. Do not invent claims, outcomes or angles.
+- Never add logos, app icons or brand marks of other companies or products. Only keep logos already in the photo.
+- Every graphic element (divider line, shape, badge) appears once. Say exactly how many of each you want.
+- Accent colors come only from the photo itself or the brand colors given below. Never introduce a new color.
+- Cutout edges: where a person meets the background, the edge must be clean and sharp, with no halo, glow, blur, fringe or background color bleeding into the hair, glasses, skin or clothing. Any glow, gradient or grade goes behind the person, never over their outline. Do not add an outline, stroke, sticker border or drop shadow around them. Say this explicitly in the prompt.
+- Keep the photo's existing background design (stripes, rings, glows, panels) unless the request asks to change it.
 - Describe the changes, not the whole picture. Refer to people by position ("the doctor on the left"), never by re-describing their appearance.
 - If there is no person, keep the main subject recognizable the same way.
 
@@ -1442,6 +1448,10 @@ TEXT RULES:
 - Keep text and faces inside the center 80% of the frame.
 
 Output the prompt text ONLY. No JSON, no quotes around it, no preamble, no explanation.`;
+
+// Sent with every existing-thumbnail reference: the headline is the one thing
+// Claude kept rewriting, so it is stated in the request as well as the rules.
+const KEEP_TEXT_NOTE = 'Text: keep every word of the existing headline and subline exactly as written, same casing, colors and layout. Do not rewrite, shorten or add text.';
 
 function thumbRefRules(ratio) {
   const fmt = ratio === '9:16' ? 'vertical 9:16 Shorts and Reels cover'
@@ -3306,7 +3316,7 @@ ${brand?.nicheProfile?.brandColors ? 'Brand colors (use on overlays and text blo
 ${brand?.nicheProfile?.thumbnailStyle ? 'Preferred thumbnail style: ' + brand.nicheProfile.thumbnailStyle : ''}
 ${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}`;
       const promptText = await callAI(promptSystem, refs.length
-        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n\n" + brief }]
+        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n" + KEEP_TEXT_NOTE + "\n\n" +brief }]
         : brief);
       imagePrompt = (promptText || '').trim();
     }
@@ -3758,7 +3768,7 @@ Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "
   try {
     const [promptRes2, briefRes2] = await Promise.all([
       callAI(promptSystem2, refs.length
-        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n\n" + promptUserMsg2 }]
+        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n" + KEEP_TEXT_NOTE + "\n\n" +promptUserMsg2 }]
         : promptUserMsg2),
       callAI(briefSystem2, briefUserMsg2)
     ]);
