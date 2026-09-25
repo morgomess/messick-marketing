@@ -1211,7 +1211,8 @@ function connectChannel() {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: 'https://messickmarketing.com/youtube',
     response_type: 'token',
-    scope: 'https://www.googleapis.com/auth/youtube',
+    // youtube.force-ssl is what captions.download needs; Redesign reads the video's captions
+    scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl',
     state: 'yt_connect'
   });
   window.location.href = 'https://accounts.google.com/o/oauth2/auth?' + p.toString();
@@ -1594,7 +1595,7 @@ You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREN
 
 1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video: a clear focal person, big short text, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
 2. Pick up to 3 PERSON photos for the image model, the first being the expression and angle the design should use. Prefer clear, well-lit, front or three-quarter faces.
-3. Write a 2-4 word headline. It may only state what the title states, and should carry the title's specific hook (product, condition or news item).
+3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
 4. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
 
 PROMPT RULES:
@@ -1608,7 +1609,7 @@ PROMPT RULES:
 - The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
 
 Return ONLY this JSON, no markdown:
-{"trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+{"core_idea": "<one sentence: what the video teaches>", "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
 
 // The Redesign look: vidIQ-level energy (big outlined type, a reaction pose, one prop, a
 // blurred topical setting) carried out in the channel's own colors and type. Always
@@ -1619,11 +1620,23 @@ HOUSE LOOK, HIGH ENERGY. Build a bold, high-CTR thumbnail that is unmistakably t
 - Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style (for example deep navy, white and a steel or bright blue). Every color in the design comes from that palette plus the photo; no yellow, teal or other new accent colors unless they are in the palette.
 - Headline: 2-5 words, huge, heavy, condensed sans-serif, all caps, filling about half the frame. Mostly white with one or two key words in the channel's accent color, each letter with a crisp dark outline or strong drop shadow so it pops. End with "?" or "!" only when the title supports it.
 - Subline: 3-6 words in small, widely spaced white caps under a thin accent-color divider line, the way the channel's own thumbnails do it. It only restates the title.
-- The host is big, head and shoulders filling one side, often cropped by the frame edge, with a clear reaction that fits the headline: pointing at the headline or prop, hands raised in surprise, or wide-eyed shock. Pick the PERSON photo with the closest expression; hands and pose may be added, but the face must stay theirs.
-- One prop that shows the topic, drawn simply and large, tinted to the palette: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. When the title names a company, product or platform, the prop may carry its real logo.
+- The host is big, head and shoulders filling one side, often cropped by the frame edge, with a clear facial reaction that fits the headline (wide-eyed shock, a knowing smile, raised brows). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
+- One prop that shows the topic, drawn simply and large as a flat graphic tinted to the palette: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. It floats beside the host, slightly tilted with a soft shadow; nobody holds it. When the title names a company, product or platform, the prop may carry its real logo.
 - Background: a softly blurred real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), color-graded into the channel's navy and blue, darker at the edges so the text pops.
-- At most one arrow or circle in the accent color, pointing at the prop or the headline.
-- Still only claims the title makes.`;
+- Still only claims the title makes.
+- The page appends fixed layout rules for the arrow and divider after your prompt; do not describe arrows, divider lines or hands yourself.`;
+
+// Fixed layout rules appended to every Redesign prompt. These kept coming out wrong
+// when left to the prompt writer (floating arrows, doubled dividers, pasted-on hands).
+const REDESIGN_LAYOUT_RULES = `
+
+FIXED LAYOUT RULES (follow exactly):
+- Arrow: exactly one, in the accent color, with a single arrowhead. The tail is a plain blunt end touching the edge of the prop, with no head there; the one solid triangular head points at the nearest word of the headline and stops just short of it. Short and thick: no longer than a quarter of the frame width, a gentle curve, fully inside the frame, crossing no text and no face. Never a double-headed or looping arrow.
+- Divider: exactly one thin accent-color line, placed directly above the subline. It starts where the subline's first letter starts and ends where its last letter ends, never wider than the subline, never full-width, never behind the person. No line below the subline and no other lines anywhere.
+- Subline letters: small white caps with very wide letter spacing, clearly lighter and much smaller than the headline.
+- Hands: none in frame unless a person photo shows that exact hand pose. The prop is not held; it floats as a flat graphic.
+
+MOST IMPORTANT: the host's face must be the exact person in the person photos: the same face shape, eye color, nose, mouth, teeth, skin, hair color and style, glasses and age. If any other image shows a person, ignore that person completely.`;
 
 function redesignRoleHeader(nPeople, hasTrend) {
   const people = nPeople > 1 ? `Images 1-${nPeople} are photos of the same real person` : 'Image 1 is a photo of the real person';
@@ -1730,6 +1743,24 @@ async function compositeRealPerson(designB64, personRef, ratio) {
   return out.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
+// The video's own captions as plain text, or '' when there are none or the channel was
+// connected before the captions permission was added (reconnect to grant it).
+async function fetchVideoTranscript(videoId, token) {
+  if (!videoId || !token) return '';
+  try {
+    const list = await (await fetch(`${YT_API}/captions?part=snippet&videoId=${videoId}&access_token=${token}`)).json();
+    const tracks = list.items || [];
+    const pick = tracks.find(t => t.snippet?.trackKind !== 'asr' && /^en/.test(t.snippet?.language || ''))
+      || tracks.find(t => /^en/.test(t.snippet?.language || '')) || tracks[0];
+    if (!pick) return '';
+    const res = await fetch(`${YT_API}/captions/${pick.id}?tfmt=srt&access_token=${token}`);
+    if (!res.ok) return '';
+    return (await res.text())
+      .split(/\r?\n/).filter(l => l.trim() && !/^\d+$/.test(l.trim()) && !/-->/.test(l))
+      .join(' ').replace(/\s+/g, ' ').trim().slice(0, 8000);
+  } catch (e) { console.warn('captions', e); return ''; }
+}
+
 // --- Redesign pipeline ---
 async function redesignThumbnail(fmt) {
   const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
@@ -1759,13 +1790,17 @@ async function redesignThumbnail(fmt) {
       `Title: ${sn.title}\nDescription: ${(sn.description || '').slice(0, 300)}`).catch(() => '')).trim().split('\n')[0].slice(0, 80) || sn.title;
     const trends = await fetchTrendThumbs(query, token, brand?.channelId).catch(e => { console.warn('trends', e); return []; });
 
+    genOut.innerHTML = spinner('Reading the video captions...');
+    const transcript = await fetchVideoTranscript(video?.id, token);
+
     genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
     const content = [];
     people.forEach((p, i) => { content.push({ type: 'text', text: `PERSON ${i + 1}` }); content.push(refForClaude(p)); });
     if (source && faces.length) { content.push({ type: 'text', text: `CURRENT THUMBNAIL${shortsFrame ? ' (vertical Short frame)' : ''}` }); content.push(refForClaude(source)); }
     trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
     content.push({ type: 'text', text: `Video title: "${sn.title}"
-Description excerpt: ${(sn.description || '').slice(0, 400)}
+Full description: ${(sn.description || '').slice(0, 2000)}
+${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the description and the current thumbnail text for what the video says.'}
 Channel: ${brand?.channelName || ''}
 ${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
 Format: ${ratios.join(' and ')}` });
@@ -1776,7 +1811,7 @@ Format: ${ratios.join(' and ')}` });
     const identity = picked.length ? picked : people.slice(0, 3);
     const trend = trends[(plan.trend || 0) - 1] || null;
     const refs = [...identity, ...(trend ? [trend] : [])];
-    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}`;
+    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}`;
 
     const results = [];
     for (const ratio of ratios) {
@@ -1831,6 +1866,7 @@ function renderRedesign(plan, trend, results, video) {
         </div>`).join('')}
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
         Headline: <strong>${esc(plan.headline || '')}</strong><br>
+        ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
         Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
