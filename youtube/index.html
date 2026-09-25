@@ -1371,6 +1371,85 @@ async function callAI(system, userMsg, extraBody) {
   return data.text || '';
 }
 
+// ============================================================
+// THUMBNAIL IMAGES (reference-photo aware)
+// ============================================================
+// Thumbnails go to the Pro image model with the source photo attached, so the
+// real person and setting carry through instead of being re-invented from text.
+async function genThumbImage(prompt, aspectRatio, refImages) {
+  const res = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, count: 1, aspectRatio, tier: 'text-critical', refImages: refImages || [] })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error(`Generation failed for ${aspectRatio}.`);
+  return b64;
+}
+
+// Downscale to a JPEG so a phone photo stays inside Claude's 5 MB image limit
+// and Gemini's inline request limit.
+async function toRefImage(blob, maxDim = 1600) {
+  const bmp = await createImageBitmap(blob);
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale);
+  c.height = Math.round(bmp.height * scale);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return { mimeType: 'image/jpeg', data: c.toDataURL('image/jpeg', 0.9).split(',')[1], width: bmp.width };
+}
+
+// A video's current YouTube thumbnail as a reference image, or null.
+async function fetchVideoThumbRef(videoId, fallbackUrl) {
+  const urls = [
+    videoId && `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+    fallbackUrl,
+    videoId && `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+  ].filter(Boolean);
+  for (const u of urls) {
+    try {
+      const res = await fetch(u);
+      if (!res.ok) continue;
+      const ref = await toRefImage(await res.blob());
+      if (ref.width < 200) continue; // YouTube's grey "no thumbnail" placeholder
+      return { mimeType: ref.mimeType, data: ref.data };
+    } catch (e) { /* try the next size */ }
+  }
+  return null;
+}
+
+function refForClaude(ref) {
+  return { type: 'image', source: { type: 'base64', media_type: ref.mimeType, data: ref.data } };
+}
+
+// Shared prompt rules for thumbnails built from a real photo.
+const THUMB_REF_RULES = `The photo attached to your message is also attached to the image model along with your prompt. Write the prompt as edit instructions for that photo, not as a description of a new scene.
+
+REFERENCE PHOTO RULES:
+- Open the prompt with: "Edit the attached photo into a {FORMAT}."
+- Keep every real person exactly as photographed: same face, facial features, skin tone, hair, age, build, glasses and clothing. Never beautify, slim, de-age, re-pose or replace them. State this explicitly in the prompt.
+- Keep the real setting, equipment and logos unless told otherwise. Match the photo's own lighting direction, color temperature and grain so anything added looks like part of the same shot.
+- Change only what a thumbnail needs: reframing or a tighter crop, background cleanup or blur, contrast and a color grade that heightens the photo's existing palette, one bold headline, simple graphic accents in the brand colors.
+- If the photo already has headline text or graphics on it, replace them instead of stacking new text on top.
+- Describe the changes, not the whole picture. Refer to people by position ("the doctor on the left"), never by re-describing their appearance.
+- If there is no person, keep the main subject recognizable the same way.
+
+TEXT RULES:
+- Headline: 4 words max, written as a quoted string with exact placement, bold condensed sans-serif, high contrast against what is behind it.
+- Never write hex codes, font names, or labels like "Line 1", "Header:" or "CTA:" anywhere in the prompt. The image model renders them as visible text. Name colors in words ("deep navy", "warm orange").
+- Keep text and faces inside the center 80% of the frame.
+
+Output the prompt text ONLY. No JSON, no quotes around it, no preamble, no explanation.`;
+
+function thumbRefRules(ratio) {
+  const fmt = ratio === '9:16' ? 'vertical 9:16 Shorts and Reels cover'
+    : ratio === 'both' ? 'thumbnail (the same design is rendered at 16:9 and 9:16, so keep the subject and headline centered)'
+    : '16:9 YouTube thumbnail';
+  return THUMB_REF_RULES.replace('{FORMAT}', fmt);
+}
+
 function parseJSON(text) {
   let s = text.trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').trim();
   const start = Math.min(
@@ -3165,8 +3244,9 @@ function renderThumbAudit(json) {
     </div>`;
 }
 
-async function generateThumbnail(format) {
+async function generateThumbnail(format, reusePrompt) {
   // format: '16:9' | '9:16' | 'both' — defaults to '16:9' if not passed
+  // reusePrompt: true after a refinement, so the refined prompt is rendered as-is
   const fmt = format || document.getElementById('thumb-format-select')?.value || '16:9';
   const bothFormats = fmt === 'both';
   const ratios = bothFormats ? ['16:9', '9:16'] : [fmt];
@@ -3176,71 +3256,68 @@ async function generateThumbnail(format) {
   const newPreview = document.getElementById('new-thumb-preview');
   const newImg = document.getElementById('new-thumb-img');
   if (!genOut) return;
-  btn.disabled = true; btn.textContent = 'Generating...';
-  genOut.innerHTML = spinner('Writing elite thumbnail prompt...');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+  genOut.innerHTML = spinner('Loading the current thumbnail...');
 
   const video = currentVideoData;
   const sn = video?.snippet || {};
   const brand = getActive();
   const niche = brand?.nicheProfile?.primaryNiche || '';
 
-  // Step 1: Elite Imagen prompt via Claude
-  const promptSystem = buildSystem(`You are an elite YouTube thumbnail designer and Imagen 4 prompt engineer. You specialize in thumbnails that achieve 8–12% CTR through proven visual psychology.
+  // The video's current thumbnail is the reference photo: it carries the real
+  // person, setting and look that the new thumbnail has to keep.
+  const thumbUrl = sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || sn.thumbnails?.medium?.url || '';
+  if (!reusePrompt || !window._lastThumbRefs) {
+    window._lastThumbRefs = [];
+    const ref = await fetchVideoThumbRef(video?.id, thumbUrl);
+    if (ref) window._lastThumbRefs = [ref];
+  }
+  const refs = window._lastThumbRefs;
 
-2026 thumbnail best practices you ALWAYS apply:
-- 70/30 contrast split: dominant bold element occupies 70% of frame, secondary detail fills 30%
-- Rim light / sticker effect: subject isolated with strong edge lighting against contrasting background
-- Teal-orange color grading: warm subject tones against cool background (or vice versa) for maximum pop
-- Bold centered safe-zone layout: all critical elements within center 80% of frame, edges clear
-- Single emotional hook: one face with clear expression OR one bold object — never split attention
-- Text: maximum 4 words, ultra-bold condensed sans-serif, pure white on dark or black on bright, center or lower-third placement
-- For medical/clinical topics: empathetic, clean imagery; authoritative but approachable — never alarming
+  // Step 1: Claude writes the image prompt (skipped when rendering a refined prompt)
+  const promptSystem = buildSystem(refs.length
+    ? `You are an elite YouTube thumbnail designer. You turn a video's existing frame or thumbnail into a thumbnail that earns 8-12% CTR while staying true to the real people and place in it.
 
-Prompt structure (always use all 6 parts):
-[SUBJECT & EMOTIONAL HOOK] + [COMPOSITION & SAFE-ZONE FRAMING] + [RIM LIGHT & STICKER EFFECT] + [COLOR GRADING & PALETTE] + [TEXT ELEMENTS if any] + [QUALITY FOOTER]
+${thumbRefRules(fmt)}`
+    : `You are an elite YouTube thumbnail designer and image prompt engineer. You specialize in thumbnails that achieve 8-12% CTR through proven visual psychology.
 
-Quality footer (always end with exactly this):
-"Professional YouTube thumbnail, ultra-sharp focus, cinematic color grade, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text."
+Best practices you ALWAYS apply:
+- One dominant subject filling most of the frame, one clear emotional hook, never split attention
+- Strong contrast between subject and background
+- Bold centered safe-zone layout: all critical elements within the center 80% of frame
+- Text: maximum 4 words, ultra-bold condensed sans-serif, pure white on dark or black on bright
+- For medical/clinical topics: empathetic, clean imagery; authoritative but approachable, never alarming
+- Never write hex codes, font names or structural labels in the prompt; name colors in words
 
-Output the prompt text ONLY — no JSON, no quotes around it, no preamble, no explanation.`);
+End with: "Professional YouTube thumbnail, ultra-sharp focus, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text."
+
+Output the prompt text ONLY. No JSON, no quotes around it, no preamble, no explanation.`);
 
   try {
-    const promptRes = await mmAuth.fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: promptSystem,
-        messages: [{ role: 'user', content: `Write an elite YouTube thumbnail Imagen 4 prompt for:
+    let imagePrompt = reusePrompt ? (window._lastThumbPrompt || '') : '';
+    if (!imagePrompt) {
+      genOut.innerHTML = spinner('Writing thumbnail prompt...');
+      const brief = `Write the thumbnail prompt for this video:
 Title: "${sn.title}"
 Description excerpt: ${(sn.description || '').slice(0, 400)}
 ${niche ? 'Channel niche: ' + niche : ''}
 ${brand?.channelName ? 'Channel: ' + brand.channelName : ''}
 ${brand?.nicheProfile?.brandColors ? 'Brand colors (use on overlays and text blocks, describe by name): ' + brand.nicheProfile.brandColors : ''}
 ${brand?.nicheProfile?.thumbnailStyle ? 'Preferred thumbnail style: ' + brand.nicheProfile.thumbnailStyle : ''}
-${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}
-
-Apply all 2026 best practices: 70/30 split, rim light sticker effect, bold centered safe-zone layout, single emotional hook. Use brand colors on overlays and design elements — only default to teal-orange if those are the actual brand colors.` }]
-      })
-    });
-    const promptData = await promptRes.json();
-    if (promptData.error) throw new Error(promptData.error);
-    const imagePrompt = (promptData.text || '').trim();
+${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}`;
+      const promptText = await callAI(promptSystem, refs.length
+        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n\n" + brief }]
+        : brief);
+      imagePrompt = (promptText || '').trim();
+    }
     window._lastThumbPrompt = imagePrompt;
 
-    // Step 2: Generate one or both ratios
+    // Step 2: Generate one or both ratios from the same reference photo
     genOut.innerHTML = spinner(`Rendering ${bothFormats ? 'both formats' : fmt} thumbnail${bothFormats ? 's' : ''}...`);
 
     const results = [];
     for (const ratio of ratios) {
-      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: ratio })
-      });
-      const imgData = await imgRes.json();
-      const pred = (imgData.predictions || [])[0];
-      if (!pred?.bytesBase64Encoded) throw new Error(`Generation failed for ${ratio}.`);
-      results.push({ ratio, b64: pred.bytesBase64Encoded });
+      results.push({ ratio, b64: await genThumbImage(imagePrompt, ratio, refs) });
     }
 
     generatedThumbB64 = results[0].b64;
@@ -3300,7 +3377,7 @@ async function applyThumbRefinement(fmt) {
   if (!basePrompt || !notes) { generateThumbnail(fmt); return; }
 
   genOut.innerHTML = spinner('Refining prompt...');
-  const refineSystem = buildSystem(`You are an Imagen 4 prompt editor for YouTube thumbnails. Rewrite the prompt incorporating the refinement notes while keeping all 2026 best practices (70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout, single emotional hook). Output the revised prompt text ONLY — no explanation, no preamble. Never include hex codes as visible text.`);
+  const refineSystem = buildSystem(`You are an image prompt editor for YouTube thumbnails. Rewrite the prompt incorporating the refinement notes. Keep every instruction that preserves the real people and setting from the attached photo unless the notes explicitly change them. Output the revised prompt text ONLY, no explanation, no preamble. Never include hex codes as visible text.`);
 
   try {
     const res = await mmAuth.fetch(WORKER_URL, {
@@ -3314,7 +3391,7 @@ async function applyThumbRefinement(fmt) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     window._lastThumbPrompt = (data.text || '').trim();
-    generateThumbnail(fmt);
+    generateThumbnail(fmt, true);
   } catch(e) {
     genOut.innerHTML = errHtml(e.message || 'Refinement failed.');
   }
@@ -3383,6 +3460,7 @@ let currentReelsTab = 'manual';
 let reelSelectedVideo = null;
 let coverUploadFile = null;
 let coverUploadB64 = null;
+let coverUploadMime = 'image/jpeg';
 
 function switchReelsTab(tab) {
   currentReelsTab = tab;
@@ -3522,15 +3600,8 @@ Return this exact JSON:
     out.innerHTML = spinner(`Generating ${both ? 'both formats' : ratio} thumbnail...`);
     const results = [];
     for (const r of ratios) {
-      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: r })
-      });
-      const imgData = await imgRes.json();
-      const pred = (imgData.predictions || [])[0];
-      if (pred?.bytesBase64Encoded) results.push({ ratio: r, b64: pred.bytesBase64Encoded });
-      else results.push({ ratio: r, b64: null });
+      try { results.push({ ratio: r, b64: await genThumbImage(imagePrompt, r) }); }
+      catch (e) { console.warn(e); results.push({ ratio: r, b64: null }); }
     }
 
     const imagesHTML = results.map(r => `
@@ -3586,10 +3657,8 @@ async function refineCoverBrief() {
     // Regenerate images with refined prompt
     const results = [];
     for (const r of ratios) {
-      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: window._lastManualCoverPrompt, count:1, aspectRatio:r }) });
-      const imgData = await imgRes.json();
-      const pred = (imgData.predictions||[])[0];
-      results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
+      try { results.push({ ratio:r, b64: await genThumbImage(window._lastManualCoverPrompt, r) }); }
+      catch (e) { console.warn(e); results.push({ ratio:r, b64: null }); }
     }
     const imagesHTML = results.map(r => `
       <div style="margin-bottom:16px;">
@@ -3652,42 +3721,45 @@ async function generateCoverFromVideo() {
   const out = document.getElementById('rl-import-out');
   out.innerHTML = spinner('Writing prompt and generating thumbnail from video...');
 
-  const promptSystem2 = buildSystem(`You are an elite thumbnail designer and Imagen 4 prompt engineer specializing in thumbnails that achieve 8-12% CTR.
+  // The video's current thumbnail is the reference photo for the new cover.
+  const ref = await fetchVideoThumbRef(reelSelectedVideo.id, reelSelectedVideo.thumbnail);
+  const refs = ref ? [ref] : [];
 
-Write a single Imagen 4 image generation prompt. Output the prompt text ONLY — no JSON, no labels, no preamble, no explanation.
+  const promptSystem2 = buildSystem(refs.length
+    ? `You are an elite thumbnail designer. You repurpose a video's existing thumbnail into a new cover that earns 8-12% CTR while staying true to the real people and place in it.
+
+${thumbRefRules(both ? 'both' : ratio)}`
+    : `You are an elite thumbnail designer and image prompt engineer specializing in thumbnails that achieve 8-12% CTR.
+
+Write a single image generation prompt. Output the prompt text ONLY. No JSON, no labels, no preamble, no explanation.
 
 STRICT RULES:
-- NEVER include hex color codes — Imagen renders them as visible text
-- NEVER include font names — describe the style instead
-- NEVER include structural labels like "Line 1", "Header:", "Subtext:", "CTA:"
-- Describe colors by name only: "deep teal", "warm orange", "navy" — never hex codes
+- NEVER include hex color codes, font names, or structural labels like "Line 1", "Header:", "CTA:" (the image model renders them as visible text)
+- Describe colors by name only: "deep teal", "warm orange", "navy"
 - Text overlays: maximum 4 words, quoted strings with exact placement only
-- No placeholder text or technical notation of any kind
+- One dominant subject, strong contrast, all critical elements in the center 80% of frame
 
-2026 best practices (always apply all): 70/30 contrast split, rim light sticker effect subject isolated with glowing edge, teal-orange color grading, bold centered safe-zone layout, single emotional hook.
-
-End every prompt with this exact footer: "Professional thumbnail, ultra-sharp focus, cinematic color grade, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text, no font names, no hex codes."`);
+End every prompt with: "Professional thumbnail, ultra-sharp focus, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text."`);
 
   const briefSystem2 = buildSystem('You are a social media visual designer. Return ONLY valid JSON with no markdown.');
 
-  const promptUserMsg2 = `Write an Imagen 4 thumbnail prompt to repurpose this YouTube video:
+  const promptUserMsg2 = `Write the thumbnail prompt to repurpose this YouTube video:
 Title: "${reelSelectedVideo.title}"
 ${reelSelectedVideo.description ? 'Description: ' + reelSelectedVideo.description.substring(0,300) : ''}
 Platform: ${platMap[platform]||platMap.instagram}
-Aspect ratio: ${ratio}
-Style: ${styleMap[style]}
-Apply all 2026 best practices. No hex codes, no font names, no structural labels in the prompt.`;
+Aspect ratio: ${both ? '16:9 and 9:16' : ratio}
+Style: ${styleMap[style]}`;
 
   const briefUserMsg2 = `Generate a thumbnail brief for repurposing this YouTube video:
 Title: "${reelSelectedVideo.title}"
 Style: ${styleMap[style]}
 Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "2-3 sentences", "design_notes": ["3-4 instructions"], "repurpose_angle": "1 sentence" }`;
 
-  const userMsg = briefUserMsg2;
-
   try {
     const [promptRes2, briefRes2] = await Promise.all([
-      callAI(promptSystem2, promptUserMsg2),
+      callAI(promptSystem2, refs.length
+        ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n\n" + promptUserMsg2 }]
+        : promptUserMsg2),
       callAI(briefSystem2, briefUserMsg2)
     ]);
     const imagePrompt = (promptRes2 || '').trim();
@@ -3696,10 +3768,8 @@ Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "
     out.innerHTML = spinner(`Generating ${both?'both formats':ratio} thumbnail...`);
     const results = [];
     for (const r of ratios) {
-      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt: imagePrompt, count:1, aspectRatio:r }) });
-      const imgData = await imgRes.json();
-      const pred = (imgData.predictions||[])[0];
-      results.push({ ratio:r, b64: pred?.bytesBase64Encoded||null });
+      try { results.push({ ratio:r, b64: await genThumbImage(imagePrompt, r, refs) }); }
+      catch (e) { console.warn(e); results.push({ ratio:r, b64: null }); }
     }
 
     const imagesHTML = results.map(r => `
@@ -3714,7 +3784,7 @@ Return ONLY valid JSON: { "headline_options": ["3 options"], "visual_concept": "
         ${imagesHTML}
         <button class="btn-copy" style="width:100%;margin-bottom:12px;" onclick="generateCoverFromVideo()">↻ Regenerate</button>
         ${renderCoverBrief(d)}
-        <details style="margin-top:10px;"><summary style="font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">Imagen prompt used</summary><div style="font-size:12px;color:var(--text-dim);line-height:1.6;padding-top:8px;white-space:pre-wrap;">${esc(imagePrompt)}</div></details>
+        <details style="margin-top:10px;"><summary style="font-size:11px;color:var(--text-dim);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;">Prompt used${refs.length ? ' (edited from the current thumbnail)' : ''}</summary><div style="font-size:12px;color:var(--text-dim);line-height:1.6;padding-top:8px;white-space:pre-wrap;">${esc(imagePrompt)}</div></details>
       </div>`;
   } catch(e) {
     out.innerHTML = `<div class="error-msg">${e.message}</div>`;
@@ -3726,8 +3796,10 @@ function handleCoverUpload(file) {
   if (!file) return;
   coverUploadFile = file;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    coverUploadB64 = e.target.result.split(',')[1];
+  reader.onload = async (e) => {
+    // Downscaled JPEG: the same bytes go to Claude (audit) and to the image model (reference photo)
+    try { const ref = await toRefImage(file); coverUploadB64 = ref.data; coverUploadMime = ref.mimeType; }
+    catch (err) { coverUploadB64 = e.target.result.split(',')[1]; coverUploadMime = file.type || 'image/jpeg'; }
     const preview = document.getElementById('rl-upload-preview');
     preview.innerHTML = `<div style="margin-top:16px; text-align:center;"><img src="${e.target.result}" style="max-width:100%; max-height:320px; border-radius:10px; border:1px solid var(--border2);"><div style="font-size:12px; color:var(--text-dim); margin-top:8px;">${file.name} - ${(file.size/1024).toFixed(1)} KB</div></div>`;
     preview.style.display = 'block';
@@ -3794,7 +3866,7 @@ Score and critique it as a cover thumbnail designer. Return ONLY valid JSON:
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: coverUploadFile.type || 'image/jpeg', data: coverUploadB64 } },
+            { type: 'image', source: { type: 'base64', media_type: coverUploadMime, data: coverUploadB64 } },
             { type: 'text', text: auditPrompt }
           ]
         }]
@@ -3904,36 +3976,22 @@ async function generateImprovedCover() {
   const ratioSel = document.getElementById('rl-aspect-ratio')?.value || '9:16';
   const bothFormats = ratioSel === 'both';
   const ratios = bothFormats ? ['9:16', '16:9'] : [ratioSel];
-  const platMap = { instagram:'Instagram Reels (9:16 vertical)', facebook:'Facebook Reels (9:16 vertical)', tiktok:'TikTok cover (9:16 vertical)', youtube:'YouTube Shorts cover (9:16 vertical)' };
+  const platMap = { youtube_yt:'YouTube thumbnail', instagram:'Instagram Reels cover', facebook:'Facebook Reels cover', tiktok:'TikTok cover', youtube:'YouTube Shorts cover' };
 
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Analyzing original image...</div>';
 
-  // Step 1: send the uploaded image to Claude to extract subject/person description + build prompt
-  const promptSystem = `You are an expert Imagen 4 prompt writer specializing in high-CTR social media cover thumbnails using 2026 best practices.
+  // Step 1: Claude sees the upload and writes edit instructions for it. The same
+  // upload then goes to the image model, so the real person and setting are kept.
+  const promptSystem = `You are an elite thumbnail designer. You rework an existing cover or photo into one that earns 8-12% CTR while staying true to the real people and place in it.
 
-2026 THUMBNAIL BEST PRACTICES you must apply:
-- High-contrast minimalist design: 70/30 color split so the subject pops. Top combos: Red/Blue, Yellow/Purple, Orange/Teal
-- Rim light / sticker effect: cyan or magenta rim light around the subject creates a mobile pop-out effect
-- Bold text overlay: short punchy headline (5 words max), teases the answer without giving it away
-- For professional/informational topics: clean trustworthy composition, a relatable person looking directly at camera with intentional expression (not open-mouth shock)
-- All key elements centered in safe zone (works for both 9:16 and 16:9 crops)
-- Teal-orange color grading is the hottest CTR style in 2026
-- NO busy backgrounds, NO cluttered text, NO generic stock photo feel
+Thumbnail practice to apply where the photo allows it:
+- One dominant subject and one emotional hook; the person's own expression, never exaggerated shock
+- A short, punchy headline that teases the answer without giving it away
+- Clean, uncluttered background and strong subject-to-background contrast
+- For professional or medical topics: trustworthy and approachable, never alarming
+- Brand colors go on design elements (text blocks, overlays, borders), never as visible labels
 
-EXTRACT from the reference image (use for style/layout reference only, not to recreate any person):
-- Setting and background environment
-- Overall layout structure
-- Any text content visible (topic only)
-- Lighting direction and mood
-
-WRITE the prompt in this exact structure:
-[SUBJECT - person relevant to the niche looking directly at camera, intentional expression, rim-lit with cyan or magenta] + [SETTING from reference - clean clinical background, slightly blurred] + [COMPOSITION - centered safe zone, 70/30 color split, sticker effect] + [LIGHTING - rim light, teal-orange grade, high contrast] + [BRAND COLORS as design elements - translated to color names, used for text block background and overlays] + [TEXT OVERLAY - bold short headline if provided] + [QUALITY FOOTER: professional social media thumbnail, 9:16 vertical, ultra sharp, high resolution, vibrant contrast, mobile-optimized]
-
-CRITICAL:
-- NEVER put hex codes into the prompt as text - always translate to descriptive color names
-- Brand colors go on design elements (background blocks, overlays, borders) not as visible labels
-- DO NOT generate a specific real person - use an archetype (e.g. "a confident middle-aged woman physician in a white coat looking directly at camera")
-- Output the prompt text ONLY - no JSON, no preamble, no explanation`;
+${thumbRefRules(bothFormats ? 'both' : ratioSel)}`;
 
   const fixes = (audit.critical_fixes || []).join('; ');
   const goodParts = (audit.what_works || []).join('; ');
@@ -3955,9 +4013,9 @@ CRITICAL:
   const audienceDesc = effectiveArchetype ? `Target viewer: ${effectiveArchetype}.` : '';
   const channelDesc = channelName ? `Channel: ${channelName}.` : '';
 
-  const promptUserMsg = `Reference image attached. Use it for setting, layout, and topic context only - do not recreate the person shown.
+  const promptUserMsg = `Attached: the cover or photo to rework.
 
-Platform: ${platMap[platform]}
+Platform: ${platMap[platform] || 'social cover'}
 ${channelDesc}
 ${context ? 'Topic: ' + context : ''}
 ${audienceDesc}
@@ -3966,10 +4024,10 @@ ${brandStyleDesc}
 ${headline ? 'Headline text for bold overlay: "' + headline + '"' : ''}
 
 Audit fixes to apply: ${fixes || 'improve contrast, visual hierarchy, and mobile legibility'}
-Keep: ${goodParts || 'clean clinical setting'}
+Keep: ${goodParts || 'the people, setting and overall look of the photo'}
 ${compNotes ? 'Composition notes: ' + compNotes : ''}
 
-Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, teal-orange grading, bold centered safe-zone layout. The generated thumbnail must feel on-brand for this specific channel - use the brand colors on overlays and text blocks, not generic teal-orange unless those ARE the brand colors.`;
+The result must feel on-brand for this channel: brand colors on overlays and text blocks, while the photo keeps its own natural look.`;
 
   try {
     const promptRes = await mmAuth.fetch(WORKER_URL, {
@@ -3980,7 +4038,7 @@ Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, 
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: coverUploadFile?.type || 'image/jpeg', data: coverUploadB64 } },
+            { type: 'image', source: { type: 'base64', media_type: coverUploadMime, data: coverUploadB64 } },
             { type: 'text', text: promptUserMsg }
           ]
         }]
@@ -3990,21 +4048,14 @@ Apply 2026 best practices: high-contrast 70/30 split, rim light sticker effect, 
     if (promptData.error) throw new Error(promptData.error);
     const imagePrompt = (promptData.text || '').trim();
 
-    // Step 2: generate with Imagen (one or both ratios)
+    // Step 2: generate from the uploaded photo (one or both ratios)
     out.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div>Generating ${bothFormats ? 'both formats' : ratios[0]}...</div>`;
     window._lastImagePrompt = imagePrompt;
+    const refs = [{ mimeType: coverUploadMime, data: coverUploadB64 }];
 
     const results = [];
     for (const ratio of ratios) {
-      const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt, count: 1, aspectRatio: ratio })
-      });
-      const imgData = await imgRes.json();
-      const pred = (imgData.predictions || [])[0];
-      if (!pred?.bytesBase64Encoded) throw new Error(`Image generation failed for ${ratio}.`);
-      results.push({ ratio, b64: pred.bytesBase64Encoded });
+      results.push({ ratio, b64: await genThumbImage(imagePrompt, ratio, refs) });
     }
 
     const imagesHTML = results.map(r => `
@@ -4041,7 +4092,7 @@ async function regenWithNotes() {
 
   out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Refining prompt...</div>';
 
-  const refineSystem = `You are an Imagen 4 prompt editor. You will receive an existing image generation prompt and refinement notes from the user. Rewrite the prompt incorporating the notes while keeping all 2026 thumbnail best practices (rim light, 70/30 contrast split, bold centered safe-zone layout, teal-orange grading). Output the revised prompt text ONLY - no explanation, no preamble. NEVER include hex codes as text.`;
+  const refineSystem = `You are an image prompt editor for thumbnails. You will receive an existing prompt that edits an attached photo, plus refinement notes from the user. Rewrite the prompt incorporating the notes. Keep every instruction that preserves the real people and setting from the photo unless the notes explicitly change them. Output the revised prompt text ONLY - no explanation, no preamble. NEVER include hex codes as text.`;
 
   try {
     const promptRes = await mmAuth.fetch(WORKER_URL, {
@@ -4061,16 +4112,8 @@ ${notes || 'Improve contrast and visual impact'}` }]
     const refinedPrompt = (promptData.text || '').trim();
 
     out.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Generating refined cover...</div>';
-    const imgRes = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: refinedPrompt, count: 1, aspectRatio: (document.getElementById('rl-aspect-ratio')?.value === '16:9' ? '16:9' : '9:16') })
-    });
-    const imgData = await imgRes.json();
-    const pred = (imgData.predictions || [])[0];
-    if (!pred?.bytesBase64Encoded) throw new Error('Image generation returned no result.');
-
-    const b64 = pred.bytesBase64Encoded;
+    const refs = coverUploadB64 ? [{ mimeType: coverUploadMime, data: coverUploadB64 }] : [];
+    const b64 = await genThumbImage(refinedPrompt, (document.getElementById('rl-aspect-ratio')?.value === '16:9' ? '16:9' : '9:16'), refs);
     window._lastImagePrompt = refinedPrompt;
     out.innerHTML = `
       <div class="reel-output-block" style="margin-top:4px;">

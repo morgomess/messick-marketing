@@ -76,15 +76,20 @@ function extractGeminiImageB64(data) {
   return null;
 }
 __name(extractGeminiImageB64, "extractGeminiImageB64");
-async function generateImage(env, prompt, aspectRatio = "3:4", tier = "visual") {
+async function generateImage(env, prompt, aspectRatio = "3:4", tier = "visual", refImages = []) {
   const model = geminiImageModel(env, tier);
+  // Reference photos go in ahead of the prompt so the model edits from them
+  // instead of inventing a new person or setting from a text description.
+  const parts = [];
+  for (const img of refImages) parts.push({ inlineData: { mimeType: img.mimeType, data: img.data } });
+  parts.push({ text: prompt });
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: { imageConfig: { aspectRatio } }
       })
     }
@@ -1061,12 +1066,14 @@ var mm_ai_proxy_worker_default = {
         return new Response(JSON.stringify({ text: data2.content[0].text }), { headers: corsHeaders });
       }
       if (url.pathname === "/imagen") {
-        const { prompt, count = 1, aspectRatio = "3:4" } = await request.json();
+        const { prompt, count = 1, aspectRatio = "3:4", tier = "visual", refImages = [] } = await request.json();
         try {
           const n = Math.min(Math.max(count | 0, 1), 4);
+          // refImages: [{ mimeType, data (base64) }], capped at 4. tier "text-critical" = the Pro image model.
+          const refs = (Array.isArray(refImages) ? refImages : []).filter((r) => r && typeof r.data === "string" && r.data && /^image\/(png|jpeg|webp)$/.test(r.mimeType || "")).slice(0, 4);
           const predictions = [];
           for (let i = 0; i < n; i++) {
-            const b64 = await generateImage(env, prompt, aspectRatio, "visual");
+            const b64 = await generateImage(env, prompt, aspectRatio, tier === "text-critical" ? "text-critical" : "visual", refs);
             predictions.push({ bytesBase64Encoded: b64 });
           }
           return new Response(JSON.stringify({ predictions }), { headers: corsHeaders });
