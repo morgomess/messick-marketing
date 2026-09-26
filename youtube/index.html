@@ -3170,27 +3170,47 @@ async function loadVideos(pageToken) {
   pagination.innerHTML = '';
 
   try {
-    let url = `${YT_API}/search?part=snippet&channelId=${brand.channelId}&order=date&maxResults=20&type=video&access_token=${token}`;
+    // The uploads playlist, not search: search only returns public videos, so scheduled
+    // and private uploads (the ones that most need a thumbnail) never showed up.
+    const uploads = 'UU' + brand.channelId.slice(2);
+    let url = `${YT_API}/playlistItems?part=snippet&playlistId=${uploads}&maxResults=20&access_token=${token}`;
     if (pageToken) url += `&pageToken=${pageToken}`;
     const res = await fetch(url);
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
+    (data.items || []).forEach(it => { it.id = { videoId: it.snippet?.resourceId?.videoId }; });
 
-    // Fetch view counts via videos.list
+    // View counts and privacy/schedule via videos.list
     const videoIds = (data.items || []).map(v => v.id.videoId).filter(Boolean).join(',');
-    let statsMap = {};
+    let statsMap = {}, statusMap = {};
     if (videoIds) {
-      const statsRes = await fetch(`${YT_API}/videos?part=statistics&id=${videoIds}&access_token=${token}`);
+      const statsRes = await fetch(`${YT_API}/videos?part=statistics,status&id=${videoIds}&access_token=${token}`);
       const statsData = await statsRes.json();
-      (statsData.items || []).forEach(v => { statsMap[v.id] = v.statistics; });
+      (statsData.items || []).forEach(v => { statsMap[v.id] = v.statistics; statusMap[v.id] = v.status; });
     }
+
+    // Import from Video reads this list; nothing saved it before, so that panel was always empty.
+    try {
+      localStorage.setItem('mm_yt_videos_' + brand.channelId, JSON.stringify((data.items || []).filter(i => i.id.videoId).map(i => ({
+        id: i.id.videoId, title: i.snippet.title, description: (i.snippet.description || '').slice(0, 500),
+        thumbnail: i.snippet.thumbnails?.medium?.url || i.snippet.thumbnails?.default?.url || '',
+        views: statsMap[i.id.videoId]?.viewCount ? parseInt(statsMap[i.id.videoId].viewCount) : 0,
+        publishedAt: statusMap[i.id.videoId]?.publishAt || i.snippet.publishedAt
+      }))));
+    } catch (e) { /* storage full or blocked; Import just stays empty */ }
 
     grid.innerHTML = '';
     (data.items || []).forEach(item => {
       const vid = item.id.videoId;
+      if (!vid) return;
       const sn = item.snippet;
       const stats = statsMap[vid] || {};
-      const views = stats.viewCount ? parseInt(stats.viewCount).toLocaleString() : '-';
+      const st = statusMap[vid] || {};
+      const views = st.publishAt && st.privacyStatus === 'private'
+        ? `Scheduled ${new Date(st.publishAt).toLocaleDateString()}`
+        : st.privacyStatus && st.privacyStatus !== 'public'
+          ? st.privacyStatus.charAt(0).toUpperCase() + st.privacyStatus.slice(1)
+          : (stats.viewCount ? parseInt(stats.viewCount).toLocaleString() : '-') + ' views';
       const card = document.createElement('div');
       card.className = 'video-card';
       card.dataset.vid = vid;
@@ -3199,7 +3219,7 @@ async function loadVideos(pageToken) {
         <div class="video-card-info">
           <div class="video-card-title">${esc(sn.title)}</div>
           <div class="video-card-meta">
-            <span class="video-card-views">${views} views</span>
+            <span class="video-card-views">${views}</span>
             <span>${new Date(sn.publishedAt).toLocaleDateString()}</span>
           </div>
         </div>`;
