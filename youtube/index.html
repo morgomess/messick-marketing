@@ -1955,7 +1955,7 @@ Format: ${ratios.join(' and ')}` });
     plan.expressionId = pickExpression(plan.expressions, recent);
     plan.expression = EXPRESSIONS[plan.expressionId];
     const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. It must read instantly at phone size, exaggerated for a thumbnail, never neutral or a faint smile. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
-    const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face.` : '';
+    const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.` : '';
     const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
 
     const results = [];
