@@ -1690,6 +1690,8 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - misspelled, garbled or duplicated text
 - an arrow, prop or other graphic covering or cutting through any text
 - a prop that is a literal pun on a word (a virus or germ for "viral")
+- a graphic whose message contradicts the headline (for example red X marks over the very thing the headline says works)
+- app icons or logos that are garbled, half-drawn or misspelled
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
