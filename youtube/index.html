@@ -1636,6 +1636,8 @@ FIXED LAYOUT RULES (follow exactly):
 - Divider: exactly one thin accent-color line, placed directly above the subline. It starts where the subline's first letter starts and ends where its last letter ends, never wider than the subline, never full-width, never behind the person. No line below the subline and no other lines anywhere.
 - Subline letters: small white caps with very wide letter spacing, clearly lighter and much smaller than the headline.
 - Hands: none in frame unless a person photo shows that exact hand pose. The prop is not held; it floats as a flat graphic.
+- Prop meaning: the prop shows what the video means, never a literal pun on a word (no virus or germ for "viral", no fire for "hot", no bomb for "blow up").
+- Palette: every graphic, icon, chart, arrow and line uses only the channel's colors (navy, blue, white) plus a real logo's own colors. No red, orange, yellow or green warning or accent marks.
 
 MOST IMPORTANT: the host's face must be the exact person in the person photos: the same face shape, eye color, nose, mouth, teeth, skin, hair color and style, glasses and age. If any other image shows a person, ignore that person completely.
 ALSO: no white outline, stroke, sticker border or glow around the host. Their hair and shoulders meet the background directly, as if photographed in that setting.`;
@@ -1817,6 +1819,8 @@ async function redesignThumbnail(fmt) {
     people.forEach((p, i) => { content.push({ type: 'text', text: `PERSON ${i + 1}` }); content.push(refForClaude(p)); });
     if (source && faces.length) { content.push({ type: 'text', text: `CURRENT THUMBNAIL${shortsFrame ? ' (vertical Short frame)' : ''}` }); content.push(refForClaude(source)); }
     frames.forEach((f, i) => { content.push({ type: 'text', text: `VIDEO FRAME ${i + 1} (what the host wears in this video)` }); content.push(refForClaude(f)); });
+    // Scheduled and private videos have no public frames: point Claude at the current thumbnail.
+    if (!frames.length) content.push({ type: 'text', text: "No video frames are available for this video. Take the host's outfit from the CURRENT thumbnail if they appear in it." });
     trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
     content.push({ type: 'text', text: `Video title: "${sn.title}"
 Full description: ${(sn.description || '').slice(0, 2000)}
@@ -1832,6 +1836,9 @@ Format: ${ratios.join(' and ')}` });
     const trend = trends[(plan.trend || 0) - 1] || null;
     const refs = [...identity, ...(trend ? [trend] : [])];
     // Wardrobe goes last so it wins over the one outfit every face bank photo shares.
+    // A typed shirt wins over the detected one.
+    const typedOutfit = (document.getElementById('redesign-outfit')?.value || '').trim();
+    if (typedOutfit) plan.outfit = typedOutfit;
     const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face.` : '';
     const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${wardrobe}`;
 
@@ -1889,7 +1896,7 @@ function renderRedesign(plan, trend, results, video) {
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
         Headline: <strong>${esc(plan.headline || '')}</strong><br>
         ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
-        ${plan.outfit ? `Wardrobe from the video: ${esc(plan.outfit)}<br>` : ''}
+        ${plan.outfit ? `Wardrobe: ${esc(plan.outfit)}<br>` : ''}
         Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -3743,6 +3750,7 @@ function renderThumbAudit(json) {
         <option value="touchup">Touch up current design</option>
         <option value="redesign">Redesign from top thumbnails</option>
       </select>
+      <input id="redesign-outfit" type="text" placeholder="Shirt in this video (optional)" title="Redesign reads your shirt from the video. Type it here to override, e.g. royal blue tee." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;outline:none;min-width:190px;">
       <button class="btn-copy" onclick="toggleFaceBank()">Face bank</button>
       <button class="btn-gen-thumb" id="gen-thumb-btn" onclick="generateThumbnail()">✦ Generate Thumbnail</button>
     </div>
