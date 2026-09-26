@@ -1491,14 +1491,14 @@ async function getFaceBank(channelId, force) {
   return faceBankCache[channelId];
 }
 
-async function addFaceBankFiles(files) {
+async function addFaceBankFiles(files, real) {
   const brand = getActive();
   if (!brand || !files?.length) return;
   const panel = document.getElementById('facebank-panel');
   if (panel) panel.querySelector('.fb-status').textContent = 'Uploading...';
   for (const f of files) {
     const ref = await toRefImage(f, 1024);
-    await faceBankCall({ action: 'add', channel: brand.channelId, mimeType: ref.mimeType, data: ref.data });
+    await faceBankCall({ action: 'add', channel: brand.channelId, mimeType: ref.mimeType, data: ref.data, real: !!real });
   }
   await getFaceBank(brand.channelId, true);
   renderFaceBank();
@@ -1529,14 +1529,16 @@ function renderFaceBank() {
   const photos = faceBankCache[brand.channelId] || [];
   panel.innerHTML = `
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-weight:600;margin-bottom:6px;">Face bank: ${esc(brand.channelName || '')}</div>
-    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Redesign uses these to keep the host's real face. Best set: straight on, a three-quarter turn each way, a big smile and a surprised look. Window light, plain wall, glasses on, no portrait mode or filters.</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">Redesign uses these to keep the host's real face. Best set: straight on, a three-quarter turn each way, a big smile and a surprised look. Window light, plain wall, glasses on, no portrait mode or filters. Retouched photos set the styling; add one unretouched photo as the REAL reference so face shape stays true.</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
       ${photos.map(p => `<div style="position:relative;">
         <img src="data:${p.mimeType};base64,${p.data}" style="width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);display:block;">
+        ${/-real\.\w+$/.test(p.key) ? '<span style="position:absolute;bottom:2px;left:2px;background:var(--blue,#3a6b8a);color:#fff;border-radius:3px;font-size:9px;font-weight:700;padding:1px 4px;letter-spacing:0.05em;">REAL</span>' : ''}
         <button onclick="deleteFaceBankPhoto('${p.key}')" title="Remove" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;padding:1px 5px;">x</button>
       </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);">No photos yet. Redesign will fall back to the current thumbnail, which holds the likeness less well.</div>'}
     </div>
     <label class="btn-copy" style="display:inline-block;cursor:pointer;">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addFaceBankFiles(Array.from(this.files))"></label>
+    <label class="btn-copy" style="display:inline-block;cursor:pointer;" title="An unretouched photo: anchors true face shape">Add real photo<input type="file" accept="image/*" style="display:none" onchange="addFaceBankFiles(Array.from(this.files), true)"></label>
     <span class="fb-status" style="font-size:12px;color:var(--text-dim);margin-left:8px;">${photos.length} photo${photos.length === 1 ? '' : 's'}</span>`;
 }
 
@@ -1610,7 +1612,7 @@ PROMPT RULES:
 - The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
 
 Return ONLY this JSON, no markdown:
-{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "host_frame": <number of the VIDEO FRAME showing the host's face most clearly and front-on, or 0>, "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
 
 // The Redesign look: vidIQ-level energy (big outlined type, a reaction pose, one prop, a
 // blurred topical setting) carried out in the channel's own colors and type. Always
@@ -1642,23 +1644,49 @@ FIXED LAYOUT RULES (follow exactly):
 MOST IMPORTANT: the host's face must be the exact person in the person photos: the same face shape, eye color, nose, mouth, teeth, skin, hair color and style, glasses and age. If any other image shows a person, ignore that person completely.
 ALSO: no white outline, stroke, sticker border or glow around the host. Their hair and shoulders meet the background directly, as if photographed in that setting.`;
 
-function redesignRoleHeader(nPeople, hasTrend) {
-  const people = nPeople > 1 ? `Images 1-${nPeople} are photos of the same real person` : 'Image 1 is a photo of the real person';
+// hasAnchor: one unretouched image (a video frame or a REAL face bank photo) follows the
+// retouched person photos. Retouched photos drift slimmer and smoother with every pass,
+// so the real one is the authority on face shape.
+function redesignRoleHeader(nPeople, hasTrend, hasAnchor) {
+  const people = nPeople > 1 ? `Images 1-${nPeople} are retouched photos of the same real person` : 'Image 1 is a retouched photo of the real person';
+  const anchorIdx = nPeople + 1, trendIdx = nPeople + (hasAnchor ? 2 : 1);
   return `${people}. Use them only for identity: the thumbnail must show this exact person, with the same face shape, eyes, nose, mouth, teeth, skin tone, hair, glasses, age and build. Do not beautify, slim, de-age or blend them with anyone else. Ignore the rooms behind them. Do not add any white outline, stroke, sticker border or glow around the person; their edge meets the background directly.` +
-    (hasTrend ? ` Image ${nPeople + 1} is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors.` : '');
+    (hasAnchor ? ` Image ${anchorIdx} is an unretouched photo of the same person and is the authority on their real face: match its face shape, cheek and jaw fullness, nose width and eye size exactly. Take only skin finish, grooming and styling from the retouched photos; never make the face narrower, longer or smaller-featured than in image ${anchorIdx}. Ignore its background, lighting, clothing and any text on it.` : '') +
+    (hasTrend ? ` Image ${trendIdx} is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors.` : '');
 }
 
-async function checkLikeness(identity, b64) {
+async function checkLikeness(identity, b64, anchor) {
   const content = [];
-  identity.forEach((f, i) => { content.push({ type: 'text', text: `REFERENCE ${i + 1}` }); content.push(refForClaude(f)); });
+  identity.forEach((f, i) => { content.push({ type: 'text', text: `REFERENCE ${i + 1} (retouched)` }); content.push(refForClaude(f)); });
+  if (anchor) { content.push({ type: 'text', text: 'REAL PHOTO (unretouched: the authority on face shape)' }); content.push(refForClaude(anchor)); }
   content.push({ type: 'text', text: 'GENERATED THUMBNAIL' });
   content.push({ type: 'image', source: { type: 'base64', media_type: b64Mime(b64), data: b64 } });
   content.push({ type: 'text', text: 'Compare the host in the generated thumbnail with the reference photos.' });
-  const system = `You check whether the person in a GENERATED THUMBNAIL is recognizably the same real person as in the REFERENCE photos. Judge face shape, eyes, nose, mouth, teeth, skin tone, hairline and hair, glasses, apparent age and build. Ignore pose, expression, lighting, color grade, background and clothing.
+  const system = `You check whether the person in a GENERATED THUMBNAIL is recognizably the same real person as in the REFERENCE photos. Judge face shape, eyes, nose, mouth, teeth, skin tone, hairline and hair, glasses, apparent age and build. Ignore pose, expression, lighting, color grade, background and clothing, and ignore skin smoothing and makeup.
+When a REAL PHOTO is given, judge face shape against it: a face that is noticeably narrower, longer or slimmer in the cheeks and jaw than the real photo, or with a slimmer nose or bigger eyes, is drift and scores 6 at most, so it gets re-rolled.
 Scores: 9-10 unmistakably the same person; 7-8 same person with minor drift; 4-6 a lookalike or relative; 0-3 a different person.
 Return ONLY JSON: {"score": <0-10>, "issues": "<what differs, short; empty if nothing>"}`;
   const json = parseJSON(await callAI(system, content)) || {};
   return { score: Number(json.score) || 0, issues: json.issues || '' };
+}
+
+const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed design rules and list only clear violations you can actually see:
+- any red, orange, yellow or green graphic, icon, arrow, line or chart mark (a real brand logo's own colors are fine)
+- more than one arrow, a double-headed arrow, or an arrow whose head points at something other than the headline (any word of the headline counts as correct)
+- more than one divider line, or a divider line wider than the subline text under it
+- a white outline, stroke or sticker border around the person
+- visible hands or fingers
+- misspelled, garbled or duplicated text
+- a prop that is a literal pun on a word (a virus or germ for "viral")
+For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
+Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
+
+async function checkLayout(b64) {
+  const json = parseJSON(await callAI(LAYOUT_QA_SYSTEM, [
+    { type: 'image', source: { type: 'base64', media_type: b64Mime(b64), data: b64 } },
+    { type: 'text', text: 'Check this thumbnail.' }
+  ])) || {};
+  return { fixes: Array.isArray(json.fixes) ? json.fixes.filter(Boolean).slice(0, 5) : [] };
 }
 
 // --- Real-face composite (fallback) ---
@@ -1801,7 +1829,10 @@ async function redesignThumbnail(fmt) {
     const current = await fetchVideoThumbRef(video?.id, thumbUrl);
     const shortsFrame = current ? await extractShortsFrame(current).catch(() => null) : null;
     const source = shortsFrame || current;
-    const people = faces.length ? faces : (source ? [source] : []);
+    const isReal = f => /-real\.\w+$/.test(f.key || '');
+    const realPhotos = faces.filter(isReal);
+    const styled = faces.filter(f => !isReal(f));
+    const people = styled.length ? styled : realPhotos.length ? realPhotos : (source ? [source] : []);
     if (!people.length) throw new Error('No face bank photos and no current thumbnail to take the host from.');
 
     genOut.innerHTML = spinner('Pulling top-ranking thumbnails for this topic...');
@@ -1831,27 +1862,31 @@ Format: ${ratios.join(' and ')}` });
     const plan = parseJSON(await callAI(buildSystem(REDESIGN_SYSTEM + REDESIGN_STYLE), content)) || {};
     if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
 
-    const picked = (plan.photos || []).map(n => people[n - 1]).filter(Boolean).slice(0, 3);
-    const identity = picked.length ? picked : people.slice(0, 3);
+    // Two retouched photos + one real anchor + the trend = the worker's four-image cap.
+    const picked = (plan.photos || []).map(n => people[n - 1]).filter(Boolean).slice(0, 2);
+    const identity = picked.length ? picked : people.slice(0, 2);
+    // Anchor: the video frame that shows the host best (the real face in this very video),
+    // else a REAL face bank photo. Retouched photos alone drift slimmer every pass.
+    const anchor = frames[(plan.host_frame || 0) - 1] || (styled.length ? realPhotos[0] : null) || null;
     const trend = trends[(plan.trend || 0) - 1] || null;
-    const refs = [...identity, ...(trend ? [trend] : [])];
+    const refs = [...identity, ...(anchor ? [anchor] : []), ...(trend ? [trend] : [])];
     // Wardrobe goes last so it wins over the one outfit every face bank photo shares.
     // A typed shirt wins over the detected one.
     const typedOutfit = (document.getElementById('redesign-outfit')?.value || '').trim();
     if (typedOutfit) plan.outfit = typedOutfit;
     const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face.` : '';
-    const prompt = `${redesignRoleHeader(identity.length, !!trend)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${wardrobe}`;
+    const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${wardrobe}`;
 
     const results = [];
     for (const ratio of ratios) {
       genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
       let b64 = await genThumbImage(prompt, ratio, refs);
-      let check = await checkLikeness(identity, b64);
+      let check = await checkLikeness(identity, b64, anchor);
       let method = 'generated';
       if (check.score < LIKENESS_PASS) {
         genOut.innerHTML = spinner(`Likeness ${check.score}/10, re-rolling with corrections...`);
-        const retry = await genThumbImage(`${prompt}\n\nA previous attempt drifted from the real person: ${check.issues || 'the face did not match'}. Match the face in the person photos exactly.`, ratio, refs);
-        const retryCheck = await checkLikeness(identity, retry);
+        const retry = await genThumbImage(`${prompt}\n\nA previous attempt drifted from the real person: ${check.issues || 'the face did not match'}. Match the face in the person photos exactly${anchor ? ', with the face shape of the unretouched photo' : ''}.`, ratio, refs);
+        const retryCheck = await checkLikeness(identity, retry, anchor);
         if (retryCheck.score > check.score) { b64 = retry; check = retryCheck; }
       }
       if (check.score < LIKENESS_PASS) {
@@ -1861,11 +1896,29 @@ Format: ${ratios.join(' and ')}` });
           method = 'composite';
         } catch (e) { console.warn('composite', e); method = 'generated (composite failed: ' + e.message + ')'; }
       }
-      results.push({ ratio, b64, score: check.score, issues: check.issues, method });
+      // Layout QA: the rules the prompt keeps missing (red marks, arrow direction, extra
+      // dividers, outlines, hands, typos, pun props) get checked on the finished image
+      // and fixed with one in-place edit, kept only if the face still passes.
+      let fixes = [];
+      if (method === 'generated' && check.score >= LIKENESS_PASS) {
+        genOut.innerHTML = spinner('Checking layout rules...');
+        const qa = await checkLayout(b64).catch(e => { console.warn('layout qa', e); return { fixes: [] }; });
+        if (qa.fixes.length) {
+          genOut.innerHTML = spinner(`Fixing ${qa.fixes.length} layout issue${qa.fixes.length === 1 ? '' : 's'}...`);
+          try {
+            const fixPrompt = 'Image 1 is a finished YouTube thumbnail. Make only these fixes and keep everything else exactly as it is, including all text, the layout and the person:\n- ' +
+              qa.fixes.join('\n- ') + '\nThe other images show the real person; their face must keep matching them exactly.';
+            const fixed = await genThumbImage(fixPrompt, ratio, [{ mimeType: b64Mime(b64), data: b64 }, ...identity, ...(anchor ? [anchor] : [])].slice(0, 4));
+            const fixedCheck = await checkLikeness(identity, fixed, anchor);
+            if (fixedCheck.score >= LIKENESS_PASS) { b64 = fixed; check = fixedCheck; fixes = qa.fixes; }
+          } catch (e) { console.warn('layout fix', e); }
+        }
+      }
+      results.push({ ratio, b64, score: check.score, issues: check.issues, method, fixes });
     }
 
     generatedThumbB64 = results[0].b64;
-    window._redesign = { results, identity, prompt, fmt, plan, trend };
+    window._redesign = { results, identity, anchor, prompt, fmt, plan, trend };
     renderRedesign(plan, trend, results, video);
   } catch (e) {
     genOut.innerHTML = errHtml(e.message || 'Redesign failed. Try again.');
@@ -1880,7 +1933,7 @@ function renderRedesign(plan, trend, results, video) {
   if (newImg && newPreview) { newImg.src = `data:${b64Mime(results[0].b64)};base64,${results[0].b64}`; newPreview.style.display = 'block'; }
   const badge = r => r.method === 'composite'
     ? `<span style="color:var(--blue-light);">Real-face composite</span> (generated face scored ${r.score}/10)`
-    : `Likeness ${r.score}/10${r.issues ? ' - ' + esc(r.issues) : ''}${r.method !== 'generated' ? ' - ' + esc(r.method) : ''}`;
+    : `Likeness ${r.score}/10${r.issues ? ' - ' + esc(r.issues) : ''}${r.method !== 'generated' ? ' - ' + esc(r.method) : ''}${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`;
   genOut.innerHTML = `
     <div style="margin-top:14px;">
       ${results.map(r => `
@@ -1919,13 +1972,13 @@ async function refineRedesign() {
   const genOut = document.getElementById('thumb-gen-out');
   if (!st || !notes) return;
   const n = st.identity.length;
-  const prompt = `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. Images 2-${n + 1} show the real person in it; their face must keep matching those photos exactly.`;
+  const prompt = `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. The other images show the real person in it; their face must keep matching those photos exactly${st.anchor ? ', with the face shape of the last, unretouched photo' : ''}.`;
   try {
     const results = [];
     for (const r of st.results) {
       genOut.innerHTML = spinner(`Applying changes to ${r.ratio}...`);
-      const b64 = await genThumbImage(prompt, r.ratio, [{ mimeType: b64Mime(r.b64), data: r.b64 }, ...st.identity]);
-      const check = await checkLikeness(st.identity, b64);
+      const b64 = await genThumbImage(prompt, r.ratio, [{ mimeType: b64Mime(r.b64), data: r.b64 }, ...st.identity, ...(st.anchor ? [st.anchor] : [])].slice(0, 4));
+      const check = await checkLikeness(st.identity, b64, st.anchor);
       results.push({ ratio: r.ratio, b64, score: check.score, issues: check.issues, method: 'generated' });
     }
     st.results = results;

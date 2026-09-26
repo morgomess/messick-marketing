@@ -1068,13 +1068,14 @@ var mm_ai_proxy_worker_default = {
       if (url.pathname === "/facebank") {
         // Per-channel identity photos for Thumbnail Studio's Redesign mode, kept in R2
         // so both machines see the same set. POST { action: list|add|delete, channel, ... }.
-        const { action, channel, mimeType, data, key } = await request.json();
+        const { action, channel, mimeType, data, key, real } = await request.json();
         if (!/^[A-Za-z0-9_-]{6,64}$/.test(channel || "")) return new Response(JSON.stringify({ error: "bad channel" }), { status: 400, headers: corsHeaders });
         const prefix = `facebank/${channel}/`;
         if (action === "add") {
           if (!/^image\/(png|jpeg|webp)$/.test(mimeType || "") || typeof data !== "string" || !data) return new Response(JSON.stringify({ error: "bad image" }), { status: 400, headers: corsHeaders });
           const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
-          const k = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          // "-real" marks an unretouched photo: the page uses it to anchor true face shape.
+          const k = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}${real ? "-real" : ""}.${ext}`;
           await env.MM_MEDIA.put(k, b64ToBytes(data), { httpMetadata: { contentType: mimeType } });
           return new Response(JSON.stringify({ key: k }), { headers: corsHeaders });
         }
