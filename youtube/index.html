@@ -1843,6 +1843,38 @@ async function applySkinTone(b64, amount) {
   return c.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
+// Lightly whitens teeth: inside the inner-lip outline only, and only bright, low-red pixels,
+// so gums, tongue and lips are left alone. Takes the yellow out and lifts brightness a touch.
+const INNER_LIPS = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95];
+async function whitenTeeth(b64, amount = 0.65) {
+  const bmp = await b64ToBitmap(b64);
+  const lm = (await getLandmarker()).detect(bmp).faceLandmarks?.[0];
+  if (!lm) return b64;
+  const W = bmp.width, H = bmp.height;
+  const mc = document.createElement('canvas'); mc.width = W; mc.height = H;
+  const mctx = mc.getContext('2d'); mctx.fillStyle = '#fff'; mctx.beginPath();
+  INNER_LIPS.forEach((i, k) => k ? mctx.lineTo(lm[i].x * W, lm[i].y * H) : mctx.moveTo(lm[i].x * W, lm[i].y * H));
+  mctx.closePath(); mctx.fill();
+  const mask = mctx.getImageData(0, 0, W, H).data;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+  const img = ctx.getImageData(0, 0, W, H), d = img.data;
+  const smooth = (e0, e1, v) => { const t = Math.max(0, Math.min(1, (v - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+  let changed = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!mask[i + 3]) continue;
+    const r = d[i], g = d[i + 1], b = d[i + 2], lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    const w = (mask[i + 3] / 255) * smooth(85, 150, lum) * (1 - smooth(30, 60, r - g)) * amount;
+    if (w <= 0) continue;
+    const target = Math.min(255, lum * 1.08 + 6);  // neutral, slightly brighter
+    d[i] = r + (target - r) * w; d[i + 1] = g + (target - g) * w; d[i + 2] = b + (target + 4 - b) * w;
+    changed++;
+  }
+  if (!changed) return b64;
+  ctx.putImageData(img, 0, 0);
+  return c.toDataURL('image/jpeg', 0.92).split(',')[1];
+}
+
 function getSkinTone(channelId) {
   try { return Number(localStorage.getItem('mm_skin_tone_' + channelId)) || 0; } catch (e) { return 0; }
 }
@@ -1996,7 +2028,7 @@ Format: ${ratios.join(' and ')}` });
     if (typedOutfit) plan.outfit = typedOutfit;
     plan.expressionId = pickExpression(plan.expressions, recent);
     plan.expression = EXPRESSIONS[plan.expressionId];
-    const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. It must read instantly at phone size, exaggerated for a thumbnail, never neutral or a faint smile. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
+    const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. It must read instantly at phone size, exaggerated for a thumbnail, never neutral or a faint smile. When teeth show, they are clean and naturally white, not yellowed, and keep their real shape. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
     const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.` : '';
     const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
 
@@ -2042,6 +2074,7 @@ Format: ${ratios.join(' and ')}` });
         genOut.innerHTML = spinner('Adjusting skin tone...');
         try { b64 = await applySkinTone(b64, tone / 100); } catch (e) { console.warn('skin tone', e); }
       }
+      try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
       results.push({ ratio, b64, score: check.score, issues: check.issues, method, fixes });
     }
 
