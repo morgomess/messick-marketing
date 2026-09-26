@@ -1539,7 +1539,8 @@ function renderFaceBank() {
     </div>
     <label class="btn-copy" style="display:inline-block;cursor:pointer;">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addFaceBankFiles(Array.from(this.files))"></label>
     <label class="btn-copy" style="display:inline-block;cursor:pointer;" title="An unretouched photo: anchors true face shape">Add real photo<input type="file" accept="image/*" style="display:none" onchange="addFaceBankFiles(Array.from(this.files), true)"></label>
-    <span class="fb-status" style="font-size:12px;color:var(--text-dim);margin-left:8px;">${photos.length} photo${photos.length === 1 ? '' : 's'}</span>`;
+    <span class="fb-status" style="font-size:12px;color:var(--text-dim);margin-left:8px;">${photos.length} photo${photos.length === 1 ? '' : 's'}</span>
+    <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Skin tone in Redesigns: <input type="number" step="5" min="-30" max="30" value="${getSkinTone(brand.channelId)}" onchange="setSkinTone(this.value)" style="width:60px;background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:5px;padding:3px 6px;"> % (positive = tanner, applied to skin only)</div>`;
 }
 
 function b64Mime(b64) {
@@ -1765,6 +1766,49 @@ async function cutoutPerson(b64) {
   return { canvas: c, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, head, W, H };
 }
 
+// Deepens and warms only the host's skin (MediaPipe's face-skin and body-skin classes) by a
+// set amount, e.g. 0.10 for "10% tanner". A pixel edit, not an AI redraw, so the face can't
+// drift and the result is the same every time. Negative amounts lighten.
+async function applySkinTone(b64, amount) {
+  if (!amount) return b64;
+  const seg = await getSegmenter();
+  const bmp = await b64ToBitmap(b64);
+  const res = seg.segment(bmp);
+  const bodyM = res.confidenceMasks[2], faceM = res.confidenceMasks[3];
+  const mw = faceM.width, mh = faceM.height;
+  const body = bodyM.getAsFloat32Array(), face = faceM.getAsFloat32Array();
+  const mc = document.createElement('canvas'); mc.width = mw; mc.height = mh;
+  const md = mc.getContext('2d').createImageData(mw, mh);
+  for (let i = 0; i < face.length; i++) md.data[i * 4 + 3] = Math.round(Math.min(1, face[i] + body[i]) * 255);
+  mc.getContext('2d').putImageData(md, 0, 0);
+  res.close();
+  const W = bmp.width, H = bmp.height;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+  const img = ctx.getImageData(0, 0, W, H);
+  const mk = document.createElement('canvas'); mk.width = W; mk.height = H;
+  const mctx = mk.getContext('2d'); mctx.filter = 'blur(1.5px)'; mctx.drawImage(mc, 0, 0, W, H);
+  const alpha = mctx.getImageData(0, 0, W, H).data;
+  // Blue drops most, red least: deeper and warmer, like a light tan.
+  const k = [amount * 0.5, amount * 0.8, amount * 1.15];
+  for (let i = 0; i < img.data.length; i += 4) {
+    const a = alpha[i + 3] / 255;
+    if (!a) continue;
+    for (let ch = 0; ch < 3; ch++) img.data[i + ch] = Math.max(0, Math.min(255, img.data[i + ch] * (1 - a * k[ch])));
+  }
+  ctx.putImageData(img, 0, 0);
+  return c.toDataURL('image/jpeg', 0.92).split(',')[1];
+}
+
+function getSkinTone(channelId) {
+  try { return Number(localStorage.getItem('mm_skin_tone_' + channelId)) || 0; } catch (e) { return 0; }
+}
+function setSkinTone(v) {
+  const brand = getActive();
+  if (!brand) return;
+  try { localStorage.setItem('mm_skin_tone_' + brand.channelId, String(Number(v) || 0)); } catch (e) { /* blocked */ }
+}
+
 async function compositeRealPerson(designB64, personRef, ratio) {
   // 1. The same design with the person removed
   const plateB64 = await genThumbImage('Remove the person from image 1 completely and fill the space with the surrounding background so it looks like no one was ever there. Keep every piece of text, every graphic, every color and the whole layout exactly unchanged.', ratio, [{ mimeType: b64Mime(designB64), data: designB64 }]);
@@ -1950,6 +1994,11 @@ Format: ${ratios.join(' and ')}` });
           } catch (e) { console.warn('layout fix', e); }
         }
       }
+      const tone = getSkinTone(brand?.channelId);
+      if (tone) {
+        genOut.innerHTML = spinner('Adjusting skin tone...');
+        try { b64 = await applySkinTone(b64, tone / 100); } catch (e) { console.warn('skin tone', e); }
+      }
       results.push({ ratio, b64, score: check.score, issues: check.issues, method, fixes });
     }
 
@@ -2021,6 +2070,7 @@ async function refineRedesign() {
       genOut.innerHTML = spinner(`Applying changes to ${r.ratio}...`);
       const b64 = await genThumbImage(prompt, r.ratio, [{ mimeType: b64Mime(r.b64), data: r.b64 }, ...st.identity, ...(st.anchor ? [st.anchor] : [])].slice(0, 4));
       const check = await checkLikeness(st.identity, b64, st.anchor);
+      // The input already had the tone applied; the edit keeps it, so it is not applied twice.
       results.push({ ratio: r.ratio, b64, score: check.score, issues: check.issues, method: 'generated' });
     }
     st.results = results;
