@@ -1661,7 +1661,7 @@ function redesignRoleHeader(nPeople, hasTrend, hasAnchor) {
   const people = nPeople > 1 ? `Images 1-${nPeople} are retouched photos of the same real person` : 'Image 1 is a retouched photo of the real person';
   const anchorIdx = nPeople + 1, trendIdx = nPeople + (hasAnchor ? 2 : 1);
   return `${people}. Use them only for identity: the thumbnail must show this exact person, with the same face shape, eyes, nose, mouth, teeth, skin tone, hair, glasses, age and build. Do not beautify, slim, de-age or blend them with anyone else. Ignore the rooms behind them. Do not add any white outline, stroke, sticker border or glow around the person; their edge meets the background directly.` +
-    (hasAnchor ? ` Image ${anchorIdx} is an unretouched photo of the same person and is the authority on their real face: match its face shape, cheek and jaw fullness, nose width and eye size exactly. Take only skin finish, grooming and styling from the retouched photos; never make the face narrower, longer or smaller-featured than in image ${anchorIdx}. Ignore its background, lighting, clothing and any text on it.` : '') +
+    (hasAnchor ? ` Image ${anchorIdx} is an unretouched photo of the same person and is the authority on their real face: match its face shape, cheek and jaw fullness, nose width and eye size exactly. Take only skin finish, grooming and styling from the retouched photos; never make the face narrower, longer or smaller-featured than in image ${anchorIdx}. Also match image ${anchorIdx}'s camera: shot the way this person is filmed, from close and slightly below eye level like a webcam at desk height, so the lower face, jaw and chin keep the length and fullness they have there. Not an eye-level studio headshot. Ignore its background, lighting, clothing and any text on it.` : '') +
     (hasTrend ? ` Image ${trendIdx} is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors.` : '');
 }
 
@@ -1687,6 +1687,7 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - a white outline, stroke or sticker border around the person
 - visible hands or fingers
 - misspelled, garbled or duplicated text
+- an arrow, prop or other graphic covering or cutting through any text
 - a prop that is a literal pun on a word (a virus or germ for "viral")
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
