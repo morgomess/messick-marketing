@@ -1596,7 +1596,7 @@ const REDESIGN_SYSTEM = `You are an elite YouTube thumbnail art director. You de
 You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREND thumbnails that rank for this topic.
 
 1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video: a clear focal person, big short text, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
-2. Pick up to 3 PERSON photos for the image model, the first being the expression and angle the design should use. Prefer clear, well-lit, front or three-quarter faces.
+2. Choose the host's expression from the headline's emotion, not the most dramatic photo. Match it: a warning or mistake gets concern or a skeptical side-eye; a how-to or tip gets a confident, knowing smile; good news gets a big genuine smile; a myth or bad advice gets doubt or a raised brow; a question gets a curious, thinking look. Use wide-eyed shock only for a genuine reveal, and never when RECENT REDESIGNS already used it. Then pick up to 3 PERSON photos, the first being the closest to that expression and a good angle.
 3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
 4. From the VIDEO FRAMES, describe what the host wears on top in this video: color and type, e.g. "olive green crew-neck t-shirt" or "navy blazer over a white shirt". If there are no frames or the host is not in them, use the CURRENT thumbnail; if neither shows the host, leave it empty. The page adds this to the prompt, so do not describe clothing in the prompt yourself.
 5. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
@@ -1610,9 +1610,11 @@ PROMPT RULES:
 - Never write hex codes, font names, or labels like "Line 1" or "Header:" in the prompt. Name colors in words.
 - Logos: add the logo of a company, product or platform only when the video title or topic names it (Google for a Google search video, ChatGPT for a ChatGPT video, Epic for an Epic video). Render it accurately, at most one or two, as a supporting element rather than the focal point. Never add logos of unrelated brands. Each graphic element appears once.
 - The channel's own look matters: if the CURRENT thumbnail shows a house style (colors, type treatment), carry its colors and type into the new layout.
+- Variety: this channel's thumbnails sit side by side on its page, so each one should look different from the RECENT REDESIGNS listed below: a different expression, and a different host side, crop or prop where it fits. Consistent colors and type, varied faces and layouts. Variety never touches the headline: it stays accurate to what the video says, uses the video's own key terms (if the video says AEO gets you cited, never write ranked), and makes no claim the video does not make.
+- State the chosen expression in the prompt in plain words ("a confident, closed-mouth knowing smile"). If no PERSON photo shows it, the image model changes the expression while keeping the face.
 
 Return ONLY this JSON, no markdown:
-{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "host_frame": <number of the VIDEO FRAME showing the host's face most clearly and front-on, or 0>, "trend": <number or 0>, "trend_reason": "<one sentence>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "host_frame": <number of the VIDEO FRAME showing the host's face most clearly and front-on, or 0>, "trend": <number or 0>, "trend_reason": "<one sentence>", "expression": "<the host's expression, a few words>", "host_side": "<left or right>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
 
 // The Redesign look: vidIQ-level energy (big outlined type, a reaction pose, one prop, a
 // blurred topical setting) carried out in the channel's own colors and type. Always
@@ -1623,7 +1625,7 @@ HOUSE LOOK, HIGH ENERGY. Build a bold, high-CTR thumbnail that is unmistakably t
 - Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style (for example deep navy, white and a steel or bright blue). Every color in the design comes from that palette plus the photo; no yellow, teal or other new accent colors unless they are in the palette.
 - Headline: 2-5 words, huge, heavy, condensed sans-serif, all caps, filling about half the frame. Mostly white with one or two key words in the channel's accent color, each letter with a crisp dark outline or strong drop shadow so it pops. End with "?" or "!" only when the title supports it.
 - Subline: 3-6 words in small, widely spaced white caps under a thin accent-color divider line, the way the channel's own thumbnails do it. It only restates the title.
-- The host is big, head and shoulders filling one side, often cropped by the frame edge, with a clear facial reaction that fits the headline (wide-eyed shock, a knowing smile, raised brows). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
+- The host is big, head and shoulders filling one side, often cropped by the frame edge, with a clear facial expression that fits the headline's emotion (see step 2). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
 - One prop that shows the topic, drawn simply and large as a flat graphic tinted to the palette: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. It floats beside the host, slightly tilted with a soft shadow; nobody holds it. When the title names a company, product or platform, the prop may carry its real logo.
 - Background: a softly blurred real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), color-graded into the channel's navy and blue, darker at the edges so the text pops.
 - Still only claims the title makes.
@@ -1859,6 +1861,12 @@ ${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the d
 Channel: ${brand?.channelName || ''}
 ${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
 Format: ${ratios.join(' and ')}` });
+    const recentKey = 'mm_redesign_recent_' + (brand?.channelId || '');
+    let recent = [];
+    try { recent = JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch (e) { /* none yet */ }
+    content.push({ type: 'text', text: recent.length
+      ? 'RECENT REDESIGNS on this channel (make this one look different):\n' + recent.map(r => `- "${r.headline}": ${r.expression}, host on the ${r.side}`).join('\n')
+      : 'RECENT REDESIGNS: none yet.' });
     const plan = parseJSON(await callAI(buildSystem(REDESIGN_SYSTEM + REDESIGN_STYLE), content)) || {};
     if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
 
@@ -1874,8 +1882,9 @@ Format: ${ratios.join(' and ')}` });
     // A typed shirt wins over the detected one.
     const typedOutfit = (document.getElementById('redesign-outfit')?.value || '').trim();
     if (typedOutfit) plan.outfit = typedOutfit;
+    const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
     const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face.` : '';
-    const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${wardrobe}`;
+    const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
 
     const results = [];
     for (const ratio of ratios) {
@@ -1919,6 +1928,11 @@ Format: ${ratios.join(' and ')}` });
 
     generatedThumbB64 = results[0].b64;
     window._redesign = { results, identity, anchor, prompt, fmt, plan, trend };
+    // Remember this one so the next Redesign on the channel picks a different face and layout.
+    try {
+      recent = [{ headline: plan.headline || '', expression: plan.expression || 'unknown', side: plan.host_side || 'unknown' }, ...recent].slice(0, 6);
+      localStorage.setItem(recentKey, JSON.stringify(recent));
+    } catch (e) { /* storage blocked; variety just resets */ }
     renderRedesign(plan, trend, results, video);
   } catch (e) {
     genOut.innerHTML = errHtml(e.message || 'Redesign failed. Try again.');
@@ -1950,6 +1964,7 @@ function renderRedesign(plan, trend, results, video) {
         Headline: <strong>${esc(plan.headline || '')}</strong><br>
         ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
         ${plan.outfit ? `Wardrobe: ${esc(plan.outfit)}<br>` : ''}
+        ${plan.expression ? `Expression: ${esc(plan.expression)}<br>` : ''}
         Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
