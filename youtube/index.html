@@ -1767,6 +1767,46 @@ async function cutoutPerson(b64) {
   return { canvas: c, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, head, W, H };
 }
 
+// Face landmarks (MediaPipe FaceLandmarker, Apache-2.0): used to keep the eyes out of the
+// skin tone edit. The skin classes reach into the eye area, and cutting blue there turned
+// irises and the whites of the eyes red.
+let _landmarker = null;
+async function getLandmarker() {
+  if (_landmarker) return _landmarker;
+  const base = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1';
+  const vision = await import(`${base}/+esm`);
+  const fileset = await vision.FilesetResolver.forVisionTasks(`${base}/wasm`);
+  _landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task' },
+    runningMode: 'IMAGE', numFaces: 1
+  });
+  return _landmarker;
+}
+const EYE_OUTLINES = [
+  [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246],
+  [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466]
+];
+// Alpha mask (0-255) of both eyes, padded a little and feathered; null if no face is found.
+async function eyeMask(bmp) {
+  const r = (await getLandmarker()).detect(bmp);
+  const lm = r.faceLandmarks?.[0];
+  if (!lm) return null;
+  const W = bmp.width, H = bmp.height;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff';
+  const iod = Math.hypot((lm[33].x - lm[263].x) * W, (lm[33].y - lm[263].y) * H);
+  ctx.lineWidth = iod * 0.12; ctx.lineJoin = 'round';
+  for (const outline of EYE_OUTLINES) {
+    ctx.beginPath();
+    outline.forEach((i, k) => k ? ctx.lineTo(lm[i].x * W, lm[i].y * H) : ctx.moveTo(lm[i].x * W, lm[i].y * H));
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  const f = document.createElement('canvas'); f.width = W; f.height = H;
+  const fctx = f.getContext('2d'); fctx.filter = `blur(${Math.max(1, iod * 0.03)}px)`; fctx.drawImage(c, 0, 0);
+  return fctx.getImageData(0, 0, W, H).data;
+}
+
 // Deepens and warms only the host's skin (MediaPipe's face-skin and body-skin classes) by a
 // set amount, e.g. 0.10 for "10% tanner". A pixel edit, not an AI redraw, so the face can't
 // drift and the result is the same every time. Negative amounts lighten.
@@ -1790,6 +1830,8 @@ async function applySkinTone(b64, amount) {
   const mk = document.createElement('canvas'); mk.width = W; mk.height = H;
   const mctx = mk.getContext('2d'); mctx.filter = 'blur(1.5px)'; mctx.drawImage(mc, 0, 0, W, H);
   const alpha = mctx.getImageData(0, 0, W, H).data;
+  const eyes = await eyeMask(bmp).catch(() => null);
+  if (eyes) for (let i = 3; i < alpha.length; i += 4) alpha[i] = alpha[i] * (1 - eyes[i] / 255);
   // Blue drops most, red least: deeper and warmer, like a light tan.
   const k = [amount * 0.5, amount * 0.8, amount * 1.15];
   for (let i = 0; i < img.data.length; i += 4) {
