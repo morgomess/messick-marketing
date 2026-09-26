@@ -1597,14 +1597,15 @@ const REDESIGN_SYSTEM = `You are an elite YouTube thumbnail art director. You de
 You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREND thumbnails that rank for this topic.
 
 1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video: a clear focal person, big short text, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
-2. Rank the EXPRESSIONS menu below for this headline's emotion, best first (all six ids). The page uses your top choice unless a recent Redesign used it. Then pick up to 3 PERSON photos, the first being the closest to your top expression and a good angle.
+2. Rank the EXPRESSIONS menu below for this headline's emotion, best first (all seven ids). The page uses your top choice unless a recent Redesign used it. Then pick up to 3 PERSON photos, the first being the closest to your top expression and a good angle.
 EXPRESSIONS:
 - shock: wide-eyed shock, brows high, mouth open. Only for a genuine reveal.
 - skeptic: skeptical side-eye, one brow raised, lips pressed to one side. Myths, bad advice, doubtful claims.
 - grin: big open-mouth grin, eyes bright and crinkled. Wins, good news, easy fixes.
 - worried: concerned look, brows pulled up and together, eyes wide, lips slightly parted (no teeth-baring wince). Warnings, mistakes, costs.
 - lean: "listen to me" look, brows raised, lips parted mid-word, leaning toward the camera. Tips, how-tos, frameworks.
-- confused: confused squint, head tilted, one brow up, mouth pulled to one side. Questions, confusing topics.
+- confused: confused squint, head tilted, one brow up, mouth pulled to one side. Confusing topics, mixed messages.
+- curious: open, interested look straight at the camera, brows raised, eyes bright, a small open smile; never a side-glance or smirk. Questions, news, new tools, "what this means for you".
 3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
 4. From the VIDEO FRAMES, describe what the host wears on top in this video: color and type, e.g. "olive green crew-neck t-shirt" or "navy blazer over a white shirt". If there are no frames or the host is not in them, use the CURRENT thumbnail; if neither shows the host, leave it empty. The page adds this to the prompt, so do not describe clothing in the prompt yourself.
 5. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
@@ -1622,7 +1623,7 @@ PROMPT RULES:
 - Do not describe the host's expression in the prompt; the page adds the chosen one.
 
 Return ONLY this JSON, no markdown:
-{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "host_frame": <number of the VIDEO FRAME showing the host's face most clearly and front-on, or 0>, "trend": <number or 0>, "trend_reason": "<one sentence>", "expressions": ["<all six expression ids, best first>"], "host_side": "<left or right>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+{"core_idea": "<one sentence: what the video teaches>", "outfit": "<the host's top in this video, or empty>", "host_frame": <number of the VIDEO FRAME showing the host's face most clearly and front-on, or 0>, "trend": <number or 0>, "trend_reason": "<one sentence>", "expressions": ["<all seven expression ids, best first>"], "host_side": "<left or right>", "photos": [<person photo numbers, up to 3>], "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
 
 // The Redesign look: vidIQ-level energy (big outlined type, a reaction pose, one prop, a
 // blurred topical setting) carried out in the channel's own colors and type. Always
@@ -1943,10 +1944,11 @@ async function fetchVideoFrames(videoId) {
 const EXPRESSIONS = {
   shock: 'wide-eyed shock: brows high, eyes wide, mouth open',
   skeptic: 'a skeptical side-eye: one brow raised high, eyes cut to the side, lips pressed to one side',
-  grin: 'a big open-mouth grin: teeth showing, eyes bright and crinkled',
+  grin: 'a big, genuine, happy open-mouth grin straight at the camera: teeth showing, eyes bright and crinkled',
   worried: 'a concerned look: brows pulled up and together, eyes wide and serious, lips slightly parted; not a grimace or wince, no bared teeth',
   lean: 'a "listen to me" look: brows raised, lips parted mid-word, leaning toward the camera',
-  confused: 'a confused squint: head tilted, one brow up, mouth pulled to one side'
+  confused: 'a confused squint: head tilted, one brow up, mouth pulled to one side',
+  curious: 'an open, interested look straight at the camera: brows raised, eyes bright and wide, a small open smile; never a side-glance, never a smirk'
 };
 
 function pickExpression(ranked, recent) {
