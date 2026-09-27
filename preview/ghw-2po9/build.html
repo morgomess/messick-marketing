@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Your Website Build | Gentle Hour Wellness x Messick Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Dancing+Script:wght@600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#111111; --white:#faf8f5; --blue:#3a6b8a; --blue-lt:#5a9ab8;
+    --ink:#1d1d1d; --muted:#6b6862; --line:#e7e2da; --card:#ffffff; --blue-bg:#eaf1f5;
+    --script:"Dancing Script", cursive; --serif:"Cormorant Garamond", Georgia, serif; --sans:"Jost", system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--white);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--blue)}
+  .wrap{max-width:46rem;margin:0 auto;padding:0 18px}
+
+  /* header band */
+  .band{background:var(--black);color:var(--white);padding:34px 0 30px;position:relative;overflow:hidden}
+  .band::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:1px solid rgba(90,154,184,.35)}
+  .band::before{content:"";position:absolute;right:-20px;top:-20px;width:140px;height:140px;border-radius:50%;border:1px solid rgba(90,154,184,.25)}
+  .from{font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;color:var(--blue-lt);font-weight:500}
+  .band h1{font-family:var(--script);font-weight:700;font-size:clamp(2.4rem,9vw,3.4rem);line-height:1.05;margin-top:10px}
+  .band .for{font-family:var(--serif);font-style:italic;font-size:1.25rem;color:#d9d4cc;margin-top:4px}
+
+  /* progress */
+  .progress{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-top:-18px;position:relative;z-index:2;box-shadow:0 10px 30px -18px rgba(17,17,17,.35)}
+  .ring{flex:none;width:84px;height:84px;position:relative}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .ring circle{fill:none;stroke-width:8}
+  .ring .t{stroke:var(--line)} .ring .f{stroke:var(--blue);stroke-linecap:round;transition:stroke-dashoffset 1.2s ease}
+  .ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:1.45rem;color:var(--black)}
+  .prog-txt h2{font-family:var(--serif);font-weight:600;font-size:1.35rem;line-height:1.15}
+  .prog-txt p{color:var(--muted);font-size:.93rem;margin-top:2px}
+  .prog-txt .launch{display:inline-block;margin-top:8px;background:var(--blue-bg);color:var(--blue);font-weight:600;font-size:.8rem;padding:4px 10px;border-radius:99px}
+
+  /* next up */
+  .next{margin-top:18px;background:var(--black);color:var(--white);border-radius:18px;padding:18px 20px}
+  .next .k{font-family:var(--script);font-size:1.5rem;color:var(--blue-lt);line-height:1}
+  .next ul{list-style:none;margin-top:8px}
+  .next li{display:flex;gap:10px;padding:6px 0;border-top:1px solid rgba(250,248,245,.12);font-size:.95rem}
+  .next li:first-child{border-top:0}
+  .next li span.who{flex:none;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:rgba(90,154,184,.2);color:#bfe0ef;height:fit-content;margin-top:2px}
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:22px 0 4px;font-size:.8rem;color:var(--muted)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+  /* phases */
+  .phase{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .ph-head{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .num{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:1.2rem;border:1.5px solid var(--blue);color:var(--blue)}
+  .phase.done .num{background:var(--blue);color:#fff}
+  .phase.active .num{background:var(--black);border-color:var(--black);color:#fff}
+  .ph-head h3{font-family:var(--serif);font-weight:600;font-size:1.3rem;line-height:1.1}
+  .ph-head p{font-size:.85rem;color:var(--muted)}
+  .ph-head .count{margin-left:auto;font-size:.8rem;font-weight:600;color:var(--blue);white-space:nowrap}
+  .items{list-style:none}
+  .items li{display:flex;align-items:flex-start;gap:12px;padding:11px 18px;border-top:1px solid var(--line)}
+  .items li:first-child{border-top:0}
+  .dot{flex:none;width:22px;height:22px;border-radius:50%;border:1.8px solid #c9c2b6;display:grid;place-items:center;margin-top:1px;background:#fff}
+  .items li.done .dot{background:var(--blue);border-color:var(--blue)}
+  .items li.done .dot::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .items li.active .dot{border-color:var(--black);box-shadow:0 0 0 4px rgba(58,107,138,.18);animation:pulse 2.2s ease-in-out infinite}
+  .items li.active .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--black)}
+  @keyframes pulse{50%{box-shadow:0 0 0 7px rgba(58,107,138,.08)}}
+  .it{flex:1}
+  .it b{font-weight:500}
+  .items li.done .it b{color:var(--muted)}
+  .it small{display:block;color:var(--muted);font-size:.82rem;line-height:1.4;margin-top:1px}
+  .you{flex:none;font-size:.66rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--blue-bg);color:var(--blue);margin-top:2px}
+  label.tick{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--blue);font-weight:500;margin-top:6px;cursor:pointer;width:fit-content}
+  label.tick input{appearance:none;width:16px;height:16px;border:1.5px solid var(--blue);border-radius:4px;display:grid;place-items:center;background:#fff;cursor:pointer}
+  label.tick input:checked{background:var(--blue)}
+  label.tick input:checked::after{content:"";width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  label.tick input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+  .after{margin-top:22px;border:1.5px dashed #c9c2b6;border-radius:18px;padding:18px 20px}
+  .after h3{font-family:var(--serif);font-weight:600;font-size:1.3rem}
+  .after p{color:var(--muted);font-size:.93rem;margin-top:4px}
+
+  footer{margin-top:34px;background:var(--black);color:#d9d4cc;padding:28px 0 34px;text-align:center}
+  footer .sig{font-family:var(--script);font-size:1.7rem;color:var(--white)}
+  footer p{font-size:.88rem;margin-top:4px}
+  footer a{color:var(--blue-lt)}
+  .updated{font-size:.75rem;color:#8d887f;margin-top:10px}
+  @media (prefers-reduced-motion:reduce){.items li.active .dot{animation:none}.ring .f{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="wrap">
+    <div class="from">Messick Marketing</div>
+    <h1>Your website build</h1>
+    <div class="for">for Gentle Hour Wellness</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="progress" aria-label="Overall progress">
+    <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="42"/><circle class="f" id="ringf" cx="50" cy="50" r="42" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg><b id="pct">0%</b></div>
+    <div class="prog-txt">
+      <h2 id="stage">Getting started</h2>
+      <p id="counts">0 of 0 steps done</p>
+      <span class="launch">Target launch: early November</span>
+    </div>
+  </section>
+
+  <section class="next" aria-label="Up next">
+    <div class="k">Up next</div>
+    <ul id="nextlist"></ul>
+  </section>
+
+  <div class="legend"><span><i style="background:var(--blue)"></i>Done</span><span><i style="background:var(--black)"></i>In progress</span><span><i style="border:1.8px solid #c9c2b6;background:#fff"></i>Coming up</span><span><i style="background:var(--blue-bg)"></i>Your part</span></div>
+
+  <div id="phases"></div>
+
+  <section class="after">
+    <h3>After launch</h3>
+    <p>The site is yours, with no monthly fee to us. If you'd ever like help keeping your Google listing active or the site updated, just ask and we'll talk options.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="sig">Morgan</div>
+  <p>Messick Marketing · <a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></p>
+  <p class="updated" id="updated"></p>
+</footer>
+
+<script>
+/* Status is set here by Messick as the build moves: "done", "active" or "todo".
+   you:true marks Victor's steps; he can tick those on his own phone (saved on his device only). */
+var UPDATED = "September 27, 2026";
+var PHASES = [
+  { title: "Kickoff", sub: "Getting everything lined up", items: [
+    { id:"k1", t:"Found Locally package chosen", s:"Agreed July 16", st:"done" },
+    { id:"k2", t:"Studio visit and planning", s:"Monday, September 28", st:"active" },
+    { id:"k3", t:"Sign the agreement", s:"Short and simple, sent by email", st:"todo", you:true },
+    { id:"k4", t:"Pay the deposit", s:"$625, half of the project", st:"todo", you:true },
+    { id:"k5", t:"Buy your domain", s:"gentlehourwellness.com, about $11 a year on your card", st:"todo", you:true },
+    { id:"k6", t:"Add Morgan to your Google listing", s:"As a manager, so we can fix hours and photos", st:"todo", you:true }
+  ]},
+  { title: "Photos and words", sub: "The real you, not stock photos", items: [
+    { id:"p1", t:"Photo and video shoot at the studio", s:"Treatment room, salt room, you at work", st:"active" },
+    { id:"p2", t:"Pick and edit the best shots", st:"todo" },
+    { id:"p3", t:"Answer a few quick questions", s:"Hours, travel fee, license, a line about you", st:"todo", you:true },
+    { id:"p4", t:"Write the words for every page", st:"todo" }
+  ]},
+  { title: "Design and build", sub: "Five pages, built for phones first", items: [
+    { id:"b1", t:"Homepage design", s:"First look already shared", st:"active" },
+    { id:"b2", t:"Services and prices page", st:"todo" },
+    { id:"b3", t:"About page", st:"todo" },
+    { id:"b4", t:"Contact page with map and hours", st:"todo" },
+    { id:"b5", t:"Booking page with Vagaro built in", st:"todo" },
+    { id:"b6", t:"Salt room page", st:"todo" },
+    { id:"b7", t:"Email signup to bring clients back", st:"todo" }
+  ]},
+  { title: "Google listing", sub: "Where most new clients find you", items: [
+    { id:"g1", t:"Hours and services matched everywhere", st:"todo" },
+    { id:"g2", t:"20+ new photos uploaded", st:"todo" },
+    { id:"g3", t:"Categories and description tuned for Statesboro", st:"todo" },
+    { id:"g4", t:"Website linked to your listing", st:"todo" }
+  ]},
+  { title: "Review and launch", sub: "The fun part", items: [
+    { id:"l1", t:"Look over the full site", s:"Tell us what you love and what to change", st:"todo", you:true },
+    { id:"l2", t:"Final edits", st:"todo" },
+    { id:"l3", t:"Connect your domain and go live", st:"todo" },
+    { id:"l4", t:"Final payment", s:"$625 at launch", st:"todo", you:true },
+    { id:"l5", t:"Quick tour of how to update hours and prices", st:"todo" }
+  ]}
+];
+
+(function(){
+  var KEY="ghw-build-ticks", mine={};
+  try{ mine=JSON.parse(localStorage.getItem(KEY)||"{}")||{}; }catch(e){ mine={}; }
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(mine)); }catch(e){} }
+  function statusOf(it){ return (it.you && mine[it.id]) ? "done" : it.st; }
+
+  function render(){
+    var host=document.getElementById("phases"); host.innerHTML="";
+    var total=0, done=0, nextItems=[], stageName="Getting started";
+    PHASES.forEach(function(ph,i){
+      var d=0; ph.items.forEach(function(it){ total++; if(statusOf(it)==="done"){d++;done++;} });
+      var state = d===ph.items.length ? "done" : (ph.items.some(function(it){return statusOf(it)!=="todo"}) ? "active" : "todo");
+      if(state==="active" && stageName==="Getting started") stageName=ph.title;
+      var sec=document.createElement("section"); sec.className="phase "+state;
+      var html='<div class="ph-head"><div class="num">'+(i+1)+'</div><div><h3>'+ph.title+'</h3><p>'+ph.sub+'</p></div><div class="count">'+d+' / '+ph.items.length+'</div></div><ul class="items">';
+      ph.items.forEach(function(it){
+        var st=statusOf(it);
+        if(st!=="done" && (st==="active" || it.you) && nextItems.length<4) nextItems.push(it);
+        html+='<li class="'+st+'"><span class="dot" aria-hidden="true"></span><div class="it"><b>'+it.t+'</b>'+(it.s?'<small>'+it.s+'</small>':'');
+        if(it.you && it.st!=="done") html+='<label class="tick"><input type="checkbox" id="tk-'+it.id+'" data-id="'+it.id+'"'+(mine[it.id]?' checked':'')+'> I did this</label>';
+        html+='</div>'+(it.you?'<span class="you">Your part</span>':'')+'</li>';
+      });
+      sec.innerHTML=html+'</ul>'; host.appendChild(sec);
+    });
+    var pct=Math.round(done/total*100);
+    document.getElementById("pct").textContent=pct+"%";
+    document.getElementById("ringf").setAttribute("stroke-dashoffset",100-pct);
+    document.getElementById("counts").textContent=done+" of "+total+" steps done";
+    document.getElementById("stage").textContent="Now: "+stageName;
+    document.getElementById("nextlist").innerHTML=nextItems.map(function(it){
+      return '<li><span class="who">'+(it.you?"You":"Morgan")+'</span><span>'+it.t+'</span></li>';
+    }).join("");
+    [].forEach.call(document.querySelectorAll("label.tick input"),function(cb){
+      cb.addEventListener("change",function(){ mine[cb.dataset.id]=cb.checked; save(); render(); });
+    });
+  }
+  document.getElementById("updated").textContent="Last updated "+UPDATED;
+  render();
+})();
+</script>
+</body>
+</html>
