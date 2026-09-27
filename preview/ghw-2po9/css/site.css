@@ -491,3 +491,21 @@ img.hero-vid{object-position:50% 40%}
 .type-c .card.stat .big{font-family:var(--sans);font-weight:800;letter-spacing:-.04em}
 .type-c .step .num{font-family:var(--sans);font-weight:800;letter-spacing:-.04em}
 .type-c .proof b{font-weight:800}
+
+/* five adds */
+.goal{display:inline-block;margin-left:.45rem;vertical-align:middle;font-family:var(--sans);font-weight:700;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.18rem .5rem;border-radius:999px}
+.goal-recover{background:#56674c;color:#EDE6D8}
+.goal-prep{background:#b86a3c;color:#fff4ea}
+.goal-unwind{background:rgba(42,36,29,.12);color:#3f382f}
+.goal-key{margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;font-size:.9rem;color:#5b5247}
+.goal-key .goal{margin:0 .35rem 0 0}
+.picks{margin-top:1.8rem;border-top:1px solid var(--line)}
+.picks-h{padding:1rem 0 .4rem;font-weight:600;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-dim)}
+.picks a{display:flex;justify-content:space-between;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--line);color:var(--bone-2);transition:color .2s}
+.picks a:hover{color:var(--bone)}
+.picks b{font-weight:800;color:var(--sage)}
+@media (min-width:900px){.steps-4{grid-template-columns:repeat(4,1fr)}}
+.towns{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 2rem;border-top:1px solid var(--line)}
+.towns li{padding:.8rem 0;border-bottom:1px solid var(--line);color:var(--bone-2)}
+@media (min-width:640px){.towns{grid-template-columns:repeat(3,1fr)}}
+.info a[href="#towns"]{color:var(--bone-2);border-bottom:1px solid rgba(236,232,223,.3);display:inline}
