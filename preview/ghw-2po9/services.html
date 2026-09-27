@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="css/site.css">
 <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
+<body class="calm">
 <a class="skip" href="#main">Skip to content</a>
 
 <div class="top" id="top-bar">
@@ -48,81 +48,110 @@
 </div>
 
 <main id="main">
-  <!-- HERO: menu board instead of video, so Services reads differently from Home -->
-  <section class="hero shero" id="top">
-    <img class="mono" src="img/ghw-logo.png" alt="" width="271" height="253">
-    <div class="wrap hero-in shero-grid">
+  <!-- HERO: calm pass. Warm split layout, photo right, no widgets -->
+  <section class="hero chero" id="top">
+    <div class="wrap hero-in chero-grid">
       <div>
         <div class="label">Services &amp; pricing · Statesboro, GA</div>
-        <h1><span class="ln"><span>Pick your</span></span><span class="ln"><span style="color:var(--sage)">session.</span></span></h1>
+        <h1><span class="ln"><span>Pick your</span></span><span class="ln"><span style="color:var(--sage)">session</span></span></h1>
         <p class="lead">Massage from $60, in the studio or at your place.</p>
         <div class="ctas">
           <a class="btn btn-sage" href="booking.html">Book a session <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          <a class="btn btn-line" href="#menu">Full menu</a>
+          <a class="textlink" href="#menu">See the menu</a>
         </div>
         <p class="or-call">Or call <a href="tel:+19128497707">(912) 849-7707</a></p>
       </div>
-      <nav class="board" aria-label="Menu at a glance">
-        <div class="board-h">The menu</div>
-          <a class="row" href="#svc-deep" style="--r:0"><span>Deep Tissue</span><i class="dots"></i><span class="p">from $95</span></a>
-          <a class="row" href="#svc-swedish" style="--r:1"><span>Swedish</span><i class="dots"></i><span class="p">from $95</span></a>
-          <a class="row" href="#svc-therapeutic" style="--r:2"><span>Therapeutic</span><i class="dots"></i><span class="p">from $150</span></a>
-          <a class="row" href="#svc-quick" style="--r:3"><span>Quick Fix</span><i class="dots"></i><span class="p">$60</span></a>
-          <a class="row" href="#svc-prenatal" style="--r:4"><span>Prenatal</span><i class="dots"></i><span class="p">from $135</span></a>
-          <a class="row" href="#svc-face" style="--r:5"><span>Face Sculpting</span><i class="dots"></i><span class="p">$65</span></a>
-          <a class="row" href="#svc-mobile" style="--r:6"><span>Mobile massage<small>at your place</small></span><i class="dots"></i><span class="p">from $140</span></a>
-          <a class="row" href="salt-room.html" style="--r:7"><span>Salt room<small>45 min</small></span><i class="dots"></i><span class="p">$70</span></a>
-        <div class="board-f">$10 off for medical pros &amp; first responders</div>
-      </nav>
+      <div class="chero-photo"><img src="img/room.jpg" alt="The treatment room at Gentle Hour Wellness, lamp on, table made up" width="1086" height="1448"></div>
     </div>
   </section>
 
-  <!-- MENU: tabs keep studio, mobile and add-ons on one screen -->
-  <section class="sec services" id="menu">
+  <!-- MENU: printed-menu feel on cream, three plain groups, no tabs -->
+  <section class="sec cream" id="menu">
     <div class="wrap">
-      <div class="svc-head">
-        <div>
-          <div class="label reveal">The full menu</div>
-          <h2 class="h2 reveal">Every session, every price.</h2>
+      <h2 class="h2 reveal">The menu</h2>
+      <p class="intro reveal">Not sure where to start? Try a 60-minute Deep Tissue.</p>
+
+      <div class="m-group reveal">
+        <h3 class="m-head">In the studio</h3>
+        <div class="m-list">
+          <div class="m-item" id="svc-deep">
+            <div class="m-top"><h4>Deep Tissue</h4><span class="m-price">from $95</span></div>
+            <div class="m-times">60 min $95 · 90 min $140 · 120 min $185</div>
+            <p>Slow, firm work for knots that keep coming back.</p>
+          </div>
+          <div class="m-item" id="svc-swedish">
+            <div class="m-top"><h4>Swedish</h4><span class="m-price">from $95</span></div>
+            <div class="m-times">60 min $95 · 90 min $130 · 120 min $175</div>
+            <p>Long, gliding strokes. The classic first massage.</p>
+          </div>
+          <div class="m-item" id="svc-therapeutic">
+            <div class="m-top"><h4>Therapeutic</h4><span class="m-price">from $150</span></div>
+            <div class="m-times">90 min $150 · 120 min $200</div>
+            <p>Problem areas plus full-body work.</p>
+          </div>
+          <div class="m-item" id="svc-quick">
+            <div class="m-top"><h4>Quick Fix</h4><span class="m-price">$60</span></div>
+            <div class="m-times">30 min · upper or lower body</div>
+            <p>Thirty minutes on one area.</p>
+          </div>
+          <div class="m-item" id="svc-prenatal">
+            <div class="m-top"><h4>Prenatal</h4><span class="m-price">from $135</span></div>
+            <div class="m-times">60 min $135 · 90 min $190</div>
+            <p>Fully supported. Quick phone consult first.</p>
+          </div>
+          <div class="m-item" id="svc-face">
+            <div class="m-top"><h4>Korean Face Sculpting</h4><span class="m-price">$65</span></div>
+            <div class="m-times">Facial massage</div>
+            <p>Lifts and de-puffs. No needles.</p>
+          </div>
         </div>
-        <p class="intro reveal">Not sure? Start with a 60-minute Deep Tissue.</p>
       </div>
-      <div class="tabs" role="tablist" aria-label="Service type">
-        <button class="tab" role="tab" id="tab-studio" aria-controls="p-studio" aria-selected="true">In the studio</button>
-        <button class="tab" role="tab" id="tab-mobile" aria-controls="p-mobile" aria-selected="false" tabindex="-1">Mobile</button>
-        <button class="tab" role="tab" id="tab-extras" aria-controls="p-extras" aria-selected="false" tabindex="-1">Add-ons &amp; more</button>
-      </div>
-      <div class="tpanel" id="p-studio" role="tabpanel" aria-labelledby="tab-studio">
-        <div class="svc">
-          <div class="item" id="svc-deep"><div class="item-top"><h3>Deep Tissue <span class="tag">Most booked</span></h3><span class="price">from $95</span></div><div class="times">60 min $95 · 90 min $140 · 120 min $185</div><p>Slow, firm work for knots that keep coming back.</p></div>
-          <div class="item" id="svc-swedish"><div class="item-top"><h3>Swedish</h3><span class="price">from $95</span></div><div class="times">60 min $95 · 90 min $130 · 120 min $175</div><p>Long, gliding strokes. The classic first massage.</p></div>
-          <div class="item" id="svc-therapeutic"><div class="item-top"><h3>Therapeutic</h3><span class="price">from $150</span></div><div class="times">90 min $150 · 120 min $200</div><p>Problem areas plus full-body work.</p></div>
-          <div class="item" id="svc-quick"><div class="item-top"><h3>Quick Fix</h3><span class="price">$60</span></div><div class="times">30 min · upper or lower body</div><p>Thirty minutes on one area.</p></div>
-          <div class="item" id="svc-prenatal"><div class="item-top"><h3>Prenatal</h3><span class="price">from $135</span></div><div class="times">60 min $135 · 90 min $190</div><p>Fully supported. Quick phone consult first.</p></div>
-          <div class="item" id="svc-face"><div class="item-top"><h3>Korean Face Sculpting</h3><span class="price">$65</span></div><div class="times">Facial massage</div><p>Lifts and de-puffs. No needles.</p></div>
+
+      <div class="m-group reveal" id="svc-mobile">
+        <h3 class="m-head">At your place</h3>
+        <p class="m-note">Victor brings the table to your home, hotel or office. Per-mile fee outside Statesboro.</p>
+        <div class="m-list">
+          <div class="m-item" id="svc-m-swedish">
+            <div class="m-top"><h4>Travel Swedish</h4><span class="m-price">from $140</span></div>
+            <div class="m-times">60 min $140 · 90 min $195 · 120 min $260</div>
+            <p>The classic, at your place.</p>
+          </div>
+          <div class="m-item" id="svc-m-deep">
+            <div class="m-top"><h4>Travel Deep Tissue</h4><span class="m-price">from $140</span></div>
+            <div class="m-times">60 min $140 · 90 min $210 · 120 min $280</div>
+            <p>Firm, focused work at home.</p>
+          </div>
+          <div class="m-item" id="svc-m-therapeutic">
+            <div class="m-top"><h4>Travel Therapeutic</h4><span class="m-price">from $225</span></div>
+            <div class="m-times">90 min $225 · 120 min $300</div>
+            <p>Problem areas plus full-body work.</p>
+          </div>
+          <div class="m-item" id="svc-m-prenatal">
+            <div class="m-top"><h4>Travel Prenatal</h4><span class="m-price">from $200</span></div>
+            <div class="m-times">60 min $200 · 90 min $285</div>
+            <p>Fully supported, no driving.</p>
+          </div>
         </div>
       </div>
-      <div class="tpanel" id="p-mobile" role="tabpanel" aria-labelledby="tab-mobile" hidden>
-        <p class="panel-intro" id="svc-mobile">Victor brings the table to your home, hotel or office. Per-mile fee outside Statesboro.</p>
-        <div class="svc">
-          <div class="item" id="svc-m-swedish"><div class="item-top"><h3>Travel Swedish</h3><span class="price">from $140</span></div><div class="times">60 min $140 · 90 min $195 · 120 min $260</div><p>The classic, at your place.</p></div>
-          <div class="item" id="svc-m-deep"><div class="item-top"><h3>Travel Deep Tissue</h3><span class="price">from $140</span></div><div class="times">60 min $140 · 90 min $210 · 120 min $280</div><p>Firm, focused work at home.</p></div>
-          <div class="item" id="svc-m-therapeutic"><div class="item-top"><h3>Travel Therapeutic</h3><span class="price">from $225</span></div><div class="times">90 min $225 · 120 min $300</div><p>Problem areas plus full-body work.</p></div>
-          <div class="item" id="svc-m-prenatal"><div class="item-top"><h3>Travel Prenatal</h3><span class="price">from $200</span></div><div class="times">60 min $200 · 90 min $285</div><p>Fully supported, no driving.</p></div>
+
+      <div class="m-group reveal">
+        <h3 class="m-head">And also</h3>
+        <div class="m-list">
+          <div class="m-item"><div class="m-top"><h4>Salt room</h4><span class="m-price">$70</span></div><div class="m-times">45 min</div><p>Quiet, warm-lit, easy breathing. <a href="salt-room.html">See the salt room</a></p></div>
+          <div class="m-item"><div class="m-top"><h4>Chair massage</h4><span class="m-price">Call</span></div><div class="m-times">Your office or event</div><p>Fully clothed. <a href="tel:+19128497707">Call for a quote</a></p></div>
+          <div class="m-item"><div class="m-top"><h4>Gift cards</h4><span class="m-price">Any amount</span></div><div class="m-times">Sent by email</div><p>For any service. <a href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Buy on Vagaro</a></p></div>
         </div>
       </div>
-      <div class="tpanel" id="p-extras" role="tabpanel" aria-labelledby="tab-extras" hidden>
-        <div class="extras">
-          <div class="extra"><h3>Salt room</h3><p>45 quiet minutes, $70. On its own or with a massage.</p><a class="more" href="salt-room.html">See the salt room</a></div>
-          <div class="extra"><h3>Chair massage for your team</h3><p>Fully clothed, at your office or event.</p><a class="more" href="tel:+19128497707">Call for a quote</a></div>
-          <div class="extra"><h3>Gift cards</h3><p>Any service, sent by email.</p><a class="more" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Buy on Vagaro</a></div>
-          <div class="extra"><h3>$10 off</h3><p>For medical professionals and first responders.</p><a class="more" href="booking.html">Book a session</a></div>
-        </div>
-      </div>
-      <div class="svc-foot">
-        <span>Prices from Vagaro. Book online or call.</span>
-        <a class="btn btn-sage" href="booking.html">Book a session <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-      </div>
+
+      <p class="m-foot reveal">Medical professionals and first responders get $10 off any service.</p>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE: real Vagaro review (Patricia M.) -->
+  <section class="sec quote">
+    <div class="wrap">
+      <blockquote class="reveal">&ldquo;None of this &lsquo;one size fits all&rsquo; massage you would get at most day spas.&rdquo;</blockquote>
+      <p class="reveal">Patricia M., on Vagaro</p>
     </div>
   </section>
 
@@ -130,8 +159,7 @@
   <section class="sec" id="faq">
     <div class="wrap faq-grid">
       <div>
-        <div class="label reveal">Good to know</div>
-        <h2 class="h2 reveal">Questions, answered.</h2>
+        <h2 class="h2 reveal">Questions, answered</h2>
         <p class="note reveal">Cancellation and payment details are on the <a href="booking.html#policies">booking page</a>.</p>
       </div>
       <div>
@@ -149,7 +177,7 @@
   <!-- CLOSING BAND -->
   <section class="sec band">
     <div class="wrap">
-      <h2 class="h2 reveal">Ready when you are.</h2>
+      <h2 class="h2 reveal">Ready when you are</h2>
       <p class="reveal">Pick a time online, or call and Victor will help you choose.</p>
       <div class="ctas reveal">
         <a class="btn btn-ink" href="booking.html">Book now <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
