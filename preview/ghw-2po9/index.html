@@ -14,13 +14,14 @@
 <meta name="theme-color" content="#0e100f">
 <link rel="icon" href="img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/cinzel-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"HealthAndBeautyBusiness","name":"Gentle Hour Wellness","description":"Massage and recovery in Statesboro, GA with Victor Ramirez Lampe, LMT. In-studio, mobile and corporate chair massage.","telephone":"+1-912-849-7707","priceRange":"$$","address":{"@type":"PostalAddress","streetAddress":"721 S Main St, Unit 13","addressLocality":"Statesboro","addressRegion":"GA","postalCode":"30458","addressCountry":"US"},"founder":"Victor Ramirez Lampe","sameAs":["https://www.facebook.com/p/Gentle-Hour-Wellness-61586888939639","https://www.vagaro.com/gentlehourwellness"],"logo":"img/ghw-logo.png","image":"img/room.jpg"}
 </script>
 <style>
+  @font-face{font-family:"Cinzel";font-style:normal;font-weight:600 700;font-display:swap;src:url(fonts/cinzel-latin.woff2) format("woff2")}
+  @font-face{font-family:"Inter Tight";font-style:normal;font-weight:400 600;font-display:swap;src:url(fonts/inter-tight-latin.woff2) format("woff2")}
   :root{
     --ink:#0e100f; --ink-2:#161a17; --olive:#1b211b;
     --bone:#ECE8DF; --bone-2:#cfcbc2; --bone-dim:#a9a69e;
@@ -33,7 +34,10 @@
   body{background:var(--ink);color:var(--bone);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
   img,video{display:block;max-width:100%;height:auto}
-  section[id]{scroll-margin-top:5rem}
+  section[id]{scroll-margin-top:6.5rem}
+  .skip{position:absolute;left:1rem;top:-4rem;z-index:200;background:var(--bone);color:var(--ink);font-weight:600;padding:.7rem 1rem;border-radius:6px}
+  .skip:focus{top:1rem}
+  :focus-visible{outline:2px solid var(--sage);outline-offset:3px;border-radius:4px}
   .wrap{max-width:76rem;margin:0 auto;padding:0 1.25rem}
   .label{font-weight:600;text-transform:uppercase;letter-spacing:.2em;font-size:.75rem;color:var(--sage)}
   .h2{margin-top:.8rem;font-family:var(--serif);font-weight:700;font-size:clamp(2rem,4.4vw,3.4rem);line-height:1.08}
@@ -52,7 +56,8 @@
 
   /* header */
   .top{position:fixed;inset:0 0 auto;z-index:50}
-  .bar{background:var(--sage);color:var(--ink);text-align:center;padding:.5rem 1rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.72rem}
+  .bar{background:var(--sage);color:var(--ink);text-align:center;padding:.5rem 1rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;max-height:4rem;overflow:hidden;transition:max-height .3s,padding .3s}
+  .top.solid .bar{max-height:0;padding-top:0;padding-bottom:0}
   .navbar{transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
   .top.solid .navbar{background:rgba(14,16,15,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom-color:var(--line)}
   .nav{max-width:76rem;margin:0 auto;height:4.5rem;display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem}
@@ -64,13 +69,27 @@
   .links a:hover{color:var(--bone)}
   .book{font-weight:600;font-size:.9rem;padding:.6rem 1.25rem;background:var(--bone);color:var(--ink);border-radius:999px}
   .book:hover{background:var(--sage)}
-  @media (min-width:900px){.nav{padding:0 2rem}.links{display:flex}}
+  .nav-r{display:flex;align-items:center;gap:.6rem}
+  .menu-btn{display:grid;place-items:center;width:2.6rem;height:2.6rem;border-radius:50%;border:1.5px solid rgba(236,232,223,.35);background:none;color:var(--bone);cursor:pointer}
+  .menu-btn svg{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .menu-btn .x{display:none}
+  .menu-btn[aria-expanded="true"] .x{display:block}
+  .menu-btn[aria-expanded="true"] .bars{display:none}
+  .mnav{display:none;background:var(--ink);box-shadow:0 20px 40px rgba(0,0,0,.5);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:.5rem 1.25rem 1.25rem}
+  .mnav.open{display:block}
+  .mnav a{display:block;padding:.9rem 0;border-bottom:1px solid var(--line);font-family:var(--serif);font-weight:600;font-size:1.15rem}
+  .mnav a:last-child{border-bottom:0}
+  .mnav a small{font-family:var(--sans);font-weight:500;font-size:.8rem;color:var(--sage);margin-left:.5rem}
+  .brand span{white-space:nowrap}
+  @media (max-width:440px){.nav{padding:0 1rem}.brand{gap:.55rem}.brand span{font-size:.9rem;letter-spacing:.08em}.brand img{height:2.2rem}.book{padding:.55rem 1rem;font-size:.85rem}.menu-btn{width:2.4rem;height:2.4rem}.bar{font-size:.64rem;letter-spacing:.08em}}
+  @media (max-width:350px){.brand span{font-size:.78rem;letter-spacing:.05em}.brand span small{letter-spacing:.3em}.book{padding:.5rem .8rem}}
+  @media (min-width:900px){.nav{padding:0 2rem}.links{display:flex}.menu-btn,.mnav{display:none!important}}
 
   /* hero */
   .hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden;background:var(--ink)}
   .hero-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%;filter:brightness(.7) saturate(.8)}
   .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--ink) 4%,rgba(14,16,15,.55) 45%,rgba(14,16,15,.2) 75%,rgba(14,16,15,.6))}
-  .stock-tag{position:absolute;z-index:3;right:1.25rem;top:8rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:.62rem;color:var(--ink);background:rgba(236,232,223,.8);padding:.35rem .6rem;border-radius:3px}
+  .stock-tag{position:absolute;z-index:3;right:1.25rem;top:8rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:.62rem;color:var(--ink);background:rgba(236,232,223,.8);padding:.35rem .6rem;border-radius:3px}
   .hero-in{position:relative;z-index:2;width:100%;padding-top:9rem;padding-bottom:3.25rem}
   .hero h1{margin-top:1rem;font-family:var(--serif);font-weight:700;font-size:clamp(2.6rem,7.2vw,6.4rem);line-height:1.02}
   .hero h1 span{display:block;color:var(--sage)}
@@ -78,6 +97,12 @@
   .ctas{margin-top:1.9rem;display:flex;flex-wrap:wrap;gap:.75rem}
   .proof{margin-top:2.3rem;padding-top:1.2rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.5rem 2.2rem;font-size:.95rem;color:var(--bone-dim)}
   .proof b{color:var(--bone);font-weight:600}
+  .or-call{margin-top:1rem;font-size:.95rem;color:var(--bone-dim)}
+  .or-call a{color:var(--bone);border-bottom:1px solid rgba(236,232,223,.4)}
+  .vid-toggle{position:absolute;z-index:3;right:1.25rem;bottom:1.25rem;display:inline-flex;align-items:center;gap:.4rem;background:rgba(14,16,15,.6);border:1px solid rgba(236,232,223,.3);color:var(--bone);border-radius:999px;padding:.45rem .8rem;font:600 .75rem var(--sans);cursor:pointer}
+  .vid-toggle svg{width:.8rem;height:.8rem;fill:currentColor}
+  @media (min-width:768px){.vid-toggle{right:2rem;bottom:2rem}}
+  @media (max-width:767px){.hero>.stock-tag{top:auto;bottom:4.2rem}}
   @media (min-width:768px){.hero-in{padding-bottom:4.5rem}.stock-tag{right:2rem}}
 
   /* who */
@@ -99,7 +124,7 @@
   .item .price{font-family:var(--serif);font-weight:600;font-size:1.15rem;color:var(--sage);white-space:nowrap}
   .item .times{margin-top:.3rem;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--bone-dim)}
   .item p{margin-top:.5rem;color:var(--bone-2);font-size:.98rem}
-  .tag{display:inline-block;margin-left:.5rem;vertical-align:middle;font-family:var(--sans);font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;background:var(--sage);color:var(--ink);padding:.2rem .5rem;border-radius:999px}
+  .tag{display:inline-block;margin-left:.5rem;vertical-align:middle;font-family:var(--sans);font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;background:var(--sage);color:var(--ink);padding:.2rem .5rem;border-radius:999px}
   .extras{margin-top:3rem;display:grid;gap:1rem}
   .extra{border:1px solid var(--line);border-radius:6px;padding:1.6rem}
   .extra h3{font-family:var(--serif);font-weight:600;font-size:1.2rem}
@@ -118,14 +143,15 @@
   .salt .label{color:#e3a47a}
   .salt .intro{color:#d8cfc4}
   .badge{position:absolute;right:-1rem;bottom:-1.5rem;width:8.5rem;height:8.5rem;border-radius:50%;background:var(--bone);color:var(--ink);display:grid;place-items:center}
-  .badge svg{position:absolute;inset:0;width:100%;height:100%;animation:spin 24s linear infinite}
+  .badge svg{position:absolute;inset:0;width:100%;height:100%;transition:transform 1.2s ease}
+  .salt-photo:hover .badge svg{transform:rotate(120deg)}
   .badge text{font-family:var(--serif);font-weight:600;font-size:9.2px;letter-spacing:2.4px;fill:var(--ink)}
   .badge b{font-family:var(--serif);font-size:1.5rem;line-height:1}
   @keyframes spin{to{transform:rotate(360deg)}}
   .salt-list{margin-top:1.8rem;display:grid;gap:.7rem}
   .salt-list li{list-style:none;display:flex;gap:.8rem;color:#d8cfc4}
   .salt-list li::before{content:"";flex:none;width:6px;height:6px;margin-top:.6rem;border-radius:50%;background:#e3a47a}
-  .salt .btn{margin-top:2rem}
+  .salt .ctas{margin-top:2rem}
   .salt .btn-sage{background:#e3a47a}
   .salt .stock-tag{top:1rem;right:auto;left:1rem}
   @media (min-width:900px){.salt-grid{grid-template-columns:.9fr 1.1fr;gap:6rem}}
@@ -155,7 +181,7 @@
 
   /* mobile massage */
   .mobile{background:var(--sage);color:var(--ink)}
-  .mobile .label{color:var(--sage-deep)}
+  .mobile .label{color:var(--ink)}
   .mob-grid{display:grid;gap:2.5rem;align-items:center}
   .mobile .intro{color:#2c3429}
   .chips{margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.5rem}
@@ -233,10 +259,11 @@
   footer nav a:hover{color:var(--bone)}
   .fine{margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;font-size:.82rem}
 
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hour{height:auto}.hour-stage{position:relative}.badge svg{animation:none}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <div class="top" id="top-bar">
   <div class="bar">Medical professionals &amp; first responders: $10 off every session</div>
@@ -244,35 +271,51 @@
     <div class="nav">
       <a class="brand" href="#top"><img src="img/ghw-logo.png" alt="" width="271" height="253"><span>Gentle Hour<small>WELLNESS</small></span></a>
       <nav class="links"><a href="#services">Services</a><a href="#salt-room">Salt room</a><a href="#about">About</a><a href="#visit">Visit</a></nav>
-      <a class="book" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book now</a>
+      <div class="nav-r">
+        <a class="book" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book now</a>
+        <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Menu">
+          <svg class="bars" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
     </div>
+    <nav class="mnav" id="mnav" aria-label="Sections">
+      <a href="#services">Services <small>&amp; prices</small></a>
+      <a href="#salt-room">Salt room</a>
+      <a href="#mobile">Mobile massage</a>
+      <a href="#about">About Victor</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#visit">Visit &amp; hours</a>
+    </nav>
   </div>
 </div>
 
-<main>
+<main id="main">
   <!-- HERO -->
   <section class="hero" id="top">
     <!-- STOCK REFERENCE ONLY (Pexels 6629845, vertical). Replace with Victor's own clip after the shoot. -->
-    <video class="hero-vid" id="hero-vid" autoplay muted loop playsinline poster="https://images.pexels.com/videos/6629845/body-massage-massage-massage-oil-massage-room-6629845.jpeg?auto=compress&amp;w=1260">
-      <source src="https://videos.pexels.com/video-files/6629845/6629845-hd_1080_2048_25fps.mp4" type="video/mp4">
-    </video>
+    <video class="hero-vid" id="hero-vid" muted loop playsinline aria-hidden="true" poster="https://images.pexels.com/videos/6629845/body-massage-massage-massage-oil-massage-room-6629845.jpeg?auto=compress&amp;w=1260"
+      data-src-sm="https://videos.pexels.com/video-files/6629845/6629845-hd_720_1366_25fps.mp4"
+      data-src-lg="https://videos.pexels.com/video-files/6629845/6629845-hd_1080_2048_25fps.mp4"></video>
+    <button class="vid-toggle" id="vid-toggle" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg><span>Pause video</span></button>
     <div class="stock-tag">Stock reference clip</div>
     <div class="wrap hero-in">
       <div class="label">Massage &amp; recovery · Statesboro, GA</div>
       <h1>Work hard.<span>Recover right.</span></h1>
-      <p class="lead">Deep tissue, sports and relaxation massage for athletes, students, shift workers and anyone carrying too much. In the studio or at your place.</p>
+      <p class="lead">Massage in Statesboro with Victor Ramirez Lampe, LMT, for athletes, students, shift workers and anyone carrying too much. Deep tissue and Swedish from $95, in the studio or at your place.</p>
       <div class="ctas">
-        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="btn btn-line" href="tel:+19128497707">Call (912) 849-7707</a>
+        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-line" href="#services">Services &amp; prices</a>
       </div>
-      <div class="proof"><span><b>5.0</b> on Vagaro</span><span><b>Victor Ramirez Lampe</b>, LMT</span><span>Great with first-timers</span><span>Mobile sessions available</span></div>
+      <p class="or-call">Or call <a href="tel:+19128497707">(912) 849-7707</a></p>
+      <div class="proof"><span><b>5.0</b> on Vagaro (4 reviews)</span><span><b>Victor Ramirez Lampe</b>, LMT</span><span>Great with first-timers</span><span>Mobile sessions available</span></div>
     </div>
   </section>
 
   <!-- THE HOUR -->
   <section class="hour" id="hour">
     <div class="hour-stage">
-      <img class="bg" src="img/room.jpg" alt="The treatment room at Gentle Hour Wellness, lights low, table made up" width="1086" height="1448">
+      <img class="bg" src="img/room.jpg" alt="The treatment room at Gentle Hour Wellness, lights low, table made up" width="1086" height="1448" loading="lazy">
       <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="48"/><circle class="f" id="ring" cx="50" cy="50" r="48" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>
       <div class="hour-in">
         <div class="label">Then take an hour</div>
@@ -312,7 +355,7 @@
         <div class="item"><div class="item-top"><h3>Swedish</h3><span class="price">from $95</span></div><div class="times">60 min $95 · 90 min $130 · 120 min $175</div><p>Long, gliding strokes with warm oil to ease everyday tension. The classic full-body massage and a great first visit.</p></div>
         <div class="item"><div class="item-top"><h3>Therapeutic</h3><span class="price">from $150</span></div><div class="times">90 min $150 · 120 min $200</div><p>A longer, blended session: focused work on problem areas plus full-body work to get things moving again.</p></div>
         <div class="item"><div class="item-top"><h3>Quick Fix</h3><span class="price">$60</span></div><div class="times">30 min · upper or lower body</div><p>Thirty focused minutes on neck and shoulders, or hips and legs. For when time is short and one area needs it.</p></div>
-        <div class="item"><div class="item-top"><h3>Prenatal</h3><span class="price">from $135</span></div><div class="times">60 min $135 · 90 min $190</div><p>Gentle, fully supported massage for expecting moms. A quick phone consult comes before your first booking.</p></div>
+        <div class="item"><div class="item-top"><h3>Prenatal</h3><span class="price">from $135</span></div><div class="times">60 min $135 · 90 min $190</div><p>Gentle, fully supported massage for expecting moms. A quick 5-minute phone consult comes before your appointment.</p></div>
         <div class="item"><div class="item-top"><h3>Korean Face Sculpting</h3><span class="price">$65</span></div><div class="times">Facial massage</div><p>A non-invasive facial massage for the face and jaw that lifts and de-puffs. No needles, no downtime.</p></div>
       </div>
       <div class="extras">
@@ -321,7 +364,7 @@
       </div>
       <div class="svc-foot">
         <span>Medical professionals and first responders get $10 off any service.</span>
-        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
   </section>
@@ -343,11 +386,14 @@
         <h2 class="h2">The salt room.</h2>
         <p class="intro">Built at the studio this September. A quiet, warm-lit room where fine, dry salt is dispersed into the air. Sit back, breathe slow and let the week go.</p>
         <ul class="salt-list">
+          <li>45-minute sessions, $70 for one person</li>
           <li>On its own, or before or after your massage</li>
-          <li>Fully clothed, nothing to prep</li>
-          <li>Sessions are rolling out now. Call for times and pricing</li>
+          <li>Fully clothed, nothing to prep. Bringing a friend? Call about group sessions</li>
         </ul>
-        <a class="btn btn-sage" href="tel:+19128497707">Ask about the salt room <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <div class="ctas">
+          <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book a salt session <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-line" href="tel:+19128497707">Call with questions</a>
+        </div>
       </div>
     </div>
   </section>
@@ -373,7 +419,7 @@
         <h2 class="h2">We come to you.</h2>
         <p class="intro">Victor brings the table, linens and everything else to your home, hotel or office, across Statesboro and the surrounding area. All you need is a little floor space.</p>
         <div class="chips"><span>Your home</span><span>Your hotel</span><span>Your office</span><span>Events</span></div>
-        <a class="btn btn-ink" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book a mobile session <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-ink" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book a mobile session <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
       <div class="rates">
         <div class="rate"><b>Travel Swedish</b><span>60 min from $140</span></div>
@@ -396,7 +442,7 @@
         <p class="body">Gentle Hour Wellness is a one-therapist studio. The person who books your appointment is the same person who greets you, listens, and does the work.</p>
         <p class="body">Clients call him punctual, knowledgeable and easy to schedule with, and first-timers say he puts them right at ease. He listens first, then builds each session around what you tell him, so no two hours look the same.</p>
         <div class="chips"><span>Deep Tissue</span><span>Sports recovery</span><span>Swedish</span><span>Therapeutic</span><span>Prenatal</span><span>Mobile</span></div>
-        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book with Victor <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book with Victor <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
   </section>
@@ -428,7 +474,7 @@
           <a href="https://www.facebook.com/profile.php?id=61586888939639&amp;sk=reviews" target="_blank" rel="noreferrer">Read them on Facebook</a>
         </div>
       </div>
-      <div class="rv-foot"><span>5.0 stars on Vagaro.</span><a href="https://www.vagaro.com/gentlehourwellness/reviews" target="_blank" rel="noreferrer">See Vagaro reviews</a></div>
+      <div class="rv-foot"><span>5.0 stars on Vagaro from 4 reviews.</span><a href="https://www.vagaro.com/gentlehourwellness/reviews" target="_blank" rel="noreferrer">See Vagaro reviews</a></div>
     </div>
   </section>
 
@@ -449,8 +495,8 @@
         <details open><summary>Is this a good place for my first massage?</summary><p>Yes. Victor walks you through everything before you start, and you can ask him to change the pressure or skip an area at any point.</p></details>
         <details><summary>Deep Tissue or Swedish?</summary><p>Deep Tissue for stubborn tightness and recovery after hard training or long shifts. Swedish if you mostly want to unwind. Not sure? Book either and tell Victor, and he'll adjust.</p></details>
         <details><summary>What should I wear?</summary><p>Whatever's comfortable. For table massage you undress to your comfort level and stay covered by a sheet the whole time. Chair massage is fully clothed.</p></details>
-        <details><summary>Can I get a massage while pregnant?</summary><p>Yes. Book a Prenatal Massage, and Victor will call you for a quick consult first.</p></details>
-        <details><summary>How far do mobile sessions go?</summary><p>Statesboro and the surrounding region. A per-mile travel fee applies beyond Statesboro, and it's shown when you book.</p></details>
+        <details><summary>Can I get a massage while pregnant?</summary><p>Yes. Request a Prenatal Massage on Vagaro, and Victor will call you for a quick 5-minute consult before your appointment.</p></details>
+        <details><summary>How far do mobile sessions go?</summary><p>Statesboro and the surrounding region. A per-mile travel fee applies beyond Statesboro, measured from the studio.</p></details>
         <details><summary>Is there parking?</summary><p>Yes, free parking right at the studio, and the studio is wheelchair accessible.</p></details>
       </div>
     </div>
@@ -464,12 +510,12 @@
         <h2 class="h2">Book your hour.</h2>
         <div class="info">
           <div><h3>Studio</h3><a href="https://www.google.com/maps/search/?api=1&amp;query=Gentle+Hour+Wellness+721+S+Main+St+Unit+13+Statesboro+GA+30458" target="_blank" rel="noreferrer">721 S Main St, Unit 13<br>Statesboro, GA 30458</a></div>
-          <div><h3>Call or text</h3><a href="tel:+19128497707">(912) 849-7707</a></div>
+          <div><h3>Call</h3><a href="tel:+19128497707">(912) 849-7707</a></div>
           <div><h3>Hours</h3><p>By appointment.<br>See open times on Vagaro.</p></div>
           <div><h3>Parking</h3><p>Free, right at the studio.<br>Wheelchair accessible.</p></div>
         </div>
         <div class="ctas">
-          <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Book on Vagaro <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
           <a class="btn btn-line" href="https://www.google.com/maps/search/?api=1&amp;query=Gentle+Hour+Wellness+721+S+Main+St+Unit+13+Statesboro+GA+30458" target="_blank" rel="noreferrer">Get directions</a>
         </div>
       </div>
@@ -492,18 +538,48 @@
 (function(){
   var top=document.getElementById('top-bar');
   var sec=document.getElementById('hour'), clock=document.getElementById('clock'), ring=document.getElementById('ring');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
   var clamp=function(x){return Math.min(1,Math.max(0,x))}, pad=function(n){return (n<10?'0':'')+n};
-  var raf=0;
-  function update(){
-    top.classList.toggle('solid',window.scrollY>60);
-    var r=sec.getBoundingClientRect(), p=clamp(-r.top/(r.height-innerHeight));
-    var h=clamp((p-.05)/.85), s=Math.round(h*3600);
-    clock.textContent=s>=3600?'60:00':pad(Math.floor(s/60))+':'+pad(s%60);
+  var raf=0, last=-1, solid=null;
+
+  function setClock(h){
+    var sec_=Math.round(h*3600);
+    if(sec_===last) return; last=sec_;
+    clock.textContent=sec_>=3600?'60:00':pad(Math.floor(sec_/60))+':'+pad(sec_%60);
     ring.setAttribute('stroke-dashoffset',1-h);
+  }
+  function update(){
+    var s_=window.scrollY>60; if(s_!==solid){solid=s_;top.classList.toggle('solid',s_);}
+    if(reduce.matches){setClock(1);return;}
+    var r=sec.getBoundingClientRect();
+    if(r.bottom<-50||r.top>innerHeight+50) return;
+    setClock(clamp((clamp(-r.top/(r.height-innerHeight))-.05)/.85));
   }
   addEventListener('scroll',function(){cancelAnimationFrame(raf);raf=requestAnimationFrame(update)},{passive:true});
   addEventListener('resize',update); update();
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){var v=document.getElementById('hero-vid');v.removeAttribute('autoplay');v.pause();}
+
+  // mobile menu
+  var btn=document.getElementById('menu-btn'), menu=document.getElementById('mnav');
+  function setMenu(open,focusBtn){btn.setAttribute('aria-expanded',open);menu.classList.toggle('open',open);if(open){menu.querySelector('a').focus();}else if(focusBtn){btn.focus();}}
+  btn.addEventListener('click',function(){setMenu(btn.getAttribute('aria-expanded')!=='true')});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))setMenu(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&btn.getAttribute('aria-expanded')==='true')setMenu(false,true)});
+
+  // hero video: load after the page, skip for reduced motion or data saver, pause when off screen
+  var v=document.getElementById('hero-vid'), t=document.getElementById('vid-toggle'), userPaused=false;
+  var saveData=navigator.connection&&navigator.connection.saveData;
+  function label(){t.querySelector('span').textContent=v.paused?'Play video':'Pause video';t.querySelector('path').setAttribute('d',v.paused?'M8 5v14l11-7z':'M7 5h4v14H7zM13 5h4v14h-4z');}
+  function startVideo(){
+    if(reduce.matches||saveData) return;
+    v.muted=true; v.setAttribute('autoplay','');
+    v.src=innerWidth<900?v.dataset.srcSm:v.dataset.srcLg;
+    v.play().catch(function(){}); t.hidden=false; label();
+    if('IntersectionObserver' in window){new IntersectionObserver(function(es){es.forEach(function(e){if(userPaused)return; if(e.isIntersecting)v.play().catch(function(){}); else v.pause();});}).observe(v);}
+  }
+  t.addEventListener('click',function(){if(v.paused){userPaused=false;v.play();}else{userPaused=true;v.pause();}label();});
+  v.addEventListener('play',label); v.addEventListener('pause',label);
+  if(document.readyState==='complete') startVideo(); else addEventListener('load',startVideo);
+  if(reduce.addEventListener) reduce.addEventListener('change',function(){if(reduce.matches){v.pause();}update();});
 })();
 </script>
 </body>
