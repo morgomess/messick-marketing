@@ -48,54 +48,39 @@
 </div>
 
 <main id="main">
-  <!-- HERO -->
-  <section class="hero" id="top">
-    <img class="hero-vid" src="img/room.jpg" alt="The treatment room at Gentle Hour Wellness, lights low, table made up">
-    <div class="wrap hero-in">
-      <div class="label">Booking · Statesboro, GA</div>
-      <h1><span class="ln"><span>Book your</span></span><span class="ln"><span style="color:var(--sage)">session</span></span></h1>
-      <p class="lead">Pick a service and a time. It takes about a minute.</p>
-      <div class="ctas">
-        <a class="btn btn-sage" href="#book">Start booking <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="btn btn-line" href="#policies">Policies</a>
-      </div>
-      <p class="or-call">Or call <a href="tel:+19128497707">(912) 849-7707</a></p>
-    </div>
-  </section>
-
+  <!-- HERO: the booking box sits in the hero, so booking is one step -->
   <!-- BOOKING BOX: links out to Vagaro for now. Swap in Victor's Vagaro embed code here when we have it. -->
-  <section class="sec" id="book">
-    <div class="wrap">
-      <h2 class="h2 reveal">Find your time</h2>
-      <div class="bbox reveal">
+  <section class="hero chero" id="top">
+    <div class="wrap hero-in chero-grid">
+      <div>
+        <div class="label">Booking · Statesboro, GA</div>
+        <h1><span class="ln"><span>Book your</span></span><span class="ln"><span style="color:var(--sage)">session</span></span></h1>
+        <p class="lead">Pick a service and a time. It takes about a minute.</p>
+        <p class="or-call">Not sure what to book? See the <a href="services.html">menu and prices</a>.</p>
+      </div>
+      <div class="bbox" id="book">
         <div class="stock-tag">Vagaro embed goes here</div>
         <h3>Booking runs on Vagaro</h3>
         <p>See every open time, pick your service and hold it with a card.</p>
         <div class="ctas">
           <a class="btn btn-sage" href="https://www.vagaro.com/gentlehourwellness/services" target="_blank" rel="noreferrer">Open booking <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          <a class="btn btn-line" href="tel:+19128497707">Book by phone</a>
-        </div>
-        <div class="bsteps">
-          <div><b>1. Pick a service</b><span>Studio, mobile or salt room.</span></div>
-          <div><b>2. Pick a time</b><span>Every opening, live.</span></div>
-          <div><b>3. Hold it with a card</b><span>Required to book. See policies below.</span></div>
+          <a class="textlink" href="tel:+19128497707">Or book by phone</a>
         </div>
       </div>
-      <p class="note reveal">Not sure what to book? See the <a href="services.html">full menu and prices</a>.</p>
     </div>
   </section>
 
-  <!-- POLICIES -->
-  <section class="sec services" id="policies">
-    <div class="wrap">
-      <h2 class="h2 reveal">Studio policies</h2>
-      <div class="pol-grid">
-        <div class="pol reveal"><div class="n">I</div><h3>Cancellations</h3><p>24 hours' notice to cancel or reschedule. Late cancels and no-shows are charged in full.</p></div>
-        <div class="pol reveal"><div class="n">II</div><h3>Payment</h3><p>All major cards, debit and cash. Pay over time with Affirm.</p></div>
-        <div class="pol reveal"><div class="n">III</div><h3>Discounts</h3><p>$10 off for medical professionals and first responders.</p></div>
-        <div class="pol reveal"><div class="n">IV</div><h3>Prenatal</h3><p>Victor calls for a quick 5-minute consult before your first session.</p></div>
+  <!-- POLICIES: plain list, no cards -->
+  <section class="sec" id="policies">
+    <div class="wrap pl-grid">
+      <h2 class="h2 reveal">Good to know</h2>
+      <div class="plist">
+        <div class="pl-row reveal"><h3>Cancellations</h3><p>24 hours' notice to cancel or reschedule. Late cancels and no-shows are charged in full.</p></div>
+        <div class="pl-row reveal"><h3>Payment</h3><p>All major cards, debit and cash. Pay over time with Affirm.</p></div>
+        <div class="pl-row reveal"><h3>Discounts</h3><p>$10 off for medical professionals and first responders.</p></div>
+        <div class="pl-row reveal"><h3>Prenatal</h3><p>Victor calls for a quick 5-minute consult before your first session.</p></div>
+        <div class="pl-row reveal"><h3>Gift cards</h3><p>Sold on <a href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Vagaro</a>, for any service.</p></div>
       </div>
-      <p class="note reveal">Gift cards are sold on <a href="https://www.vagaro.com/gentlehourwellness" target="_blank" rel="noreferrer">Vagaro</a>. Questions? Call <a href="tel:+19128497707">(912) 849-7707</a>.</p>
     </div>
   </section>
 
