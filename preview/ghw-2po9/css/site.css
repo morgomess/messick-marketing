@@ -138,6 +138,9 @@ section[id]{scroll-margin-top:6.5rem}
 /* the hour */
 .hour{position:relative;height:260vh}
 .hour-long{height:380vh}
+.hour.auto{height:auto}
+.hour.auto .hour-stage{position:relative;height:auto;min-height:86vh;min-height:86svh;padding:6rem 0}
+.hour.auto .ring{width:min(80vw,72vh)}
 .hour-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
 .hour .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 60%;filter:brightness(.55) saturate(.85)}
 .hour-stage::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(14,16,15,.35) 20%,var(--ink) 80%)}

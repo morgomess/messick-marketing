@@ -18,8 +18,29 @@
       if(i!==capIdx){capIdx=i;cap.textContent=steps[i][1];}
     }
   }
+  // .auto: no pinning. Plays once on entering view, pausing at each step, then shows data-end
+  var auto=sec&&sec.classList.contains('auto');
+  if(auto){
+    var finish=function(){setClock(1);if(cap&&cap.dataset.end)cap.textContent=cap.dataset.end;};
+    var play=function(){
+      if(reduce.matches){finish();return;}
+      var marks=steps.slice(1).map(function(st){return st[0]/maxMin}), move=700, hold=450, t0=performance.now();
+      var frame=function(now){
+        var t=now-t0, seg=Math.floor(t/(move+hold));
+        if(seg>=marks.length){finish();return;}
+        var from=seg?marks[seg-1]:0, k=clamp((t-seg*(move+hold))/move), e=1-Math.pow(1-k,3);
+        setClock(from+(marks[seg]-from)*e);
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    };
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){io.disconnect();play();}},{threshold:.55});
+      io.observe(sec.querySelector('.hour-in'));
+    } else finish();
+  }
   function tickClock(){
-    if(!sec) return;
+    if(!sec||auto) return;
     if(reduce.matches){setClock(1);return;}
     var r=sec.getBoundingClientRect();
     if(r.bottom<-50||r.top>innerHeight+50) return;
