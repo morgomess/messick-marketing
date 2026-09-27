@@ -79,6 +79,64 @@
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&btn.getAttribute('aria-expanded')==='true')setMenu(false,true)});
   }
 
+  // session finder (services): three answers map to one suggestion. [name, price, why, menu id]
+  var picker=document.getElementById('picker');
+  if(picker){
+    var SV={
+      quick:['Quick Fix, 30 min','$60','Thirty minutes on the one area that needs it.','svc-quick'],
+      deep60:['Deep Tissue, 60 min','$95','Slow, firm work for the knots training leaves behind.','svc-deep'],
+      deep90:['Deep Tissue, 90 min','$140','Time to work legs, hips and back properly.','svc-deep'],
+      ther90:['Therapeutic, 90 min','$150','Focused work on your problem spot, plus full-body.','svc-therapeutic'],
+      swe60:['Swedish, 60 min','$95','Long, gliding strokes. The classic place to start.','svc-swedish'],
+      swe90:['Swedish, 90 min','$130','A longer, slower reset.','svc-swedish'],
+      pre60:['Prenatal, 60 min','$135','Fully supported and comfortable.','svc-prenatal'],
+      pre90:['Prenatal, 90 min','$190','Fully supported, with extra time.','svc-prenatal'],
+      face:['Korean Face Sculpting','$65','Lifts and de-puffs. No needles.','svc-face'],
+      mdeep60:['Travel Deep Tissue, 60 min','$140','Firm, focused work without leaving home.','svc-m-deep'],
+      mdeep90:['Travel Deep Tissue, 90 min','$210','Firm, focused work, with time to cover it all.','svc-m-deep'],
+      mther90:['Travel Therapeutic, 90 min','$225','Your problem spot plus full-body, at home.','svc-m-therapeutic'],
+      mswe60:['Travel Swedish, 60 min','$140','The classic, at your place.','svc-m-swedish'],
+      mswe90:['Travel Swedish, 90 min','$195','A longer reset, at your place.','svc-m-swedish'],
+      mpre60:['Travel Prenatal, 60 min','$200','Fully supported, no driving.','svc-m-prenatal'],
+      mpre90:['Travel Prenatal, 90 min','$285','Fully supported, no driving, extra time.','svc-m-prenatal']
+    };
+    var PICKS={
+      studio:{train:{30:'quick',60:'deep60',90:'deep90'},spot:{30:'quick',60:'deep60',90:'ther90'},stress:{30:'quick',60:'swe60',90:'swe90'},prenatal:{30:'pre60',60:'pre60',90:'pre90'},face:{30:'face',60:'face',90:'face'}},
+      mobile:{train:{30:'mdeep60',60:'mdeep60',90:'mdeep90'},spot:{30:'mdeep60',60:'mdeep60',90:'mther90'},stress:{30:'mswe60',60:'mswe60',90:'mswe90'},prenatal:{30:'mpre60',60:'mpre60',90:'mpre90'},face:{30:'face',60:'face',90:'face'}}
+    };
+    var ans={}, steps=picker.querySelectorAll('.pick-step'), result=picker.querySelector('.pick-result'), back=document.getElementById('pick-back');
+    var show=function(n){
+      [].forEach.call(steps,function(st){st.hidden=+st.dataset.step!==n;});
+      result.hidden=n!==4; back.hidden=n===1;
+      var target=n===4?result:steps[n-1];
+      var first=target.querySelector('button, a'); if(first&&n>1) first.focus({preventScroll:true});
+    };
+    var note=function(){
+      if(ans.need==='prenatal') return 'Victor calls you for a quick 5-minute consult first.';
+      if(ans.need==='face'&&ans.where==='mobile') return 'Face sculpting is done at the studio.';
+      if(ans.where==='mobile'&&ans.time==='30') return 'Mobile sessions start at 60 minutes. Per-mile fee outside Statesboro.';
+      if(ans.where==='mobile') return 'Per-mile fee outside Statesboro.';
+      if(ans.need==='stress') return 'Pair it with the salt room: 45 quiet minutes, $70.';
+      return '';
+    };
+    picker.addEventListener('click',function(e){
+      var b=e.target.closest('button[data-q]'); if(!b) return;
+      ans[b.dataset.q]=b.dataset.v;
+      if(b.dataset.q==='need') show(ans.need==='face'?4:2);
+      else if(b.dataset.q==='where') show(3);
+      else show(4);
+      if(!result.hidden){
+        var sv=SV[PICKS[ans.where||'studio'][ans.need][ans.time||'60']];
+        document.getElementById('pick-name').textContent=sv[0];
+        document.getElementById('pick-price').textContent=sv[1];
+        document.getElementById('pick-why').textContent=sv[2];
+        document.getElementById('pick-menu').setAttribute('href','#'+sv[3]);
+        var n=note(), ne=document.getElementById('pick-note'); ne.textContent=n; ne.hidden=!n;
+      }
+    });
+    back.addEventListener('click',function(){ans={};show(1);steps[0].querySelector('button').focus({preventScroll:true});});
+  }
+
   // email signup (contact): placeholder until an email tool is picked, sends nothing
   var sf=document.getElementById('signup-form');
   if(sf){sf.addEventListener('submit',function(e){e.preventDefault();var m=document.getElementById('signup-msg');if(m)m.hidden=false;});}

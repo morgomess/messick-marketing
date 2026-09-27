@@ -60,7 +60,7 @@
         <p class="lead">Massage from $60, in the studio or at your place.</p>
         <div class="ctas">
           <a class="btn btn-sage" href="booking.html">Book a session <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          <a class="textlink" href="#menu">See the menu</a>
+          <a class="textlink" href="#find">Find your session</a>
         </div>
         <p class="or-call">Or call <a href="tel:+19128497707">(912) 849-7707</a></p>
       </div>
@@ -68,11 +68,62 @@
     </div>
   </section>
 
+  <!-- SESSION FINDER: three taps, suggests a service. Logic lives in js/site.js (PICKS). No AI, nothing sent anywhere. -->
+  <section class="sec finder" id="find">
+    <div class="wrap pl-grid">
+      <div>
+        <h2 class="h2 reveal">Find your session</h2>
+        <p class="intro reveal">Three quick taps and we'll point you to the right one.</p>
+      </div>
+      <div class="pick reveal" id="picker">
+        <div class="pick-step" data-step="1">
+          <div class="pick-count">1 of 3</div>
+          <h3>What's going on?</h3>
+          <div class="pick-opts">
+            <button type="button" data-q="need" data-v="train"><span>Sore or tight from training</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="need" data-v="spot"><span>One spot that won't let go</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="need" data-v="stress"><span>Stress, or my first massage</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="need" data-v="prenatal"><span>I'm pregnant</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="need" data-v="face"><span>I want to look refreshed</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="pick-step" data-step="2" hidden>
+          <div class="pick-count">2 of 3</div>
+          <h3>Where?</h3>
+          <div class="pick-opts">
+            <button type="button" data-q="where" data-v="studio"><span>At the studio</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="where" data-v="mobile"><span>At my place</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="pick-step" data-step="3" hidden>
+          <div class="pick-count">3 of 3</div>
+          <h3>How much time?</h3>
+          <div class="pick-opts">
+            <button type="button" data-q="time" data-v="30"><span>About 30 minutes</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="time" data-v="60"><span>An hour</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            <button type="button" data-q="time" data-v="90"><span>90 minutes or more</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="pick-result" hidden aria-live="polite">
+          <div class="pick-count">Your pick</div>
+          <div class="pick-top"><h3 id="pick-name"></h3><span class="pick-price" id="pick-price"></span></div>
+          <p id="pick-why"></p>
+          <p class="pick-note" id="pick-note" hidden></p>
+          <div class="ctas">
+            <a class="btn btn-sage" href="booking.html">Book it <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            <a class="textlink" id="pick-menu" href="#menu">See it on the menu</a>
+          </div>
+        </div>
+        <button type="button" class="pick-back" id="pick-back" hidden>Start over</button>
+      </div>
+    </div>
+  </section>
+
   <!-- MENU: printed-menu feel on cream, three plain groups, no tabs -->
   <section class="sec cream" id="menu">
     <div class="wrap">
       <h2 class="h2 reveal">The menu</h2>
-      <p class="intro reveal">Not sure where to start? Try a 60-minute Deep Tissue.</p>
+      <p class="intro reveal">Not sure where to start? Try the <a href="#find">session finder</a>.</p>
       <div class="goal-key reveal"><span><span class="goal goal-recover">Recover</span> after hard training</span><span><span class="goal goal-prep">Prep</span> before a game or race</span><span><span class="goal goal-unwind">Unwind</span> stress, sleep, everyday tension</span></div>
 
       <div class="m-group reveal">
