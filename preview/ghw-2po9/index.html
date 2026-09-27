@@ -180,14 +180,25 @@
 
   /* reviews */
   .rv-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:1.5rem}
-  .score{font-family:var(--serif);font-weight:600;font-size:4.5rem;line-height:.9;color:var(--sage)}
-  .score small{display:block;margin-top:.6rem;font-family:var(--sans);font-weight:600;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-dim)}
   .rv{margin-top:3rem;display:grid;gap:1rem}
-  .card{border:1px dashed rgba(236,232,223,.3);border-radius:6px;padding:1.8rem}
+  .card{position:relative;display:flex;flex-direction:column;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:2.2rem 1.9rem 1.8rem;overflow:hidden}
+  .card::before{content:"\201C";position:absolute;right:1.2rem;top:-.6rem;font-family:var(--serif);font-size:7rem;line-height:1;color:rgba(157,176,138,.14)}
   .card .stars{color:var(--sage);letter-spacing:.2em;font-size:.9rem}
-  .card p{margin-top:.8rem;font-size:1.08rem;line-height:1.5;font-style:italic;color:var(--bone-dim)}
-  .card cite{display:block;margin-top:1rem;font-style:normal;font-weight:600;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-dim)}
-  @media (min-width:900px){.rv{grid-template-columns:repeat(3,1fr)}}
+  .card blockquote{margin-top:1rem;flex:1;font-size:1.12rem;line-height:1.6;color:var(--bone)}
+  .card cite{display:flex;align-items:center;gap:.8rem;margin-top:1.6rem;padding-top:1.2rem;border-top:1px solid var(--line);font-style:normal}
+  .card cite .av{flex:none;width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;background:var(--sage-deep);font-family:var(--serif);font-weight:600;font-size:.85rem;color:var(--bone)}
+  .card cite b{display:block;font-weight:600;font-size:.95rem}
+  .card cite small{display:block;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-dim)}
+  .card.stat{justify-content:center;align-items:flex-start;background:var(--sage);color:var(--ink);border-color:var(--sage)}
+  .card.stat::before{color:rgba(14,16,15,.08)}
+  .card.stat .big{font-family:var(--serif);font-weight:700;font-size:4.2rem;line-height:.9}
+  .card.stat p{margin-top:.8rem;font-weight:600;font-size:1.05rem}
+  .card.stat .tags{margin-top:.9rem;font-size:.9rem;color:#2c3429}
+  .card.stat a{margin-top:1.4rem;font-weight:600;font-size:.95rem;border-bottom:1.5px solid var(--ink);padding-bottom:2px}
+  .rv-foot{margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;font-size:.95rem;color:var(--bone-dim)}
+  .rv-foot a{color:var(--sage);font-weight:600}
+  .rv-foot a:hover{color:var(--bone)}
+  @media (min-width:900px){.rv{grid-template-columns:1.15fr 1.15fr .85fr}}
 
   /* faq */
   .faq-grid{display:grid;gap:3rem}
@@ -390,7 +401,7 @@
     </div>
   </section>
 
-  <!-- REVIEWS: placeholders until Victor okays real reviews by first name and last initial -->
+  <!-- REVIEWS: real Vagaro reviews, shown as they appear publicly (first name, last initial). Confirm Victor is okay featuring them. -->
   <section class="sec" id="reviews">
     <div class="wrap">
       <div class="rv-head">
@@ -398,13 +409,26 @@
           <div class="label">Reviews</div>
           <h2 class="h2">What clients are saying.</h2>
         </div>
-        <div class="score">5.0<small>On Vagaro · 100% recommend on Facebook</small></div>
       </div>
       <div class="rv">
-        <div class="card"><div class="stars">★★★★★</div><p>Review placeholder: a first-timer who was nervous and left happy.</p><cite>First name, last initial · Vagaro</cite></div>
-        <div class="card"><div class="stars">★★★★★</div><p>Review placeholder: mobile or in-home convenience and flexible scheduling.</p><cite>First name, last initial · Facebook</cite></div>
-        <div class="card"><div class="stars">★★★★★</div><p>Review placeholder: a personal session, not one-size-fits-all.</p><cite>First name, last initial · Vagaro</cite></div>
+        <figure class="card">
+          <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <blockquote>Victor gives the BEST therapeutic massage. &hellip; He's punctual, professional, knowledgeable and tailors your massage for what you need. None of this "one size fits all" massage you would get at most day spas. I'll be a client for life.</blockquote>
+          <cite><span class="av">PM</span><span><b>Patricia M.</b><small>Verified · Vagaro</small></span></cite>
+        </figure>
+        <figure class="card">
+          <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <blockquote>Excellent service! He was professional, knowledgeable, and very flexible with scheduling. The in-home massage was convenient and relaxing, and he made the entire experience comfortable from start to finish. Highly recommend!</blockquote>
+          <cite><span class="av">NA</span><span><b>Niya A.</b><small>Verified · Vagaro · Mobile session</small></span></cite>
+        </figure>
+        <div class="card stat">
+          <div class="big">100%</div>
+          <p>recommend Gentle Hour on Facebook, across 27 reviews.</p>
+          <div class="tags">Amazing results · Professional · Luxurious experience</div>
+          <a href="https://www.facebook.com/profile.php?id=61586888939639&amp;sk=reviews" target="_blank" rel="noreferrer">Read them on Facebook</a>
+        </div>
       </div>
+      <div class="rv-foot"><span>5.0 stars on Vagaro.</span><a href="https://www.vagaro.com/gentlehourwellness/reviews" target="_blank" rel="noreferrer">See Vagaro reviews</a></div>
     </div>
   </section>
 
