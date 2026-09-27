@@ -79,6 +79,28 @@
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&btn.getAttribute('aria-expanded')==='true')setMenu(false,true)});
   }
 
+  // tabs (services menu): arrow keys move between tabs; menu-board links open the right tab first
+  var tabs=[].slice.call(document.querySelectorAll('[role="tab"]'));
+  if(tabs.length){
+    var pick=function(tab,focus){
+      tabs.forEach(function(t){var on=t===tab;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;document.getElementById(t.getAttribute('aria-controls')).hidden=!on;});
+      if(focus)tab.focus();
+      reveal();
+    };
+    tabs.forEach(function(t,i){
+      t.addEventListener('click',function(){pick(t)});
+      t.addEventListener('keydown',function(e){var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(d){e.preventDefault();pick(tabs[(i+d+tabs.length)%tabs.length],true);}});
+    });
+    var openFor=function(hash){
+      var el=hash&&hash.length>1&&document.getElementById(hash.slice(1)); if(!el) return;
+      var panel=el.closest('[role="tabpanel"]'); if(!panel) return;
+      pick(document.querySelector('[aria-controls="'+panel.id+'"]'));
+      el.scrollIntoView({behavior:reduce.matches?'auto':'smooth',block:'start'});
+    };
+    document.addEventListener('click',function(e){var a=e.target.closest('a[href^="#svc-"]');if(a){e.preventDefault();history.replaceState(null,'',a.getAttribute('href'));openFor(a.getAttribute('href'));}});
+    if(location.hash) openFor(location.hash);
+  }
+
   // email signup (contact): placeholder until an email tool is picked, sends nothing
   var sf=document.getElementById('signup-form');
   if(sf){sf.addEventListener('submit',function(e){e.preventDefault();var m=document.getElementById('signup-msg');if(m)m.hidden=false;});}
