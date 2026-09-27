@@ -1,5 +1,5 @@
 @font-face{font-family:"Cinzel";font-style:normal;font-weight:600 700;font-display:swap;src:url(../fonts/cinzel-latin.woff2) format("woff2")}
-@font-face{font-family:"Inter Tight";font-style:normal;font-weight:400 600;font-display:swap;src:url(../fonts/inter-tight-latin.woff2) format("woff2")}
+@font-face{font-family:"Inter Tight";font-style:normal;font-weight:100 900;font-display:swap;src:url(../fonts/inter-tight-latin.woff2) format("woff2")}
 :root{
   --ink:#0e100f; --ink-2:#161a17; --olive:#1b211b;
   --bone:#ECE8DF; --bone-2:#cfcbc2; --bone-dim:#a9a69e;
@@ -442,7 +442,6 @@ img.hero-vid{object-position:50% 40%}
 .calm .salt-photo:hover .badge svg{transform:none}
 .calm .board .row:hover{padding-left:0}
 /* clock: just the count, no ring */
-.calm .hour .ring{display:none}
 .calm .hour-stage::after{background:radial-gradient(ellipse at center,rgba(19,19,18,.45) 20%,var(--ink) 85%)}
 /* reviews stat card on dark, not bright sage */
 .calm .card.stat{background:var(--ink-2);color:var(--bone);border-color:var(--line)}
@@ -482,3 +481,25 @@ img.hero-vid{object-position:50% 40%}
 .salt-hero .stock-tag{position:absolute;top:1rem;left:1rem;right:auto}
 .salt-hero .btn-sage{background:#e3a47a}
 .salt-hero .label{color:#e3a47a}
+
+/* type test B (home only): bold modern sans for big headlines, Cinzel stays for the logo and small titles */
+.type-b .hero h1,.type-b .h2{font-family:var(--sans);font-weight:800;letter-spacing:-.035em;text-transform:none}
+.type-b .hero h1{font-size:clamp(3.1rem,8.6vw,7.6rem);line-height:.92}
+.type-b .hero h1 .ln{padding-bottom:.08em}
+.type-b .h2{font-size:clamp(2.3rem,5.2vw,4.2rem);line-height:1}
+.type-b .clock{font-family:var(--sans);font-weight:800;letter-spacing:-.04em}
+.type-b .hero .label,.type-b .hour .label{letter-spacing:.24em}
+
+/* type B, sitewide: every heading in the sans; Cinzel only for the logo, prices and the salt badge */
+.type-b{--serif:"Inter Tight",system-ui,sans-serif;--logo:"Cinzel","Trajan Pro",Georgia,serif}
+.type-b .brand span,.type-b .price,.type-b .m-price,.type-b .badge b{font-family:var(--logo)}
+.type-b .badge text{font-family:var(--logo)}
+.type-b h3,.type-b h4,.type-b summary,.type-b .mnav a{font-weight:700;letter-spacing:-.015em}
+.type-b .who-card .n,.type-b .pol .n{display:none}
+.type-b .who-card h3{margin-top:0}
+.type-b .step .num{font-weight:800;letter-spacing:-.04em}
+.type-b .card.stat .big{font-weight:800;letter-spacing:-.04em}
+.type-b .quote blockquote{font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.type-b .m-head{font-weight:800;letter-spacing:-.02em}
+.type-b .chero h1{font-size:clamp(2.6rem,5.2vw,4.9rem)}
+.type-b .clock{font-size:clamp(3.6rem,13vw,10rem)}
