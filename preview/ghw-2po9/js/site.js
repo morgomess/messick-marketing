@@ -4,24 +4,21 @@
   var clamp=function(x){return Math.min(1,Math.max(0,x))}, pad=function(n){return (n<10?'0':'')+n};
   var raf=0, solid=null;
 
-  // hour clock (home only)
-  // data-max sets the clock's end in minutes (60 on home); #hour-cap data-steps swaps the caption at each stop
-  var sec=document.getElementById('hour'), clock=document.getElementById('clock'), ring=document.getElementById('ring'), last=-1;
-  var maxMin=sec?+(sec.dataset.max||60):60, cap=document.getElementById('hour-cap'), steps=cap?JSON.parse(cap.dataset.steps):null, capIdx=-1;
-  function setClock(h){
-    var total=maxMin*60, s=Math.round(h*total);
-    if(s===last) return; last=s;
-    clock.textContent=pad(Math.floor(s/60))+':'+pad(s%60);
-    ring.setAttribute('stroke-dashoffset',1-h);
-    if(steps){
+  // hour clock (home only): plays once on entering view, no pinning.
+  // data-max is the end in minutes; #hour-cap data-steps names each stop, data-end is the final line
+  var sec=document.getElementById('hour');
+  if(sec){
+    var clock=document.getElementById('clock'), ring=document.getElementById('ring'), cap=document.getElementById('hour-cap');
+    var maxMin=+(sec.dataset.max||60), steps=JSON.parse(cap.dataset.steps), capIdx=-1, last=-1;
+    var setClock=function(h){
+      var s=Math.round(h*maxMin*60);
+      if(s===last) return; last=s;
+      clock.textContent=pad(Math.floor(s/60))+':'+pad(s%60);
+      ring.setAttribute('stroke-dashoffset',1-h);
       var i=0; steps.forEach(function(st,k){if(k&&s>=(st[0]-(st[0]-steps[k-1][0])/2)*60)i=k;});
       if(i!==capIdx){capIdx=i;cap.textContent=steps[i][1];}
-    }
-  }
-  // .auto: no pinning. Plays once on entering view, pausing at each step, then shows data-end
-  var auto=sec&&sec.classList.contains('auto');
-  if(auto){
-    var finish=function(){setClock(1);if(cap&&cap.dataset.end)cap.textContent=cap.dataset.end;};
+    };
+    var finish=function(){setClock(1);if(cap.dataset.end)cap.textContent=cap.dataset.end;};
     var play=function(){
       if(reduce.matches){finish();return;}
       var marks=steps.slice(1).map(function(st){return st[0]/maxMin}), move=700, hold=450, t0=performance.now();
@@ -38,13 +35,6 @@
       var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){io.disconnect();play();}},{threshold:.55});
       io.observe(sec.querySelector('.hour-in'));
     } else finish();
-  }
-  function tickClock(){
-    if(!sec||auto) return;
-    if(reduce.matches){setClock(1);return;}
-    var r=sec.getBoundingClientRect();
-    if(r.bottom<-50||r.top>innerHeight+50) return;
-    setClock(clamp((clamp(-r.top/(r.height-innerHeight))-.05)/.85));
   }
 
   // reveal on scroll, staggered within each group
@@ -73,7 +63,7 @@
 
   function update(){
     var s=window.scrollY>60; if(s!==solid){solid=s;top.classList.toggle('solid',s);}
-    reveal(); tickClock(); tickStories();
+    reveal(); tickStories();
   }
   addEventListener('scroll',function(){cancelAnimationFrame(raf);raf=requestAnimationFrame(update)},{passive:true});
   addEventListener('resize',update); update();

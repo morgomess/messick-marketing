@@ -137,7 +137,6 @@ section[id]{scroll-margin-top:6.5rem}
 
 /* the hour */
 .hour{position:relative;height:260vh}
-.hour-long{height:380vh}
 .hour.auto{height:auto}
 .hour.auto .hour-stage{position:relative;height:auto;min-height:86vh;min-height:86svh;padding:6rem 0}
 .hour.auto .ring{width:min(80vw,72vh)}
@@ -302,7 +301,7 @@ footer nav a:hover{color:var(--bone)}
 img.hero-vid{object-position:50% 40%}
 
 /* pinned story (about: first visit) */
-.story{position:relative;height:330vh}
+.story{position:relative;height:220vh}
 .story-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
 .story .panel{position:absolute;inset:0;display:flex;align-items:center;opacity:0;transition:opacity .8s cubic-bezier(.2,.7,.2,1)}
 .story .panel.on{opacity:1}
