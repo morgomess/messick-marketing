@@ -577,8 +577,4 @@ img.hero-vid{object-position:50% 40%}
 }
 @media (prefers-reduced-motion:reduce){.salt-map .rock{animation:none}.js .salt-map .co,.js .salt-map .co-dot{opacity:1}.js .salt-map .co-line{stroke-dashoffset:0}}
 .why-grid{display:grid;gap:3rem;align-items:center}
-.reel{position:relative;margin:0 auto;width:100%;max-width:20rem;aspect-ratio:9/16;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px -24px rgba(214,120,60,.35)}
-.reel img{width:100%;height:100%;object-fit:cover;object-position:40% 50%}
-.reel .stock-tag{position:absolute;left:1rem;right:auto;top:1rem;margin:0}
-@media (min-width:640px){.steps-2{grid-template-columns:1fr 1fr;gap:2rem}}
 @media (min-width:900px){.why-grid{grid-template-columns:.7fr 1.3fr;gap:5rem}}

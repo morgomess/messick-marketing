@@ -19,7 +19,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[{"@type":"HealthAndBeautyBusiness","@id":"#business","name":"Gentle Hour Wellness","telephone":"+1-912-849-7707","address":{"@type":"PostalAddress","streetAddress":"721 S Main St, Unit 13","addressLocality":"Statesboro","addressRegion":"GA","postalCode":"30458","addressCountry":"US"},"makesOffer":{"@type":"Offer","price":70,"priceCurrency":"USD","itemOffered":{"@type":"Service","name":"Salt Room Session (45 min)"}}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What do I do in there?","acceptedAnswer":{"@type":"Answer","text":"You sit back, breathe and rest, and that’s all there is to it."}},{"@type":"Question","name":"What should I wear?","acceptedAnswer":{"@type":"Answer","text":"Your regular clothes. Nothing to change into."}},{"@type":"Question","name":"Can I pair it with a massage?","acceptedAnswer":{"@type":"Answer","text":"Yes. Book both on Vagaro, or call and Victor will set it up."}},{"@type":"Question","name":"Can I bring friends?","acceptedAnswer":{"@type":"Answer","text":"Yes. Call for group times and pricing."}}]}]}
 </script>
-<link rel="stylesheet" href="css/site.css?v=202609272023">
+<link rel="stylesheet" href="css/site.css?v=202609272028">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body class="calm type-c">
@@ -73,58 +73,66 @@
   <!-- WHY SALT: a salt rock with callouts. Experience only, no health claims. -->
   <section class="sec why-salt" id="why">
     <div class="wrap">
-      <h2 class="h2 reveal">Why try a salt room?</h2>
-      <p class="intro reveal">People come to the salt room to slow down and breathe easy. The idea goes back to the old salt caves of Europe, where people sat quietly in the dry, salty air.</p>
+      <h2 class="h2 reveal">Benefits of a salt room</h2>
+      <p class="intro reveal">Salt therapy, or halotherapy, means relaxing in a room with fine, dry salt in the air. It grew out of the old salt caves of Europe, and here’s why people try it.</p>
       <div class="salt-map reveal">
         <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
           <defs>
-            <radialGradient id="glow"><stop offset="0" stop-color="#e98a55" stop-opacity=".45"/><stop offset="1" stop-color="#e98a55" stop-opacity="0"/></radialGradient>
-            <radialGradient id="saltfill" cx="52%" cy="45%" r="60%"><stop offset="0" stop-color="#ffe3d2"/><stop offset=".45" stop-color="#f2ac86"/><stop offset=".8" stop-color="#d9784c"/><stop offset="1" stop-color="#a9492b"/></radialGradient>
-            <filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="9"/></filter>
-            <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".012 .05" numOctaves="3" seed="3"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .92  0 0 0 0 .86  0 0 0 1.1 -.45"/></filter>
-            <clipPath id="rockclip"><path d="M560,522 L578,470 L586,430 L604,404 L612,372 L640,332 L672,318 L700,300 L728,286 L760,264 L798,268 L835,272 L868,258 L905,252 L934,276 L960,300 L988,312 L1010,332 L1026,366 L1040,402 L1034,436 L1032,470 L1046,496 L1050,522 L1032,556 L1010,590 L972,616 L930,640 L886,650 L840,656 L790,652 L740,648 L694,634 L650,616 L618,598 L590,576 Z"/></clipPath>
+            <radialGradient id="glow"><stop offset="0" stop-color="#f08c56" stop-opacity=".5"/><stop offset="1" stop-color="#f08c56" stop-opacity="0"/></radialGradient>
+            <linearGradient id="gTop" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#fff1e8"/><stop offset="1" stop-color="#f6c8ad"/></linearGradient>
+            <radialGradient id="gFront" cx="48%" cy="46%" r="62%"><stop offset="0" stop-color="#fff0e4"/><stop offset=".35" stop-color="#f7bf9d"/><stop offset=".75" stop-color="#e58656"/><stop offset="1" stop-color="#b9532f"/></radialGradient>
+            <linearGradient id="gLeft" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0a57c"/><stop offset="1" stop-color="#a8452a"/></linearGradient>
+            <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2865a"/><stop offset="1" stop-color="#7e3019"/></linearGradient>
+            <filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="11"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
+            <filter id="marble" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".006 .028" numOctaves="4" seed="5"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .9  0 0 0 2.2 -1.05"/></filter>
+            <filter id="deep" x="0" y="0" width="100%" height="100%"><feTurbulence type="turbulence" baseFrequency=".02 .06" numOctaves="3" seed="2"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .16  0 0 0 0 .06  0 0 0 1.6 -.85"/></filter>
+            <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+            <filter id="halo" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="38"/></filter>
+            <filter id="edge"><feGaussianBlur stdDeviation=".6"/></filter>
+            <clipPath id="rockclip"><polygon points="560,562 572,500 578,468 598,424 612,392 622,360 660,326 692,302 730,292 762,284 800,262 842,264 880,270 922,278 962,292 990,310 1010,332 1024,362 1036,396 1030,432 1032,452 1044,500 1038,540 1024,572 1004,596 984,616 940,636 900,650 850,656 800,660 750,656 700,650 660,638 620,622 590,596"/></clipPath>
           </defs>
-          <ellipse cx="800" cy="470" rx="440" ry="330" fill="url(#glow)"/>
-          <ellipse cx="805" cy="668" rx="230" ry="18" fill="#000" opacity=".4"/>
-          <g class="rock"><g filter="url(#rough)">
-            <path d="M560,522 L578,470 L586,430 L604,404 L612,372 L640,332 L672,318 L700,300 L728,286 L760,264 L798,268 L835,272 L868,258 L905,252 L934,276 L960,300 L988,312 L1010,332 L1026,366 L1040,402 L1034,436 L1032,470 L1046,496 L1050,522 L1032,556 L1010,590 L972,616 L930,640 L886,650 L840,656 L790,652 L740,648 L694,634 L650,616 L618,598 L590,576 Z" fill="url(#saltfill)"/>
-            <g clip-path="url(#rockclip)">
-              <rect x="540" y="240" width="530" height="430" filter="url(#grain)" opacity=".5"/>
-              <path d="M640,332 L672,318 L700,300 L728,286 L760,264 L798,268 L835,272 L868,258 L905,252 L934,276 L960,300 L930,322 L900,340 L860,346 L820,350 L770,356 L720,362 L680,348 Z" fill="#fff" opacity=".22"/>
-              <path d="M560,522 L578,470 L586,430 L604,404 L612,372 L640,332 L680,348 L720,362 L712,420 L704,472 L690,540 L672,590 L650,616 L618,598 L590,576 Z" fill="#5a1f0e" opacity=".22"/>
-              <path d="M960,300 L988,312 L1010,332 L1026,366 L1040,402 L1034,436 L1032,470 L1046,496 L1050,522 L1032,556 L1010,590 L972,616 L930,640 L920,580 L908,500 L902,420 L900,340 L930,322 Z" fill="#5a1f0e" opacity=".32"/>
-              <path d="M720,362 L740,410 L732,470 L748,530" fill="none" stroke="#fff4ec" stroke-width="1.6" opacity=".35"/><path d="M900,340 L880,400 L892,450" fill="none" stroke="#fff4ec" stroke-width="1.6" opacity=".35"/><path d="M800,352 L812,300" fill="none" stroke="#fff4ec" stroke-width="1.6" opacity=".35"/><path d="M960,300 L990,360 L1000,420" fill="none" stroke="#fff4ec" stroke-width="1.6" opacity=".35"/><path d="M650,616 L700,560 L760,590 L800,560" fill="none" stroke="#fff4ec" stroke-width="1.6" opacity=".35"/>
-            </g>
-            <path d="M560,522 L578,470 L586,430 L604,404 L612,372 L640,332 L672,318 L700,300 L728,286 L760,264 L798,268 L835,272 L868,258 L905,252 L934,276 L960,300 L988,312 L1010,332 L1026,366 L1040,402 L1034,436 L1032,470 L1046,496 L1050,522 L1032,556 L1010,590 L972,616 L930,640 L886,650 L840,656 L790,652 L740,648 L694,634 L650,616 L618,598 L590,576 Z" fill="none" stroke="#ffe9dc" stroke-width="1.5" opacity=".35"/>
-          </g></g>
-          <path class="co-line" style="--d:0" pathLength="1" d="M592 574 L430 600 L470 600"/><circle class="co-dot" style="--d:0" cx="592" cy="574" r="4"/><path class="co-line" style="--d:1" pathLength="1" d="M586 430 L430 430 L470 430"/><circle class="co-dot" style="--d:1" cx="586" cy="430" r="4"/><path class="co-line" style="--d:2" pathLength="1" d="M650 326 L430 260 L470 260"/><circle class="co-dot" style="--d:2" cx="650" cy="326" r="4"/><path class="co-line" style="--d:3" pathLength="1" d="M990 312 L1170 290 L1130 290"/><circle class="co-dot" style="--d:3" cx="990" cy="312" r="4"/><path class="co-line" style="--d:4" pathLength="1" d="M1048 510 L1170 470 L1130 470"/><circle class="co-dot" style="--d:4" cx="1048" cy="510" r="4"/><path class="co-line" style="--d:5" pathLength="1" d="M940 636 L1170 650 L1130 650"/><circle class="co-dot" style="--d:5" cx="940" cy="636" r="4"/>
+          <ellipse cx="800" cy="470" rx="460" ry="340" fill="url(#glow)"/>
+          <ellipse cx="805" cy="672" rx="240" ry="18" fill="#000" opacity=".45" filter="url(#edge)"/>
+          <g class="rock"><polygon points="560,562 572,500 578,468 598,424 612,392 622,360 660,326 692,302 730,292 762,284 800,262 842,264 880,270 922,278 962,292 990,310 1010,332 1024,362 1036,396 1030,432 1032,452 1044,500 1038,540 1024,572 1004,596 984,616 940,636 900,650 850,656 800,660 750,656 700,650 660,638 620,622 590,596" fill="#f08c56" opacity=".55" filter="url(#halo)"/>
+            <g filter="url(#rough)">
+              <polygon points="690,372 716,368 760,360 812,356 860,352 900,350 940,346 940,420 944,480 938,540 944,590 956,628 940,636 900,650 850,656 800,660 750,656 700,650 660,638 620,622 640,604 660,566 668,520 674,470 680,420" fill="url(#gFront)"/>
+              <polygon points="560,562 572,500 578,468 598,424 612,392 622,360 656,366 690,372 680,420 674,470 668,520 660,566 640,604 620,622 590,596" fill="url(#gLeft)"/>
+              <polygon points="1010,332 1024,362 1036,396 1030,432 1032,452 1044,500 1038,540 1024,572 1004,596 984,616 956,628 944,590 938,540 944,480 940,420 940,346 972,342" fill="url(#gRight)"/>
+              <polygon points="622,360 660,326 692,302 730,292 762,284 800,262 842,264 880,270 922,278 962,292 990,310 1010,332 972,342 940,346 900,350 860,352 812,356 760,360 716,368 690,372 656,366" fill="url(#gTop)"/>
+              <g clip-path="url(#rockclip)">
+                <rect x="540" y="240" width="530" height="440" filter="url(#deep)" opacity=".55"/>
+                <rect x="540" y="240" width="530" height="440" filter="url(#marble)" opacity=".45"/>
+                <ellipse cx="800" cy="480" rx="120" ry="100" fill="#fff4ea" opacity=".55" filter="url(#soft)"/>
+                <polygon points="690,372 760,360 736,410 700,420" fill="#fff" opacity=".22"/>
+                <polygon points="820,356 900,350 890,392 830,398" fill="#fff" opacity=".14"/>
+                <path d="M700,440 C760,470 820,430 880,470 S930,520 940,500" fill="none" stroke="#fff6ef" stroke-width="2.2" stroke-linecap="round" opacity=".28"/><path d="M680,540 C740,520 800,570 860,540" fill="none" stroke="#fff6ef" stroke-width="2.2" stroke-linecap="round" opacity=".28"/><path d="M720,600 C780,590 830,620 900,600" fill="none" stroke="#fff6ef" stroke-width="2.2" stroke-linecap="round" opacity=".28"/><path d="M960,420 C990,450 1000,500 1020,520" fill="none" stroke="#fff6ef" stroke-width="2.2" stroke-linecap="round" opacity=".28"/><path d="M630,470 C650,500 640,540 660,560" fill="none" stroke="#fff6ef" stroke-width="2.2" stroke-linecap="round" opacity=".28"/>
+                <circle cx="760" cy="430" r="1.6" fill="#fff" opacity=".7"/><circle cx="812" cy="478" r="1.6" fill="#fff" opacity=".7"/><circle cx="868" cy="420" r="1.6" fill="#fff" opacity=".7"/><circle cx="902" cy="556" r="1.6" fill="#fff" opacity=".7"/><circle cx="734" cy="560" r="1.6" fill="#fff" opacity=".7"/><circle cx="980" cy="470" r="1.6" fill="#fff" opacity=".7"/><circle cx="650" cy="470" r="1.6" fill="#fff" opacity=".7"/><circle cx="840" cy="610" r="1.6" fill="#fff" opacity=".7"/><circle cx="790" cy="396" r="1.6" fill="#fff" opacity=".7"/><circle cx="918" cy="452" r="1.6" fill="#fff" opacity=".7"/>
+              </g>
+              <g fill="none" stroke="#fff3ea" stroke-linejoin="round" filter="url(#edge)"><polyline points="1010,332 972,342 940,346 900,350 860,352 812,356 760,360 716,368 690,372 656,366 690,372" stroke-width="1.6" opacity=".5"/><polyline points="690,372 680,420 674,470 668,520 660,566 640,604 620,622" stroke-width="1.6" opacity=".5"/><polyline points="940,346 940,420 944,480 938,540 944,590 956,628" stroke-width="1.6" opacity=".5"/></g>
+              <polygon points="560,562 572,500 578,468 598,424 612,392 622,360 660,326 692,302 730,292 762,284 800,262 842,264 880,270 922,278 962,292 990,310 1010,332 1024,362 1036,396 1030,432 1032,452 1044,500 1038,540 1024,572 1004,596 984,616 940,636 900,650 850,656 800,660 750,656 700,650 660,638 620,622 590,596" fill="none" stroke="#ffe6d6" stroke-width="1.2" opacity=".3"/>
+            </g></g>
+          <path class="co-line" style="--d:0" pathLength="1" d="M622 360 L510 250 L470 250"/><circle class="co-dot" style="--d:0" cx="622" cy="360" r="4"/><path class="co-line" style="--d:1" pathLength="1" d="M572 500 L510 450 L470 450"/><circle class="co-dot" style="--d:1" cx="572" cy="500" r="4"/><path class="co-line" style="--d:2" pathLength="1" d="M620 622 L510 650 L470 650"/><circle class="co-dot" style="--d:2" cx="620" cy="622" r="4"/><path class="co-line" style="--d:3" pathLength="1" d="M1010 332 L1090 290 L1130 290"/><circle class="co-dot" style="--d:3" cx="1010" cy="332" r="4"/><path class="co-line" style="--d:4" pathLength="1" d="M1044 500 L1090 480 L1130 480"/><circle class="co-dot" style="--d:4" cx="1044" cy="500" r="4"/><path class="co-line" style="--d:5" pathLength="1" d="M984 616 L1090 670 L1130 670"/><circle class="co-dot" style="--d:5" cx="984" cy="616" r="4"/>
         </svg>
-        <div class="co co-l" style="right:70.62%;top:66.67%;--d:0"><h3>45 minutes</h3><p>Long enough to actually slow down.</p></div>
-        <div class="co co-l" style="right:70.62%;top:47.78%;--d:1"><h3>Warm, low light</h3><p>The glow is part of the calm.</p></div>
-        <div class="co co-l" style="right:70.62%;top:28.89%;--d:2"><h3>Salty air</h3><p>Fine, dry salt drifts through the room.</p></div>
-        <div class="co co-r" style="left:70.62%;top:32.22%;--d:3"><h3>Fully clothed</h3><p>Nothing to change into.</p></div>
-        <div class="co co-r" style="left:70.62%;top:52.22%;--d:4"><h3>Phone off</h3><p>A real break from the screen.</p></div>
-        <div class="co co-r" style="left:70.62%;top:72.22%;--d:5"><h3>Pairs with a massage</h3><p>Before or after any session.</p></div>
+        <div class="co co-l" style="right:71.52%;top:27.78%;--d:0"><h3>Breathe easy</h3><p>Many people say breathing feels clearer after a session.</p></div>
+        <div class="co co-l" style="right:71.52%;top:50.00%;--d:1"><h3>Stress relief</h3><p>45 still minutes to let the day go.</p></div>
+        <div class="co co-l" style="right:71.52%;top:72.22%;--d:2"><h3>Better rest</h3><p>Some people say they sleep better that night.</p></div>
+        <div class="co co-r" style="left:71.52%;top:32.22%;--d:3"><h3>Recovery days</h3><p>A calm reset between hard training days.</p></div>
+        <div class="co co-r" style="left:71.52%;top:53.33%;--d:4"><h3>Refreshed skin</h3><p>People often say their skin feels soft and refreshed.</p></div>
+        <div class="co co-r" style="left:71.52%;top:74.44%;--d:5"><h3>Screen-free time</h3><p>A real break from phones and noise.</p></div>
       </div>
-      <p class="note reveal">If you have a breathing condition, check with your doctor first.</p>
+      <p class="note reveal">These are what people commonly report, not medical claims. If you have a breathing condition, check with your doctor first.</p>
     </div>
   </section>
 
-  <!-- HOW A SESSION GOES: experience only, no health claims. Victor's vertical "why salt" video from the Sep 28 shoot goes in the frame. -->
+  <!-- HOW A SESSION GOES: experience only -->
   <section class="sec" id="how">
-    <div class="wrap why-grid">
-      <figure class="reel wipe">
-        <img src="img/salt-room.jpg" alt="" width="1600" height="1200" loading="lazy">
-        <figcaption class="stock-tag">Victor’s “why salt” video goes here</figcaption>
-      </figure>
-      <div>
-        <h2 class="h2 reveal">What happens in a salt room session?</h2>
-        <div class="steps steps-2">
+    <div class="wrap">
+      <h2 class="h2 reveal">What happens in a salt room session?</h2>
+      <div class="steps steps-4">
         <div class="step reveal"><div class="num">01</div><h3>Arrive</h3><p>Check in a few minutes early and put your phone on silent.</p></div>
         <div class="step reveal"><div class="num">02</div><h3>Settle in</h3><p>Stay in your clothes and get comfortable.</p></div>
         <div class="step reveal"><div class="num">03</div><h3>Breathe</h3><p>45 quiet minutes in warm, low light.</p></div>
         <div class="step reveal"><div class="num">04</div><h3>Head out</h3><p>There’s nothing to change out of, so you head straight back to your day.</p></div>
-      </div>
       </div>
     </div>
   </section>
@@ -182,6 +190,6 @@
   </div>
 </footer>
 
-<script src="js/site.js?v=202609272023" defer></script>
+<script src="js/site.js?v=202609272028" defer></script>
 </body>
 </html>
