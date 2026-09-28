@@ -531,3 +531,18 @@ img.hero-vid{object-position:50% 40%}
 .pick-back:hover{color:var(--bone)}
 .cream .intro a{color:#56674c;font-weight:600;border-bottom:1px solid rgba(86,103,76,.35)}
 @media (prefers-reduced-motion:reduce){.pick-step:not([hidden]),.pick-result:not([hidden]){animation:none}}
+
+/* service area map (home visit block) */
+.area{margin:0;border-radius:14px;overflow:hidden;background:radial-gradient(70% 60% at 62% 52%,rgba(157,176,138,.12),transparent 70%),var(--ink-2);border:1px solid var(--line)}
+.area svg{display:block;width:100%;height:auto}
+.area .a-ring{fill:none;stroke:rgba(157,176,138,.5);stroke-width:1.2;stroke-dasharray:4 5}
+.area .a-ring-l{font:600 9px var(--sans);letter-spacing:.14em;fill:rgba(157,176,138,.7)}
+.area .dot{fill:var(--bone-dim)}
+.area .town{font:500 12px var(--sans);fill:var(--bone-2)}
+.area .halo{fill:rgba(157,176,138,.22)}
+.area .studio{fill:var(--sage);stroke:var(--ink);stroke-width:2}
+.area .studio-l{font:600 14px var(--serif);letter-spacing:.06em;fill:var(--bone)}
+.area .studio-s{font:500 10px var(--sans);fill:var(--bone-dim)}
+.area a:hover .halo{fill:rgba(157,176,138,.35)}
+.area figcaption{padding:.9rem 1.2rem 1.1rem;border-top:1px solid var(--line);font-size:.9rem;color:var(--bone-dim)}
+.area figcaption a{color:var(--sage);font-weight:600}
