@@ -2043,7 +2043,7 @@ async function redesignNoPerson(fmt) {
 Full description: ${(sn.description || '').slice(0, 2000)}
 ${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the description and the current thumbnail text for what the video says.'}
 Channel: ${brand?.channelName || ''}
-${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
+${brandColorsLine(brand)}
 Format: ${ratios.join(' and ')}` });
     const recentKey = 'mm_redesign_recent_' + (brand?.channelId || '');
     let recent = [];
@@ -2139,7 +2139,7 @@ async function redesignThumbnail(fmt) {
 Full description: ${(sn.description || '').slice(0, 2000)}
 ${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the description and the current thumbnail text for what the video says.'}
 Channel: ${brand?.channelName || ''}
-${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
+${brandColorsLine(brand)}
 Format: ${ratios.join(' and ')}` });
     const recentKey = 'mm_redesign_recent_' + (brand?.channelId || '');
     let recent = [];
@@ -2372,6 +2372,20 @@ function renderBrandTabs() {
     btn.innerHTML = `${img}<span>${esc(b.channelName)}</span><button class="reanalyze-btn" title="Re-analyze niche" onclick="event.stopPropagation();reanalyzeNiche('${esc(b.channelId)}')">↻</button>`;
     c.appendChild(btn);
   });
+}
+
+// Real palettes for clients whose colors are documented. These win over the niche
+// profile's guess, which infers from the industry (vascular reads as teal; SVV is navy).
+const BRAND_PALETTES = [
+  { match: /sound vascular/i, colors: 'navy blue, deep navy, light sky blue and white' }
+];
+function brandColorsFor(brand) {
+  const known = BRAND_PALETTES.find(p => p.match.test(brand?.channelName || ''));
+  return known ? known.colors : (brand?.nicheProfile?.brandColors || '');
+}
+function brandColorsLine(brand, label) {
+  const c = brandColorsFor(brand);
+  return c ? `${label || 'Brand colors'}: ${c}. Use only these colors plus the photo's own; no teal, cyan or turquoise unless listed here.` : '';
 }
 
 function renderNicheBadge() {
@@ -4201,7 +4215,7 @@ Title: "${sn.title}"
 Description excerpt: ${(sn.description || '').slice(0, 400)}
 ${niche ? 'Channel niche: ' + niche : ''}
 ${brand?.channelName ? 'Channel: ' + brand.channelName : ''}
-${brand?.nicheProfile?.brandColors ? 'Brand colors (use on overlays and text blocks, describe by name): ' + brand.nicheProfile.brandColors : ''}
+${brandColorsLine(brand, 'Brand colors (use on overlays and text blocks, describe by name)')}
 ${brand?.nicheProfile?.thumbnailStyle ? 'Preferred thumbnail style: ' + brand.nicheProfile.thumbnailStyle : ''}
 ${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}`;
       const promptText = await callAI(promptSystem, noPerson
@@ -4370,7 +4384,7 @@ function injectBrandIntoAuditForm() {
   const np = brand.nicheProfile;
   const colorsEl = document.getElementById('rl-audit-colors');
   const contextEl = document.getElementById('rl-audit-context');
-  if (colorsEl && !colorsEl.value && np.brandColors) colorsEl.value = np.brandColors;
+  if (colorsEl && !colorsEl.value && brandColorsFor(brand)) colorsEl.value = brandColorsFor(brand);
   // Also set platform to youtube_yt by default if a YouTube channel is connected
   const platformEl = document.getElementById('rl-audit-platform');
   if (platformEl && platformEl.value === 'instagram') platformEl.value = 'youtube_yt';
@@ -4381,7 +4395,7 @@ function injectBrandIntoManualForm() {
   if (!brand?.nicheProfile) return;
   const np = brand.nicheProfile;
   const colorsEl = document.getElementById('rl-colors');
-  if (colorsEl && !colorsEl.value && np.brandColors) colorsEl.value = np.brandColors;
+  if (colorsEl && !colorsEl.value && brandColorsFor(brand)) colorsEl.value = brandColorsFor(brand);
   const platformEl = document.getElementById('rl-platform');
   if (platformEl && platformEl.value === 'instagram') platformEl.value = 'youtube_yt';
 }
@@ -4435,14 +4449,14 @@ STRICT RULES — violating any of these ruins the image:
 - NEVER include font names (Canva Sans, Arial, Extra Bold, etc.) — describe the style instead: "bold condensed sans-serif"
 - NEVER include structural labels like "Line 1", "Line 2", "Header:", "Subtext:", "CTA:" — write the actual words
 - NEVER include placeholder text, template language, or technical notation of any kind
-- Describe colors by name only: "deep teal", "warm orange", "navy", "electric cyan" — never hex codes
+- Describe colors by name only: "navy", "warm orange", "sky blue", "crimson" — never hex codes
 - Text overlays: maximum 4 words total, describe them as quoted strings with exact placement
 - If the style is Clean/Minimal: no text overlay at all — pure visual only
 
 2026 best practices (always apply all):
 - 70/30 contrast split: strong subject fills 70% of frame, clean space for text/breathing room fills 30%
 - Rim light sticker effect: subject lit from behind with a glowing edge against contrasting background
-- Teal-orange color grading: warm skin tones against cool teal/cyan background for maximum pop
+- Color grading: warm skin tones against a cool background in the channel's brand colors for maximum pop
 - Bold centered safe-zone layout: all critical elements centered within middle 80% of frame
 - Single emotional hook: one face with a clear expression OR one bold object — never split attention
 
@@ -4626,7 +4640,7 @@ Write a single image generation prompt. Output the prompt text ONLY. No JSON, no
 
 STRICT RULES:
 - NEVER include hex color codes, font names, or structural labels like "Line 1", "Header:", "CTA:" (the image model renders them as visible text)
-- Describe colors by name only: "deep teal", "warm orange", "navy"
+- Describe colors by name only: "navy", "warm orange", "sky blue"
 - Text overlays: maximum 4 words, quoted strings with exact placement only
 - One dominant subject, strong contrast, all critical elements in the center 80% of frame
 
@@ -4892,7 +4906,7 @@ ${thumbRefRules(bothFormats ? 'both' : ratioSel)}`;
   const activeBrand = getActive();
   const np = activeBrand?.nicheProfile || {};
   // Merge: typed colors take priority; fall back to detected brand colors from niche profile
-  const effectiveColors = brandColors || np.brandColors || '';
+  const effectiveColors = brandColors || brandColorsFor(activeBrand);
   const effectiveStyle = np.thumbnailStyle || '';
   const effectiveArchetype = np.audienceArchetype || np.targetAudience || '';
   const channelName = activeBrand?.channelName || '';
