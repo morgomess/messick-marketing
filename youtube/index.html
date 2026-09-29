@@ -1244,6 +1244,7 @@ async function onOAuthToken(token) {
       description: ch.snippet.description || '',
       recentVideos,
       nicheProfile: existing?.nicheProfile || null,
+      keepFace: existing?.keepFace,
       connectedAt: new Date().toISOString()
     };
 
@@ -1471,6 +1472,29 @@ function thumbRefRules(ratio) {
 // still drifts, the real person is cut out of a face bank photo and composited
 // onto the generated design, so the face is never a lookalike.
 
+// Keep face is per channel. On, thumbnails carry the host's real face. Off (clients
+// who don't want AI people), Touch-up and Redesign both build a thumbnail with no
+// person in it. Unset defaults on only for the Messick channel.
+function keepFace(brand) {
+  if (!brand) return true;
+  return typeof brand.keepFace === 'boolean' ? brand.keepFace : /messick/i.test(brand.channelName || '');
+}
+function setKeepFace(on) {
+  const brand = getActive();
+  if (!brand) return;
+  brand.keepFace = !!on;
+  saveBrands();
+  syncFaceControls();
+}
+function syncFaceControls() {
+  const on = keepFace(getActive());
+  ['facebank-btn', 'redesign-outfit'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; });
+  const panel = document.getElementById('facebank-panel');
+  if (panel && !on) panel.style.display = 'none';
+}
+
+const NO_PERSON_RULE = 'NO PEOPLE: the thumbnail shows no person at all: no face, head, body, silhouette, hands or fingers, and no photo of anyone. The topic carries it through objects, a setting, icons, a screen or a chart, plus the headline.';
+
 const LIKENESS_PASS = 7;
 const faceBankCache = {};
 
@@ -1695,10 +1719,11 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
-async function checkLayout(b64, outfit) {
+async function checkLayout(b64, outfit, noPerson) {
   const json = parseJSON(await callAI(LAYOUT_QA_SYSTEM, [
     { type: 'image', source: { type: 'base64', media_type: b64Mime(b64), data: b64 } },
-    { type: 'text', text: 'Check this thumbnail.' + (outfit ? ` The host must be wearing ${outfit}; if their top is a different color or type, add a fix to change it to ${outfit}.` : '') }
+    { type: 'text', text: 'Check this thumbnail.' + (outfit ? ` The host must be wearing ${outfit}; if their top is a different color or type, add a fix to change it to ${outfit}.` : '') +
+      (noPerson ? ' This thumbnail must show no person at all: if any face, head, body, silhouette or hands appear, add a fix to remove them and fill the space with the background or the main object.' : '') }
   ])) || {};
   return { fixes: Array.isArray(json.fixes) ? json.fixes.filter(Boolean).slice(0, 5) : [] };
 }
@@ -1959,8 +1984,115 @@ function pickExpression(ranked, recent) {
   return order.find(id => !recentIds.includes(id)) || order[0] || 'lean';
 }
 
+// --- No-person Redesign (Keep face off) ---
+// Same trend research and house look, but the design is built around the topic, not a
+// host: no face bank, no likeness check, and a layout QA pass that removes any person.
+const REDESIGN_NO_PERSON_SYSTEM = `You are an elite YouTube thumbnail art director. You design a new thumbnail for a video by borrowing the layout of a proven top-ranking thumbnail. This channel does not want people in its thumbnails, so the design is built around the topic, never a person.
+
+You receive optionally the CURRENT thumbnail and TREND thumbnails that rank for this topic.
+
+1. Pick the one TREND thumbnail whose layout would earn the most clicks for this video without its person: big short text, one strong focal object, strong contrast, readable at phone size. Use 0 if none fit, and design from best practice instead.
+2. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
+3. Choose one hero object that shows the topic at a glance: a phone or laptop screen, a search bar, a chart, a document, a piece of equipment or a place that fits the subject. It takes the space a person would have filled.
+4. Write the image prompt. The image model receives only the chosen TREND thumbnail, as a layout reference. The page adds a header that labels it, so do not describe the image yourself.
+
+PROMPT RULES:
+- ${NO_PERSON_RULE} Never mention a host, doctor, patient, customer or anyone else.
+- Borrow the trend's composition: where the focal element sits, how large it is, where the text sits, the graphic device (arrow, circle, split, badge) and the energy. Never copy its people, its words, its logos or its brand colors; where it shows a person, put the hero object there.
+- Headline: 2-5 words, huge, heavy, condensed sans-serif, all caps, filling about half the frame, written as a quoted string with exact placement. Mostly white with one or two key words in the channel's accent color, each letter with a crisp dark outline or strong drop shadow.
+- Hero object: large, crisp and well lit, slightly tilted with a soft shadow, clearly showing the topic.
+- Background: a softly blurred real setting that fits the topic, color-graded into the channel's colors, darker at the edges so the text pops.
+- Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style. One exception: a single small signal-color accent when it carries meaning, such as a red X on the wrong way or a green check on the right way.
+- Keep text and the hero object inside the center 80% of the frame.
+- Logos: add the logo of a company, product or platform only when the video title or topic names it. Render it accurately, at most one or two, as a supporting element. Never add logos of unrelated brands.
+- Never write hex codes, font names, or labels like "Line 1" or "Header:" in the prompt. Name colors in words.
+- Variety: make this one look different from the RECENT REDESIGNS listed below (a different hero object, side or crop). Variety never touches the headline: it stays accurate to what the video says and makes no claim the video does not make.
+
+Return ONLY this JSON, no markdown:
+{"core_idea": "<one sentence: what the video teaches>", "trend": <number or 0>, "trend_reason": "<one sentence>", "hero": "<the hero object, a few words>", "headline": "<2-4 words>", "prompt": "<the image prompt>"}`;
+
+async function redesignNoPerson(fmt) {
+  const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
+  const btn = document.getElementById('gen-thumb-btn');
+  const genOut = document.getElementById('thumb-gen-out');
+  if (!genOut) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Redesigning...'; }
+  const video = currentVideoData;
+  const sn = video?.snippet || {};
+  const brand = getActive();
+  const token = sessionTokens[brand?.channelId];
+
+  try {
+    genOut.innerHTML = spinner('Loading the current thumbnail...');
+    const thumbUrl = sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || '';
+    const current = await fetchVideoThumbRef(video?.id, thumbUrl);
+
+    genOut.innerHTML = spinner('Pulling top-ranking thumbnails for this topic...');
+    const query = (await callAI('Return only a 2-5 word YouTube search query for the general topic of this video, in the words a viewer would type. No quotes, no punctuation, nothing else.',
+      `Title: ${sn.title}\nDescription: ${(sn.description || '').slice(0, 300)}`).catch(() => '')).trim().split('\n')[0].slice(0, 80) || sn.title;
+    const trends = await fetchTrendThumbs(query, token, brand?.channelId).catch(e => { console.warn('trends', e); return []; });
+
+    genOut.innerHTML = spinner('Reading the video captions...');
+    const transcript = await fetchVideoTranscript(video?.id, token);
+
+    genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
+    const content = [];
+    if (current) { content.push({ type: 'text', text: 'CURRENT THUMBNAIL (for house colors and type only; ignore any person in it)' }); content.push(refForClaude(current)); }
+    trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
+    content.push({ type: 'text', text: `Video title: "${sn.title}"
+Full description: ${(sn.description || '').slice(0, 2000)}
+${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the description and the current thumbnail text for what the video says.'}
+Channel: ${brand?.channelName || ''}
+${brand?.nicheProfile?.brandColors ? 'Brand colors: ' + brand.nicheProfile.brandColors : ''}
+Format: ${ratios.join(' and ')}` });
+    const recentKey = 'mm_redesign_recent_' + (brand?.channelId || '');
+    let recent = [];
+    try { recent = JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch (e) { /* none yet */ }
+    content.push({ type: 'text', text: recent.length
+      ? 'RECENT REDESIGNS on this channel (make this one look different):\n' + recent.map(r => `- "${r.headline}": ${r.hero || r.expression}`).join('\n')
+      : 'RECENT REDESIGNS: none yet.' });
+    const plan = parseJSON(await callAI(buildSystem(REDESIGN_NO_PERSON_SYSTEM), content)) || {};
+    if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
+
+    const trend = trends[(plan.trend || 0) - 1] || null;
+    const refs = trend ? [trend] : [];
+    const header = trend ? 'Image 1 is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors. Where it shows a person, put the hero object instead.' : '';
+    const prompt = `${header}${header ? '\n\n' : ''}${plan.prompt}\n\n${NO_PERSON_RULE}`;
+
+    const results = [];
+    for (const ratio of ratios) {
+      genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
+      let b64 = await genThumbImage(prompt, ratio, refs);
+      let fixes = [];
+      genOut.innerHTML = spinner('Checking layout rules...');
+      const qa = await checkLayout(b64, '', true).catch(e => { console.warn('layout qa', e); return { fixes: [] }; });
+      if (qa.fixes.length) {
+        genOut.innerHTML = spinner(`Fixing ${qa.fixes.length} layout issue${qa.fixes.length === 1 ? '' : 's'}...`);
+        try {
+          b64 = await genThumbImage('Image 1 is a finished YouTube thumbnail. Make only these fixes and keep everything else exactly as it is, including all text and the layout:\n- ' +
+            qa.fixes.join('\n- ') + '\n' + NO_PERSON_RULE, ratio, [{ mimeType: b64Mime(b64), data: b64 }]);
+          fixes = qa.fixes;
+        } catch (e) { console.warn('layout fix', e); }
+      }
+      results.push({ ratio, b64, method: 'no-person', fixes });
+    }
+
+    generatedThumbB64 = results[0].b64;
+    window._redesign = { results, identity: [], anchor: null, prompt, fmt, plan, trend, noPerson: true };
+    try {
+      recent = [{ headline: plan.headline || '', hero: plan.hero || '' }, ...recent].slice(0, 6);
+      localStorage.setItem(recentKey, JSON.stringify(recent));
+    } catch (e) { /* storage blocked; variety just resets */ }
+    renderRedesign(plan, trend, results, video);
+  } catch (e) {
+    genOut.innerHTML = errHtml(e.message || 'Redesign failed. Try again.');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Thumbnail'; }
+}
+
 // --- Redesign pipeline ---
 async function redesignThumbnail(fmt) {
+  if (!keepFace(getActive())) return redesignNoPerson(fmt);
   const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
   const btn = document.getElementById('gen-thumb-btn');
   const genOut = document.getElementById('thumb-gen-out');
@@ -2013,7 +2145,7 @@ Format: ${ratios.join(' and ')}` });
     let recent = [];
     try { recent = JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch (e) { /* none yet */ }
     content.push({ type: 'text', text: recent.length
-      ? 'RECENT REDESIGNS on this channel (make this one look different):\n' + recent.map(r => `- "${r.headline}": ${r.expression}, host on the ${r.side}`).join('\n')
+      ? 'RECENT REDESIGNS on this channel (make this one look different):\n' + recent.map(r => r.hero ? `- "${r.headline}": no host, ${r.hero}` : `- "${r.headline}": ${r.expression}, host on the ${r.side}`).join('\n')
       : 'RECENT REDESIGNS: none yet.' });
     const plan = parseJSON(await callAI(buildSystem(REDESIGN_SYSTEM + REDESIGN_STYLE), content)) || {};
     if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
@@ -2101,7 +2233,9 @@ function renderRedesign(plan, trend, results, video) {
   const newImg = document.getElementById('new-thumb-img');
   const newPreview = document.getElementById('new-thumb-preview');
   if (newImg && newPreview) { newImg.src = `data:${b64Mime(results[0].b64)};base64,${results[0].b64}`; newPreview.style.display = 'block'; }
-  const badge = r => r.method === 'composite'
+  const badge = r => r.method === 'no-person'
+    ? `No-person design${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`
+    : r.method === 'composite'
     ? `<span style="color:var(--blue-light);">Real-face composite</span> (generated face scored ${r.score}/10)`
     : `Likeness ${r.score}/10${r.issues ? ' - ' + esc(r.issues) : ''}${r.method !== 'generated' ? ' - ' + esc(r.method) : ''}${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`;
   genOut.innerHTML = `
@@ -2121,6 +2255,7 @@ function renderRedesign(plan, trend, results, video) {
         ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
         ${plan.outfit ? `Wardrobe: ${esc(plan.outfit)}<br>` : ''}
         ${plan.expression ? `Expression: ${esc(plan.expression)}<br>` : ''}
+        ${plan.hero ? `Main object: ${esc(plan.hero)}<br>` : ''}
         Layout: ${trend ? `borrowed from "${esc(trend.title)}" (${esc(trend.channel)}). ${esc(plan.trend_reason || '')}` : 'no trend fit; built from best practice.'}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2142,13 +2277,15 @@ async function refineRedesign() {
   const st = window._redesign;
   const genOut = document.getElementById('thumb-gen-out');
   if (!st || !notes) return;
-  const n = st.identity.length;
-  const prompt = `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. The other images show the real person in it; their face must keep matching those photos exactly${st.anchor ? ', with the face shape of the last, unretouched photo' : ''}.`;
+  const prompt = st.noPerson
+    ? `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. ${NO_PERSON_RULE}`
+    : `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. The other images show the real person in it; their face must keep matching those photos exactly${st.anchor ? ', with the face shape of the last, unretouched photo' : ''}.`;
   try {
     const results = [];
     for (const r of st.results) {
       genOut.innerHTML = spinner(`Applying changes to ${r.ratio}...`);
       const b64 = await genThumbImage(prompt, r.ratio, [{ mimeType: b64Mime(r.b64), data: r.b64 }, ...st.identity, ...(st.anchor ? [st.anchor] : [])].slice(0, 4));
+      if (st.noPerson) { results.push({ ratio: r.ratio, b64, method: 'no-person' }); continue; }
       const check = await checkLikeness(st.identity, b64, st.anchor);
       // The input already had the tone applied; the edit keeps it, so it is not applied twice.
       results.push({ ratio: r.ratio, b64, score: check.score, issues: check.issues, method: 'generated' });
@@ -3975,8 +4112,11 @@ function renderThumbAudit(json) {
         <option value="touchup">Touch up current design</option>
         <option value="redesign">Redesign from top thumbnails</option>
       </select>
-      <input id="redesign-outfit" type="text" placeholder="Shirt in this video (optional)" title="Redesign reads your shirt from the video. Type it here to override, e.g. royal blue tee." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;outline:none;min-width:190px;">
-      <button class="btn-copy" onclick="toggleFaceBank()">Face bank</button>
+      <label title="On: thumbnails keep the host's real face. Off: no person in the thumbnail, for clients who don't want AI people. Saved per channel." style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);cursor:pointer;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;">
+        <input type="checkbox" id="keep-face-toggle" ${keepFace(getActive()) ? 'checked' : ''} onchange="setKeepFace(this.checked)" style="cursor:pointer;"> Keep host's face
+      </label>
+      <input id="redesign-outfit" type="text" placeholder="Shirt in this video (optional)" title="Redesign reads your shirt from the video. Type it here to override, e.g. royal blue tee." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;outline:none;min-width:190px;${keepFace(getActive()) ? '' : 'display:none;'}">
+      <button class="btn-copy" id="facebank-btn" onclick="toggleFaceBank()" style="${keepFace(getActive()) ? '' : 'display:none;'}">Face bank</button>
       <button class="btn-gen-thumb" id="gen-thumb-btn" onclick="generateThumbnail()">✦ Generate Thumbnail</button>
     </div>
     <div id="facebank-panel" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;"></div>`;
@@ -4011,10 +4151,30 @@ async function generateThumbnail(format, reusePrompt) {
     const ref = await fetchVideoThumbRef(video?.id, thumbUrl);
     if (ref) window._lastThumbRefs = [ref];
   }
-  const refs = window._lastThumbRefs;
+  // Keep face off: the current thumbnail only guides colors and text for Claude. The image
+  // model gets no photo, so no person can carry through, and the prompt bans people.
+  const noPerson = !keepFace(brand);
+  const styleRef = window._lastThumbRefs[0] || null;
+  const refs = noPerson ? [] : window._lastThumbRefs;
 
   // Step 1: Claude writes the image prompt (skipped when rendering a refined prompt)
-  const promptSystem = buildSystem(refs.length
+  const promptSystem = buildSystem(noPerson
+    ? `You are an elite YouTube thumbnail designer and image prompt engineer. You write thumbnails that earn 8-12% CTR through proven visual psychology, for a channel that does not want people in its thumbnails.
+
+Best practices you ALWAYS apply:
+- ${NO_PERSON_RULE}
+- One dominant hero object filling most of the frame, one clear emotional hook, never split attention
+- Strong contrast between object and background
+- Bold centered safe-zone layout: all critical elements within the center 80% of frame
+- Text: maximum 4 words, ultra-bold condensed sans-serif, pure white on dark or black on bright, written as a quoted string with exact placement
+- If a current thumbnail is attached, carry its colors and headline wording, but none of its people
+- For medical/clinical topics: clean, authoritative imagery, never alarming
+- Never write hex codes, font names or structural labels in the prompt; name colors in words
+
+End with: "No people, no faces, no hands. Professional YouTube thumbnail, ultra-sharp focus, vibrant high-contrast, editorial quality, no watermarks, no placeholder elements, no distorted text."
+
+Output the prompt text ONLY. No JSON, no quotes around it, no preamble, no explanation.`
+    : refs.length
     ? `You are an elite YouTube thumbnail designer. You turn a video's existing frame or thumbnail into a thumbnail that earns 8-12% CTR while staying true to the real people and place in it.
 
 ${thumbRefRules(fmt)}`
@@ -4044,7 +4204,9 @@ ${brand?.channelName ? 'Channel: ' + brand.channelName : ''}
 ${brand?.nicheProfile?.brandColors ? 'Brand colors (use on overlays and text blocks, describe by name): ' + brand.nicheProfile.brandColors : ''}
 ${brand?.nicheProfile?.thumbnailStyle ? 'Preferred thumbnail style: ' + brand.nicheProfile.thumbnailStyle : ''}
 ${brand?.nicheProfile?.audienceArchetype ? 'Target viewer: ' + brand.nicheProfile.audienceArchetype : ''}`;
-      const promptText = await callAI(promptSystem, refs.length
+      const promptText = await callAI(promptSystem, noPerson
+        ? (styleRef ? [refForClaude(styleRef), { type: 'text', text: "Attached: the video's current thumbnail, for colors and headline only. Leave out any person in it.\n\n" + brief }] : brief)
+        : refs.length
         ? [refForClaude(refs[0]), { type: 'text', text: "Attached: the video's current thumbnail.\n" + KEEP_TEXT_NOTE + "\n\n" +brief }]
         : brief);
       imagePrompt = (promptText || '').trim();
