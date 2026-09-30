@@ -15,6 +15,7 @@ Disallow: /dashboard2/
 Disallow: /engagement/
 Disallow: /websites/
 Disallow: /workers/
+Disallow: /review/
 Disallow: /leads-sheet-script.gs
 Disallow: /report-feedback-sheet-script.gs
 

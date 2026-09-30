@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Weekly Review | Messick Marketing</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111111; --paper:#faf8f5; --card:#ffffff; --well:#f0eeeb; --line:#e4e0da;
+    --steel:#3a6b8a; --steel-2:#5a9ab8; --muted:#6b6660; --ok:#2f7a4f; --ok-bg:#e8f3ec;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font:400 16px/1.55 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  h1,h2,h3,.day,.takeaway p{font-variant-numeric:lining-nums}
+  h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0}
+  .eyebrow{font:600 11px/1 Jost,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--steel)}
+
+  header{background:var(--ink);color:#fff;padding:36px 0 30px}
+  header .eyebrow{color:var(--steel-2)}
+  header h1{font-size:clamp(30px,8vw,40px);line-height:1.08;margin-top:12px}
+  header p{margin:10px 0 0;color:#c9c5bf;font-size:15px}
+  .jump{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+  .jump a{color:#fff;text-decoration:none;font-size:13px;font-weight:500;border:1px solid #3a3a3a;border-radius:999px;padding:7px 14px}
+  .jump a:hover{border-color:var(--steel-2)}
+  .jump[hidden]{display:none}
+
+  section{padding:40px 0 8px}
+  .sec-head{margin-bottom:18px}
+  .sec-head h2{font-size:30px;margin-top:8px}
+
+  .takeaway{background:var(--ink);color:#f4f1ec;border-radius:14px;padding:22px 22px 20px}
+  .takeaway .eyebrow{color:var(--steel-2)}
+  .takeaway p{font-family:"Cormorant Garamond",Georgia,serif;font-size:22px;line-height:1.35;margin:10px 0 0}
+  h3.sub{font-size:22px;margin:34px 0 12px}
+
+  .tops{display:grid;gap:12px}
+  .top{display:grid;grid-template-columns:96px 1fr;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .top img{width:96px;height:120px;object-fit:cover;border-radius:8px;background:var(--well)}
+  .top .where{font-size:12px;color:var(--muted);font-weight:500}
+  .top .what{font-size:15px;margin:3px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .stats{display:flex;flex-wrap:wrap;gap:6px}
+  .stat{background:var(--well);border-radius:6px;padding:3px 8px;font-size:13px}
+  .stat b{font-weight:600}
+  .why{font-size:13px;color:var(--steel);margin-top:8px}
+  .txt-tile{width:96px;height:120px;border-radius:8px;background:var(--ink);color:#c9c5bf;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center}
+
+  .quotes{display:grid;gap:10px}
+  blockquote{margin:0;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--steel);border-radius:10px;padding:14px 16px}
+  blockquote p{margin:0;font-size:16px}
+  blockquote cite{display:block;margin-top:6px;font-style:normal;font-size:12px;color:var(--muted)}
+
+  .aud{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:620px){.aud{grid-template-columns:1fr 1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .panel h4{margin:0 0 2px;font:600 14px Jost,sans-serif}
+  .panel .note{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .bar{margin:9px 0}
+  .bar .lbl{display:flex;justify-content:space-between;font-size:13px}
+  .bar .trk{height:6px;background:var(--well);border-radius:3px;margin-top:4px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--steel);border-radius:3px}
+  .fact{font-size:14px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line)}
+
+  .posts-head{position:sticky;top:0;z-index:5;background:var(--paper);padding:14px 0 10px;border-bottom:1px solid var(--line)}
+  .posts-head .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .progress{font-size:13px;color:var(--muted);white-space:nowrap}
+  .progress b{color:var(--ink)}
+  .post{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:18px 0;overflow:hidden}
+  .post-top{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 12px;gap:10px;flex-wrap:wrap}
+  .day{font-family:"Cormorant Garamond",Georgia,serif;font-size:24px;font-weight:600;line-height:1}
+  .day span{font-family:Jost,sans-serif;font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+  .plats{display:flex;gap:5px;flex-wrap:wrap}
+  .plat{font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 8px;border-radius:999px;background:var(--well);color:var(--ink)}
+  .post .title{padding:0 16px 12px;font-weight:500;font-size:15px;color:var(--steel)}
+  .media{background:var(--well)}
+  .media img{display:block;width:100%;height:auto}
+  .media + .media{border-top:2px solid var(--card)}
+  .media.vid{background:#000;display:flex;justify-content:center}
+  .media video{display:block;width:100%;max-height:78vh;background:#000}
+  .textonly{padding:26px 22px;background:var(--well);font-size:13px;color:var(--muted);text-align:center}
+  .body{padding:16px}
+  .lab{font:600 11px Jost,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .caption{white-space:pre-wrap;font-size:15.5px;line-height:1.6;overflow-wrap:anywhere}
+  .tags{margin-top:16px}
+  .tags div{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:13px;color:var(--steel);background:#eef4f8;border-radius:6px;padding:3px 8px}
+  .actions{display:flex;gap:8px;padding:14px 16px;border-top:1px solid var(--line);background:#fcfbf9}
+  button{font:600 14px Jost,sans-serif;border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--ink)}
+  button:disabled{opacity:.6;cursor:wait}
+  .approve{background:var(--ink);color:#fff;flex:1}
+  .approve.done{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+  .cbtn{background:#fff;color:var(--ink);flex:1}
+  .thread{padding:0 16px 16px;display:none;background:#fcfbf9}
+  .thread.open{display:block}
+  .thread textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px Jost,sans-serif;resize:vertical;background:#fff}
+  .thread .send{margin-top:8px;background:var(--steel);border-color:var(--steel);color:#fff}
+  .msg{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14.5px;white-space:pre-wrap}
+  .msg .who{font-size:12px;color:var(--muted);margin-bottom:2px;white-space:normal}
+
+  .pending{font-size:13.5px;color:var(--muted);text-align:center;margin:4px 0 18px}
+  .finish{position:sticky;bottom:0;z-index:6;background:rgba(250,248,245,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:10px 0;margin-top:8px;display:flex;align-items:center;gap:12px}
+  .finish-msg{font-size:13px;line-height:1.35;color:var(--muted);flex:1}
+  .finish.ready .finish-msg{color:var(--ok);font-weight:500}
+  .submit{flex:none;background:var(--ink);color:#fff;padding:11px 16px;font-size:14px}
+  .submit.soft{background:#fff;color:var(--ink)}
+  .thanks{display:none;background:var(--ok-bg);border:1px solid #cfe5d7;border-radius:14px;padding:26px 22px;margin:18px 0;text-align:center}
+  .thanks h2{font-size:32px;margin-top:8px}
+  .thanks p{margin:10px 0 0}
+  .thanks .small{font-size:13.5px;color:var(--muted)}
+  .thanks .cbtn{margin-top:16px}
+  .done-mode .post,.done-mode .finish,.done-mode .pending{display:none}
+  .done-mode .thanks{display:block}
+  .notice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 22px;margin:40px 0;text-align:center}
+  .notice h2{font-size:28px}
+  .notice p{color:var(--muted);margin:8px 0 0}
+  .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:30;max-width:calc(100% - 32px)}
+  .draftbar{background:#fff4d6;color:#6b5000;font-size:13px;text-align:center;padding:8px 16px;font-weight:500}
+  body:has(.draftbar) button:disabled{cursor:not-allowed}
+  footer{padding:30px 0 50px;color:var(--muted);font-size:13px;text-align:center}
+
+  .modal{position:fixed;inset:0;background:rgba(17,17,17,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+  .modal.open{display:flex}
+  .modal .box{background:#fff;border-radius:14px;padding:22px;max-width:380px;width:100%}
+  .modal h3{font-size:24px}
+  .modal p{font-size:14px;color:var(--muted);margin:6px 0 14px}
+  .modal input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:15px Jost,sans-serif}
+  .modal button{margin-top:12px;width:100%;background:var(--ink);color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Messick Marketing &nbsp;·&nbsp; Weekly Review</div>
+    <h1 id="client">Loading your week</h1>
+    <p id="sub"></p>
+    <div class="jump" id="jump" hidden><a href="#highlights" id="jumpHi">This week's highlights</a><a href="#posts">Review upcoming posts</a></div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+<footer>Prepared by Messick Marketing. Questions? Reply to this week's email.</footer>
+
+<div class="modal" id="who"><div class="box">
+  <h3>Who's reviewing?</h3>
+  <p>So our team knows who left each note. We'll remember it on this device.</p>
+  <input id="whoName" placeholder="Your first name" autocomplete="given-name" maxlength="60">
+  <button id="whoOk">Continue</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://weekly-review.morgan-2bf.workers.dev';
+const qs = new URLSearchParams(location.search), code = qs.get('c') || '', draftKey = qs.get('d') || '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let data = null, state = null, reviewer = null, pending = null;
+try { reviewer = localStorage.getItem('mm_review_name') || null; } catch (e) {}
+
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3500); }
+function needName(fn){ if (reviewer) return fn(); pending = fn; $('who').classList.add('open'); $('whoName').focus(); }
+$('whoOk').onclick = () => {
+  const v = $('whoName').value.trim(); if (!v) return;
+  reviewer = v; try { localStorage.setItem('mm_review_name', v); } catch (e) {}
+  $('who').classList.remove('open'); if (pending) { const f = pending; pending = null; f(); }
+};
+$('whoName').addEventListener('keydown', e => { if (e.key === 'Enter') $('whoOk').click(); });
+
+async function post(path, body){
+  const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ c: code, name: reviewer, ...body }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong');
+  return j;
+}
+
+function notice(title, text){
+  $('main').innerHTML = `<div class="notice"><h2>${esc(title)}</h2><p>${esc(text)}</p></div>`;
+}
+
+async function load(){
+  if (!code) { $('client').textContent = 'Weekly Review'; return notice('This link is incomplete', 'Please use the full link from your weekly email.'); }
+  let r;
+  try { r = await fetch(API + '/api/week?c=' + encodeURIComponent(code) + (draftKey ? '&d=' + encodeURIComponent(draftKey) : '')); data = await r.json(); }
+  catch (e) { $('client').textContent = 'Weekly Review'; return notice('We could not load this page', 'Please check your connection and try again.'); }
+  if (!r.ok) { $('client').textContent = 'Weekly Review'; return notice('This link is not active', 'Please use the link from your most recent weekly email.'); }
+  state = data.state;
+  document.title = data.client.name + ' Weekly Review | Messick Marketing';
+  $('client').textContent = data.client.name;
+  const ins = data.insights;
+  $('sub').textContent = ins ? `Highlights from ${ins.period}, then the posts going out ${data.week.label}.` : `The posts going out ${data.week.label}.`;
+  $('jump').hidden = !ins;
+  render();
+  if (ins && ins.draft) {
+    document.body.insertAdjacentHTML('afterbegin', '<div class="draftbar">Draft preview for Messick only. The client sees this after you approve it. Buttons are off here.</div>');
+    document.querySelectorAll('.actions button, .submit, .send').forEach(b => b.disabled = true);
+  }
+}
+
+function renderInsights(ins){
+  const img = t => t.img ? `<img src="${esc(t.img.startsWith('http') ? t.img : API + '/img?c=' + encodeURIComponent(code) + '&k=' + encodeURIComponent(t.img))}" alt="" loading="lazy">` : `<div class="txt-tile">${esc(t.tile || 'Text post')}</div>`;
+  let h = `<section id="highlights"><div class="sec-head"><div class="eyebrow">Last 7 days</div><h2>What stood out</h2></div>`;
+  if (ins.takeaway) h += `<div class="takeaway"><div class="eyebrow">The short version</div><p>${esc(ins.takeaway)}</p></div>`;
+  if (ins.tops && ins.tops.length) h += `<h3 class="sub">Top posts</h3><div class="tops">` + ins.tops.map(t => `
+    <div class="top">${img(t)}<div>
+      <div class="where">${esc(t.where)}</div><div class="what">${esc(t.what)}</div>
+      <div class="stats">${(t.stats || []).map(s => `<span class="stat"><b>${esc(s[0])}</b> ${esc(s[1])}</span>`).join('')}</div>
+      ${t.why ? `<div class="why">${esc(t.why)}</div>` : ''}
+    </div></div>`).join('') + `</div>`;
+  if (ins.quotes && ins.quotes.length) h += `<h3 class="sub">What people said</h3><div class="quotes">` + ins.quotes.map(q => `<blockquote><p>"${esc(q.text)}"</p><cite>${esc(q.cite)}</cite></blockquote>`).join('') + `</div>`;
+  if (ins.audience && ins.audience.length) h += `<h3 class="sub">Who's following</h3><div class="aud">` + ins.audience.map(a => {
+    const max = Math.max(...a.bars.map(b => b[1]), 1);
+    return `<div class="panel"><h4>${esc(a.platform)}</h4><div class="note">${esc(a.note)}</div>` +
+      a.bars.map(b => `<div class="bar"><div class="lbl"><span>${esc(b[0])}</span><span>${Math.round(b[1])}%</span></div><div class="trk"><div class="fill" style="width:${Math.round(100 * b[1] / max)}%"></div></div></div>`).join('') +
+      (a.fact ? `<p class="fact">${esc(a.fact)}</p>` : '') + `</div>`;
+  }).join('') + `</div>`;
+  return h + `</section>`;
+}
+
+function mediaHtml(p){
+  if (!p.media.length) return `<div class="textonly">Text post, no graphic</div>`;
+  return p.media.map(m => m.type.startsWith('video/')
+    ? `<div class="media vid"><video controls playsinline preload="metadata" src="${esc(m.url)}"></video></div>`
+    : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy"></div>`).join('');
+}
+
+function render(){
+  const posts = data.posts;
+  let h = data.insights ? renderInsights(data.insights) : '';
+  h += `<section id="posts"><div class="posts-head"><div class="row"><div><div class="eyebrow">Coming up</div><h2 style="font-size:28px;margin-top:6px">Posts for review</h2></div>
+        <div class="progress" id="progress"></div></div></div>`;
+  if (!posts.length) {
+    h += `<div class="notice"><h2>Posts are on the way</h2><p>This week's posts are still being finished. Check back soon.</p></div></section>`;
+    $('main').innerHTML = h; return;
+  }
+  for (const p of posts) {
+    const tags = String(p.hashtags || '').split(/\s+/).filter(Boolean);
+    h += `<article class="post" data-id="${esc(p.id)}">
+      <div class="post-top"><div class="day">${esc(p.day)} <span>${esc(p.dateLabel)}</span></div><div class="plats">${p.platforms.map(x => `<span class="plat">${esc(x)}</span>`).join('')}</div></div>
+      ${p.title ? `<div class="title">${esc(p.title)}</div>` : ''}
+      ${mediaHtml(p)}
+      <div class="body">
+        ${p.caption ? `<div class="lab">Caption</div><div class="caption">${esc(p.caption)}</div>` : ''}
+        ${tags.length ? `<div class="tags"><div class="lab">Hashtags</div><div>${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>` : ''}
+      </div>
+      <div class="actions"><button class="approve">Approve</button><button class="cbtn">Comment</button></div>
+      <div class="thread"><div class="msgs"></div><textarea placeholder="Suggest a change or ask a question about this post" maxlength="2000"></textarea><button class="send">Send to Messick team</button></div>
+    </article>`;
+  }
+  if (data.unfinished) h += `<p class="pending">${data.unfinished === 1 ? '1 more post this week is' : data.unfinished + ' more posts this week are'} still being finished. ${data.unfinished === 1 ? 'It' : 'They'} will appear here once ready.</p>`;
+  h += `<div class="finish" id="finish"><div class="finish-msg" id="finishMsg"></div><button class="submit" id="submit">Send my review</button></div>
+    <div class="thanks" id="thanks"><div class="eyebrow">Review sent</div><h2>Thank you!</h2><p id="thanksSum"></p>
+    <p class="small">Our team has your notes. If you think of anything else, you can reopen this page and add it.</p>
+    <button class="cbtn" id="reopen">Add something else</button></div></section>`;
+  $('main').innerHTML = h;
+  wire();
+  paint();
+}
+
+const isReviewed = id => !!state.approvals[id] || state.comments.some(c => c.post === id);
+
+function paint(){
+  const posts = data.posts, n = posts.filter(p => isReviewed(p.id)).length, total = posts.length;
+  $('progress').innerHTML = `<b>${n}</b> of ${total} reviewed`;
+  document.querySelectorAll('.post').forEach(el => {
+    const id = el.dataset.id, a = state.approvals[id], btn = el.querySelector('.approve');
+    btn.classList.toggle('done', !!a); btn.textContent = a ? 'Approved by ' + a.by : 'Approve';
+    const msgs = state.comments.filter(c => c.post === id);
+    el.querySelector('.msgs').innerHTML = msgs.map(c => `<div class="msg"><div class="who">${esc(c.by)} · ${new Date(c.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>${esc(c.text)}</div>`).join('');
+    if (msgs.length) el.querySelector('.thread').classList.add('open');
+  });
+  const all = n === total, f = $('finish');
+  f.classList.toggle('ready', all); $('submit').classList.toggle('soft', !all);
+  $('finishMsg').textContent = all ? "All reviewed. Send it so our team knows you're done."
+    : n === 0 ? 'Approve or comment on each post, then send.' : `${total - n} of ${total} posts still need a look.`;
+  if (all && !f.dataset.nudged && !state.submitted) { f.dataset.nudged = 1; f.scrollIntoView({ behavior: 'smooth', block: 'end' }); }
+}
+
+function wire(){
+  document.querySelectorAll('.post').forEach(el => {
+    const id = el.dataset.id, ap = el.querySelector('.approve'), th = el.querySelector('.thread');
+    ap.onclick = () => needName(async () => {
+      ap.disabled = true;
+      try { state = (await post('/api/approve', { post: id, approved: !state.approvals[id] })).state; paint(); }
+      catch (e) { toast('That did not save. Please try again.'); }
+      ap.disabled = false;
+    });
+    el.querySelector('.cbtn').onclick = () => needName(() => { th.classList.toggle('open'); if (th.classList.contains('open')) th.querySelector('textarea').focus(); });
+    th.querySelector('.send').onclick = () => needName(async () => {
+      const ta = th.querySelector('textarea'), t = ta.value.trim(); if (!t) return;
+      const b = th.querySelector('.send'); b.disabled = true;
+      try { state = (await post('/api/comment', { post: id, text: t })).state; ta.value = ''; paint(); toast('Sent to the Messick team.'); }
+      catch (e) { toast('That did not send. Please try again.'); }
+      b.disabled = false;
+    });
+  });
+  $('submit').onclick = () => needName(async () => {
+    const open = data.posts.filter(p => !isReviewed(p.id)).length;
+    if (open && !confirm(`${open} ${open === 1 ? 'post has' : 'posts have'} no approval or comment yet. Send anyway? We'll treat ${open === 1 ? 'it' : 'those'} as still open.`)) return;
+    $('submit').disabled = true;
+    try { state = (await post('/api/submit', {})).state; showThanks(); }
+    catch (e) { toast('That did not send. Please try again.'); }
+    $('submit').disabled = false;
+  });
+  $('reopen').onclick = () => document.body.classList.remove('done-mode');
+}
+
+function showThanks(){
+  const s = state.submitted, parts = [`${s.approved} ${s.approved === 1 ? 'post' : 'posts'} approved`];
+  if (s.commented) parts.push(`${s.commented} ${s.commented === 1 ? 'post' : 'posts'} with comments`);
+  if (s.open) parts.push(`${s.open} left open`);
+  $('thanksSum').textContent = `From ${s.by}: ${parts.join(', ')}.`;
+  document.body.classList.add('done-mode');
+  $('posts').scrollIntoView();
+}
+
+load();
+</script>
+</body>
+</html>

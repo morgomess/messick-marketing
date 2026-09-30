@@ -1,0 +1,16 @@
+name = "weekly-review"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+account_id = "2bfca046889b3aa600b9cf0f39228024"
+
+# Client weekly review pages (messickmarketing.com/review/?c=<code>).
+# Holds client config, approved weekly insights, highlight images and review state.
+# Must stay declared: wrangler replaces bindings on deploy.
+[[kv_namespaces]]
+binding = "REVIEW"
+id = "92d6b25558b44df1884e3c820e0b3f3d"
+
+# Secrets (wrangler secret put, never here; this repo is public):
+#   AIRTABLE_PAT  read/write records + record comments on the (Preview) bases
+#   ADMIN_KEY     for /admin/* (copy in ~/.secrets/weekly-review-admin-key.txt)
+#   TG_BOT_TOKEN, TG_CHAT_ID   Mo's bot and Morgan's chat, for the "review sent" text
