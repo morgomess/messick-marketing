@@ -103,6 +103,8 @@
   .msg{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14.5px;white-space:pre-wrap}
   .msg .who{font-size:12px;color:var(--muted);margin-bottom:2px;white-space:normal}
 
+  .due{font-size:14px;color:var(--muted);margin:14px 0 0}
+  .due b{color:var(--ink);font-weight:600}
   .pending{font-size:13.5px;color:var(--muted);text-align:center;margin:4px 0 18px}
   .finish{position:sticky;bottom:0;z-index:6;background:rgba(250,248,245,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:10px 0;margin-top:8px;display:flex;align-items:center;gap:12px}
   .finish-msg{font-size:13px;line-height:1.35;color:var(--muted);flex:1}
@@ -224,7 +226,7 @@ function renderInsights(ins){
 function mediaHtml(p){
   if (!p.media.length) return `<div class="textonly">Text post, no graphic</div>`;
   return p.media.map(m => m.type.startsWith('video/')
-    ? `<div class="media vid"><video controls playsinline preload="metadata" src="${esc(m.url)}"></video></div>`
+    ? `<div class="media vid"><video controls playsinline preload="metadata" src="${esc(m.url)}#t=0.5"></video></div>`
     : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy"></div>`).join('');
 }
 
@@ -233,6 +235,9 @@ function render(){
   let h = data.insights ? renderInsights(data.insights) : '';
   h += `<section id="posts"><div class="posts-head"><div class="row"><div><div class="eyebrow">Coming up</div><h2 style="font-size:28px;margin-top:6px">Posts for review</h2></div>
         <div class="progress" id="progress"></div></div></div>`;
+  if (data.deadline) h += data.deadline.passed
+    ? `<p class="due">This week's posts are going out now. Comments still reach our team.</p>`
+    : `<p class="due">Please review by <b>${esc(data.deadline.label)}</b>. Posts without comments go out as scheduled.</p>`;
   if (!posts.length) {
     h += `<div class="notice"><h2>Posts are on the way</h2><p>This week's posts are still being finished. Check back soon.</p></div></section>`;
     $('main').innerHTML = h; return;

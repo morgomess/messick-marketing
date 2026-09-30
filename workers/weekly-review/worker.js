@@ -144,8 +144,12 @@ async function week(env, code, draftKey) {
   const { posts, unfinished } = await loadPosts(env, client, start, end);
   const insights = isDraft ? { ...draft, draftKey: undefined, draft: true } : await env.REVIEW.get('insights:' + code, 'json');
   const state = (await env.REVIEW.get(`review:${code}:${ymd(start)}`, 'json')) || { approvals: {}, comments: [], submitted: null };
+  // Soft deadline: Monday 9 AM of the review week, client's own time (Morgan, 2026-09-30).
+  const nowLocal = new Intl.DateTimeFormat('en-CA', { timeZone: client.tz || 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).format(new Date()).replace(', ', 'T');
+  const deadline = { label: `Monday, ${label(start)} at 9 AM`, passed: nowLocal >= `${ymd(start)}T09` };
   return json({
     client: { name: client.name },
+    deadline,
     week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}` },
     posts, unfinished,
     insights: insights && insights.weekStart === ymd(start) ? insights : null,
