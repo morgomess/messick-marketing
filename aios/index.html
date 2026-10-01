@@ -134,24 +134,27 @@ function save(){ try { localStorage.setItem('mm_aios_view', JSON.stringify({ vie
 function card(it){
   const past = it.type !== 'Blog' && it.date && Date.parse(it.date) < Date.now() + 10 * 60e3;
   const media = it.media.length ? `<div class="media">${it.media.map(m => m.type.startsWith('video/') ? `<video controls playsinline preload="metadata" src="${esc(m.url)}#t=0.5"></video>` : `<a href="${esc(m.url)}" target="_blank" rel="noopener"><img src="${esc(m.thumb)}" alt="" loading="lazy"></a>`).join('')}</div>` : '';
-  const isBlog = it.type === 'Blog', approved = it.approval === 'Approved';
+  const isBlog = it.type === 'Blog', approved = it.approval === 'Approved', failed = approved && it.metricool === 'Failed';
+  const lock = approved && !failed;
   const status = approved ? (isBlog ? 'Approved, publishes on its date' : it.metricool === 'Failed' ? 'Push failed' : 'Approved, waiting for push') : it.approval;
   return `<article class="card" data-id="${it.id}">
     <div class="top"><span class="badge ${it.brand}">${BRAND[it.brand]}</span><span class="badge">${esc(it.type === 'Social Post' ? (it.channels.join(' / ') || 'Social') : 'Blog')}</span>
       <span class="badge ${approved ? (it.metricool === 'Failed' ? 'warn' : 'okb') : ''}">${esc(status)}</span><span class="badge dirty warn">Unsaved</span></div>
     <div class="name">${esc(it.name)}</div>
-    <div class="when"><input type="datetime-local" class="date" value="${toEastern(it.date)}" ${approved ? 'disabled' : ''}>
-      ${past && !approved ? '<span class="past">This time has passed. Pick a new one.</span>' : ''}</div>
+    <div class="when"><input type="datetime-local" class="date" value="${toEastern(it.date)}" ${lock ? 'disabled' : ''}>
+      ${past && !lock ? '<span class="past">This time has passed. Pick a new one.</span>' : ''}</div>
     ${media}
     <div class="body">
-      ${it.response ? `<div class="err">Metricool: ${esc(it.response)}</div>` : ''}
+      ${it.response ? `<div class="err">Last push failed: ${esc(it.response.replace(/^Error: /, '').replace(/<[^>]+>/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').slice(0, 220))}</div>` : ''}
       ${it.notes ? `<div class="note">${esc(it.notes)}</div>` : ''}
       <div class="lab">${isBlog ? 'Blog draft' : 'Caption'}</div>
       ${isBlog ? `<details><summary>Show the full draft (${it.copy.split(/\s+/).length} words)</summary><textarea class="copy blog" ${approved ? 'disabled' : ''}>${esc(it.copy)}</textarea></details>`
                : `<textarea class="copy" ${approved ? 'disabled' : ''}>${esc(it.copy)}</textarea>`}
       ${isBlog ? '' : `<div class="lab">Hashtags</div><textarea class="tags" ${approved ? 'disabled' : ''}>${esc(it.hashtags)}</textarea>`}
     </div>
-    <div class="actions">${approved
+    <div class="actions">${failed
+      ? `<button class="save dirty" data-a="save">Save date</button><button class="primary" data-a="retry">Retry push</button><button class="quiet" data-a="unapprove">Un-approve</button>`
+      : approved
       ? `<button class="quiet" data-a="unapprove">Un-approve</button>`
       : `<button class="save dirty" data-a="save">Save changes</button><button class="primary" data-a="approve">Approve${isBlog ? '' : ' and queue'}</button>
          <button class="quiet" data-a="regenerate">Regenerate</button><button class="danger" data-a="reject">Reject</button>`}</div>
@@ -199,7 +202,7 @@ function wire(el){
     el.classList.add('busy');
     try {
       const f = fields();
-      if (Object.keys(f).length && (a === 'save' || a === 'approve')) {
+      if (Object.keys(f).length && (a === 'save' || a === 'approve' || a === 'retry')) {
         const r = await call('/aios/update', { id: it.id, ...f });
         if (f.copy != null) it.copy = f.copy; if (f.hashtags != null) it.hashtags = f.hashtags; if (r.date) it.date = r.date;
       }
@@ -207,6 +210,7 @@ function wire(el){
       else {
         await call('/aios/' + a, { id: it.id, note });
         if (a === 'approve') { it.approval = 'Approved'; it.metricool = it.type === 'Blog' ? it.metricool : 'Ready to Push'; toast(it.type === 'Blog' ? 'Approved. It publishes on its date.' : 'Approved and queued for Metricool.'); }
+        if (a === 'retry') { it.metricool = 'Ready to Push'; it.response = ''; toast('Queued again for Metricool.'); }
         if (a === 'unapprove') { it.approval = 'Ready for Review'; it.metricool = 'Not Queued'; toast('Back in review.'); }
         if (a === 'reject' || a === 'regenerate') { items = items.filter(x => x !== it); toast(a === 'reject' ? 'Rejected.' : 'Regenerating. The new version shows up here within about 15 minutes.'); }
       }

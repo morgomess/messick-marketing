@@ -4,6 +4,7 @@
 //   GET  /aios/queue?k=                   Social Posts and Blogs for DSDD + Virtueasy: to review, and approved but not yet pushed
 //   POST /aios/update     {k,id,copy?,hashtags?,date?}   edit copy, hashtags, Publish Date (date = "YYYY-MM-DDTHH:mm" Eastern)
 //   POST /aios/approve    {k,id}          Social Post: Approved + Ready to Push (refuses past slots). Blog: Approved.
+//   POST /aios/retry      {k,id}          Approved + Failed with a future date: back to Ready to Push
 //   POST /aios/unapprove  {k,id}          back to Ready for Review / Not Queued, only before Metricool has it
 //   POST /aios/reject     {k,id,note?}    Rejected + Not Queued, note into Revision Notes
 //   POST /aios/regenerate {k,id,note?}    old record Rejected; brief back to Ready for Generation, note appended to Angle/Hook
@@ -36,6 +37,8 @@ export function zonedToUtc(local, tz) {
   return new Date(guess - (asZone - guess)).toISOString();
 }
 
+// The Brand lookup comes back from the REST API as Brand Brain record IDs, not names.
+const brandOf = f => { const ids = f.Brand || []; return ids.includes(AIOS.brands.virtueasy.id) ? 'virtueasy' : ids.includes(AIOS.brands.dsdd.id) ? 'dsdd' : null; };
 const nameOf = v => (v && typeof v === 'object' ? v.name : v) || '';
 const httpError = (msg, status) => Object.assign(new Error(msg), { status });
 
@@ -49,7 +52,7 @@ export async function aios(req, env, url, { json, at, clean }) {
   const getRecord = async id => {
     if (!/^rec\w{14}$/.test(id || '')) throw httpError('bad id', 400);
     const r = await at(env, `${AIOS.base}/${AIOS.gen}/${id}`);
-    if (!/virtueasy|doggy/i.test((r.fields.Brand || []).join(' '))) throw httpError('not a DSDD or Virtueasy record', 403);
+    if (!brandOf(r.fields)) throw httpError('not a DSDD or Virtueasy record', 403);
     return r;
   };
 
@@ -66,9 +69,10 @@ export async function aios(req, env, url, { json, at, clean }) {
         if (offset) q.set('offset', offset);
         const page = await at(env, `${AIOS.base}/${AIOS.gen}?${q}`);
         for (const r of page.records) {
+          if (!brandOf(r.fields)) continue;
           const f = r.fields, mc = nameOf(f['Metricool Status']) || 'Not Queued';
           items.push({
-            id: r.id, name: f.Name || '', brand: /virtueasy/i.test((f.Brand || []).join(' ')) ? 'virtueasy' : 'dsdd',
+            id: r.id, name: f.Name || '', brand: brandOf(f),
             type: nameOf(f['Content Type']), copy: f['Generated Copy'] || '', hashtags: f.Hashtags || '',
             channels: (f.Channels || []).map(nameOf), date: f['Publish Date'] || null,
             approval: nameOf(f['Approval Status']), metricool: mc, notes: f['Revision Notes'] || '',
@@ -98,6 +102,7 @@ export async function aios(req, env, url, { json, at, clean }) {
 
     if (p === '/aios/update') {
       if (IN_METRICOOL.has(mc)) return json({ error: 'Already in Metricool. Edit it there.' }, 409);
+      if (mc === 'Ready to Push') return json({ error: 'Queued for push. Un-approve it first.' }, 409);
       const fields = {};
       if (typeof body.copy === 'string') fields['Generated Copy'] = body.copy.slice(0, 100000);
       if (typeof body.hashtags === 'string') fields.Hashtags = body.hashtags.slice(0, 2000);
@@ -121,6 +126,15 @@ export async function aios(req, env, url, { json, at, clean }) {
       return json({ ok: true });
     }
 
+    // Approved posts that failed in Metricool are never retried by the publish worker (it only polls
+    // Ready to Push). Retry re-queues one once its Publish Date is in the future again.
+    if (p === '/aios/retry') {
+      if (nameOf(f['Approval Status']) !== 'Approved' || mc !== 'Failed') return json({ error: 'Only approved posts that failed can be retried.' }, 409);
+      const when = Date.parse(f['Publish Date'] || '');
+      if (!when || when < Date.now() + 10 * 60e3) return json({ error: 'That time has passed. Pick a new date first.' }, 400);
+      await patchGen(r.id, { 'Metricool Status': 'Ready to Push' });
+      return json({ ok: true });
+    }
     if (p === '/aios/unapprove') {
       if (IN_METRICOOL.has(mc)) return json({ error: 'Already in Metricool. Remove it there.' }, 409);
       if (nameOf(f['Approval Status']) === 'Published') return json({ error: 'Already published.' }, 409);
