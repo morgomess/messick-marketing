@@ -266,7 +266,9 @@ function render(){
     ? `<p class="due">This week's posts are going out now. Comments still reach our team.</p>`
     : `<p class="due">Please review by <b>${esc(data.deadline.label)}</b>. Posts without comments go out as scheduled.</p>`;
   if (!posts.length) {
-    h += `<div class="notice"><h2>Posts are on the way</h2><p>This week's posts are still being finished. Check back soon.</p></div></section>`;
+    h += data.deadline && data.deadline.passed
+      ? `<div class="notice"><h2>This week's posts are out</h2><p>Next week's preview arrives here Friday morning.</p></div></section>`
+      : `<div class="notice"><h2>Posts are on the way</h2><p>This week's posts are still being finished. Check back soon.</p></div></section>`;
     $('main').innerHTML = h; return;
   }
   h += `<div class="grid">`;
