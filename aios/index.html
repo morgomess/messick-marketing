@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>AIOS Review | Messick Marketing</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111111; --paper:#faf8f5; --card:#ffffff; --well:#f0eeeb; --line:#e4e0da;
+    --steel:#3a6b8a; --steel-2:#5a9ab8; --muted:#6b6660; --ok:#2f7a4f; --ok-bg:#e8f3ec; --bad:#a3392f; --bad-bg:#fbeceb;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font:400 16px/1.55 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px}
+  h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0;font-variant-numeric:lining-nums}
+  .eyebrow{font:600 11px/1 Jost,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:var(--steel)}
+  header{background:var(--ink);color:#fff;padding:30px 0 22px}
+  header .eyebrow{color:var(--steel-2)}
+  header h1{font-size:36px;margin-top:10px}
+  header p{margin:6px 0 0;color:#c9c5bf;font-size:14px}
+
+  .bar{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding:10px 0}
+  .bar .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{font:500 13px Jost,sans-serif;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 13px;cursor:pointer}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip .n{opacity:.65;margin-left:4px}
+  .sp{flex:1}
+
+  .idea{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0 6px;display:grid;gap:8px}
+  .idea .r{display:flex;gap:8px;flex-wrap:wrap}
+  .idea input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px Jost,sans-serif}
+  select{border:1px solid var(--line);border-radius:10px;padding:10px;font:15px Jost,sans-serif;background:#fff}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:16px 0;overflow:hidden}
+  .card.busy{opacity:.55;pointer-events:none}
+  .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px}
+  .badge{font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 8px;border-radius:999px;background:var(--well)}
+  .badge.dsdd{background:#f3e9dc}
+  .badge.virtueasy{background:#e6eef4}
+  .badge.warn{background:var(--bad-bg);color:var(--bad)}
+  .badge.okb{background:var(--ok-bg);color:var(--ok)}
+  .name{padding:0 14px 10px;font-weight:500;color:var(--steel)}
+  .when{display:flex;gap:8px;align-items:center;padding:0 14px 12px;flex-wrap:wrap;font-size:14px}
+  .when input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:14px Jost,sans-serif}
+  .when .past{color:var(--bad);font-weight:500}
+  .media{display:flex;gap:2px;background:var(--well);overflow-x:auto}
+  .media img{display:block;max-height:520px;width:auto;max-width:100%;margin:0 auto}
+  .media video{display:block;max-height:520px;width:100%;background:#000}
+  .body{padding:14px;display:grid;gap:10px}
+  .lab{font:600 11px Jost,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px/1.55 Jost,sans-serif;resize:vertical;background:#fff}
+  textarea.copy{min-height:150px}
+  textarea.blog{min-height:420px;font-size:14px}
+  textarea.tags{min-height:52px;font-size:14px;color:var(--steel)}
+  .note{font-size:13px;color:var(--muted);white-space:pre-wrap;background:var(--well);border-radius:8px;padding:8px 10px}
+  .err{font-size:13px;color:var(--bad);background:var(--bad-bg);border-radius:8px;padding:8px 10px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);background:#fcfbf9}
+  button{font:600 14px Jost,sans-serif;border-radius:10px;padding:10px 14px;cursor:pointer;border:1px solid var(--ink);background:#fff;color:var(--ink)}
+  button.primary{background:var(--ink);color:#fff;flex:1;min-width:120px}
+  button.save{background:var(--steel);border-color:var(--steel);color:#fff}
+  button.quiet{border-color:var(--line)}
+  button.danger{border-color:#e3c3bf;color:var(--bad)}
+  .dirty{display:none}
+  .card.changed .dirty{display:inline-block}
+  .empty{text-align:center;color:var(--muted);padding:40px 0}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:30;max-width:calc(100% - 32px)}
+  .gate{max-width:420px;margin:60px auto;text-align:center;color:var(--muted)}
+  details summary{cursor:pointer;color:var(--steel);font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">Messick Marketing · AIOS</div>
+  <h1>Content review</h1>
+  <p>Doggy See Doggy Do and Virtueasy. Times are Eastern.</p>
+</div></header>
+
+<div class="bar"><div class="wrap row" id="filters"></div></div>
+<main class="wrap" id="main"><p class="empty">Loading...</p></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://weekly-review.morgan-2bf.workers.dev';
+const KEY = new URLSearchParams(location.search).get('k') || '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BRAND = { dsdd: 'DSDD', virtueasy: 'Virtueasy' };
+let items = [], view = 'review', brand = 'all';
+try { const v = JSON.parse(localStorage.getItem('mm_aios_view') || '{}'); view = v.view || view; brand = v.brand || brand; } catch (e) {}
+
+function toast(m){ const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3500); }
+async function call(path, body){
+  const r = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: KEY, ...body }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong');
+  return j;
+}
+// UTC ISO -> "YYYY-MM-DDTHH:mm" in Eastern, for datetime-local inputs.
+function toEastern(iso){
+  if (!iso) return '';
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(iso)).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+const pretty = iso => iso ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'No date';
+
+async function load(){
+  if (!KEY) { $('main').innerHTML = '<div class="gate">This link is incomplete.</div>'; return; }
+  try {
+    const r = await fetch(API + '/aios/queue?k=' + encodeURIComponent(KEY));
+    if (r.status === 401) { $('main').innerHTML = '<div class="gate">This link is not valid.</div>'; return; }
+    const j = await r.json(); if (!r.ok) throw new Error(j.error);
+    items = j.items; render();
+  } catch (e) { $('main').innerHTML = `<div class="gate">Could not load: ${esc(e.message)}</div>`; }
+}
+
+const inView = it => (view === 'review' ? it.approval !== 'Approved' : it.approval === 'Approved') && (brand === 'all' || it.brand === brand);
+function filters(){
+  const n = (v, b) => items.filter(it => (v === 'review' ? it.approval !== 'Approved' : it.approval === 'Approved') && (b === 'all' || it.brand === b)).length;
+  $('filters').innerHTML =
+    `<button class="chip ${view==='review'?'on':''}" data-v="review">To review<span class="n">${n('review', brand)}</span></button>` +
+    `<button class="chip ${view==='approved'?'on':''}" data-v="approved">Approved, coming up<span class="n">${n('approved', brand)}</span></button><span class="sp"></span>` +
+    ['all','dsdd','virtueasy'].map(b => `<button class="chip ${brand===b?'on':''}" data-b="${b}">${b==='all'?'Both':BRAND[b]}</button>`).join('');
+  $('filters').querySelectorAll('[data-v]').forEach(b => b.onclick = () => { view = b.dataset.v; save(); render(); });
+  $('filters').querySelectorAll('[data-b]').forEach(b => b.onclick = () => { brand = b.dataset.b; save(); render(); });
+}
+function save(){ try { localStorage.setItem('mm_aios_view', JSON.stringify({ view, brand })); } catch (e) {} }
+
+function card(it){
+  const past = it.type !== 'Blog' && it.date && Date.parse(it.date) < Date.now() + 10 * 60e3;
+  const media = it.media.length ? `<div class="media">${it.media.map(m => m.type.startsWith('video/') ? `<video controls playsinline preload="metadata" src="${esc(m.url)}#t=0.5"></video>` : `<a href="${esc(m.url)}" target="_blank" rel="noopener"><img src="${esc(m.thumb)}" alt="" loading="lazy"></a>`).join('')}</div>` : '';
+  const isBlog = it.type === 'Blog', approved = it.approval === 'Approved';
+  const status = approved ? (isBlog ? 'Approved, publishes on its date' : it.metricool === 'Failed' ? 'Push failed' : 'Approved, waiting for push') : it.approval;
+  return `<article class="card" data-id="${it.id}">
+    <div class="top"><span class="badge ${it.brand}">${BRAND[it.brand]}</span><span class="badge">${esc(it.type === 'Social Post' ? (it.channels.join(' / ') || 'Social') : 'Blog')}</span>
+      <span class="badge ${approved ? (it.metricool === 'Failed' ? 'warn' : 'okb') : ''}">${esc(status)}</span><span class="badge dirty warn">Unsaved</span></div>
+    <div class="name">${esc(it.name)}</div>
+    <div class="when"><input type="datetime-local" class="date" value="${toEastern(it.date)}" ${approved ? 'disabled' : ''}>
+      ${past && !approved ? '<span class="past">This time has passed. Pick a new one.</span>' : ''}</div>
+    ${media}
+    <div class="body">
+      ${it.response ? `<div class="err">Metricool: ${esc(it.response)}</div>` : ''}
+      ${it.notes ? `<div class="note">${esc(it.notes)}</div>` : ''}
+      <div class="lab">${isBlog ? 'Blog draft' : 'Caption'}</div>
+      ${isBlog ? `<details><summary>Show the full draft (${it.copy.split(/\s+/).length} words)</summary><textarea class="copy blog" ${approved ? 'disabled' : ''}>${esc(it.copy)}</textarea></details>`
+               : `<textarea class="copy" ${approved ? 'disabled' : ''}>${esc(it.copy)}</textarea>`}
+      ${isBlog ? '' : `<div class="lab">Hashtags</div><textarea class="tags" ${approved ? 'disabled' : ''}>${esc(it.hashtags)}</textarea>`}
+    </div>
+    <div class="actions">${approved
+      ? `<button class="quiet" data-a="unapprove">Un-approve</button>`
+      : `<button class="save dirty" data-a="save">Save changes</button><button class="primary" data-a="approve">Approve${isBlog ? '' : ' and queue'}</button>
+         <button class="quiet" data-a="regenerate">Regenerate</button><button class="danger" data-a="reject">Reject</button>`}</div>
+  </article>`;
+}
+
+function render(){
+  filters();
+  const list = items.filter(inView);
+  let h = view === 'review' ? `<div class="idea"><div class="lab">New idea</div><div class="r">
+      <select id="ideaBrand"><option value="dsdd">DSDD</option><option value="virtueasy">Virtueasy</option></select>
+      <input id="ideaText" placeholder="One line. The AIOS turns it into a brief within 15 minutes." maxlength="1000"><button class="primary" id="ideaGo" style="flex:none">Add</button></div></div>` : '';
+  h += list.length ? list.map(card).join('') : `<p class="empty">${view === 'review' ? 'Nothing waiting for review.' : 'Nothing approved and waiting.'}</p>`;
+  $('main').innerHTML = h;
+  if (view === 'review') {
+    if (brand !== 'all') $('ideaBrand').value = brand;
+    $('ideaGo').onclick = async () => {
+      const t = $('ideaText').value.trim(); if (!t) return;
+      $('ideaGo').disabled = true;
+      try { await call('/aios/idea', { brand: $('ideaBrand').value, idea: t }); $('ideaText').value = ''; toast('Added to the AIOS inbox.'); }
+      catch (e) { toast(e.message); }
+      $('ideaGo').disabled = false;
+    };
+  }
+  document.querySelectorAll('.card').forEach(wire);
+}
+
+function wire(el){
+  const it = items.find(x => x.id === el.dataset.id);
+  const fields = () => {
+    const out = {}, copy = el.querySelector('textarea.copy'), tags = el.querySelector('textarea.tags'), date = el.querySelector('.date');
+    if (copy && copy.value !== it.copy) out.copy = copy.value;
+    if (tags && tags.value !== it.hashtags) out.hashtags = tags.value;
+    if (date && date.value && date.value !== toEastern(it.date)) out.date = date.value;
+    return out;
+  };
+  el.querySelectorAll('textarea, .date').forEach(x => x.addEventListener('input', () => el.classList.toggle('changed', Object.keys(fields()).length > 0)));
+  el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+    const a = b.dataset.a;
+    let note;
+    if (a === 'reject' || a === 'regenerate') {
+      note = prompt(a === 'reject' ? 'Why reject it? (optional)' : 'What should change in the new version? (optional)');
+      if (note === null) return;
+    }
+    el.classList.add('busy');
+    try {
+      const f = fields();
+      if (Object.keys(f).length && (a === 'save' || a === 'approve')) {
+        const r = await call('/aios/update', { id: it.id, ...f });
+        if (f.copy != null) it.copy = f.copy; if (f.hashtags != null) it.hashtags = f.hashtags; if (r.date) it.date = r.date;
+      }
+      if (a === 'save') toast('Saved.');
+      else {
+        await call('/aios/' + a, { id: it.id, note });
+        if (a === 'approve') { it.approval = 'Approved'; it.metricool = it.type === 'Blog' ? it.metricool : 'Ready to Push'; toast(it.type === 'Blog' ? 'Approved. It publishes on its date.' : 'Approved and queued for Metricool.'); }
+        if (a === 'unapprove') { it.approval = 'Ready for Review'; it.metricool = 'Not Queued'; toast('Back in review.'); }
+        if (a === 'reject' || a === 'regenerate') { items = items.filter(x => x !== it); toast(a === 'reject' ? 'Rejected.' : 'Regenerating. The new version shows up here within about 15 minutes.'); }
+      }
+      render();
+    } catch (e) { el.classList.remove('busy'); toast(e.message); }
+  });
+}
+
+load();
+</script>
+</body>
+</html>

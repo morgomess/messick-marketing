@@ -16,6 +16,7 @@ Disallow: /engagement/
 Disallow: /websites/
 Disallow: /workers/
 Disallow: /review/
+Disallow: /aios/
 Disallow: /leads-sheet-script.gs
 Disallow: /report-feedback-sheet-script.gs
 

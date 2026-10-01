@@ -17,6 +17,8 @@
 // The review week is the Monday-to-Sunday week containing (today + 3 days) in the client's time
 // zone, so from Friday on the page shows next week and Monday to Thursday it shows the current one.
 
+import { aios } from './aios.js';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
@@ -33,6 +35,7 @@ export default {
     const p = url.pathname;
     try {
       if (p.startsWith('/admin/')) return await admin(req, env, url);
+      if (p.startsWith('/aios/')) return await aios(req, env, url, { json, at, clean });
       if (p === '/img' && req.method === 'GET') return await img(env, url);
       if (p === '/api/week' && req.method === 'GET') return await week(env, url.searchParams.get('c'), url.searchParams.get('d'));
       if (req.method === 'POST' && ['/api/approve', '/api/comment', '/api/submit'].includes(p)) {
