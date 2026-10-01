@@ -14,9 +14,9 @@
 //   POST /admin/approve?c=    promotes the draft to live insights
 //   GET  /admin/clients       list of configured clients
 //
-// The review week is the Monday-to-Sunday week containing (now + 76 hours) in the client's time
-// zone: from Thursday 8 PM (when the weekly preview QA runs) the page shows next week, before that
-// the current one.
+// The review week flips to next week at Friday 6:00 AM Eastern for every client (Morgan, 2026-10-01):
+// highlights are drafted at 6, Morgan reviews at 7, the Friday emails go at 8. Before that the page
+// shows the current week.
 
 import { aios } from './aios.js';
 
@@ -62,13 +62,13 @@ function todayIn(tz) {
 }
 const ymd = d => d.toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
-// Flips to next week at Thursday 8 PM local, when the weekly preview QA starts (Morgan, 2026-10-01):
-// local wall-clock time + 76 hours lands on Monday 00:00 exactly at that moment.
-function reviewWeek(tz) {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz || 'America/Chicago', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+// Flips at Friday 6:00 AM Eastern for every client, whatever its own time zone: Eastern wall-clock
+// time + 66 hours lands on Monday 00:00 exactly at that moment. The tz argument is kept for callers.
+function reviewWeek(tz) { // eslint-disable-line no-unused-vars
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
     .formatToParts(new Date()).map(x => [x.type, x.value]));
   const local = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
-  const t0 = new Date(local + 76 * 3600e3);
+  const t0 = new Date(local + 66 * 3600e3);
   const t = new Date(Date.UTC(t0.getUTCFullYear(), t0.getUTCMonth(), t0.getUTCDate()));
   const monday = addDays(t, -((t.getUTCDay() + 6) % 7));
   return { start: monday, end: addDays(monday, 6) };
@@ -152,13 +152,15 @@ async function week(env, code, draftKey) {
   const isDraft = !!(draft && draft.draftKey === draftKey);
   const { start, end } = isDraft ? { start: new Date(draft.weekStart + 'T00:00:00Z'), end: addDays(new Date(draft.weekStart + 'T00:00:00Z'), 6) } : reviewWeek(client.tz);
   const { posts, unfinished } = await loadPosts(env, client, start, end);
-  const insights = isDraft ? { ...draft, draftKey: undefined, draft: true } : await env.REVIEW.get('insights:' + code, 'json');
+  // An empty draft (no posts of ours last week) previews the week with no highlights section.
+  const insights = isDraft ? (draft.empty ? null : { ...draft, draftKey: undefined, draft: true }) : await env.REVIEW.get('insights:' + code, 'json');
   const state = (await env.REVIEW.get(`review:${code}:${ymd(start)}`, 'json')) || { approvals: {}, comments: [], submitted: null };
   // Soft deadline: Monday 9 AM of the review week, client's own time (Morgan, 2026-09-30).
   const nowLocal = new Intl.DateTimeFormat('en-CA', { timeZone: client.tz || 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).format(new Date()).replace(', ', 'T');
   const deadline = { label: `Monday, ${label(start)} at 9 AM`, passed: nowLocal >= `${ymd(start)}T09` };
   return json({
     client: { name: client.name },
+    draft: isDraft,
     deadline,
     week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}` },
     posts, unfinished,
@@ -273,7 +275,8 @@ async function admin(req, env, url) {
     const d = await env.REVIEW.get('draft:' + c, 'json');
     if (!d) return json({ error: 'no draft' }, 404);
     const { draftKey, ...live } = d;
-    await env.REVIEW.put('insights:' + c, JSON.stringify(live));
+    if (live.empty) await env.REVIEW.delete('insights:' + c);
+    else await env.REVIEW.put('insights:' + c, JSON.stringify(live));
     await env.REVIEW.delete('draft:' + c);
     return json({ ok: true, weekStart: live.weekStart });
   }

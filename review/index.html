@@ -223,7 +223,7 @@ async function load(){
   $('sub').textContent = ins ? `Highlights from ${ins.period}, then the posts going out ${data.week.label}.` : `The posts going out ${data.week.label}.`;
   $('jump').hidden = !ins;
   render();
-  if (ins && ins.draft) {
+  if (data.draft) {
     document.body.insertAdjacentHTML('afterbegin', '<div class="draftbar">Draft preview for Messick only. The client sees this after you approve it. Buttons are off here.</div>');
     document.querySelectorAll('.actions button, .submit, .send').forEach(b => b.disabled = true);
   }
