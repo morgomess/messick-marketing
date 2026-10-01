@@ -1925,6 +1925,12 @@ async function compositeRealPerson(designB64, personRef, ratio) {
   // The body below simply runs to wherever it runs (usually off the bottom edge).
   const sx = plate.width / design.W, sy = plate.height / design.H;
   const scale = (design.head.w * sx) / real.head.w;
+  // A bad head measurement (text or props read as the person, or a shoulder-width "head")
+  // once scaled the cutout until only hair was left in frame. Heads in these designs run
+  // 10-40% of the width; anything outside that means the measurement is wrong, so refuse
+  // and keep the generated face instead of shipping a broken composite.
+  const headFrac = (real.head.w * scale) / plate.width;
+  if (!(headFrac > 0.08 && headFrac < 0.4)) throw new Error('head size out of range (' + Math.round(headFrac * 100) + '% of width)');
   const dx = design.head.cx * sx - (real.head.cx - real.box.x) * scale;
   const dy = design.head.top * sy - (real.head.top - real.box.y) * scale;
   ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scale, real.box.h * scale);
