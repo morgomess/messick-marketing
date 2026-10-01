@@ -14,8 +14,9 @@
 //   POST /admin/approve?c=    promotes the draft to live insights
 //   GET  /admin/clients       list of configured clients
 //
-// The review week is the Monday-to-Sunday week containing (today + 3 days) in the client's time
-// zone, so from Friday on the page shows next week and Monday to Thursday it shows the current one.
+// The review week is the Monday-to-Sunday week containing (now + 76 hours) in the client's time
+// zone: from Thursday 8 PM (when the weekly preview QA runs) the page shows next week, before that
+// the current one.
 
 import { aios } from './aios.js';
 
@@ -61,8 +62,14 @@ function todayIn(tz) {
 }
 const ymd = d => d.toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
+// Flips to next week at Thursday 8 PM local, when the weekly preview QA starts (Morgan, 2026-10-01):
+// local wall-clock time + 76 hours lands on Monday 00:00 exactly at that moment.
 function reviewWeek(tz) {
-  const t = addDays(todayIn(tz), 3);
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz || 'America/Chicago', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+    .formatToParts(new Date()).map(x => [x.type, x.value]));
+  const local = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  const t0 = new Date(local + 76 * 3600e3);
+  const t = new Date(Date.UTC(t0.getUTCFullYear(), t0.getUTCMonth(), t0.getUTCDate()));
   const monday = addDays(t, -((t.getUTCDay() + 6) % 7));
   return { start: monday, end: addDays(monday, 6) };
 }

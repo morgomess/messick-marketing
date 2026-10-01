@@ -105,6 +105,32 @@
 
   .due{font-size:14px;color:var(--muted);margin:14px 0 0}
   .due b{color:var(--ink);font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;align-items:start}
+  @media(min-width:620px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}
+  .grid .post{margin:0}
+  .post.open{grid-column:1/-1}
+  .post:not(.open) .post-top{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 10px 6px}
+  .post:not(.open) .day{font-size:19px}
+  .post:not(.open) .plat{font-size:10px;padding:2px 6px}
+  .post:not(.open) .title{padding:0;margin:0 10px 8px;max-height:2.7em;font-size:13.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .post:not(.open) .media{aspect-ratio:4/5;overflow:hidden;position:relative;cursor:pointer}
+  .post:not(.open) .media img,.post:not(.open) .media video{width:100%;height:100%;object-fit:cover;max-height:none}
+  .post:not(.open) .media ~ .media{display:none}
+  .post:not(.open) .textonly{aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:12px}
+  .post:not(.open) .body{padding:10px}
+  .post:not(.open) .caption{max-height:4.4em;font-size:13.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+  .post:not(.open) .tags,.post:not(.open) .lab{display:none}
+  .post:not(.open) .actions{flex-direction:column;gap:6px;padding:8px 10px 10px}
+  .post:not(.open) .actions button{padding:8px 10px;font-size:13px}
+  .post:not(.open) .thread{display:none!important}
+  .badge-n{position:absolute;right:8px;bottom:8px;background:rgba(17,17,17,.75);color:#fff;font-size:11px;font-weight:600;border-radius:999px;padding:3px 8px}
+  .badge-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(17,17,17,.6);display:flex;align-items:center;justify-content:center}
+  .badge-play:after{content:"";border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+  .post.open .badge-n,.post.open .badge-play{display:none}
+  .more{background:none;border:0;padding:4px 0 0;color:var(--steel);font:500 13px Jost,sans-serif;cursor:pointer}
+  .post.open .more{display:none}
+  .collapse{display:none;background:none;border:0;padding:0 16px 10px;color:var(--steel);font:500 13px Jost,sans-serif;cursor:pointer}
+  .post.open .collapse{display:block}
   .pending{font-size:13.5px;color:var(--muted);text-align:center;margin:4px 0 18px}
   .finish{position:sticky;bottom:0;z-index:6;background:rgba(250,248,245,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:10px 0;margin-top:8px;display:flex;align-items:center;gap:12px}
   .finish-msg{font-size:13px;line-height:1.35;color:var(--muted);flex:1}
@@ -225,9 +251,10 @@ function renderInsights(ins){
 
 function mediaHtml(p){
   if (!p.media.length) return `<div class="textonly">Text post, no graphic</div>`;
-  return p.media.map(m => m.type.startsWith('video/')
-    ? `<div class="media vid"><video controls playsinline preload="metadata" src="${esc(m.url)}#t=0.5"></video></div>`
-    : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy"></div>`).join('');
+  const extra = p.media.length > 1 ? `<span class="badge-n">1 of ${p.media.length}</span>` : '';
+  return p.media.map((m, i) => m.type.startsWith('video/')
+    ? `<div class="media vid"><video playsinline muted preload="metadata" src="${esc(m.url)}#t=0.5"></video><span class="badge-play"></span>${i ? '' : extra}</div>`
+    : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy">${i ? '' : extra}</div>`).join('');
 }
 
 function render(){
@@ -242,6 +269,7 @@ function render(){
     h += `<div class="notice"><h2>Posts are on the way</h2><p>This week's posts are still being finished. Check back soon.</p></div></section>`;
     $('main').innerHTML = h; return;
   }
+  h += `<div class="grid">`;
   for (const p of posts) {
     const tags = String(p.hashtags || '').split(/\s+/).filter(Boolean);
     h += `<article class="post" data-id="${esc(p.id)}">
@@ -249,13 +277,15 @@ function render(){
       ${p.title ? `<div class="title">${esc(p.title)}</div>` : ''}
       ${mediaHtml(p)}
       <div class="body">
-        ${p.caption ? `<div class="lab">Caption</div><div class="caption">${esc(p.caption)}</div>` : ''}
+        ${p.caption ? `<div class="lab">Caption</div><div class="caption">${esc(p.caption)}</div><button class="more">Read more</button>` : '<button class="more">Open</button>'}
         ${tags.length ? `<div class="tags"><div class="lab">Hashtags</div><div>${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>` : ''}
       </div>
       <div class="actions"><button class="approve">Approve</button><button class="cbtn">Comment</button></div>
       <div class="thread"><div class="msgs"></div><textarea placeholder="Suggest a change or ask a question about this post" maxlength="2000"></textarea><button class="send">Send to Messick team</button></div>
+      <button class="collapse">Show less</button>
     </article>`;
   }
+  h += `</div>`;
   if (data.unfinished) h += `<p class="pending">${data.unfinished === 1 ? '1 more post this week is' : data.unfinished + ' more posts this week are'} still being finished. ${data.unfinished === 1 ? 'It' : 'They'} will appear here once ready.</p>`;
   h += `<div class="finish" id="finish"><div class="finish-msg" id="finishMsg"></div><button class="submit" id="submit">Send my review</button></div>
     <div class="thanks" id="thanks"><div class="eyebrow">Review sent</div><h2>Thank you!</h2><p id="thanksSum"></p>
@@ -273,7 +303,7 @@ function paint(){
   $('progress').innerHTML = `<b>${n}</b> of ${total} reviewed`;
   document.querySelectorAll('.post').forEach(el => {
     const id = el.dataset.id, a = state.approvals[id], btn = el.querySelector('.approve');
-    btn.classList.toggle('done', !!a); btn.textContent = a ? 'Approved by ' + a.by : 'Approve';
+    btn.classList.toggle('done', !!a); btn.textContent = a ? (el.classList.contains('open') ? 'Approved by ' + a.by : 'Approved') : 'Approve'; btn.title = a ? 'Approved by ' + a.by : '';
     const msgs = state.comments.filter(c => c.post === id);
     el.querySelector('.msgs').innerHTML = msgs.map(c => `<div class="msg"><div class="who">${esc(c.by)} · ${new Date(c.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>${esc(c.text)}</div>`).join('');
     if (msgs.length) el.querySelector('.thread').classList.add('open');
@@ -288,13 +318,24 @@ function paint(){
 function wire(){
   document.querySelectorAll('.post').forEach(el => {
     const id = el.dataset.id, ap = el.querySelector('.approve'), th = el.querySelector('.thread');
+    const setOpen = on => {
+      el.classList.toggle('open', on);
+      el.querySelectorAll('video').forEach(v => { v.controls = on; v.muted = !on; if (!on) v.pause(); });
+      paint();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    el.querySelectorAll('.media, .textonly, .caption, .title, .more').forEach(x => x.addEventListener('click', e => {
+      if (el.classList.contains('open')) return;
+      e.preventDefault(); setOpen(true);
+    }));
+    el.querySelector('.collapse').onclick = () => setOpen(false);
     ap.onclick = () => needName(async () => {
       ap.disabled = true;
       try { state = (await post('/api/approve', { post: id, approved: !state.approvals[id] })).state; paint(); }
       catch (e) { toast('That did not save. Please try again.'); }
       ap.disabled = false;
     });
-    el.querySelector('.cbtn').onclick = () => needName(() => { th.classList.toggle('open'); if (th.classList.contains('open')) th.querySelector('textarea').focus(); });
+    el.querySelector('.cbtn').onclick = () => needName(() => { if (!el.classList.contains('open')) { setOpen(true); th.classList.add('open'); th.querySelector('textarea').focus(); return; } th.classList.toggle('open'); if (th.classList.contains('open')) th.querySelector('textarea').focus(); });
     th.querySelector('.send').onclick = () => needName(async () => {
       const ta = th.querySelector('textarea'), t = ta.value.trim(); if (!t) return;
       const b = th.querySelector('.send'); b.disabled = true;
