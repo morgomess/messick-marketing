@@ -61,7 +61,7 @@ export async function aios(req, env, url, { json, at, clean }) {
       const formula = "AND(OR({Content Type}='Social Post',{Content Type}='Blog'),"
         + "OR(FIND('Virtueasy',ARRAYJOIN({Brand})),FIND('Doggy',ARRAYJOIN({Brand}))),"
         + "OR({Approval Status}='Ready for Review',{Approval Status}='Revision Requested',"
-        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}='Ready to Push',{Metricool Status}='Failed'))))";
+        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}='Ready to Push',{Metricool Status}='Failed',{Metricool Status}='Not Queued',{Metricool Status}=BLANK()))))";
       const items = [];
       let offset;
       do {
@@ -129,7 +129,7 @@ export async function aios(req, env, url, { json, at, clean }) {
     // Approved posts that failed in Metricool are never retried by the publish worker (it only polls
     // Ready to Push). Retry re-queues one once its Publish Date is in the future again.
     if (p === '/aios/retry') {
-      if (nameOf(f['Approval Status']) !== 'Approved' || mc !== 'Failed') return json({ error: 'Only approved posts that failed can be retried.' }, 409);
+      if (nameOf(f['Approval Status']) !== 'Approved' || type === 'Blog' || !['Failed', 'Not Queued', ''].includes(mc)) return json({ error: 'Only approved posts that failed or were never queued can be pushed.' }, 409);
       const when = Date.parse(f['Publish Date'] || '');
       if (!when || when < Date.now() + 10 * 60e3) return json({ error: 'That time has passed. Pick a new date first.' }, 400);
       await patchGen(r.id, { 'Metricool Status': 'Ready to Push' });

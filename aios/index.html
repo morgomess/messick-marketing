@@ -134,12 +134,12 @@ function save(){ try { localStorage.setItem('mm_aios_view', JSON.stringify({ vie
 function card(it){
   const past = it.type !== 'Blog' && it.date && Date.parse(it.date) < Date.now() + 10 * 60e3;
   const media = it.media.length ? `<div class="media">${it.media.map(m => m.type.startsWith('video/') ? `<video controls playsinline preload="metadata" src="${esc(m.url)}#t=0.5"></video>` : `<a href="${esc(m.url)}" target="_blank" rel="noopener"><img src="${esc(m.thumb)}" alt="" loading="lazy"></a>`).join('')}</div>` : '';
-  const isBlog = it.type === 'Blog', approved = it.approval === 'Approved', failed = approved && it.metricool === 'Failed';
+  const isBlog = it.type === 'Blog', approved = it.approval === 'Approved', failed = approved && !isBlog && (it.metricool === 'Failed' || it.metricool === 'Not Queued');
   const lock = approved && !failed;
-  const status = approved ? (isBlog ? 'Approved, publishes on its date' : it.metricool === 'Failed' ? 'Push failed' : 'Approved, waiting for push') : it.approval;
+  const status = approved ? (isBlog ? 'Approved, publishes on its date' : it.metricool === 'Failed' ? 'Push failed' : it.metricool === 'Not Queued' ? 'Approved, never queued' : 'Approved, waiting for push') : it.approval;
   return `<article class="card" data-id="${it.id}">
     <div class="top"><span class="badge ${it.brand}">${BRAND[it.brand]}</span><span class="badge">${esc(it.type === 'Social Post' ? (it.channels.join(' / ') || 'Social') : 'Blog')}</span>
-      <span class="badge ${approved ? (it.metricool === 'Failed' ? 'warn' : 'okb') : ''}">${esc(status)}</span><span class="badge dirty warn">Unsaved</span></div>
+      <span class="badge ${approved ? (failed ? 'warn' : 'okb') : ''}">${esc(status)}</span><span class="badge dirty warn">Unsaved</span></div>
     <div class="name">${esc(it.name)}</div>
     <div class="when"><input type="datetime-local" class="date" value="${toEastern(it.date)}" ${lock ? 'disabled' : ''}>
       ${past && !lock ? '<span class="past">This time has passed. Pick a new one.</span>' : ''}</div>
