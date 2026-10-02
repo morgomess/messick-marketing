@@ -231,7 +231,7 @@ async function load(){
 
 function renderInsights(ins){
   const img = t => t.img ? `<img src="${esc(t.img.startsWith('http') ? t.img : API + '/img?c=' + encodeURIComponent(code) + '&k=' + encodeURIComponent(t.img))}" alt="" loading="lazy">` : `<div class="txt-tile">${esc(t.tile || 'Text post')}</div>`;
-  let h = `<section id="highlights"><div class="sec-head"><div class="eyebrow">Last 7 days</div><h2>What stood out</h2></div>`;
+  let h = `<section id="highlights"><div class="sec-head"><div class="eyebrow">Recent highlights</div><h2>What stood out</h2></div>`;
   if (ins.takeaway) h += `<div class="takeaway"><div class="eyebrow">The short version</div><p>${esc(ins.takeaway)}</p></div>`;
   if (ins.tops && ins.tops.length) h += `<h3 class="sub">Top posts</h3><div class="tops">` + ins.tops.map(t => `
     <div class="top">${img(t)}<div>
