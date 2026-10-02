@@ -1927,13 +1927,12 @@ async function compositeRealPerson(designB64, personRef, ratio) {
   const scale = (design.head.w * sx) / real.head.w;
   // A bad head measurement (text or props read as the person, or a shoulder-width "head")
   // once scaled the cutout until only hair was left in frame. Heads in these designs run
-  // 10-40% of the width; anything outside that means the measurement is wrong, so refuse
-  // and keep the generated face instead of shipping a broken composite.
+  // 12-30% of the width, so clamp to that range rather than ship a broken composite.
   const headFrac = (real.head.w * scale) / plate.width;
-  if (!(headFrac > 0.08 && headFrac < 0.4)) throw new Error('head size out of range (' + Math.round(headFrac * 100) + '% of width)');
-  const dx = design.head.cx * sx - (real.head.cx - real.box.x) * scale;
-  const dy = design.head.top * sy - (real.head.top - real.box.y) * scale;
-  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scale, real.box.h * scale);
+  const scaleFixed = Math.min(0.3, Math.max(0.12, headFrac)) * plate.width / real.head.w;
+  const dx = design.head.cx * sx - (real.head.cx - real.box.x) * scaleFixed;
+  const dy = design.head.top * sy - (real.head.top - real.box.y) * scaleFixed;
+  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scaleFixed, real.box.h * scaleFixed);
   return out.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
@@ -2178,16 +2177,19 @@ Format: ${ratios.join(' and ')}` });
     for (const ratio of ratios) {
       genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
       let b64 = await genThumbImage(prompt, ratio, refs);
-      let check = await checkLikeness(identity, b64, anchor);
+      // Messick: a generated face never reads as the host to her, so the real face always
+      // goes on top and the likeness check is skipped.
+      const alwaysReal = /messick/i.test(brand?.channelName || '');
+      let check = alwaysReal ? { score: 10, issues: '' } : await checkLikeness(identity, b64, anchor);
       let method = 'generated';
-      if (check.score < LIKENESS_PASS) {
+      if (!alwaysReal && check.score < LIKENESS_PASS) {
         genOut.innerHTML = spinner(`Likeness ${check.score}/10, re-rolling with corrections...`);
         const retry = await genThumbImage(`${prompt}\n\nA previous attempt drifted from the real person: ${check.issues || 'the face did not match'}. Match the face in the person photos exactly${anchor ? ', with the face shape of the unretouched photo' : ''}.`, ratio, refs);
         const retryCheck = await checkLikeness(identity, retry, anchor);
         if (retryCheck.score > check.score) { b64 = retry; check = retryCheck; }
       }
-      if (check.score < LIKENESS_PASS) {
-        genOut.innerHTML = spinner('Still drifting. Compositing the real person onto the design...');
+      if (alwaysReal || check.score < LIKENESS_PASS) {
+        genOut.innerHTML = spinner('Compositing the real person onto the design...');
         try {
           b64 = await compositeRealPerson(b64, identity[0], ratio);
           method = 'composite';
@@ -2197,7 +2199,7 @@ Format: ${ratios.join(' and ')}` });
       // dividers, outlines, hands, typos, pun props) get checked on the finished image
       // and fixed with one in-place edit, kept only if the face still passes.
       let fixes = [];
-      if (method === 'generated' && check.score >= LIKENESS_PASS) {
+      if (method === 'generated' && !alwaysReal && check.score >= LIKENESS_PASS) {
         genOut.innerHTML = spinner('Checking layout rules...');
         const qa = await checkLayout(b64, plan.outfit).catch(e => { console.warn('layout qa', e); return { fixes: [] }; });
         if (qa.fixes.length) {
@@ -2217,7 +2219,7 @@ Format: ${ratios.join(' and ')}` });
         try { b64 = await applySkinTone(b64, tone / 100); } catch (e) { console.warn('skin tone', e); }
       }
       try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
-      results.push({ ratio, b64, score: check.score, issues: check.issues, method, fixes });
+      results.push({ ratio, b64, score: alwaysReal ? null : check.score, issues: check.issues, method, fixes });
     }
 
     generatedThumbB64 = results[0].b64;
@@ -2242,7 +2244,7 @@ function renderRedesign(plan, trend, results, video) {
   const badge = r => r.method === 'no-person'
     ? `No-person design${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`
     : r.method === 'composite'
-    ? `<span style="color:var(--blue-light);">Real-face composite</span> (generated face scored ${r.score}/10)`
+    ? `<span style="color:var(--blue-light);">Real-face composite</span> ${r.score == null ? ' (always used for this channel)' : ' (generated face scored ' + r.score + '/10)'}`
     : `Likeness ${r.score}/10${r.issues ? ' - ' + esc(r.issues) : ''}${r.method !== 'generated' ? ' - ' + esc(r.method) : ''}${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`;
   genOut.innerHTML = `
     <div style="margin-top:14px;">
