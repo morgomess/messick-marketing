@@ -140,7 +140,7 @@ for (const p of posts) {
   const hero =
 `<section class="post-hero">
   <div class="inner">
-    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><a href="#">${esc(p.category)}</a></div>
+    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><span>${esc(p.category)}</span></div>
     <span class="post-category">${esc(p.category)}</span>
     <h1>${h1}</h1>
     <div class="post-meta">
