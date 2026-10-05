@@ -1897,6 +1897,38 @@ header{border-bottom:1px solid var(--border);height:60px}
   color:#fff;font-size:1rem;line-height:1;cursor:pointer;flex-shrink:0;transition:filter .18s}
 .hm2-moin button:hover{filter:brightness(1.12)}
 :root[data-theme="light"] .hm2-moin button{color:#fff}
+/* Compact Ask Mo bar, grouped rows, folded sections */
+.hm2-hero{padding:18px 4px 12px}
+.hm2-h{font-size:2rem;margin-top:0}
+.hm2-mobar{margin:0 0 16px;padding:4px 4px 4px 15px}
+.hm2-mobar input{min-height:36px}
+.hm2-grp{border-bottom:1px solid var(--border)}
+.hm2-grp:last-child{border-bottom:0}
+.hm2-grp>summary,.hm2-more>summary,.hm2-morewrap>summary{list-style:none;cursor:pointer}
+.hm2-grp>summary::-webkit-details-marker,.hm2-more>summary::-webkit-details-marker,.hm2-morewrap>summary::-webkit-details-marker{display:none}
+.hm2-grp>summary{display:flex;align-items:center;gap:12px;padding:13px 10px;min-height:44px}
+.hm2-grp>summary:hover{background:var(--blue-pale)}
+.hm2-grp.over .hm2-tm{color:var(--crit)}
+.hm2-gc{flex-shrink:0;min-width:24px;height:24px;border-radius:99px;background:var(--blue-pale);color:var(--blue);
+  font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.hm2-grp.over .hm2-gc{background:rgba(220,80,80,.14);color:var(--crit)}
+.hm2-chev{margin-left:auto;width:8px;height:8px;border-right:2px solid var(--light);border-bottom:2px solid var(--light);
+  transform:rotate(45deg);transition:transform .15s;flex-shrink:0}
+details[open]>summary .hm2-chev{transform:rotate(-135deg)}
+.hm2-gb{padding:0 0 6px 28px;border-top:1px solid var(--border)}
+.hm2-more>summary{padding:12px 10px;font-size:.8rem;color:var(--blue);min-height:44px;display:flex;align-items:center}
+.hm2-all{padding:10px 10px 4px;font-size:.78rem}
+.hm2-all a{color:var(--blue);text-decoration:none}
+.hm2-moneyline{font-size:.78rem;color:var(--muted);padding:2px 6px}
+.hm2-morewrap>summary{padding:12px 6px;font-size:.78rem;color:var(--light);min-height:44px;display:flex;align-items:center}
+.hm2-morewrap[open]>summary{color:var(--blue)}
+.hm2-morebody{display:flex;flex-direction:column;gap:16px;padding-top:4px}
+@media (max-width:768px){
+  .hm2-h{font-size:1.6rem}
+  .hm2-cols{grid-template-columns:minmax(0,1fr)}
+  .hm2-task{padding:14px 10px;min-height:48px}
+  .hm2-mobar button{width:44px;height:44px}
+}
 .hm2-mochips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .hm2-mochip{font-family:inherit;font-size:.735rem;padding:7px 13px;border-radius:99px;
   cursor:pointer;border:1px solid var(--border-s);background:transparent;color:var(--muted);transition:all .18s}
@@ -3348,7 +3380,7 @@ function dueTodaySorted(){
     // Not manually ordered: overdue first, then by priority
     const sa=dueStatus(a.due)==="overdue"?0:1, sb=dueStatus(b.due)==="overdue"?0:1;
     if(sa!==sb)return sa-sb;
-    return (priOrder[a.priority||"none"]||4)-(priOrder[b.priority||"none"]||4);
+    return (priOrder[a.priority||"none"]??4)-(priOrder[b.priority||"none"]??4);
   });
   return due;
 }
@@ -3655,9 +3687,22 @@ Always return one JSON object with an "action" of either "create" or "update".`;
    TASK DRAWER
 ═══════════════════════════════════════════ */
 let drawerTaskId=null;
+/* Unsaved form edits survive sub-actions (assign, subtasks) that re-render the drawer. */
+let drawerDraft=null;
+function drawerCaptureDraft(){
+  if(!document.getElementById('de-text'))return;
+  const g=id=>{const e=document.getElementById(id);return e?e.value:undefined;};
+  drawerDraft={text:g('de-text'),notes:g('de-notes'),due:g('de-due'),pri:g('de-pri'),recur:g('de-recur'),node:g('de-node')};
+}
+function drawerApplyDraft(){
+  if(!drawerDraft)return;
+  const m={'de-text':'text','de-notes':'notes','de-due':'due','de-pri':'pri','de-recur':'recur','de-node':'node'};
+  Object.keys(m).forEach(id=>{const e=document.getElementById(id);if(e&&drawerDraft[m[id]]!==undefined)e.value=drawerDraft[m[id]];});
+}
 
 function openDrawer(taskId){
   drawerTaskId=taskId;
+  drawerDraft=null;
   renderDrawer();
   document.getElementById('task-drawer').classList.add('open');
   document.getElementById('drawer-backdrop').classList.add('open');
@@ -3667,6 +3712,7 @@ function closeDrawer(){
   document.getElementById('task-drawer').classList.remove('open');
   document.getElementById('drawer-backdrop').classList.remove('open');
   drawerTaskId=null;
+  drawerDraft=null;
 }
 
 function renderDrawer(){
@@ -3703,8 +3749,10 @@ function renderDrawer(){
   const progHtml=subs.length>0?`<div class="subtask-progress"><div class="subtask-progress-bar" style="width:${progPct}%"></div></div>`:'';
 
   // Nodes dropdown for re-filing
+  const nodePath=n=>{const parts=[];let x=n,g=0;while(x&&g++<8){parts.unshift(x.label);x=x.parent?brainMap[x.parent]:null;}return parts.join(' \u2192 ');};
   const nodeOpts=brainNodes.filter(n=>n.type&&(n.type.includes('service')||n.type.includes('client')||n.type.includes('root')))
-    .map(n=>`<option value="${bEsc(n.id)}"${n.id===task.nodeId?' selected':''}>${bEsc(n.label)}</option>`).join('');
+    .map(n=>({id:n.id,path:nodePath(n)})).sort((a,b)=>a.path.localeCompare(b.path))
+    .map(o=>`<option value="${bEsc(o.id)}"${o.id===task.nodeId?' selected':''}>${bEsc(o.path)}</option>`).join('');
 
   body.innerHTML=`
     <div style="font-size:0.62rem;color:var(--muted);font-weight:600;letter-spacing:0.06em">${bEsc(crumb)}</div>
@@ -3768,9 +3816,11 @@ function renderDrawer(){
         <button class="sub-add-btn" onclick="drawerAddSub()">+</button>
       </div>
     </div>`;
+  drawerApplyDraft();
 }
 
 function drawerToggleAssignee(memberId){
+  drawerCaptureDraft();
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
   if(!task.assignees)task.assignees=[];
@@ -3781,6 +3831,7 @@ function drawerToggleAssignee(memberId){
 }
 
 function drawerToggleSub(subIdx){
+  drawerCaptureDraft();
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task||!task.subtasks[subIdx])return;
   task.subtasks[subIdx].done=!task.subtasks[subIdx].done;
@@ -3789,6 +3840,7 @@ function drawerToggleSub(subIdx){
 }
 
 function drawerDelSub(subIdx){
+  drawerCaptureDraft();
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
   task.subtasks.splice(subIdx,1);
@@ -3799,6 +3851,7 @@ function drawerDelSub(subIdx){
 function drawerAddSub(){
   const inp=document.getElementById('sub-add-inp');
   const text=inp.value.trim();if(!text)return;
+  drawerCaptureDraft();
   const tasks=loadTodoTasks();
   const task=tasks.find(t=>t.id===drawerTaskId);if(!task)return;
   if(!task.subtasks)task.subtasks=[];
@@ -3968,7 +4021,7 @@ function renderAllTasks(){
   filtered.sort((a,b)=>{
     const ao=ds(a.due)==='overdue'?0:1, bo=ds(b.due)==='overdue'?0:1;
     if(ao!==bo)return ao-bo;
-    return (priOrder[a.priority||'none']||4)-(priOrder[b.priority||'none']||4);
+    return (priOrder[a.priority||'none']??4)-(priOrder[b.priority||'none']??4);
   });
 
   // Group by crumb
@@ -4810,7 +4863,10 @@ function moApply(a){
       if(c.addNote){var _ex=tasks[i].notes||'';tasks[i].notes=_ex?(_ex.replace(/\s+$/,'')+'\n'+String(c.addNote)):String(c.addNote);}
     }}
     saveTodoTasks(tasks);
-  } else if(a.kind==='complete'){ if(typeof toggleTask==='function')toggleTask('todo',a.id);
+  } else if(a.kind==='complete'){
+    /* Idempotent: a stale or repeated approval must never reopen a finished task. */
+    var _ct=loadTodoTasks().find(function(x){return x.id===a.id;});
+    if(_ct&&!_ct.done&&typeof toggleTask==='function')toggleTask('todo',a.id);
   } else if(a.kind==='delete'){ if(typeof deleteTask==='function')deleteTask('todo',a.id);
   } else if(a.kind==='loop'){ hmAddLoop(a.text,a.type||'Waiting on client','loop');
   } else if(a.kind==='park'){ hmAddLoop(a.text,'Idea','park'); }
@@ -4913,7 +4969,7 @@ var SR_ICON={
  checklists:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8.2 9.6l1.6 1.6 3.2-3.2M8.2 15.6l1.6 1.6 3.2-3.2"/><path d="M15.4 10.2h1.4M15.4 16.2h1.4"/></svg>'
 };
 function MM_IS_PHONE(){try{return window.matchMedia('(max-width:768px)').matches;}catch(e){return false;}}
-var MM_TABS=[['mo','Mo'],['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients'],['checklists','Lists']];
+var MM_TABS=[['home','Home'],['brain','Tasks'],['calendar','Calendar'],['clients','Clients'],['checklists','Checklists'],['mo','Mo']];
 function buildTabBar(){
   if(document.getElementById('tab-bar'))return;
   var bar=document.createElement('nav');bar.id='tab-bar';
@@ -4955,8 +5011,8 @@ function srState(){
 function buildSideRail(){
   if(document.getElementById('side-rail'))return;
   var groups=[
-    ['Workspace',[['home','Today'],['brain','Tasks'],['calendar','Calendar']]],
-    ['Reference',[['clients','Clients'],['checklists','Playbooks']]]
+    ['Workspace',[['home','Home'],['brain','Tasks'],['calendar','Calendar']]],
+    ['Reference',[['clients','Clients'],['checklists','Checklists']]]
   ];
   var rail=document.createElement('nav');rail.id='side-rail';
   rail.innerHTML='<div class="sr-brand"><b>Messick</b><span>Marketing</span></div>'+
@@ -5016,14 +5072,37 @@ function renderHome(){
   var pOrd={critical:0,high:1,medium:2,low:3,none:4};
   /* Overdue first, then due today, then by priority. Priority alone put a
      medium with no date above an overdue low, which is the wrong order. */
-  var shown=open.slice().sort(function(a,b){
+  var sortedOpen=open.slice().sort(function(a,b){
     var ao=(a.due&&a.due<_td)?0:(a.due===_td?1:2), bo=(b.due&&b.due<_td)?0:(b.due===_td?1:2);
     if(ao!==bo)return ao-bo;
     var ap=(pOrd[a.priority]==null?4:pOrd[a.priority]), bp=(pOrd[b.priority]==null?4:pOrd[b.priority]);
     if(ap!==bp)return ap-bp;
     return String(a.due||'9999').localeCompare(String(b.due||'9999'));
-  }).slice(0,10);
-  var tRows=shown.length?shown.map(function(t){
+  });
+  /* Focus = what is due or overdue. If nothing is, fall back to the best open tasks
+     so the card is never empty. Repeats and approvals collapse into one row each
+     (they were 11 of 16 rows in a typical week) and still tick off individually. */
+  var dueNow=sortedOpen.filter(function(t){return t.due&&t.due<=_td;});
+  var focusPool=dueNow.length?dueNow:sortedOpen.slice(0,10);
+  var hmOpenG=window.__hmOpenG||(window.__hmOpenG={});
+  function hmGroupKey(t){
+    var s=String(t.text||'').trim();
+    if(/^(approve|gate\s*\d|gate:)/i.test(s))return 'Approvals';
+    return s.split(/\s[\u2014\u2013-]\s/)[0].replace(/\s*\(\d+\s*of\s*\d+\)\s*$/i,'').trim();
+  }
+  function hmUnits(list){
+    var counts={},seen={},units=[];
+    list.forEach(function(t){var k=hmGroupKey(t).toLowerCase();counts[k]=(counts[k]||0)+1;});
+    list.forEach(function(t){
+      var k=hmGroupKey(t),kl=k.toLowerCase(),min=(k==='Approvals')?2:3;
+      if(counts[kl]>=min){
+        if(!seen[kl]){seen[kl]={key:kl,label:k,items:[]};units.push(seen[kl]);}
+        seen[kl].items.push(t);
+      }else units.push({items:[t]});
+    });
+    return units;
+  }
+  function hm2Row(t){
     var pr=(t.priority&&t.priority!=='none')?t.priority:'';
     var over=(t.due&&_td&&t.due<_td), meta=[];
     if(t.due)meta.push(over?'Overdue':(t.due===_td?'Due today':hmDue(t.due)));
@@ -5031,9 +5110,28 @@ function renderHome(){
     return '<div class="hm2-task'+(over?' over':'')+'">'+
       '<span class="hm-rad" data-id="'+t.id+'"></span>'+
       '<div class="hm2-tb"><div class="hm2-tt">'+hmEsc(t.text)+'</div>'+
-      (meta.length?'<div class="hm2-tm">'+hmEsc(meta.join(' · '))+'</div>':'')+'</div>'+
+      (meta.length?'<div class="hm2-tm">'+hmEsc(meta.join(' \u00b7 '))+'</div>':'')+'</div>'+
       (pr?'<span class="hm2-pill '+pr+'">'+pr+'</span>':'')+'</div>';
-  }).join(''):'<div class="hm-empty">All clear, nothing open.</div>';
+  }
+  function hm2Unit(u){
+    if(!u.items||!u.key)return hm2Row(u.items[0]);
+    var over=u.items.filter(function(t){return t.due&&t.due<_td;}).length;
+    var meta=over?(over+' overdue'):((u.items[0].due===_td)?'due today':hmDue(u.items[0].due));
+    return '<details class="hm2-grp'+(over?' over':'')+'" data-key="g:'+hmEsc(u.key)+'"'+(hmOpenG['g:'+u.key]?' open':'')+'>'+
+      '<summary><span class="hm2-gc">'+u.items.length+'</span>'+
+      '<div class="hm2-tb"><div class="hm2-tt">'+hmEsc(u.label)+'</div><div class="hm2-tm">'+hmEsc(u.items.length+' tasks \u00b7 '+meta)+'</div></div>'+
+      '<span class="hm2-chev" aria-hidden="true"></span></summary>'+
+      '<div class="hm2-gb">'+u.items.map(hm2Row).join('')+'</div></details>';
+  }
+  var fUnits=hmUnits(focusPool), fTop=fUnits.slice(0,3), fRest=fUnits.slice(3);
+  var fRestN=fRest.reduce(function(n,u){return n+(u.items.length);},0);
+  var tRows=fTop.length?fTop.map(hm2Unit).join(''):'<div class="hm-empty">All clear, nothing open.</div>';
+  if(fRest.length){
+    tRows+='<details class="hm2-more" data-key="more"'+(hmOpenG.more?' open':'')+'><summary>'+fRestN+' more '+(dueNow.length?'due or overdue':'open')+'</summary>'+
+      fRest.map(hm2Unit).join('')+'</details>';
+  }
+  tRows+='<div class="hm2-all"><a href="#" onclick="event.preventDefault();openAllTasks()">View all open tasks ('+open.length+')</a></div>';
+  var shown=focusPool;
   /* Upcoming must not restate the priorities list. Strictly future due dates,
      and never an id already shown above, or the rail just mirrors the column. */
   var shownIds={}; shown.forEach(function(t){shownIds[t.id]=1;});
@@ -5142,77 +5240,68 @@ function renderHome(){
       (meta?'<div class="hm2-m">'+meta+'</div>':'')+'</div>'+body+'</section>';
   };
 
+  var moneyLine='In '+hmMoney(inMonth)+' \u00b7 Out '+hmMoney(monthOut)+' \u00b7 Net '+hmMoney(inMonth-monthOut)+
+    (leadsArr.length?(' \u00b7 '+(followLeads?followLeads+' lead'+(followLeads===1?'':'s')+' need follow-up':activeLeads+' active leads')):'');
+  var moreBody=
+    hCard('This month','Money','<span class="hm2-count">Moxie + Expenses</span>',
+      '<div class="hm2-money">'+
+        '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
+        '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
+        '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
+      '</div><div class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</div>')+
+    hCard('New business','Leads',
+      '<a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a>',
+      (leadsArr.length
+        ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
+           (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
+           (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
+        : '<div class="hm-empty">No leads saved yet.</div>'),'hm-leads')+
+    hCard('Open tasks','Work split','','<div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div>')+
+    hCard('Not now, not never','Parking lot','<span class="hm2-count">'+parkItems.length+'</span>',
+      '<div class="hm-loops">'+parkRows+'</div>'+
+      '<div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div>')+
+    hCard('Your launchpad','Quick access','','<div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div>');
+
+  /* Order: work first (focus, waiting, upcoming), then money/leads as one line,
+     with everything else folded away. Mo is a compact bar, not a hero card. */
   view.innerHTML='<div class="hm2">'+
     '<div class="hm2-hero">'+
-      '<div class="hm2-tag"><i></i>'+hmEsc(eyebrow)+'</div>'+
       '<h2 class="hm2-h">'+greet+' Morgan.</h2>'+
-      (planLead?'<p class="hm2-sub">'+planLead+'<span class="hm2-src">'+planWhen+'</span></p>':'')+
       '<div class="hm-chips">'+
         '<span class="hm-chip">'+open.length+' open</span>'+
         (dueToday?'<span class="hm-chip warn">'+dueToday+' due today</span>':'')+
         (overdue?'<span class="hm-chip crit">'+overdue+' overdue</span>':'')+
         '<span class="hm-chip">'+dateDay+', '+dateBig+'</span>'+
       '</div>'+
+      (planLead?'<p class="hm2-sub">'+planLead+'<span class="hm2-src">'+planWhen+'</span></p>':'')+
     '</div>'+
+    '<div class="hm2-moin hm2-mobar"><input id="hm2-mo-input" placeholder="Ask Mo, or tell her to change something&hellip;" autocomplete="off" aria-label="Ask Mo">'+
+      '<button id="hm2-mo-go" aria-label="Ask Mo">&#8594;</button></div>'+
 
     '<div class="hm2-cols">'+
       '<div class="hm2-main">'+
-        '<section class="hm-card hm2-card hm2-mo">'+
-          '<div class="hm2-ch"><div><div class="hm2-eb">Messick OS</div>'+
-          '<div class="hm2-t">What should I do next?</div></div></div>'+
-          '<p class="hm2-molede">Ask about priorities, clients, what is blocked, or the fastest path to revenue. Shorthand works: &ldquo;JVI blog fri high&rdquo;.</p>'+
-          '<div class="hm2-moin"><input id="hm2-mo-input" placeholder="Ask Mo, or tell her to change something&hellip;" autocomplete="off">'+
-          '<button id="hm2-mo-go" aria-label="Ask Mo">&#8594;</button></div>'+
-          '<div class="hm2-mochips">'+
-            '<button class="hm2-mochip">What is blocked?</button>'+
-            '<button class="hm2-mochip">What should I start with?</button>'+
-            '<button class="hm2-mochip">Summarise my open loops</button>'+
-          '</div>'+
-        '</section>'+
-        hCard('The work that moves the needle','Today&rsquo;s priorities',
+        hCard('Overdue and today','Top priorities',
           '<span class="hm2-count">'+tDone+'/'+tTotal+' in scope today</span>',
           '<div class="hm2-bar"><i style="width:'+tPct+'%"></i></div>'+
           '<div class="hm2-tasks">'+tRows+'</div>'+
           '<div class="hm-qa"><input id="hm-task-input" placeholder="Add a task, then Enter" autocomplete="off"></div>')+
-        /* The numbers live under the priorities in the main column, not in a strip
-           beneath the whole grid. The strip could not start until the taller rail
-           ended, which stranded Money/Work split/Leads under a screen of dead space. */
-        '<div class="hm2-nums">'+
-        hCard('This month','Money',
-          '<span class="hm2-count">Moxie + Expenses</span>',
-          '<div class="hm2-money">'+
-            '<span class="mb-item"><i>In</i><b class="pos">'+hmMoney(inMonth)+'</b></span>'+
-            '<span class="mb-item"><i>Out</i><b class="neg">'+hmMoney(monthOut)+'</b></span>'+
-            '<span class="mb-item"><i>Net</i><b class="'+((inMonth-monthOut)>=0?'pos':'neg')+'">'+hmMoney(inMonth-monthOut)+'</b></span>'+
-          '</div><div class="ytd2">'+ytdLabel+' '+ytd+(dedYtd?(' &middot; deductible '+hmMoney(dedYtd)):'')+'</div>')+
-        hCard('Open tasks','Work split','',
-          '<div class="hm-bars2">'+(brandBars||'<div class="hm-empty">Loading areas&hellip;</div>')+'</div>')+
-        '</div>'+
-        hCard('New business','Leads',
-          '<a class="link" href="#" onclick="event.preventDefault();openLeadsManager()">Manage</a>',
-          (leadsArr.length
-            ? ('<div class="hm-lead-top"><span class="hm-lnum'+(followLeads?' warn':'')+'">'+(followLeads||activeLeads)+'</span><span class="hm-lsub">'+(followLeads?'need follow-up &middot; '+activeLeads+' active':'active')+' &middot; '+leadsArr.length+' tracked</span></div>'+
-               (leadChips?'<div class="hm-lchips">'+leadChips+'</div>':'')+
-               (leadRecent?'<div class="hm-lrows">'+leadRecent+'</div>':''))
-            : '<div class="hm-empty">No leads saved yet.</div>'),'hm-leads')+
-        /* Parking is the lowest-urgency thing on the page and by far the tallest card. It sits
-           last in the wide column, where its length costs nothing and balances the rail. */
-        hCard('Not now, not never','Parking lot','<span class="hm2-count">'+parkItems.length+'</span>',
-          '<div class="hm-loops">'+parkRows+'</div>'+
-          '<div class="hm-qa"><input id="hm-park-input" placeholder="Idea, reminder, thought&hellip;" autocomplete="off"></div>')+
+        hCard('Nothing moves until these do','Waiting on others',
+          '<span class="hm2-count">'+openLoops.length+(agedCount?' &middot; <b class="aging">'+agedCount+' aging</b>':'')+'</span>',
+          '<div class="hm-loops">'+loopRows+'</div>'+
+          '<div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div>')+
       '</div>'+
 
       '<div class="hm2-rail">'+
         hCard('By due date','Upcoming','',evRows)+
-        hCard('Nothing moves until these do','Waiting',
-          '<span class="hm2-count">'+openLoops.length+(agedCount?' &middot; <b class="aging">'+agedCount+' aging</b>':'')+'</span>',
-          '<div class="hm-loops">'+loopRows+'</div>'+
-          '<div class="hm-qa hm-loopadd"><select id="hm-loop-type"><option value="Waiting on client">Waiting on client</option><option value="Unbilled">Unbilled</option><option value="Waiting on payment">Waiting on payment</option></select><input id="hm-loop-input" placeholder="What are you waiting on?" autocomplete="off"></div>')+
-        hCard('Your launchpad','Quick access','','<div class="hm-sc hm-sc2">'+HM_SHORTCUTS+'</div>')+
+        '<div class="hm2-moneyline">'+moneyLine+'</div>'+
+        '<details class="hm2-morewrap" data-key="morewrap"'+(hmOpenG.morewrap?' open':'')+'><summary>More: money, leads, parking lot, shortcuts</summary>'+
+          '<div class="hm2-morebody">'+moreBody+'</div></details>'+
       '</div>'+
     '</div>'+
-
     '</div>';
+  view.querySelectorAll('details[data-key]').forEach(function(d){
+    d.addEventListener('toggle',function(){hmOpenG[d.getAttribute('data-key')]=d.open;});
+  });
   view.querySelectorAll('.hm-rad').forEach(function(el){el.addEventListener('click',function(){var id=el.getAttribute('data-id');if(typeof toggleTask==='function'){toggleTask('todo',id);}renderHome();});});
   var moIn=document.getElementById('hm2-mo-input'), moGo=document.getElementById('hm2-mo-go');
   var moFire=function(){var v=moIn?moIn.value.trim():''; if(!v)return; if(typeof moAsk==='function')moAsk(v); if(moIn)moIn.value='';};
@@ -5695,6 +5784,16 @@ function deleteClient(id){
   renderClients();
 }
 
+/* Copy icons carry their value in data-copy; no value is ever spliced into inline JS. */
+document.addEventListener('click',function(ev){
+  const ic=ev.target.closest&&ev.target.closest('.copy-icon[data-copy]');
+  if(ic)copyText(ic.getAttribute('data-copy'),ic);
+});
+document.addEventListener('keydown',function(ev){
+  if(ev.key!=='Enter'&&ev.key!==' ')return;
+  const ic=ev.target.closest&&ev.target.closest('.copy-icon[data-copy]');
+  if(ic){ev.preventDefault();copyText(ic.getAttribute('data-copy'),ic);}
+});
 function copyText(text,el){
   if(!text)return;
   const feedback=()=>{
@@ -5724,10 +5823,10 @@ function renderClients(){
     const ea=v=>String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     const srvHtml=c.services.map(s=>`<span class="service-tag">${bEsc(s)}</span>`).join('');
     let contactHtml='';
-    if(c.phone)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.phone)}',this)" title="Copy">📋</span> <strong>Phone:</strong> ${bEsc(c.phone)}</div>`;
-    if(c.email)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.email)}',this)" title="Copy">📋</span> <strong>Email:</strong> ${bEsc(c.email)}</div>`;
-    if(c.address)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.address)}',this)" title="Copy">📋</span> <strong>Address:</strong> ${bEsc(c.address)}</div>`;
-    if(c.website)contactHtml+=`<div class="detail-row"><span class="copy-icon" onclick="copyText('${ea(c.website)}',this)" title="Copy">📋</span> <strong>Website:</strong> <a href="${ea(c.website)}" target="_blank" style="color:var(--blue)">${bEsc(c.website)}</a></div>`;
+    if(c.phone)contactHtml+=`<div class="detail-row"><span class="copy-icon" role="button" tabindex="0" data-copy="${bEsc(c.phone)}" title="Copy">📋</span> <strong>Phone:</strong> ${bEsc(c.phone)}</div>`;
+    if(c.email)contactHtml+=`<div class="detail-row"><span class="copy-icon" role="button" tabindex="0" data-copy="${bEsc(c.email)}" title="Copy">📋</span> <strong>Email:</strong> ${bEsc(c.email)}</div>`;
+    if(c.address)contactHtml+=`<div class="detail-row"><span class="copy-icon" role="button" tabindex="0" data-copy="${bEsc(c.address)}" title="Copy">📋</span> <strong>Address:</strong> ${bEsc(c.address)}</div>`;
+    if(c.website)contactHtml+=`<div class="detail-row"><span class="copy-icon" role="button" tabindex="0" data-copy="${bEsc(c.website)}" title="Copy">📋</span> <strong>Website:</strong> ${/^https?:\/\//i.test(String(c.website).trim())?`<a href="${ea(String(c.website).trim())}" target="_blank" rel="noopener" style="color:var(--blue)">${bEsc(c.website)}</a>`:bEsc(c.website)}</div>`;
     const card=document.createElement('div');
     card.className='client-card';
     card.innerHTML=`
@@ -6475,6 +6574,7 @@ function applyRemoteAndRender(){
   purgeDeadKeys();   // a pull can re-introduce dead keys from an older device
   brainLoad();
   renderColumns();
+  try{if(typeof renderHome==='function')renderHome();}catch(e){}
   if(typeof renderFocus==='function')renderFocus();
   const cv=document.getElementById('clients-view');
   if(typeof renderClients==='function' && cv && cv.style.display!=='none')renderClients();
@@ -6784,7 +6884,7 @@ function init(){
   try{mmTheme(document.documentElement.getAttribute('data-theme')||'dark');}catch(e){}
   try{buildTabBar();}catch(e){}
   try{buildBoardHandle();}catch(e){}   /* must exist before the first switchMainTab */
-  var mmLanding=MM_IS_PHONE()?'mo':'home';   // phone: Mo first, it is the capture tool
+  var mmLanding='home';   // work first on every device; Mo is one tap away in the tab bar
   switchMainTab(mmLanding);
   mmSyncTabs(mmLanding);
   try{buildBoardHandle();}catch(e){}
