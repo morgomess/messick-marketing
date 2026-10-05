@@ -1740,7 +1740,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         fd.append('id', id);
         fd.append('data', JSON.stringify(this.buildSharePayload(i)));
         fetch(FEEDBACK_ENDPOINT, { method: 'POST', mode: 'no-cors', body: fd }).catch(() => {});
-        const url = 'https://messickmarketing.com/reports/view.html?r=' + encodeURIComponent(id);
+        const url = 'https://messickmarketing.com/reports/view?r=' + encodeURIComponent(id);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => this.showShare(url, true)).catch(() => this.showShare(url, false));
         } else this.showShare(url, false);

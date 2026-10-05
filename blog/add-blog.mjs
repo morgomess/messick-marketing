@@ -26,7 +26,7 @@
  *     "excerpt": "Before a patient calls, they read your reviews...",  // index card blurb
  *     "bodyHtml": "<p>...</p>\n<h2>...</h2>...",     // inner of .post-body .inner (no author-bar)
  *     "related": [                                   // exactly 3 "Keep Reading" cards
- *       { "href": "/blog/what-is-content-marketing.html", "cat": "Content Marketing", "title": "What Is Content Marketing?" },
+ *       { "href": "/blog/what-is-content-marketing", "cat": "Content Marketing", "title": "What Is Content Marketing?" },
  *       ...
  *     ]
  *   }
@@ -64,7 +64,7 @@ for (const p of posts) {
 
   const dest = path.join(ROOT, p.slug + '.html');
   if (fs.existsSync(dest)) { console.log(`  skip (exists): ${p.slug}`); continue; }
-  if (index.includes(`/blog/${p.slug}.html`)) { console.log(`  skip (card exists): ${p.slug}`); continue; }
+  if (index.includes(`/blog/${p.slug}`)) { console.log(`  skip (card exists): ${p.slug}`); continue; }
 
   // Canonical form is extensionless, matching sitemap.xml. GitHub Pages serves both
   // /blog/<slug> and /blog/<slug>.html with a 200, so the canonical is what settles it.
@@ -199,7 +199,7 @@ ${relatedCards}
   const card =
 `
       <!-- POST: ${p.slug} -->
-      <a class="blog-card card-featured" href="/blog/${p.slug}.html">
+      <a class="blog-card card-featured" href="/blog/${p.slug}">
         <div class="card-body">
           <span class="card-category">${esc(p.category)}</span>
           <div class="card-title">${esc(p.title)}</div>

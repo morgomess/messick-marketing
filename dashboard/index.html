@@ -2195,8 +2195,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="ov-bars" id="ov-bars"></div>
       </div>
       <div class="ov-card ov-card-link" role="link" tabindex="0" title="Open the expense tracker"
-           onclick="ovOpenApp('../expenses/index.html')"
-           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ovOpenApp('../expenses/index.html');}">
+           onclick="ovOpenApp('../expenses/')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ovOpenApp('../expenses/');}">
         <span class="ov-card-open">Open ↗</span>
         <div class="ov-card-eyebrow">Money</div>
         <div class="ov-card-title">Cash flow this month</div>
@@ -5379,7 +5379,7 @@ function renderOverview(){
   const pipeEl=document.getElementById('ov-pipeline');
   const manageFoot=`<div class="ov-pipe-foot">
       <button class="ov-pipe-manage" onclick="event.stopPropagation();openLeadsManager()">Manage leads</button>
-      <span class="ov-pipe-hint">or <a href="#" onclick="event.stopPropagation();event.preventDefault();ovOpenApp('../leads.html#leads')" style="color:var(--blue-lt);text-decoration:none">open the full app ↗</a></span>
+      <span class="ov-pipe-hint">or <a href="#" onclick="event.stopPropagation();event.preventDefault();ovOpenApp('../leads#leads')" style="color:var(--blue-lt);text-decoration:none">open the full app ↗</a></span>
     </div>`;
   if(!leads.length){
     pipeEl.innerHTML='<div class="ov-empty">No leads saved yet. Prospects you track show up here.</div>'+manageFoot;
