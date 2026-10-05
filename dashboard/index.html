@@ -347,6 +347,25 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .cal-chip.over{border-left-color:var(--crit);background:rgba(192,57,43,0.1);color:var(--crit)}
 .cal-chip.done{opacity:0.45;text-decoration:line-through}
 .cal-empty{font-size:0.72rem;color:var(--light);padding:20px 24px}
+.cal-more{font-family:inherit;font-size:0.68rem;color:var(--blue);background:none;border:0;text-align:left;padding:2px 6px;cursor:pointer;flex-shrink:0}
+.cal-done-btn{font-size:0.7rem;font-weight:600;white-space:nowrap}
+.cal-done-btn.on{border-color:var(--blue);color:var(--blue)}
+#cal-agenda{display:none}
+.ag-day{border-bottom:1px solid var(--border);padding:6px 0 8px}
+.ag-dh{display:flex;align-items:center;gap:8px;font-size:0.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 16px 4px}
+.ag-dh span{font-size:0.62rem;background:var(--blue);color:#fff;border-radius:99px;padding:1px 8px;letter-spacing:.04em}
+.ag-day.over .ag-dh{color:var(--crit)}.ag-day.over .ag-dh span{background:var(--crit)}
+.ag-row{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:44px;font-size:.88rem;cursor:pointer;border-left:3px solid var(--blue)}
+.ag-row.b-virtueasy{border-left-color:var(--ve)}.ag-row.b-other{border-left-color:var(--personal)}
+.ag-row.done{opacity:.45;text-decoration:line-through}
+.ag-row i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ag-t{min-width:0;overflow-wrap:anywhere}
+@media(max-width:768px){
+  #calendar-view .cal-scroll{display:none}
+  #cal-agenda{display:block;flex:1;overflow:auto;padding-bottom:90px}
+  .cal-toolbar{flex-wrap:wrap}
+  .cal-nav{min-height:40px;min-width:40px}
+}
 @media(max-width:760px){
   .cal-toolbar{padding:9px 14px;gap:7px}
   .cal-month{font-size:0.9rem;min-width:0;flex:1}
@@ -462,6 +481,9 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 /* ── CONFETTI ── */
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
 
+/* Desktop: the More wrapper is invisible, its buttons stay in the toolbar row. */
+.h-more,.h-more-panel{display:contents}
+.h-more-btn{display:none}
 /* MOBILE / iPHONE WEB APP  (additive - desktop untouched) */
 @media (max-width:768px){
   body{height:100dvh}
@@ -474,6 +496,17 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
   .h-tab{padding:6px 10px}
   .h-right{gap:6px;flex-wrap:wrap;width:100%;justify-content:flex-start}
   .h-btn{padding:6px 10px;font-size:0.66rem}
+  /* Primary actions stay on the bar at a real touch size; the rest live in More. */
+  .h-right{flex-wrap:nowrap}
+  header .h-right{overflow:visible}
+  header{position:relative;z-index:40}
+  .h-right>.h-btn,.h-more-btn{min-height:44px;font-size:0.72rem;padding:6px 14px}
+  .h-more{position:relative;display:block;margin-left:auto}
+  .h-more-btn{display:flex}
+  .h-more-panel{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:190px;flex-direction:column;gap:6px;
+    padding:8px;background:var(--surface,#0f131b);border:1px solid var(--border-s,rgba(255,255,255,.2));border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4)}
+  .h-more.open .h-more-panel{display:flex}
+  .h-more-panel .h-btn{min-height:44px;width:100%;justify-content:flex-start;font-size:0.75rem}
   #focus-section{padding:12px 14px}
   .focus-slots{grid-template-columns:1fr}
   .focus-slot{min-height:auto}
@@ -2136,10 +2169,15 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <span id="completion-stat" onclick="openAllTasks()" title="View all open tasks">↻ <span id="stat-text">0 of 0 done</span></span>
       <button class="h-btn todo" onclick="openAllTasks()">📋 To-Do</button>
       <button class="h-btn" onclick="toggleSearch()" id="search-toggle-btn">🔍 Search</button>
-      <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
-      <button class="h-btn" id="mm-theme" onclick="mmTheme()">☾ Light</button>
-      <button class="h-btn" onclick="openPad()">✎ Notes</button>
-      <button class="h-btn" onclick="logout()">⎋ Log out</button>
+      <div class="h-more" id="h-more">
+        <button class="h-btn h-more-btn" id="h-more-btn" aria-haspopup="true" aria-expanded="false" onclick="hdrMoreToggle(event)">⋯ More</button>
+        <div class="h-more-panel" id="h-more-panel">
+          <button class="h-btn spin" onclick="openPicker()">✦ Pick</button>
+          <button class="h-btn" id="mm-theme" onclick="mmTheme()">☾ Light</button>
+          <button class="h-btn" onclick="openPad()">✎ Notes</button>
+          <button class="h-btn" onclick="logout()">⎋ Log out</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -2190,6 +2228,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="cal-nav" onclick="calShift(1)" title="Next month">›</button>
       <button class="cal-nav cal-today-btn" onclick="calToday()">Today</button>
       <div class="cal-month" id="cal-month-label"></div>
+      <button class="cal-nav cal-done-btn" id="cal-done-btn" onclick="calToggleDone()" aria-pressed="false">Show completed</button>
       <div class="cal-legend">
         <span><i style="background:var(--blue)"></i>Messick</span>
         <span><i style="background:var(--ve)"></i>Virtueasy</span>
@@ -2203,6 +2242,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
         <div class="cal-grid" id="cal-grid"></div>
       </div>
     </div>
+    <div id="cal-agenda" aria-label="Agenda"></div>
   </div>
 
   <!-- ── OVERVIEW (CEO command center) ──
@@ -4990,6 +5030,27 @@ function mmSyncTabs(active){
   var rail=document.getElementById('side-rail');
   if(rail)rail.querySelectorAll('.sr-btn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-tab')===active);});
 }
+function hdrMoreToggle(ev){
+  if(ev)ev.stopPropagation();
+  const m=document.getElementById('h-more'),b=document.getElementById('h-more-btn');
+  if(!m)return;
+  const open=!m.classList.contains('open');
+  m.classList.toggle('open',open);
+  if(b)b.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('click',function(e){
+  const m=document.getElementById('h-more');
+  if(!m||!m.classList.contains('open'))return;
+  if(e.target.closest('.h-more-panel .h-btn')||!e.target.closest('#h-more')){
+    m.classList.remove('open');
+    const b=document.getElementById('h-more-btn');if(b)b.setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape')return;
+  const m=document.getElementById('h-more');
+  if(m&&m.classList.contains('open')){m.classList.remove('open');const b=document.getElementById('h-more-btn');if(b){b.setAttribute('aria-expanded','false');b.focus();}}
+});
 function mmTheme(next){
   var cur=document.documentElement.getAttribute('data-theme')||'dark';
   var v=next||(cur==='dark'?'light':'dark');
@@ -5556,6 +5617,14 @@ function switchMainTab(tab){
 const CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 let calYear=null, calMonth=null;
 let calDrag=null, calDragBound=false, calJustDragged=false;
+let calShowDone=false, calExpanded={}, calAgendaBound=false;
+try{calShowDone=localStorage.getItem('mm_cal_done')==='1';}catch(e){}
+const CAL_CAP=3;         // chips shown per day before '+N more'
+function calToggleDone(){
+  calShowDone=!calShowDone;
+  try{localStorage.setItem('mm_cal_done',calShowDone?'1':'0');}catch(e){}
+  renderCalendar();
+}
 const CAL_HOLD_MS=280;   // touch: hold this long before a drag starts, so swipes still scroll
 const CAL_MOUSE_SLOP=4;  // mouse: pixels of movement before it counts as a drag
 const CAL_SCROLL_SLOP=12;// touch: moving this far before the hold fires means "scroll", not "drag"
@@ -5579,7 +5648,12 @@ function renderCalendar(){
 
   // Bucket every dated task by its due day
   const byDay={};
-  loadTodoTasks().forEach(t=>{if(t.due){(byDay[t.due]=byDay[t.due]||[]).push(t)}});
+  const allDated=loadTodoTasks().filter(t=>t.due);
+  const shownTasks=allDated.filter(t=>calShowDone||!t.done);
+  shownTasks.forEach(t=>{(byDay[t.due]=byDay[t.due]||[]).push(t)});
+  const doneBtn=document.getElementById('cal-done-btn');
+  if(doneBtn){doneBtn.setAttribute('aria-pressed',calShowDone?'true':'false');doneBtn.classList.toggle('on',calShowDone);
+    doneBtn.textContent=calShowDone?'Hide completed':'Show completed';}
   Object.keys(byDay).forEach(k=>byDay[k].sort((a,b)=>
     (a.done?1:0)-(b.done?1:0) || (PRIORITY_ORDER[a.priority]??4)-(PRIORITY_ORDER[b.priority]??4)
   ));
@@ -5595,16 +5669,53 @@ function renderCalendar(){
     const d=new Date(calYear,calMonth,1-firstDow+i);
     const key=calYmd(d);
     const cls=[(d.getMonth()!==calMonth?'out':''),(key===today?'today':'')].filter(Boolean).join(' ');
-    const chips=(byDay[key]||[]).map(t=>{
+    const dayTasks=byDay[key]||[];
+    const capped=(calExpanded[key]||dayTasks.length<=CAL_CAP)?dayTasks:dayTasks.slice(0,CAL_CAP-1);
+    const moreN=dayTasks.length-capped.length;
+    const chips=capped.map(t=>{
       const over=!t.done&&key<today;
       const dot=pri[t.priority]?`<i style="background:${pri[t.priority]}"></i>`:'';
       return`<div class="cal-chip b-${bEsc(t.brand||'other')}${t.done?' done':''}${over?' over':''}" data-task-id="${t.id}" title="${bEsc(t.text)}">${dot}<b>${bEsc(t.text)}</b></div>`;
-    }).join('');
+    }).join('')+(moreN>0?`<button class="cal-more" data-more="${key}">+${moreN} more</button>`:'');
     html+=`<div class="cal-cell${cls?' '+cls:''}" data-date="${key}"><div class="cal-daynum">${d.getDate()}</div><div class="cal-chips">${chips}</div></div>`;
   }
   grid.innerHTML=html;
+  calRenderAgenda(byDay,shownTasks,today);
 
   calBindDrag();
+}
+
+/* Phone agenda: a readable list in place of the 7-column grid. Overdue work
+   leads (only while looking at the current month), then each day that has tasks. */
+function calRenderAgenda(byDay,shownTasks,today){
+  const ag=document.getElementById('cal-agenda');
+  if(!ag)return;
+  const pri={critical:'var(--crit)',high:'var(--hi)',medium:'var(--med)',low:'var(--lo)'};
+  const ym=`${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const row=t=>`<div class="ag-row b-${bEsc(t.brand||'other')}${t.done?' done':''}" data-task-id="${t.id}" role="button" tabindex="0">`+
+    `<i style="background:${pri[t.priority]||'var(--light)'}"></i><span class="ag-t">${bEsc(t.text)}</span></div>`;
+  let html='';
+  const cur=today.slice(0,7)===ym;
+  const isOverdue=t=>cur&&!t.done&&t.due<today;
+  if(cur){
+    const od=shownTasks.filter(isOverdue).sort((a,b)=>a.due<b.due?-1:1);
+    if(od.length)html+=`<div class="ag-day over"><div class="ag-dh">Overdue <span>${od.length}</span></div>${od.map(row).join('')}</div>`;
+  }
+  Object.keys(byDay).filter(k=>k.slice(0,7)===ym).sort().forEach(k=>{
+    const list=byDay[k].filter(t=>!isOverdue(t));   // overdue work already led the list
+    if(!list.length)return;
+    const d=new Date(k+'T00:00:00');
+    const label=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    html+=`<div class="ag-day${k===today?' today':''}" data-date="${k}"><div class="ag-dh">${label}${k===today?' <span>Today</span>':''}</div>${list.map(row).join('')}</div>`;
+  });
+  if(!html)html='<div class="cal-empty">Nothing due this month.</div>';
+  ag.innerHTML=html;
+  if(!calAgendaBound){
+    calAgendaBound=true;
+    const open=e=>{const r=e.target.closest('.ag-row');if(r)openDrawer(r.dataset.taskId);};
+    ag.addEventListener('click',open);
+    ag.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(e);}});
+  }
 }
 
 /* Drag-to-reschedule, on Pointer Events so it works with a mouse and on
@@ -5649,6 +5760,8 @@ function calBindDrag(){
 
   // Tap/click opens the task, unless a drag just finished on it.
   grid.addEventListener('click',e=>{
+    const more=e.target.closest('.cal-more');
+    if(more){calExpanded[more.dataset.more]=true;renderCalendar();return;}
     const chip=e.target.closest('.cal-chip');
     if(!chip)return;
     if(calJustDragged){calJustDragged=false;return;}  // consume exactly the drag's own click
