@@ -268,6 +268,9 @@ body.td-dragging-active .focus-slot.focus-drop{outline:2px dashed rgba(211,84,0,
 .client-actions{display:flex;gap:6px}
 .client-del{background:none;border:none;color:var(--light);cursor:pointer;font-size:1.1rem;padding:2px 5px;line-height:1;transition:color 0.15s}
 .client-del:hover{color:var(--crit)}
+.client-edit{background:none;border:1px solid var(--border);color:var(--muted);font-family:inherit;font-size:.72rem;padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .15s}
+.client-edit:hover{border-color:var(--blue);color:var(--blue)}
+@media(max-width:768px){.client-edit,.client-del{min-height:40px;min-width:40px}}
 .client-details{display:flex;flex-direction:column;gap:6px;margin:10px 0;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px}
 .detail-row{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--black)}
 .copy-icon{cursor:pointer;color:var(--light);font-size:0.85rem;transition:color 0.15s;flex-shrink:0;user-select:none}
@@ -2314,7 +2317,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <button class="add-btn" onclick="toggleClientForm()">+ Add Client</button>
     </div>
 
-    <div class="client-add-form" id="add-form-client">
+    <div class="client-add-form" id="add-form-client" onkeydown="clientFormKey(event)">
+      <span class="form-label" id="client-form-title">New client</span>
       <div class="form-row">
         <input type="text" id="client-name" placeholder="Client Name *">
         <input type="text" id="client-industry" placeholder="Industry / Niche">
@@ -2331,8 +2335,8 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
       <div class="services-checklist" id="client-services-list"></div>
       <input type="text" id="custom-service-text" class="custom-service-input" placeholder="Enter custom service...">
       <div class="form-btns">
-        <button class="save-btn" onclick="addClient()">Save Client</button>
-        <button class="cancel-btn" onclick="toggleClientForm()">Cancel</button>
+        <button class="save-btn" id="client-save-btn" onclick="addClient()">Save Client</button>
+        <button class="cancel-btn" onclick="closeClientForm()">Cancel</button>
       </div>
     </div>
 
@@ -5843,10 +5847,55 @@ const DEFAULT_SERVICES=[
 function loadClients(){return JSON.parse(localStorage.getItem('mm_clients')||'[]')}
 function saveClients(c){localStorage.setItem('mm_clients',JSON.stringify(c));scheduleSave();}
 
+let clientEditId=null;
+function clientFormReset(){
+  clientEditId=null;
+  ['name','industry','phone','email','address','website'].forEach(id=>{
+    const el=document.getElementById('client-'+id);if(el)el.value='';
+  });
+  const ct=document.getElementById('custom-service-text');
+  if(ct){ct.value='';ct.style.display='none';}
+  initServicesChecklist();
+  const t=document.getElementById('client-form-title');if(t)t.textContent='New client';
+  const sb=document.getElementById('client-save-btn');if(sb)sb.textContent='Save Client';
+}
+function closeClientForm(){
+  document.getElementById('add-form-client').classList.remove('open');
+  clientFormReset();
+}
+/* + Add Client: opens a blank form. If the form is already open for a blank add, it closes;
+   if it was open for an edit, it switches to a blank add instead of silently keeping the edit. */
 function toggleClientForm(){
   const form=document.getElementById('add-form-client');
-  form.classList.toggle('open');
-  if(form.classList.contains('open'))document.getElementById('client-name').focus();
+  if(form.classList.contains('open')&&!clientEditId){closeClientForm();return;}
+  clientFormReset();
+  form.classList.add('open');
+  document.getElementById('client-name').focus();
+}
+function editClient(id){
+  const c=loadClients().find(x=>x.id===id);if(!c)return;
+  const form=document.getElementById('add-form-client');
+  clientFormReset();
+  clientEditId=id;
+  const set=(k,v)=>{const el=document.getElementById('client-'+k);if(el)el.value=v||'';};
+  set('name',c.name);set('industry',c.industry);set('phone',c.phone);set('email',c.email);set('address',c.address);set('website',c.website);
+  const known=new Set(DEFAULT_SERVICES);
+  const svc=c.services||[];
+  document.querySelectorAll('.srv-check').forEach(cb=>{cb.checked=svc.includes(cb.value);});
+  const custom=svc.filter(x=>!known.has(x));
+  if(custom.length){
+    document.getElementById('check-other').checked=true;
+    const ct=document.getElementById('custom-service-text');ct.value=custom.join(', ');ct.style.display='block';
+  }
+  document.getElementById('client-form-title').textContent='Editing '+c.name;
+  document.getElementById('client-save-btn').textContent='Save Changes';
+  form.classList.add('open');
+  form.scrollIntoView({block:'nearest',behavior:'smooth'});
+  document.getElementById('client-name').focus();
+}
+function clientFormKey(e){
+  if(e.key==='Escape'){e.preventDefault();closeClientForm();}
+  else if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type==='text'){e.preventDefault();addClient();}
 }
 
 function initServicesChecklist(){
@@ -5866,28 +5915,24 @@ function toggleCustomService(){
 
 function addClient(){
   const name=document.getElementById('client-name').value.trim();
-  if(!name){alert('Client name is required!');return;}
+  if(!name){alert('Client name is required!');document.getElementById('client-name').focus();return;}
   let services=Array.from(document.querySelectorAll('.srv-check:checked')).map(cb=>cb.value);
   if(document.getElementById('check-other').checked){
-    const custom=document.getElementById('custom-service-text').value.trim();
-    if(custom)services.push(custom);
+    document.getElementById('custom-service-text').value.split(',').map(x=>x.trim()).filter(Boolean)
+      .forEach(x=>{if(!services.includes(x))services.push(x);});
   }
+  const val=id=>document.getElementById('client-'+id).value.trim();
+  const fields={name,industry:val('industry'),phone:val('phone'),email:val('email'),address:val('address'),website:val('website'),services};
   const clients=loadClients();
-  clients.push({id:uid(),name,
-    industry:document.getElementById('client-industry').value.trim(),
-    phone:document.getElementById('client-phone').value.trim(),
-    email:document.getElementById('client-email').value.trim(),
-    address:document.getElementById('client-address').value.trim(),
-    website:document.getElementById('client-website').value.trim(),
-    services});
+  if(clientEditId){
+    const i=clients.findIndex(x=>x.id===clientEditId);
+    if(i>-1)clients[i]=Object.assign({},clients[i],fields);   // same id; any other stored fields are kept
+    else clients.push(Object.assign({id:uid()},fields));
+  }else{
+    clients.push(Object.assign({id:uid()},fields));
+  }
   saveClients(clients);
-  toggleClientForm();
-  ['name','industry','phone','email','address','website'].forEach(id=>{
-    const el=document.getElementById('client-'+id);if(el)el.value='';
-  });
-  document.getElementById('custom-service-text').value='';
-  document.getElementById('custom-service-text').style.display='none';
-  initServicesChecklist();
+  closeClientForm();
   renderClients();
 }
 
@@ -5949,7 +5994,8 @@ function renderClients(){
           ${c.industry?`<div class="client-industry">${bEsc(c.industry)}</div>`:''}
         </div>
         <div class="client-actions">
-          <button class="client-del" onclick="deleteClient('${c.id}')" title="Delete client">×</button>
+          <button class="client-edit" onclick="editClient('${bEsc(c.id)}')" title="Edit client" aria-label="Edit ${bEsc(c.name)}">✎ Edit</button>
+          <button class="client-del" onclick="deleteClient('${bEsc(c.id)}')" title="Delete client" aria-label="Delete ${bEsc(c.name)}">×</button>
         </div>
       </div>
       ${contactHtml?`<div class="client-details">${contactHtml}</div>`:''}
