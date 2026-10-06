@@ -77,6 +77,11 @@
   @media(prefers-reduced-motion:reduce){.chart-fill{transition:none}}
 
   /* top content leaderboard */
+  .q-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .q{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.15rem;break-inside:avoid}
+  .q-t{font-family:var(--fh);font-size:1.18rem;font-weight:500;line-height:1.4;color:var(--black)}
+  .q-t:before{content:'C';color:var(--steel-lt)}.q-t:after{content:'D';color:var(--steel-lt)}
+  .q-c{font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:.7rem}
   .tc-row{display:flex;align-items:center;gap:1.1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
   .tc-row:last-child{border-bottom:none}
   .tc-rank{flex-shrink:0;width:2.2rem;font-family:var(--fh);font-size:1.75rem;font-weight:500;color:var(--steel);line-height:1;font-variant-numeric:tabular-nums}
@@ -252,6 +257,9 @@
       }
     }
 
+    var quotes = (d.quotes||[]).map(function(q){
+      return '<div class="q"><div class="q-t">'+esc(q.text)+'</div>'+(q.cite?'<div class="q-c">'+esc(q.cite)+'</div>':'')+'</div>';
+    }).join('');
     var recs = (d.recs||[]).map(function(r,i){
       return '<div class="rec"><div class="rec-n">'+(i+1)+'</div><div><div class="rec-t">'+esc(r.title)+impactBadge(r.impact)+'</div>'+
         (r.detail?'<div class="rec-d">'+esc(r.detail)+'</div>':'')+
@@ -272,20 +280,23 @@
         (wins?'<div class="wins">'+wins+'</div>':'')+
         '</div></section>';
     }
-    if(chartHTML){
-      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Platform Breakdown</p><p class="chart-note">Share of reach by platform this period.</p>'+chartHTML+'</div></section>';
+    if(quotes){
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">What People Are Saying</p><p class="chart-note">Real comments left on our posts this period.</p><div class="q-grid">'+quotes+'</div></div></section>';
     }
     if(topHTML){
       html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Top Content</p>'+topHTML+'</div></section>';
+    }
+    if(recs){
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
+    }
+    if(chartHTML){
+      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Platform Breakdown</p><p class="chart-note">Share of reach by platform this period.</p>'+chartHTML+'</div></section>';
     }
     if(kwHTML){
       html += '<section class="block rv"><div class="inner"><p class="eyebrow">Where You Show Up In Search</p>'+
         '<p class="chart-note">The top three results are the map pack, which is where most local clicks go.</p>'+kwHTML+'</div></section>';
     }
     html += '<section class="fb">'+feedbackHTML(d)+'</section>';
-    if(recs){
-      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
-    }
     document.getElementById('report').innerHTML = html;
 
     document.getElementById('brandfoot').innerHTML =

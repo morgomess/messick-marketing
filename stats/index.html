@@ -2008,7 +2008,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
             name: c.name, slug: this.shareSlug(c), period: ([c.periodStart, c.periodEnd].filter(Boolean).join(' – ') || c.date || ''), channels: c.channels || '',
-            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms,
+            metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms, quotes: (c.quotes || []).slice(0, 12),
             keywords: (() => { const l = this.localData(c); return l ? l.keywords.filter(k => k.position).sort((a,b) => a.position - b.position).slice(0, 8) : []; })(),
             competitors: (() => { const l = this.localData(c); return l && (l.competitors.rank || l.competitors.ahead.length) ? l.competitors : null; })()
         };
@@ -2079,6 +2079,15 @@ Give exactly 5 recommendations, ordered High impact first.`;
         if (!Array.isArray(c.selectedRecs)) c.selectedRecs = recs.map((_, k) => k);
         return c.selectedRecs;
     },
+    setQuotes(i, raw) {
+        const c = this.clients[i];
+        c.quotes = String(raw || '').split('
+').map(l => l.trim()).filter(Boolean).map(l => {
+            const k = l.lastIndexOf(' | ');
+            return k > 0 ? { text: l.slice(0, k).trim(), cite: l.slice(k + 3).trim() } : { text: l, cite: '' };
+        });
+        this.persist();
+    },
     toggleRec(i, idx) {
         const c = this.clients[i];
         const sel = this.selectedRecSet(c);
@@ -2144,6 +2153,10 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
             <input type="text" id="custom-rec-input" placeholder="Add your own recommendation (e.g. upsell Basic + Video for more Reels)" style="flex:1; margin:0; padding:0.55rem 0.75rem; font-size:0.82rem;" onkeydown="if(event.key==='Enter')app.addCustomRec(${i})">
             <button class="btn btn-ghost btn-sm no-print" id="custom-rec-btn" onclick="app.addCustomRec(${i})" style="white-space:nowrap;">+ AI polish &amp; add</button>
         </div>`;
+        // Real comments for the client report: one per line, "comment | where it was left".
+        const quoteRow = `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin:1.25rem 0 2px;">What People Are Saying</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Real comments for the client report, one per line: <em>comment | TikTok, on the PAE video</em>. Only comments on our posts.</p>
+            <textarea id="quote-input" rows="6" style="width:100%; font-size:0.8rem;" oninput="app.setQuotes(${i}, this.value)">${esc((c.quotes || []).map(q => q.cite ? q.text + ' | ' + q.cite : q.text).join('
+'))}</textarea>`;
         const srcNote = (c.findingsSource === 'computed')
             ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:7px 11px; border-radius:6px; margin-bottom:12px;">Data-driven analysis${c.findingsError ? ` &middot; AI unavailable: ${esc(c.findingsError)}` : ''} &mdash; still tailored to this account&rsquo;s numbers. <span style="color:var(--steel); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="app.generateFindings(${i}, true)">Retry AI</span></div>`
             : '';
@@ -2156,7 +2169,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
                 ${twoCol('Wins', f.wins, 'var(--green)')}
                 ${twoCol('Concerns', f.concerns, 'var(--red)')}
             </div>
-            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:2px;">Recommendations</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Tap to choose which appear in the client report.</p>${recs.length ? `<div class="rec-grid">${recCards}</div>` : ''}${addRow}
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:2px;">Recommendations</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Tap to choose which appear in the client report.</p>${recs.length ? `<div class="rec-grid">${recCards}</div>` : ''}${addRow}${quoteRow}
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:1.25rem;">
                 <button class="btn btn-primary btn-sm no-print" onclick="app.view('report', ${i})">&#128196; Build Client Report &rarr;</button>
                 <button class="btn btn-ghost btn-sm no-print" onclick="app.generateFindings(${i}, true)">&#8635; Regenerate analysis</button>
