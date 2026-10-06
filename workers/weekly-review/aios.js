@@ -1,7 +1,8 @@
-// AIOS review for Morgan's own brands (messickmarketing.com/aios/?k=<AIOS_KEY>).
+// AIOS review and preview calendar for Morgan's own brands (messickmarketing.com/aios/?k=<AIOS_KEY>).
 // Private link, no password (Morgan's call, 2026-10-01). The key is long and lives only in the
 // worker secret AIOS_KEY and ~/.secrets/aios-review-key.txt. Approving here publishes publicly.
-//   GET  /aios/queue?k=                   Social Posts and Blogs for DSDD + Virtueasy: to review, and approved but not yet pushed
+//   GET  /aios/queue?k=                   every content type for all four brands: to review, approved but not yet pushed,
+//                                         and everything dated from 7 days back to 60 days out (the calendar)
 //   POST /aios/update     {k,id,copy?,hashtags?,date?}   edit copy, hashtags, Publish Date (date = "YYYY-MM-DDTHH:mm" Eastern)
 //   POST /aios/approve    {k,id}          Social Post: Approved + Ready to Push (refuses past slots). Blog: Approved.
 //   POST /aios/retry      {k,id}          Approved + Failed with a future date: back to Ready to Push
@@ -12,7 +13,10 @@
 
 const AIOS = {
   base: 'appLm4Zgt3H2vxKdj', gen: 'tblmuO1jm0DduY1zP', brief: 'tbllmnoa802Vp3Fwu', inbox: 'tblTKxhO77Uqh3BVY',
-  brands: { dsdd: { id: 'recadHbQ6SLTiNK2G', name: 'Doggy See, Doggy Do' }, virtueasy: { id: 'recE31wzVXyQkizeH', name: 'Virtueasy' } },
+  brands: {
+    dsdd: { id: 'recadHbQ6SLTiNK2G', name: 'Doggy See, Doggy Do' }, virtueasy: { id: 'recE31wzVXyQkizeH', name: 'Virtueasy' },
+    messick: { id: 'recyKEnF0mGQQVUdY', name: 'Messick Marketing' }, bbs: { id: 'recSSGqdsu9q9uGVV', name: 'Bad Bible Stories' },
+  },
   tz: 'America/New_York',
 };
 const IN_METRICOOL = new Set(['Queued', 'Scheduled', 'Published']);
@@ -38,7 +42,9 @@ export function zonedToUtc(local, tz) {
 }
 
 // The Brand lookup comes back from the REST API as Brand Brain record IDs, not names.
-const brandOf = f => { const ids = f.Brand || []; return ids.includes(AIOS.brands.virtueasy.id) ? 'virtueasy' : ids.includes(AIOS.brands.dsdd.id) ? 'dsdd' : null; };
+const brandOf = f => { const ids = f.Brand || []; return Object.keys(AIOS.brands).find(b => ids.includes(AIOS.brands[b].id)) || null; };
+// Reels and YouTube need a video attached before Metricool can take them.
+const needsVideo = (type, f) => (type === 'Reel' || type === 'YouTube') && !(f['Visual Asset'] || []).length;
 const nameOf = v => (v && typeof v === 'object' ? v.name : v) || '';
 const httpError = (msg, status) => Object.assign(new Error(msg), { status });
 
@@ -52,16 +58,16 @@ export async function aios(req, env, url, { json, at, clean }) {
   const getRecord = async id => {
     if (!/^rec\w{14}$/.test(id || '')) throw httpError('bad id', 400);
     const r = await at(env, `${AIOS.base}/${AIOS.gen}/${id}`);
-    if (!brandOf(r.fields)) throw httpError('not a DSDD or Virtueasy record', 403);
+    if (!brandOf(r.fields)) throw httpError('not one of the AIOS brands', 403);
     return r;
   };
 
   try {
     if (p === '/aios/queue' && req.method === 'GET') {
-      const formula = "AND(OR({Content Type}='Social Post',{Content Type}='Blog'),"
-        + "OR(FIND('Virtueasy',ARRAYJOIN({Brand})),FIND('Doggy',ARRAYJOIN({Brand}))),"
-        + "OR({Approval Status}='Ready for Review',{Approval Status}='Revision Requested',"
-        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}='Ready to Push',{Metricool Status}='Failed',{Metricool Status}='Not Queued',{Metricool Status}=BLANK()))))";
+      // Brand is filtered after the fetch (the lookup returns record IDs). The third arm feeds the calendar.
+      const formula = "OR({Approval Status}='Ready for Review',{Approval Status}='Revision Requested',"
+        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}='Ready to Push',{Metricool Status}='Failed',{Metricool Status}='Not Queued',{Metricool Status}=BLANK())),"
+        + "AND({Approval Status}!='Rejected',IS_AFTER({Publish Date},DATEADD(NOW(),-7,'days')),IS_BEFORE({Publish Date},DATEADD(NOW(),60,'days'))))";
       const items = [];
       let offset;
       do {
@@ -77,6 +83,7 @@ export async function aios(req, env, url, { json, at, clean }) {
             channels: (f.Channels || []).map(nameOf), date: f['Publish Date'] || null,
             approval: nameOf(f['Approval Status']), metricool: mc, notes: f['Revision Notes'] || '',
             response: mc === 'Failed' ? String(f['Metricool Response'] || '').slice(0, 300) : '',
+            needsVideo: needsVideo(nameOf(f['Content Type']), f),
             media: (f['Visual Asset'] || []).map(a => ({ url: a.url, type: a.type || '', thumb: a.thumbnails?.large?.url || a.url })),
           });
         }
@@ -119,6 +126,8 @@ export async function aios(req, env, url, { json, at, clean }) {
     if (p === '/aios/approve') {
       if (DASH.test(String(f['Generated Copy'] || '') + String(f.Hashtags || ''))) return json({ error: 'The copy has an em or en dash. Edit it first.' }, 400);
       if (type === 'Blog') { await patchGen(r.id, { 'Approval Status': 'Approved' }); return json({ ok: true }); }
+      // A script with no video yet: approve the words now, push once the video is attached.
+      if (needsVideo(type, f)) { await patchGen(r.id, { 'Approval Status': 'Approved' }); return json({ ok: true, needsVideo: true }); }
       const when = Date.parse(f['Publish Date'] || '');
       if (!when) return json({ error: 'Set a date and time first.' }, 400);
       if (when < Date.now() + 10 * 60e3) return json({ error: 'That time has passed. Pick a new date first.' }, 400);
@@ -132,6 +141,7 @@ export async function aios(req, env, url, { json, at, clean }) {
       if (nameOf(f['Approval Status']) !== 'Approved' || type === 'Blog' || !['Failed', 'Not Queued', ''].includes(mc)) return json({ error: 'Only approved posts that failed or were never queued can be pushed.' }, 409);
       const when = Date.parse(f['Publish Date'] || '');
       if (!when || when < Date.now() + 10 * 60e3) return json({ error: 'That time has passed. Pick a new date first.' }, 400);
+      if (needsVideo(type, f)) return json({ error: 'No video attached yet. Add it in Airtable first.' }, 409);
       await patchGen(r.id, { 'Metricool Status': 'Ready to Push' });
       return json({ ok: true });
     }
