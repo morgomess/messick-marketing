@@ -211,7 +211,9 @@
       if((t.likes||0)>0) stats.push([fmt(t.likes), t.likes===1?'like':'likes']);
       if((t.comments||0)>0) stats.push([fmt(t.comments), t.comments===1?'comment':'comments']);
       if((t.shares||0)>0) stats.push([fmt(t.shares), t.shares===1?'share':'shares']);
-      if(!stats.length && (t.totalEng||0)>0) stats.push([fmt(t.totalEng), 'interactions']);
+      if((t.clicks||0)>0) stats.push([fmt(t.clicks), t.clicks===1?'click':'clicks']);
+      var split = (t.likes||0)+(t.comments||0)+(t.shares||0)+(t.clicks||0);
+      if(!split && (t.totalEng||0)>0) stats.push([fmt(t.totalEng), t.totalEng===1?'interaction':'interactions']);
       // The text tile sits under the image, so a graphic that fails to load falls back to it.
       var media = '<div class="tp-txt">'+esc(t.format||t.platform||'Post')+'</div>'+
         (t.img ? '<img src="'+esc(t.img)+'" alt="" loading="lazy" onerror="this.remove()">' : '');

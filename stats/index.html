@@ -220,6 +220,7 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
 </div>
 
 <script src="/assets/mm-auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    PLATFORM CONFIG
@@ -243,6 +244,181 @@ const PLAT_SHORT = { [GBP]: 'Google Business' };
 function platShort(p) { return PLAT_SHORT[p] || p; }
 function platsLabel(list) { return (list || []).map(platShort).join(' + '); }
 function isLocal(p) { return p === GBP; }
+
+/* ══════════════════════════════════════ METRICOOL PDF (read directly, no AI)
+   A Metricool "Social Media Insights" export has a fixed layout, and its text comes out of pdf.js
+   in reading order. Sending the whole PDF to the model scrambled it (ECCO Q3 2026: the overall
+   total landed on Facebook, LinkedIn's impressions on TikTok, every post's interactions filed as
+   likes), so these reports are parsed here and the model is only used for other sources.
+   pages: one array of text items per page. Returns null when it is not a Metricool export. */
+function parseMetricoolPdf(pages) {
+    if (!pages.length || !pages[0].some(s => /Social Media Insights/i.test(s))) return null;
+    const NETS = { facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', tiktok: 'TikTok', youtube: 'YouTube',
+        twitter: 'X', x: 'X', pinterest: 'Pinterest', 'google business profile': GBP, gmb: GBP, 'google my business': GBP };
+    const netOf = s => NETS[String(s || '').trim().toLowerCase()] || null;
+    const num = s => {
+        const m = String(s == null ? '' : s).replace(/,/g, '').match(/^(-?\d+(?:\.\d+)?)([KM]?)$/i);
+        if (!m) return 0;
+        return Math.round(parseFloat(m[1]) * (m[2].toUpperCase() === 'M' ? 1e6 : m[2].toUpperCase() === 'K' ? 1e3 : 1));
+    };
+    const isDelta = s => /^[+-]?\d+(\.\d+)?%$/.test(String(s || ''));
+    const isDate = s => /^[A-Z][a-z]{2} \d{1,2}, \d{4}$/.test(s);
+    const RANGE = /^\d{2} [A-Z][a-z]{2} \d{2}$/;
+    // Each page ends "<start> - <end> <title> <account>"; the title names what the page shows.
+    const meta = items => {
+        const i = items.findIndex((s, k) => RANGE.test(s) && items[k + 1] === '-' && RANGE.test(items[k + 2] || ''));
+        return i < 0 ? { body: items, title: '', start: '', end: '' } : { body: items.slice(0, i), title: items[i + 3] || '', start: items[i], end: items[i + 2] };
+    };
+    const longYear = s => s.replace(/ (\d{2})$/, ' 20$1');
+
+    const per = {}, deltas = {}, order = [];
+    let period = { start: '', end: '' };
+    const SUMMARY = { Followers: 'followers', Impressions: 'impressions', Interactions: 'interactions', Posts: 'posts' };
+    // Per-network tables: rows keyed by network, used to give each top post its platform and split.
+    const rows = [];
+    let net = null, mode = 'posts', overall = [], netIdx = -1, sawSummary = false;
+
+    const parseTable = (body, network, kind) => {
+        const h = body.indexOf('Published');
+        if (h < 0) return [];
+        // Header labels run until the first date. Lowercase fragments ("views", "watched", "post")
+        // are a label wrapped onto a second line, so they join the label before them.
+        let k = h + 1;
+        const cols = [];
+        while (k < body.length && !isDate(body[k])) {
+            const s = body[k++];
+            if (/^[a-z]/.test(s) && cols.length) cols[cols.length - 1] += ' ' + s; else cols.push(s);
+        }
+        const dataCols = cols.filter(c => c !== 'Type' && c !== 'Text');
+        const out = [];
+        while (k < body.length) {
+            if (!isDate(body[k])) { k++; continue; }
+            const date = body[k], time = body[k + 1] || '';
+            let j = k + 2; const text = [];
+            while (j < body.length && body[j] !== 'Go') text.push(body[j++]);
+            const vals = body.slice(j + 1, j + 1 + dataCols.length);
+            const row = { network, kind, date, time, text: text.join(' ').replace(/\s+/g, ' ').trim(), v: {} };
+            dataCols.forEach((c, n) => { row.v[c.toLowerCase()] = vals[n]; });
+            out.push(row);
+            k = j + 1 + dataCols.length;
+        }
+        return out;
+    };
+    const pick = (v, ...keys) => { for (const key of keys) if (v[key] != null && v[key] !== '-') return num(v[key]); return 0; };
+
+    pages.forEach((items, idx) => {
+        if (idx === 0) return;
+        const { body, title, start, end } = meta(items);
+        if (start && !period.start) period = { start: longYear(start), end: longYear(end) };
+        // Summary pages: "<total> <delta> <Network> <value> <delta> ..." titled Followers/Impressions/...
+        if (SUMMARY[title] && netOf(body[2])) {
+            sawSummary = true;
+            for (let k = 2; k + 1 < body.length; k += 3) {
+                const p = netOf(body[k]);
+                if (!p) break;
+                if (!order.includes(p)) order.push(p);
+                (per[p] = per[p] || {})['_' + SUMMARY[title]] = num(body[k + 1]);
+                (deltas[p] = deltas[p] || {})[SUMMARY[title]] = isDelta(body[k + 2]) ? body[k + 2] : '';
+            }
+            return;
+        }
+        // Each network's section opens with its Community growth page, in the summary's order.
+        if (/^Community growth$/i.test(title)) { netIdx++; net = order[netIdx] || null; mode = 'posts'; }
+        if (/reel/i.test(title)) mode = 'reels'; else if (/post|video/i.test(title)) mode = 'posts';
+        if (!net) {
+            // Before the first network section: the cross-network ranking, sorted by impressions.
+            if (sawSummary && body.includes('Published')) overall = overall.concat(parseTable(body, null, 'all'));
+            return;
+        }
+        const pd = per[net] = per[net] || {};
+        // A label's value is the next number after it; long labels wrap ("Average reach", "per day").
+        const kv = label => {
+            const i = body.findIndex(s => s.trim() === label);
+            if (i < 0) return null;
+            for (let k = i + 1; k < Math.min(body.length, i + 3); k++) if (/^-?[\d.,]+[KM]?$/i.test(body[k])) return num(body[k]);
+            return null;
+        };
+        if (/^Community growth$/i.test(title)) {
+            const g = kv('Acquired') ?? kv('Gained'), l = kv('Lost');
+            if (g != null) pd.followersGained = g;
+            if (l != null) pd.followersLost = l;
+        }
+        if (/published in period/i.test(title)) {
+            const e = body.indexOf('Engagement');
+            if (e >= 0 && mode === 'posts' && pd.engRate == null) pd.engRate = parseFloat(body[e + 1]) || 0;
+            const n = kv(mode === 'reels' ? 'Reels' : 'Posts');
+            if (n != null) pd['_n_' + mode] = n;
+        }
+        if (/^Average reach per day$/i.test(title)) { const v = kv('Average reach'); if (v != null) pd.avgDailyReach = v; }
+        // The interaction split for what was published, posts and reels added together. "Viewed"
+        // pages (YouTube's interactions on any video, LinkedIn's content viewed) are not this period's posts.
+        if (/^Interactions(:| of) ?(of )?published/i.test(title)) {
+            const add = (field, v) => { if (v != null) pd['_' + field] = (pd['_' + field] || 0) + v; };
+            add('likes', kv('Likes') ?? kv('Reactions'));
+            add('comments', kv('Comments'));
+            add('shares', kv('Shares'));
+            add('saves', kv('Saved'));
+            add('clicks', kv('Clicks') ?? kv('Actions'));
+        }
+        if (body.includes('Published') && body.includes('Go')) rows.push(...parseTable(body, net, mode));
+    });
+    if (!order.length) return null;
+
+    const metrics = {};
+    order.forEach(p => {
+        const pd = per[p] || {};
+        const m = { followers: pd._followers || 0, impressions: pd._impressions || 0, videoViews: 0 };
+        ['followersGained', 'followersLost', 'engRate', 'avgDailyReach'].forEach(f => { if (pd[f] != null) m[f] = pd[f]; });
+        const split = { likes: pd._likes || 0, comments: pd._comments || 0, shares: pd._shares || 0, saves: pd._saves || 0, clicks: pd._clicks || 0 };
+        const sum = Object.values(split).reduce((a, b) => a + b, 0);
+        // Metricool's interaction total is the source of truth. If the split pages were missing or
+        // do not add up, the gap goes into likes so the platform total still matches the report.
+        if (pd._interactions != null && sum !== pd._interactions) split.likes += pd._interactions - sum;
+        Object.assign(m, split);
+        const reels = pd._n_reels || 0, total = pd._posts || 0;
+        m.reelsPublished = reels;
+        m.postsPublished = Math.max(0, total - reels);
+        m._check = { interactions: pd._interactions || 0, posts: total };
+        metrics[p] = m;
+    });
+
+    const key = s => String(s || '').toLowerCase().replace(/\.\.\.$/, '').replace(/[^a-z0-9]+/g, '');
+    const sameText = (a, b) => { const x = key(a), y = key(b), n = Math.min(x.length, y.length, 24); return n >= 6 && x.slice(0, n) === y.slice(0, n); };
+    const topContent = overall.slice(0, 10).map(r => {
+        const impressions = pick(r.v, 'impressions'), interactions = pick(r.v, 'interactions');
+        // The same caption often goes out on several networks in the same minute, so the numbers
+        // must agree too. No match leaves the platform blank rather than guessing.
+        const seen = x => pick(x.v, 'impressions', 'views', 'video views');
+        const acted = x => pick(x.v, 'likes', 'reactions') + pick(x.v, 'comments') + pick(x.v, 'shares') + pick(x.v, 'clicks', 'actions') + pick(x.v, 'saved');
+        const m = rows.find(x => x.date === r.date && sameText(x.text, r.text) && seen(x) === impressions)
+            || rows.find(x => x.date === r.date && sameText(x.text, r.text) && !seen(x) && acted(x) === interactions);
+        const t = { title: r.text.replace(/\.\.\.$/, '…'), platform: m ? m.network : '', format: '', date: r.date, impressions,
+            likes: 0, comments: 0, shares: 0, clicks: 0, reach: 0, interactions };
+        if (m) {
+            t.likes = pick(m.v, 'likes', 'reactions');
+            t.comments = pick(m.v, 'comments');
+            t.shares = pick(m.v, 'shares');
+            t.clicks = pick(m.v, 'clicks', 'actions');
+            t.reach = pick(m.v, 'reach');
+            t.format = m.kind === 'reels' ? 'Reel' : (m.network === 'YouTube' || m.network === 'TikTok') ? 'Video' : '';
+        }
+        return t;
+    });
+    return { metrics, topContent, deltas, period, platforms: order };
+}
+
+// Text items per page, in reading order, for a PDF the user dropped in.
+async function pdfPages(file) {
+    if (!window.pdfjsLib) return null;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const pages = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+        const tc = await (await doc.getPage(i)).getTextContent();
+        pages.push(tc.items.map(t => t.str).filter(x => x.trim()));
+    }
+    return pages;
+}
 function socialOnly(list) { return (list || []).filter(p => !isLocal(p)); }
 function isLocalOnly(list) { return (list || []).length > 0 && socialOnly(list).length === 0; }
 const FIELD_LABELS = {
@@ -411,6 +587,19 @@ const app = {
         debug.style.display = 'none';
 
         try {
+            if (this.currentFile && this.currentFile.type === 'application/pdf' && !pasted) {
+                let mc = null;
+                try { mc = parseMetricoolPdf(await pdfPages(this.currentFile) || []); } catch (e) { mc = null; }
+                if (mc) {
+                    const plats = mc.platforms.filter(p => PLATFORM_FIELDS[p]);
+                    this.tempData = { _name: name, _topContent: mc.topContent, _deltas: mc.deltas, _period: mc.period, _local: this.normalizeLocal(null), _source: 'metricool' };
+                    plats.forEach(p => { const m = Object.assign({}, mc.metrics[p]); delete m._check; this.tempData[p] = m; });
+                    // A Metricool export covers the whole brand, so its networks replace the boxes ticked.
+                    this.currentPlatforms = plats;
+                    this.view('confirm');
+                    return;
+                }
+            }
             const base64 = this.currentFile ? await new Promise(res => {
                 const r = new FileReader(); r.readAsDataURL(this.currentFile);
                 r.onload = () => res(r.result.split(',')[1]);
@@ -629,8 +818,8 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 ${platSections}
                 ${this.localSectionHTML(platforms, d._local)}
                 <div style="margin-top:1rem;">
-                    <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; auto-pulled from the report &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
-                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach</p>
+                    <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; ' + (d._source === 'metricool' ? 'read directly from the Metricool PDF' : 'auto-pulled from the report') + ' &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
+                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions</p>
                     <textarea id="content-entries" rows="6" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | Jun 18, 2026 | 6951 | 342 | 28 | 15 | 4200">${this.topContentToLines(d._topContent)}</textarea>
                 </div>
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.25rem;">Generate Audit</button>
@@ -765,16 +954,17 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (contentText) {
             contentText.split('\n').forEach((line, idx) => {
                 if (!line.trim()) return;
-                // Columns: Title | Platform | Format | Date | Impressions | Likes | Comments | Shares | Reach
+                // Columns: Title | Platform | Format | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions
+                // Interactions is the report's own total for the post; when blank it is the sum of the split.
                 const parts = line.split('|').map(s => s.trim());
                 if (parts.length < 2) return;
                 const num = v => parseInt(String(v || '').replace(/[^0-9]/g, '')) || 0;
-                const likes = num(parts[5]), comments = num(parts[6]), shares = num(parts[7]);
+                const likes = num(parts[5]), comments = num(parts[6]), shares = num(parts[7]), clicks = num(parts[9]);
                 topContent.push({
-                    rank: idx + 1, title: parts[0] || 'Untitled', platform: parts[1] || platforms[0],
+                    rank: idx + 1, title: parts[0] || 'Untitled', platform: parts[1] || '',
                     format: parts[2] || '', date: parts[3] || '', impressions: num(parts[4]),
-                    likes, comments, shares, reach: num(parts[8]),
-                    totalEng: likes + comments + shares
+                    likes, comments, shares, clicks, reach: num(parts[8]),
+                    totalEng: num(parts[10]) || (likes + comments + shares + clicks)
                 });
             });
         }
@@ -797,7 +987,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '/');
         return list.map(x => [
             esc(x.title), esc(x.platform), esc(x.format || ''), esc(x.date || ''),
-            x.impressions || 0, x.likes || 0, x.comments || 0, x.shares || 0, x.reach || 0
+            x.impressions || 0, x.likes || 0, x.comments || 0, x.shares || 0, x.reach || 0, x.clicks || 0, x.interactions || x.totalEng || 0
         ].join(' | ')).join('\n');
     },
 
@@ -1716,7 +1906,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
             { lbl: 'Posts', val: String(g.totalContent || 0), delta: md(g.totalContent || 0, pg && pg.totalContent || 0) }
         ];
         const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 10)
-            .map(t => ({ title: t.title, platform: t.platform, format: t.format || '', date: t.date || '', img: t.img || null, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), likes: t.likes || 0, comments: t.comments || 0, shares: t.shares || 0, totalEng: t.totalEng || 0 }));
+            .map(t => ({ title: t.title, platform: t.platform, format: t.format || '', date: t.date || '', img: t.img || null, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), likes: t.likes || 0, comments: t.comments || 0, shares: t.shares || 0, clicks: t.clicks || 0, totalEng: t.totalEng || 0 }));
         // Per-platform reach/interactions for the client report's Platform Breakdown chart
         const platforms = (c.platforms || []).map(p => {
             const pd = (c.perPlatform && c.perPlatform[p]) || {};
