@@ -1,8 +1,8 @@
 // AIOS review and preview calendar for Morgan's own brands (messickmarketing.com/aios/?k=<AIOS_KEY>).
 // Private link, no password (Morgan's call, 2026-10-01). The key is long and lives only in the
 // worker secret AIOS_KEY and ~/.secrets/aios-review-key.txt. Approving here publishes publicly.
-//   GET  /aios/queue?k=                   every content type for all four brands: to review, approved but not yet pushed,
-//                                         and everything dated from 7 days back to 60 days out (the calendar)
+//   GET  /aios/queue?k=                   every brand and content type, everything not Rejected except finished work
+//                                         dated more than 7 days back (failed pushes stay 30 days)
 //   POST /aios/update     {k,id,copy?,hashtags?,date?}   edit copy, hashtags, Publish Date (date = "YYYY-MM-DDTHH:mm" Eastern)
 //   POST /aios/approve    {k,id}          Social Post: Approved + Ready to Push (refuses past slots). Blog: Approved.
 //   POST /aios/retry      {k,id}          Approved + Failed with a future date: back to Ready to Push
@@ -12,11 +12,9 @@
 //   POST /aios/idea       {k,brand,idea}  new Inbox row (Status New, Related Brand) for the */15 intake
 
 const AIOS = {
-  base: 'appLm4Zgt3H2vxKdj', gen: 'tblmuO1jm0DduY1zP', brief: 'tbllmnoa802Vp3Fwu', inbox: 'tblTKxhO77Uqh3BVY',
-  brands: {
-    dsdd: { id: 'recadHbQ6SLTiNK2G', name: 'Doggy See, Doggy Do' }, virtueasy: { id: 'recE31wzVXyQkizeH', name: 'Virtueasy' },
-    messick: { id: 'recyKEnF0mGQQVUdY', name: 'Messick Marketing' }, bbs: { id: 'recSSGqdsu9q9uGVV', name: 'Bad Bible Stories' },
-  },
+  base: 'appLm4Zgt3H2vxKdj', gen: 'tblmuO1jm0DduY1zP', brief: 'tbllmnoa802Vp3Fwu', inbox: 'tblTKxhO77Uqh3BVY', brandBrain: 'tbl7pjvjhQl7U1OPe',
+  // Short keys for the brands the page styles. Any other Brand Brain row still shows, keyed by its record ID.
+  keys: { recadHbQ6SLTiNK2G: 'dsdd', recE31wzVXyQkizeH: 'virtueasy', recyKEnF0mGQQVUdY: 'messick', recSSGqdsu9q9uGVV: 'bbs' },
   tz: 'America/New_York',
 };
 const IN_METRICOOL = new Set(['Queued', 'Scheduled', 'Published']);
@@ -42,7 +40,10 @@ export function zonedToUtc(local, tz) {
 }
 
 // The Brand lookup comes back from the REST API as Brand Brain record IDs, not names.
-const brandOf = f => { const ids = f.Brand || []; return Object.keys(AIOS.brands).find(b => ids.includes(AIOS.brands[b].id)) || null; };
+const brandOf = f => { const id = (f.Brand || [])[0]; return id ? AIOS.keys[id] || id : 'none'; };
+// Approval values the page knows how to show. A new option added in Airtable still reaches the page
+// (the queue formula has an arm for unknown values) and lands in its "Needs a look" bucket.
+const KNOWN_APPROVAL = ['Ready for Review', 'Revision Requested', 'Approved', 'Scheduled', 'Published', 'Analyzed', 'Rejected'];
 // Reels and YouTube need a video attached before Metricool can take them.
 const needsVideo = (type, f) => (type === 'Reel' || type === 'YouTube') && !(f['Visual Asset'] || []).length;
 const nameOf = v => (v && typeof v === 'object' ? v.name : v) || '';
@@ -57,17 +58,24 @@ export async function aios(req, env, url, { json, at, clean }) {
   const patchGen = (id, fields) => at(env, `${AIOS.base}/${AIOS.gen}`, { method: 'PATCH', body: JSON.stringify({ typecast: true, records: [{ id, fields }] }) });
   const getRecord = async id => {
     if (!/^rec\w{14}$/.test(id || '')) throw httpError('bad id', 400);
-    const r = await at(env, `${AIOS.base}/${AIOS.gen}/${id}`);
-    if (!brandOf(r.fields)) throw httpError('not one of the AIOS brands', 403);
-    return r;
+    return at(env, `${AIOS.base}/${AIOS.gen}/${id}`);
   };
 
   try {
     if (p === '/aios/queue' && req.method === 'GET') {
-      // Brand is filtered after the fetch (the lookup returns record IDs). The third arm feeds the calendar.
-      const formula = "OR({Approval Status}='Ready for Review',{Approval Status}='Revision Requested',"
-        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}='Ready to Push',{Metricool Status}='Failed',{Metricool Status}='Not Queued',{Metricool Status}=BLANK())),"
-        + "AND({Approval Status}!='Rejected',IS_AFTER({Publish Date},DATEADD(NOW(),-7,'days')),IS_BEFORE({Publish Date},DATEADD(NOW(),60,'days'))))";
+      // No allowlist of brands or content types: twice (2026-10-01 failed pushes, 2026-10-06 Reels and
+      // Messick) a narrow filter silently hid real work. Everything not Rejected comes back unless it is
+      // finished and in the past. tools/aios-review-check.mjs checks this daily against Airtable.
+      const known = KNOWN_APPROVAL.map(v => `{Approval Status}='${v}'`).join(',');
+      const formula = "AND({Approval Status}!='Rejected',OR("
+        + "{Approval Status}='Ready for Review',{Approval Status}='Revision Requested',"
+        + "AND({Approval Status}='Approved',OR({Content Type}='Blog',{Metricool Status}!='Published')),"
+        + "AND({Metricool Status}='Failed',OR({Publish Date}=BLANK(),IS_AFTER({Publish Date},DATEADD(NOW(),-30,'days')))),"
+        + "AND(IS_AFTER({Publish Date},DATEADD(NOW(),-7,'days')),IS_BEFORE({Publish Date},DATEADD(NOW(),120,'days'))),"
+        + "IS_AFTER({Publish Date},DATEADD(NOW(),120,'days')),"
+        + `NOT(OR(${known}))))`;
+      const brands = {};
+      for (const b of (await at(env, `${AIOS.base}/${AIOS.brandBrain}?pageSize=100`)).records) brands[AIOS.keys[b.id] || b.id] = { id: b.id, name: b.fields['Account Name'] || b.id };
       const items = [];
       let offset;
       do {
@@ -75,7 +83,6 @@ export async function aios(req, env, url, { json, at, clean }) {
         if (offset) q.set('offset', offset);
         const page = await at(env, `${AIOS.base}/${AIOS.gen}?${q}`);
         for (const r of page.records) {
-          if (!brandOf(r.fields)) continue;
           const f = r.fields, mc = nameOf(f['Metricool Status']) || 'Not Queued';
           items.push({
             id: r.id, name: f.Name || '', brand: brandOf(f),
@@ -90,11 +97,12 @@ export async function aios(req, env, url, { json, at, clean }) {
         offset = page.offset;
       } while (offset);
       items.sort((a, b) => String(a.date || '9').localeCompare(String(b.date || '9')));
-      return json({ items, now: new Date().toISOString() });
+      return json({ items, brands, knownApproval: KNOWN_APPROVAL, now: new Date().toISOString() });
     }
 
     if (p === '/aios/idea' && req.method === 'POST') {
-      const b = AIOS.brands[body.brand], idea = clean(body.idea, 1000);
+      const id = Object.keys(AIOS.keys).find(i => AIOS.keys[i] === body.brand) || (/^recw{14}$/.test(body.brand || '') ? body.brand : null);
+      const b = id && { id }, idea = clean(body.idea, 1000);
       if (!b || !idea) return json({ error: 'Pick a brand and type the idea.' }, 400);
       await at(env, `${AIOS.base}/${AIOS.inbox}`, { method: 'POST', body: JSON.stringify({ typecast: true, records: [{ fields: {
         Subject: idea.slice(0, 90), Message: idea, Status: 'New', 'Related Brand': [b.id],

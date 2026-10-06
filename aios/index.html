@@ -106,8 +106,10 @@ const API = 'https://weekly-review.morgan-2bf.workers.dev';
 const KEY = new URLSearchParams(location.search).get('k') || '';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const BRAND = { dsdd: 'DSDD', virtueasy: 'Virtueasy', messick: 'Messick', bbs: 'BBS' };
+// Short labels for the brands the page knows; any other Brand Brain row shows under its own name.
+const BRAND = { dsdd: 'DSDD', virtueasy: 'Virtueasy', messick: 'Messick', bbs: 'BBS', none: 'No brand' };
 const IN_METRICOOL = ['Queued', 'Scheduled', 'Published'];
+let KNOWN_APPROVAL = ['Ready for Review', 'Revision Requested', 'Approved', 'Scheduled', 'Published', 'Analyzed', 'Rejected'];
 let items = [], view = 'calendar', brand = 'all', openId = null;
 try { const v = JSON.parse(localStorage.getItem('mm_aios_view') || '{}'); view = v.view || view; brand = v.brand || brand; } catch (e) {}
 
@@ -126,7 +128,9 @@ function toEastern(iso){
 }
 // Eastern calendar day "YYYY-MM-DD" for an ISO time.
 const dayOf = iso => toEastern(iso).slice(0, 10);
-const isReview = it => it.approval === 'Ready for Review' || it.approval === 'Revision Requested';
+// A status or brand the page was not built for. It still shows, in "Needs a look", never dropped.
+const isOdd = it => !KNOWN_APPROVAL.includes(it.approval) || it.brand === 'none';
+const isReview = it => it.approval === 'Ready for Review' || it.approval === 'Revision Requested' || isOdd(it);
 const isPending = it => it.approval === 'Approved' && (it.type === 'Blog' || !IN_METRICOOL.includes(it.metricool));
 const isLocked = it => !isReview(it) && !isPending(it);
 const pretty = iso => iso ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'No date';
@@ -137,19 +141,22 @@ async function load(){
     const r = await fetch(API + '/aios/queue?k=' + encodeURIComponent(KEY));
     if (r.status === 401) { $('main').innerHTML = '<div class="gate">This link is not valid.</div>'; return; }
     const j = await r.json(); if (!r.ok) throw new Error(j.error);
-    items = j.items; render();
+    items = j.items;
+    for (const [k, b] of Object.entries(j.brands || {})) BRAND[k] ||= b.name;
+    if (j.knownApproval) KNOWN_APPROVAL = j.knownApproval;
+    render();
   } catch (e) { $('main').innerHTML = `<div class="gate">Could not load: ${esc(e.message)}</div>`; }
 }
 
 const inBrand = (it, b = brand) => b === 'all' || it.brand === b;
-const inView = it => inBrand(it) && (view === 'review' ? isReview(it) : view === 'approved' ? isPending(it) : !!it.date);
+const inView = it => inBrand(it) && (view === 'review' ? isReview(it) : view === 'approved' ? isPending(it) : true);
 function filters(){
   const n = v => items.filter(it => inBrand(it) && (v === 'review' ? isReview(it) : isPending(it))).length;
   $('filters').innerHTML =
     `<button class="chip ${view==='calendar'?'on':''}" data-v="calendar">Calendar</button>` +
     `<button class="chip ${view==='review'?'on':''}" data-v="review">To review<span class="n">${n('review')}</span></button>` +
     `<button class="chip ${view==='approved'?'on':''}" data-v="approved">Approved, not yet sent<span class="n">${n('approved')}</span></button><span class="sp"></span>` +
-    ['all','dsdd','virtueasy','messick','bbs'].filter(b => b === 'all' || items.some(it => it.brand === b))
+    ['all', ...new Set(items.map(it => it.brand))]
       .map(b => `<button class="chip ${brand===b?'on':''}" data-b="${b}">${b==='all'?'All':BRAND[b]}</button>`).join('');
   $('filters').querySelectorAll('[data-v]').forEach(b => b.onclick = () => { view = b.dataset.v; save(); render(); });
   $('filters').querySelectorAll('[data-b]').forEach(b => b.onclick = () => { brand = b.dataset.b; save(); render(); });
@@ -162,6 +169,7 @@ function typeLabel(it){
   return it.type === 'Social Post' ? (ch || 'Social') : it.type + (ch ? ' · ' + ch : '');
 }
 function statusOf(it){
+  if (isOdd(it)) return it.brand === 'none' ? 'No brand set' : (it.approval || 'No status');
   if (isReview(it)) return it.approval;
   if (it.metricool === 'Failed') return 'Push failed';
   if (['Published', 'Analyzed'].includes(it.approval) || it.metricool === 'Published') return 'Published';
@@ -179,26 +187,37 @@ function calendar(){
   const today = dayOf(new Date().toISOString());
   const t = new Date(today + 'T12:00:00Z'), start = new Date(t.getTime() - ((t.getUTCDay() + 6) % 7) * 864e5);
   const iso = d => d.toISOString().slice(0, 10), end = iso(new Date(start.getTime() + 35 * 864e5));
+  // Every item the worker returns must land in exactly one bucket. Whatever no bucket claims goes to
+  // "Needs a look" at the top, so a new status or edge case shows up instead of vanishing.
+  const placed = new Set(), take = it => (placed.add(it.id), it);
+  const section = (title, note, rows) => rows.length ? `<section class="day"><h2>${title}<span class="ct">${note}</span></h2>${rows.map(take).map(row).join('')}</section>` : '';
+  const odd = list.filter(isOdd);
+  odd.forEach(take);
+  const missed = list.filter(it => !placed.has(it.id) && it.date && isReview(it) && dayOf(it.date) < today);
+  const failedOld = list.filter(it => !placed.has(it.id) && it.date && it.metricool === 'Failed' && dayOf(it.date) < iso(start));
+  const undated = list.filter(it => !placed.has(it.id) && !it.date);
+  missed.concat(failedOld, undated).forEach(take);
   const byDay = {};
-  for (const it of list) (byDay[dayOf(it.date)] ||= []).push(it);
-  let h = '';
-  // Still waiting for review, but the date already passed: pulled to the top so they are not lost.
-  const missed = list.filter(it => isReview(it) && dayOf(it.date) < today);
-  if (missed.length) h += `<section class="day"><h2>Missed their date<span class="ct">${missed.length} still waiting for review. Set a new date to use ${missed.length === 1 ? 'it' : 'them'}.</span></h2>${missed.map(row).join('')}</section>`;
+  for (const it of list) if (!placed.has(it.id) && it.date) (byDay[dayOf(it.date)] ||= []).push(it);
+  let body = '';
   for (let w = 0; w < 5; w++) {
     const ws = new Date(start.getTime() + w * 7 * 864e5);
-    h += `<div class="wk"><div class="eyebrow">${w === 0 ? 'This week' : w === 1 ? 'Next week' : 'Week of ' + ws.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}</div></div>`;
+    body += `<div class="wk"><div class="eyebrow">${w === 0 ? 'This week' : w === 1 ? 'Next week' : 'Week of ' + ws.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })}</div></div>`;
     for (let d = 0; d < 7; d++) {
-      const day = iso(new Date(ws.getTime() + d * 864e5)), rows = (byDay[day] || []).filter(it => !(isReview(it) && day < today));
+      const day = iso(new Date(ws.getTime() + d * 864e5)), rows = (byDay[day] || []).map(take);
       const label = new Date(day + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'long', month: 'short', day: 'numeric' });
-      h += `<section class="day ${day === today ? 'today' : ''}"><h2>${label}${day === today ? ' · today' : ''}<span class="ct">${rows.length ? rows.length + (rows.length === 1 ? ' item' : ' items') : ''}</span></h2>${rows.length ? rows.map(row).join('') : '<div class="none">Nothing scheduled.</div>'}</section>`;
+      body += `<section class="day ${day === today ? 'today' : ''}"><h2>${label}${day === today ? ' · today' : ''}<span class="ct">${rows.length ? rows.length + (rows.length === 1 ? ' item' : ' items') : ''}</span></h2>${rows.length ? rows.map(row).join('') : '<div class="none">Nothing scheduled.</div>'}</section>`;
     }
   }
-  const later = list.filter(it => dayOf(it.date) >= end);
-  if (later.length) h += `<div class="wk"><div class="eyebrow">Later</div></div><section class="day">${later.map(row).join('')}</section>`;
-  const undated = items.filter(it => inBrand(it) && isReview(it) && !it.date);
-  if (undated.length) h += `<div class="wk"><div class="eyebrow">No date yet</div></div><section class="day">${undated.map(row).join('')}</section>`;
-  return h;
+  const later = list.filter(it => !placed.has(it.id) && it.date && dayOf(it.date) >= end);
+  if (later.length) body += `<div class="wk"><div class="eyebrow">Later</div></div>` + section('After these five weeks', '', later);
+  // Finished work from before this Monday is history, not a gap; anything else left over is not.
+  const stray = list.filter(it => !placed.has(it.id) && !(isLocked(it) && it.metricool !== 'Failed' && dayOf(it.date) < iso(start)));
+  return section('Needs a look', 'A status, brand or date this page does not expect. Open it to check.', odd.concat(stray))
+    + section('Missed their date', `Still waiting for review. Set a new date to use ${missed.length === 1 ? 'it' : 'them'}.`, missed)
+    + section('Push failed', 'Dated before this week and never reached Metricool.', failedOld)
+    + section('No date yet', '', undated)
+    + body;
 }
 function row(it){
   if (openId === it.id) return `<div class="open"><button class="row" data-open="">${rowInner(it)}</button>${card(it)}</div>`;
