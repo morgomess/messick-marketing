@@ -2081,8 +2081,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
     },
     setQuotes(i, raw) {
         const c = this.clients[i];
-        c.quotes = String(raw || '').split('
-').map(l => l.trim()).filter(Boolean).map(l => {
+        c.quotes = String(raw || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
             const k = l.lastIndexOf(' | ');
             return k > 0 ? { text: l.slice(0, k).trim(), cite: l.slice(k + 3).trim() } : { text: l, cite: '' };
         });
@@ -2155,8 +2154,7 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         </div>`;
         // Real comments for the client report: one per line, "comment | where it was left".
         const quoteRow = `<div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin:1.25rem 0 2px;">What People Are Saying</div><p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">Real comments for the client report, one per line: <em>comment | TikTok, on the PAE video</em>. Only comments on our posts.</p>
-            <textarea id="quote-input" rows="6" style="width:100%; font-size:0.8rem;" oninput="app.setQuotes(${i}, this.value)">${esc((c.quotes || []).map(q => q.cite ? q.text + ' | ' + q.cite : q.text).join('
-'))}</textarea>`;
+            <textarea id="quote-input" rows="6" style="width:100%; font-size:0.8rem;" oninput="app.setQuotes(${i}, this.value)">${esc((c.quotes || []).map(q => q.cite ? q.text + ' | ' + q.cite : q.text).join('\n'))}</textarea>`;
         const srcNote = (c.findingsSource === 'computed')
             ? `<div style="font-size:0.72rem; color:var(--amber); background:var(--amber-bg); padding:7px 11px; border-radius:6px; margin-bottom:12px;">Data-driven analysis${c.findingsError ? ` &middot; AI unavailable: ${esc(c.findingsError)}` : ''} &mdash; still tailored to this account&rsquo;s numbers. <span style="color:var(--steel); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="app.generateFindings(${i}, true)">Retry AI</span></div>`
             : '';
