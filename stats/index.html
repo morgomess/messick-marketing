@@ -250,17 +250,26 @@ function isLocal(p) { return p === GBP; }
    in reading order. Sending the whole PDF to the model scrambled it (ECCO Q3 2026: the overall
    total landed on Facebook, LinkedIn's impressions on TikTok, every post's interactions filed as
    likes), so these reports are parsed here and the model is only used for other sources.
+
+   The parse checks itself before anything is shown. "errors" mean the PDF was not read the way
+   the layout promises (an unknown network, totals that do not add up, a section whose follower
+   count is not its network's), and the app refuses to continue on them. "warnings" are Metricool's
+   own arithmetic, such as a printed interaction total that differs from the likes, comments and
+   shares listed beside it; they are shown and the report's total is kept.
    pages: one array of text items per page. Returns null when it is not a Metricool export. */
 function parseMetricoolPdf(pages) {
     if (!pages.length || !pages[0].some(s => /Social Media Insights/i.test(s))) return null;
     const NETS = { facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', tiktok: 'TikTok', youtube: 'YouTube',
-        twitter: 'X', x: 'X', pinterest: 'Pinterest', 'google business profile': GBP, gmb: GBP, 'google my business': GBP };
+        twitter: 'X', x: 'X', pinterest: 'Pinterest' };
     const netOf = s => NETS[String(s || '').trim().toLowerCase()] || null;
-    const num = s => {
-        const m = String(s == null ? '' : s).replace(/,/g, '').match(/^(-?\d+(?:\.\d+)?)([KM]?)$/i);
-        if (!m) return 0;
-        return Math.round(parseFloat(m[1]) * (m[2].toUpperCase() === 'M' ? 1e6 : m[2].toUpperCase() === 'K' ? 1e3 : 1));
+    // A number plus how precisely it is printed: "985.57K" is only good to the nearest 10.
+    const numR = s => {
+        const m = String(s == null ? '' : s).replace(/,/g, '').trim().match(/^(-?\d+(?:\.(\d+))?)([KM]?)$/i);
+        if (!m) return null;
+        const mult = m[3].toUpperCase() === 'M' ? 1e6 : m[3].toUpperCase() === 'K' ? 1e3 : 1;
+        return { v: Math.round(parseFloat(m[1]) * mult), r: mult === 1 ? 0 : mult / Math.pow(10, (m[2] || '').length) / 2 };
     };
+    const num = s => { const x = numR(s); return x ? x.v : 0; };
     const isDelta = s => /^[+-]?\d+(\.\d+)?%$/.test(String(s || ''));
     const isDate = s => /^[A-Z][a-z]{2} \d{1,2}, \d{4}$/.test(s);
     const RANGE = /^\d{2} [A-Z][a-z]{2} \d{2}$/;
@@ -270,19 +279,20 @@ function parseMetricoolPdf(pages) {
         return i < 0 ? { body: items, title: '', start: '', end: '' } : { body: items.slice(0, i), title: items[i + 3] || '', start: items[i], end: items[i + 2] };
     };
     const longYear = s => s.replace(/ (\d{2})$/, ' 20$1');
+    const fmtN = n => Math.round(n).toLocaleString('en-US');
 
-    const per = {}, deltas = {}, order = [];
+    const errors = [], warnings = [];
+    const per = {}, deltas = {}, order = [], totals = {};
     let period = { start: '', end: '' };
     const SUMMARY = { Followers: 'followers', Impressions: 'impressions', Interactions: 'interactions', Posts: 'posts' };
-    // Per-network tables: rows keyed by network, used to give each top post its platform and split.
-    const rows = [];
-    let net = null, mode = 'posts', overall = [], netIdx = -1, sawSummary = false;
+    const rows = [], sections = [];
+    let net = null, sec = null, mode = 'posts', overall = [], sawSummary = false;
 
     const parseTable = (body, network, kind) => {
         const h = body.indexOf('Published');
         if (h < 0) return [];
-        // Header labels run until the first date. Lowercase fragments ("views", "watched", "post")
-        // are a label wrapped onto a second line, so they join the label before them.
+        // Header labels run until the first date. Lowercase fragments ("views", "watched") are a
+        // label wrapped onto a second line, so they join the label before them.
         let k = h + 1;
         const cols = [];
         while (k < body.length && !isDate(body[k])) {
@@ -305,39 +315,67 @@ function parseMetricoolPdf(pages) {
         return out;
     };
     const pick = (v, ...keys) => { for (const key of keys) if (v[key] != null && v[key] !== '-') return num(v[key]); return 0; };
+    // The interaction split, under every name Metricool uses across networks.
+    const SPLIT = { likes: ['Likes', 'Reactions'], comments: ['Comments', 'Replies'], shares: ['Shares', 'Reposts', 'Quotes'],
+        saves: ['Saved'], clicks: ['Clicks', 'Actions', 'Profile clicks', 'Link clicks'] };
+    const rowSplit = v => ({
+        likes: pick(v, 'likes', 'reactions'), comments: pick(v, 'comments', 'replies'),
+        shares: pick(v, 'shares') + pick(v, 'reposts') + pick(v, 'quotes'),
+        saves: pick(v, 'saved'), clicks: pick(v, 'clicks', 'actions') + pick(v, 'profile clicks') + pick(v, 'link clicks')
+    });
 
     pages.forEach((items, idx) => {
         if (idx === 0) return;
         const { body, title, start, end } = meta(items);
         if (start && !period.start) period = { start: longYear(start), end: longYear(end) };
+        // A label's value is the next number after it; long labels wrap ("Average reach", "per day").
+        const kvR = label => {
+            const i = body.findIndex(s => s.trim() === label);
+            if (i < 0) return null;
+            for (let k = i + 1; k < Math.min(body.length, i + 3); k++) { const x = numR(body[k]); if (x) return x; }
+            return null;
+        };
+        const kv = label => { const x = kvR(label); return x ? x.v : null; };
+
         // Summary pages: "<total> <delta> <Network> <value> <delta> ..." titled Followers/Impressions/...
-        if (SUMMARY[title] && netOf(body[2])) {
+        if (SUMMARY[title] && body.length > 2 && !body.includes('Published') && (netOf(body[2]) || /^[A-Za-z][A-Za-z ]+$/.test(body[2] || ''))) {
             sawSummary = true;
-            for (let k = 2; k + 1 < body.length; k += 3) {
+            const metric = SUMMARY[title];
+            const total = numR(body[0]);
+            let sum = 0, slack = total ? total.r : 0;
+            for (let k = 2; k + 1 < body.length && /^[A-Za-z][A-Za-z ]*$/.test(body[k]); k += 3) {
                 const p = netOf(body[k]);
-                if (!p) break;
+                if (!p) { errors.push(`The report has a network this reader does not know yet: "${body[k]}". Nothing was filled in.`); return; }
                 if (!order.includes(p)) order.push(p);
-                (per[p] = per[p] || {})['_' + SUMMARY[title]] = num(body[k + 1]);
-                (deltas[p] = deltas[p] || {})[SUMMARY[title]] = isDelta(body[k + 2]) ? body[k + 2] : '';
+                const x = numR(body[k + 1]) || { v: 0, r: 0 };
+                (per[p] = per[p] || {})['_' + metric] = x.v;
+                (deltas[p] = deltas[p] || {})[metric] = isDelta(body[k + 2]) ? body[k + 2] : '';
+                sum += x.v; slack += x.r;
             }
+            totals[metric] = total ? total.v : null;
+            if (total && Math.abs(sum - total.v) > slack + 0.5)
+                errors.push(`${title}: the networks add up to ${fmtN(sum)} but the report's total is ${fmtN(total.v)}.`);
             return;
         }
         // Each network's section opens with its Community growth page, in the summary's order.
-        if (/^Community growth$/i.test(title)) { netIdx++; net = order[netIdx] || null; mode = 'posts'; }
+        if (/^Community growth$/i.test(title)) {
+            net = order[sections.length] || null;
+            sec = { net, followers: kv('Followers') ?? kv('Subscribers'), content: kv('Total content') ?? kv('Posts') ?? kv('Videos'), views: [], pages: 0 };
+            sections.push(sec);
+            mode = 'posts';
+        }
+        if (sec) {
+            sec.pages++;
+            // Every views-like headline in the section; one of them must be the summary's figure.
+            for (const l of ['Views', 'Impressions', 'Video views']) if (body[0] === l) { const x = kvR(l); if (x) sec.views.push(x); }
+        }
         if (/reel/i.test(title)) mode = 'reels'; else if (/post|video/i.test(title)) mode = 'posts';
         if (!net) {
             // Before the first network section: the cross-network ranking, sorted by impressions.
-            if (sawSummary && body.includes('Published')) overall = overall.concat(parseTable(body, null, 'all'));
+            if (sawSummary && !sections.length && body.includes('Published')) overall = overall.concat(parseTable(body, null, 'all'));
             return;
         }
         const pd = per[net] = per[net] || {};
-        // A label's value is the next number after it; long labels wrap ("Average reach", "per day").
-        const kv = label => {
-            const i = body.findIndex(s => s.trim() === label);
-            if (i < 0) return null;
-            for (let k = i + 1; k < Math.min(body.length, i + 3); k++) if (/^-?[\d.,]+[KM]?$/i.test(body[k])) return num(body[k]);
-            return null;
-        };
         if (/^Community growth$/i.test(title)) {
             const g = kv('Acquired') ?? kv('Gained'), l = kv('Lost');
             if (g != null) pd.followersGained = g;
@@ -353,58 +391,101 @@ function parseMetricoolPdf(pages) {
         // The interaction split for what was published, posts and reels added together. "Viewed"
         // pages (YouTube's interactions on any video, LinkedIn's content viewed) are not this period's posts.
         if (/^Interactions(:| of) ?(of )?published/i.test(title)) {
-            const add = (field, v) => { if (v != null) pd['_' + field] = (pd['_' + field] || 0) + v; };
-            add('likes', kv('Likes') ?? kv('Reactions'));
-            add('comments', kv('Comments'));
-            add('shares', kv('Shares'));
-            add('saves', kv('Saved'));
-            add('clicks', kv('Clicks') ?? kv('Actions'));
+            const part = {};
+            let r = 0;
+            for (const [field, labels] of Object.entries(SPLIT)) {
+                for (const l of labels) { const x = kvR(l); if (x) { part[field] = (part[field] || 0) + x.v; r += x.r; } }
+            }
+            const partSum = Object.values(part).reduce((a, b) => a + b, 0);
+            const printed = kvR('Interactions');
+            // Some reports print the total on one page and the split on the next, under the same
+            // title, so each of posts and reels is read once: a page with a split replaces one without.
+            const have = (pd._by = pd._by || {})[mode];
+            if (have && have.hasSplit && !partSum) return;
+            if (partSum && printed && Math.abs(partSum - printed.v) > r + printed.r + 0.5)
+                warnings.push(`${net} ${mode}: Metricool lists ${fmtN(partSum)} likes, comments, shares and clicks but prints ${fmtN(printed.v)} interactions. Kept ${fmtN(printed.v)}.`);
+            pd._by[mode] = { split: part, hasSplit: partSum > 0, total: printed ? printed.v : partSum, slack: r + (printed ? printed.r : 0) };
         }
         if (body.includes('Published') && body.includes('Go')) rows.push(...parseTable(body, net, mode));
     });
-    if (!order.length) return null;
+    if (!sawSummary || !order.length) return null;
+
+    // ── Structure checks: these decide whether the numbers can be trusted at all ──
+    ['followers', 'impressions', 'interactions', 'posts'].forEach(m => {
+        if (totals[m] === undefined) errors.push(`The ${m} summary page was not found.`);
+    });
+    if (sections.length !== order.length)
+        errors.push(`The summary lists ${order.length} networks (${order.join(', ')}) but the report has ${sections.length} network sections.`);
+    // Each section repeats its network's followers, posts and views, so a section read as the
+    // wrong network, or a summary figure moved onto the wrong network, shows up here.
+    sections.forEach((s, i) => {
+        const pd = s.net ? per[s.net] || {} : {};
+        if (s.net && s.followers != null && pd._followers != null && s.followers !== pd._followers)
+            errors.push(`Section ${i + 1} was read as ${s.net}, but its follower count (${fmtN(s.followers)}) is not ${s.net}'s (${fmtN(pd._followers)}).`);
+        if (s.net && s.content != null && pd._posts != null && s.content !== pd._posts)
+            errors.push(`Section ${i + 1} was read as ${s.net}, but its post count (${fmtN(s.content)}) is not ${s.net}'s (${fmtN(pd._posts)}).`);
+        if (s.net && s.views.length && pd._impressions != null && !s.views.some(x => Math.abs(x.v - pd._impressions) <= x.r * 2 + 1))
+            errors.push(`${s.net}: the summary gives ${fmtN(pd._impressions)} impressions, but its own section shows ${s.views.map(x => fmtN(x.v)).join(' / ')}.`);
+    });
 
     const metrics = {};
     order.forEach(p => {
         const pd = per[p] || {};
         const m = { followers: pd._followers || 0, impressions: pd._impressions || 0, videoViews: 0 };
         ['followersGained', 'followersLost', 'engRate', 'avgDailyReach'].forEach(f => { if (pd[f] != null) m[f] = pd[f]; });
-        const split = { likes: pd._likes || 0, comments: pd._comments || 0, shares: pd._shares || 0, saves: pd._saves || 0, clicks: pd._clicks || 0 };
+        const by = Object.values(pd._by || {});
+        pd._parts = by.length;
+        pd._pageTotal = by.reduce((a, x) => a + x.total, 0);
+        pd._slack = by.reduce((a, x) => a + x.slack, 0);
+        const split = { likes: 0, comments: 0, shares: 0, saves: 0, clicks: 0 };
+        by.forEach(x => { for (const [f, v] of Object.entries(x.split)) split[f] += v; });
         const sum = Object.values(split).reduce((a, b) => a + b, 0);
-        // Metricool's interaction total is the source of truth. If the split pages were missing or
-        // do not add up, the gap goes into likes so the platform total still matches the report.
-        if (pd._interactions != null && sum !== pd._interactions) split.likes += pd._interactions - sum;
+        const total = pd._interactions || 0;
+        if (pd._parts) {
+            // The pages' own totals must match the summary; if not, the section is not this network.
+            if (Math.abs(pd._pageTotal - total) > (pd._slack || 0) + 1)
+                errors.push(`${p}: its section adds to ${fmtN(pd._pageTotal)} interactions but the summary says ${fmtN(total)}.`);
+            else if (sum !== total && !warnings.some(w => w.startsWith(p + ' ')))
+                warnings.push(`${p}: the likes, comments, shares and clicks listed add to ${fmtN(sum)}, Metricool's total is ${fmtN(total)}. Kept ${fmtN(total)}.`);
+        } else if (total) {
+            warnings.push(`${p}: the report has no interaction breakdown, so all ${fmtN(total)} interactions are counted under likes.`);
+        }
+        // Metricool's interaction total is what the client sees in the report, so the platform
+        // total must equal it. The gap from its own arithmetic goes into likes and is warned above.
+        split.likes = Math.max(0, split.likes + total - sum);
         Object.assign(m, split);
-        const reels = pd._n_reels || 0, total = pd._posts || 0;
-        m.reelsPublished = reels;
-        m.postsPublished = Math.max(0, total - reels);
-        m._check = { interactions: pd._interactions || 0, posts: total };
+        const reels = pd._n_reels || 0, posts = pd._posts || 0;
+        if (pd._n_posts != null && pd._n_reels != null && pd._n_posts + pd._n_reels !== posts)
+            warnings.push(`${p}: ${pd._n_posts} posts and ${pd._n_reels} reels do not add to the ${posts} in the summary. Kept ${posts}.`);
+        m.reelsPublished = Math.min(reels, posts);
+        m.postsPublished = Math.max(0, posts - m.reelsPublished);
         metrics[p] = m;
     });
 
     const key = s => String(s || '').toLowerCase().replace(/\.\.\.$/, '').replace(/[^a-z0-9]+/g, '');
     const sameText = (a, b) => { const x = key(a), y = key(b), n = Math.min(x.length, y.length, 24); return n >= 6 && x.slice(0, n) === y.slice(0, n); };
+    const seen = x => pick(x.v, 'impressions', 'views', 'video views');
+    const acted = x => Object.values(rowSplit(x.v)).reduce((a, b) => a + b, 0);
     const topContent = overall.slice(0, 10).map(r => {
         const impressions = pick(r.v, 'impressions'), interactions = pick(r.v, 'interactions');
         // The same caption often goes out on several networks in the same minute, so the numbers
         // must agree too. No match leaves the platform blank rather than guessing.
-        const seen = x => pick(x.v, 'impressions', 'views', 'video views');
-        const acted = x => pick(x.v, 'likes', 'reactions') + pick(x.v, 'comments') + pick(x.v, 'shares') + pick(x.v, 'clicks', 'actions') + pick(x.v, 'saved');
         const m = rows.find(x => x.date === r.date && sameText(x.text, r.text) && seen(x) === impressions)
             || rows.find(x => x.date === r.date && sameText(x.text, r.text) && !seen(x) && acted(x) === interactions);
         const t = { title: r.text.replace(/\.\.\.$/, '…'), platform: m ? m.network : '', format: '', date: r.date, impressions,
             likes: 0, comments: 0, shares: 0, clicks: 0, reach: 0, interactions };
         if (m) {
-            t.likes = pick(m.v, 'likes', 'reactions');
-            t.comments = pick(m.v, 'comments');
-            t.shares = pick(m.v, 'shares');
-            t.clicks = pick(m.v, 'clicks', 'actions');
+            const s = rowSplit(m.v);
+            // Only show a split that accounts for the post's interactions; otherwise just the total.
+            if (s.likes + s.comments + s.shares + s.clicks + s.saves === interactions) Object.assign(t, { likes: s.likes, comments: s.comments, shares: s.shares, clicks: s.clicks });
             t.reach = pick(m.v, 'reach');
             t.format = m.kind === 'reels' ? 'Reel' : (m.network === 'YouTube' || m.network === 'TikTok') ? 'Video' : '';
         }
         return t;
     });
-    return { metrics, topContent, deltas, period, platforms: order };
+    const unplaced = topContent.filter(t => !t.platform).length;
+    if (unplaced) warnings.push(`${unplaced} of the top ${topContent.length} posts are not in any network's table in the PDF, so their platform is left blank.`);
+    return { metrics, topContent, deltas, period, platforms: order, errors: [...new Set(errors)], warnings };
 }
 
 // Text items per page, in reading order, for a PDF the user dropped in.
@@ -572,7 +653,8 @@ const app = {
     getSelectedPlatforms() { return Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value); },
 
     /* ══════════════════════════════════════ EXTRACT (per-platform) */
-    async extractData() {
+    async extractData(opts) {
+        opts = opts || {};
         const name = document.getElementById('client-name').value;
         const platforms = this.getSelectedPlatforms();
         const debug = document.getElementById('debug-log');
@@ -587,12 +669,22 @@ const app = {
         debug.style.display = 'none';
 
         try {
-            if (this.currentFile && this.currentFile.type === 'application/pdf' && !pasted) {
+            if (this.currentFile && this.currentFile.type === 'application/pdf' && !pasted && !opts.forceAI) {
                 let mc = null;
                 try { mc = parseMetricoolPdf(await pdfPages(this.currentFile) || []); } catch (e) { mc = null; }
+                if (mc && mc.errors.length) {
+                    // The PDF did not read the way a Metricool export should. Stop rather than show
+                    // numbers that look right and are not; the AI route stays available, labelled.
+                    btn.disabled = false; btn.innerHTML = 'Extract & Match Metrics &rarr;';
+                    debug.innerHTML = '<strong>This Metricool PDF did not pass its checks, so nothing was filled in.</strong><ul style="margin:6px 0 8px 18px;">' +
+                        mc.errors.map(e => '<li>' + String(e).replace(/</g, '&lt;') + '</li>').join('') + '</ul>' +
+                        'Send the PDF to Claude to fix the reader. <a href="#" onclick="app.extractData({forceAI:true}); return false;">Or extract it with AI instead</a> and check every number against the PDF.';
+                    debug.style.display = 'block';
+                    return;
+                }
                 if (mc) {
                     const plats = mc.platforms.filter(p => PLATFORM_FIELDS[p]);
-                    this.tempData = { _name: name, _topContent: mc.topContent, _deltas: mc.deltas, _period: mc.period, _local: this.normalizeLocal(null), _source: 'metricool' };
+                    this.tempData = { _name: name, _topContent: mc.topContent, _deltas: mc.deltas, _period: mc.period, _local: this.normalizeLocal(null), _source: 'metricool', _warnings: mc.warnings };
                     plats.forEach(p => { const m = Object.assign({}, mc.metrics[p]); delete m._check; this.tempData[p] = m; });
                     // A Metricool export covers the whole brand, so its networks replace the boxes ticked.
                     this.currentPlatforms = plats;
@@ -815,6 +907,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
                     <div class="conf-section-head"><span style="font-size:0.75rem;">📊</span> Global Total <span style="font-size:0.7rem; font-weight:500; color:var(--text-muted); margin-left:auto;">auto-calculated</span></div>
                     <div class="global-auto-row" id="global-auto-row">${globalTiles}</div>
                 </div>
+                ${(d._warnings && d._warnings.length) ? `<div style="font-size:0.78rem; color:var(--amber); background:var(--amber-bg); padding:10px 14px; border-radius:8px; margin:0 0 1rem;"><strong>Checked against the PDF. Worth a look:</strong><ul style="margin:6px 0 0 18px;">${d._warnings.map(w => '<li>' + String(w).replace(/</g, '&lt;') + '</li>').join('')}</ul></div>` : ''}
                 ${platSections}
                 ${this.localSectionHTML(platforms, d._local)}
                 <div style="margin-top:1rem;">
