@@ -157,6 +157,25 @@ export default {
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ── POST PREVIEW IMAGES: GET /pimg?k=<key> (public; these are already-public post graphics) ──
+    if (url.pathname === "/pimg" && request.method === "GET") {
+      const k = url.searchParams.get("k") || "";
+      if (!/^[a-f0-9]{40}$/.test(k)) return new Response("bad key", { status: 400, headers: corsHeaders });
+      const { value, metadata } = await env.MM_SYNC.getWithMetadata("pimg:" + k, "arrayBuffer");
+      if (!value) return new Response("not found", { status: 404, headers: corsHeaders });
+      return new Response(value, { headers: { ...corsHeaders, "Content-Type": (metadata && metadata.type) || "image/jpeg", "Cache-Control": "public, max-age=31536000, immutable" } });
+    }
+
+    // ── POST PREVIEWS: POST /post-previews (Stats app share links) ──
+    if (url.pathname === "/post-previews" && request.method === "POST") {
+      try {
+        const out = await postPreviews(env, await request.json(), url.origin);
+        return new Response(JSON.stringify(out), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: String(err && err.message || err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     // ── CLAUDE PROXY (existing — unchanged) ──
     if (request.method === "POST") {
       try {
@@ -511,6 +530,121 @@ async function syncToMoxie(env, { dry, expenses: given, deleted: givenDeleted })
   if (todo.length && !dry) { await addMoxieTodo(env, todo); await save(); }
 
   return { sent, updated, todo, failed, dry: !!dry };
+}
+
+// ── POST PREVIEWS ──
+// The Stats app's top posts come from a PDF or screenshot, so they carry a caption and platform but
+// no image. This finds each post in the client's Metricool analytics by caption, copies its graphic
+// into KV (social CDN links expire within days) and returns a stable /pimg URL per post.
+// Body: { client, start: "YYYY-MM-DD", end: "YYYY-MM-DD", posts: [{ title, platform }] }
+// Returns: { brand, previews: [url|null, ...] } in the order of posts.
+const MC_API = "https://app.metricool.com/api";
+const MC_NETS = {
+  instagram: [["posts", p => p.content, p => p.imageUrl], ["reels", p => p.content, p => p.imageUrl]],
+  facebook: [["posts", p => p.text || p.message || p.content, p => p.picture || p.imageUrl], ["reels", p => p.description || p.content || p.text, p => p.thumbnailUrl || p.imageUrl]],
+  linkedin: [["posts", p => p.comment || p.text, p => p.picture]],
+  tiktok: [["posts", p => p.videoDescription || p.title, p => p.coverImageUrl]],
+  twitter: [["posts", p => p.text, p => p.picture || p.imageUrl]],
+};
+const MC_FIELD = { instagram: "instagram", facebook: "facebook", linkedin: "linkedinCompany", tiktok: "tiktok", twitter: "twitter", youtube: "youtube" };
+
+const normText = s => String(s || "").toLowerCase().replace(/https?:\S+/g, " ").replace(/#\w+/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+const netOf = p => { const s = String(p || "").toLowerCase(); return /insta/.test(s) ? "instagram" : /face|fb/.test(s) ? "facebook" : /linked/.test(s) ? "linkedin" : /tik/.test(s) ? "tiktok" : /you|yt/.test(s) ? "youtube" : /twitter|^x\b|\bx$/.test(s) ? "twitter" : ""; };
+
+async function mcGet(env, path) {
+  const r = await fetch(MC_API + path, { headers: { "X-Mc-Auth": env.METRICOOL_TOKEN } });
+  if (!r.ok) throw new Error(`Metricool ${path.split("?")[0]} ${r.status}`);
+  return r.json();
+}
+
+// How well a report title matches a Metricool caption, 0 to 1. Report titles are usually the
+// caption's opening words, sometimes cut short or lightly reworded by the extractor.
+function matchScore(title, text) {
+  const a = normText(title), b = normText(text);
+  if (!a || !b) return 0;
+  const head = a.slice(0, 40);
+  if (b.startsWith(head) || b.includes(head)) return 1;
+  // Fallback: share of the title's distinctive words found in the caption. Common words are
+  // dropped, or any title "matches" any caption (a made-up title once scored 0.8 on filler alone).
+  const aw = [...new Set(a.split(" ").filter(w => w.length > 3 && !STOP.has(w)))], bw = new Set(b.split(" "));
+  if (aw.length < 4) return 0;
+  return aw.filter(w => bw.has(w)).length / aw.length;
+}
+const STOP = new Set("about after again also because been before being both could does doing down each even every from have here into just like look made make many more most much must need only other over post posts same should since some such than that their them then there these they this those through time very want were what when where which while will with would your youre yours don't dont isnt arent cant wont".split(" "));
+
+function pickBrand(brands, name, blogId) {
+  if (blogId) return brands.find(b => String(b.id) === String(blogId)) || null;
+  const want = normText(name);
+  if (!want) return null;
+  const wantW = want.split(" ").filter(w => w.length > 1 && !["and", "the", "of"].includes(w));
+  let best = null, bestS = 0;
+  for (const b of brands) {
+    const lab = normText(b.label);
+    const initials = lab.split(" ").filter(w => !["and", "the", "of"].includes(w)).map(w => w[0]).join("");
+    let s = lab === want ? 2 : (lab.includes(want) || want.includes(lab)) ? 1.5 : want.replace(/ /g, "") === initials ? 1.2 : 0;
+    if (!s && wantW.length) { const lw = new Set(lab.split(" ")); s = wantW.filter(w => lw.has(w)).length / wantW.length; }
+    if (s > bestS) { best = b; bestS = s; }
+  }
+  return bestS >= 0.6 ? best : null;
+}
+
+async function sha1Hex(s) {
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s)));
+  return [...h].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function postPreviews(env, body, origin) {
+  if (!env.METRICOOL_TOKEN) throw new Error("METRICOOL_TOKEN secret missing");
+  const posts = Array.isArray(body.posts) ? body.posts.slice(0, 20) : [];
+  const raw = await mcGet(env, "/admin/simpleProfiles");
+  const brand = pickBrand(Array.isArray(raw) ? raw : raw.data || [], body.client, body.blogId);
+  if (!brand) return { brand: null, previews: posts.map(() => null) };
+  const day = 864e5, iso = d => new Date(d).toISOString().slice(0, 10);
+  // Pad the window: report periods are hand-typed, and a post near the edge still belongs.
+  const s = Date.parse(body.start), e = Date.parse(body.end);
+  const from = iso((isNaN(s) ? Date.now() - 100 * day : s) - 7 * day), to = iso((isNaN(e) ? Date.now() : e) + 7 * day);
+  const tz = encodeURIComponent(brand.timezone || "America/Chicago");
+  const wanted = new Set(posts.map(p => netOf(p.platform)).filter(Boolean));
+  if (!wanted.size) Object.keys(MC_FIELD).forEach(n => wanted.add(n));
+  const cands = [];
+  const jobs = [];
+  for (const net of wanted) {
+    if (!brand[MC_FIELD[net]]) continue;
+    if (net === "youtube") {
+      jobs.push(mcGet(env, `/stats/youtube/videos?blogId=${brand.id}&start=${from.replace(/-/g, "")}&end=${to.replace(/-/g, "")}`).then(j => {
+        for (const v of (Array.isArray(j) ? j : j.data || [])) cands.push({ net, text: v.title + " " + (v.description || ""), img: (v.thumbnailUrl || "").replace("/default.", "/hqdefault.") });
+      }).catch(() => {}));
+      continue;
+    }
+    for (const [kind, txt, img] of MC_NETS[net] || []) {
+      jobs.push(mcGet(env, `/v2/analytics/${kind}/${net}?blogId=${brand.id}&from=${from}T00:00:00&to=${to}T23:59:59&timezone=${tz}`).then(j => {
+        for (const p of j.data || []) cands.push({ net, text: txt(p), img: img(p) });
+      }).catch(() => {}));
+    }
+  }
+  await Promise.all(jobs);
+  const previews = await Promise.all(posts.map(async p => {
+    const net = netOf(p.platform);
+    let best = null, bestS = 0;
+    for (const c of cands) {
+      if (!c.img) continue;
+      // Facebook only serves a 130px thumbnail, so the same cross-posted graphic from Instagram or
+      // LinkedIn wins over it; otherwise the post's own network wins a tie.
+      const sc = matchScore(p.title, c.text) + (net && c.net === net ? 0.05 : 0) - (/p130x130/.test(c.img) ? 0.1 : 0);
+      if (sc > bestS) { best = c; bestS = sc; }
+    }
+    if (!best || bestS < 0.6) return null;
+    const k = await sha1Hex(best.img.split("?")[0] + "|" + brand.id);
+    if (!(await env.MM_SYNC.get("pimg:" + k, "arrayBuffer"))) {
+      const r = await fetch(best.img);
+      if (!r.ok) return null;
+      const type = r.headers.get("content-type") || "image/jpeg";
+      if (!/^image\//.test(type)) return null;
+      await env.MM_SYNC.put("pimg:" + k, await r.arrayBuffer(), { metadata: { type } });
+    }
+    return `${origin}/pimg?k=${k}`;
+  }));
+  return { brand: brand.label, previews };
 }
 
 // ── AUTH HELPERS ──

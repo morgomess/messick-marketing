@@ -17,6 +17,7 @@ Breaking any of these breaks a live app:
 | `GET/POST /sync?key=dashboard` | Dashboard state |
 | `GET/POST /sync?key=engagement_*` | Engagement Finder |
 | `POST /` (root) | Stats app AI calls |
+| `POST /post-previews`, `GET /pimg` | Stats app share links: post preview images on `reports/view` |
 
 ## Auth (since 2026-09-22)
 
@@ -51,6 +52,13 @@ independently and a plain POST meant the second silently destroyed the first.
 - Returns `{ok, appended, duplicates, total, dropped}`.
 - Caps stored posts at 2000, keeping the most recent.
 
+**`POST /post-previews`** (added 2026-10-06) — body `{client, start, end, posts:[{title, platform}]}`.
+Finds the client's Metricool brand by name or initials, pulls its post analytics for the period
+(padded 7 days each side), matches each report title to a caption, copies the graphic into KV as
+`pimg:<sha1>` (no expiry; social CDN links die within days) and returns `{brand, previews:[url|null]}`.
+Facebook's own image is a 130px thumbnail, so a cross-posted Instagram or LinkedIn copy wins.
+Needs the `METRICOOL_TOKEN` secret. **`GET /pimg?k=<sha1>`** serves a stored graphic, no auth.
+
 **`POST /`** (any other path) — Anthropic proxy. Body is `{payload: <Messages API request>}`
 and the response is the raw Anthropic response, so read `content[0].text`.
 Note this is a **different contract** from the `messick-marketing-ai-proxy`
@@ -63,6 +71,7 @@ so dropping one from the config unbinds it in production:
 
 - `MM_SYNC` — KV namespace `aa76673f04354e25b5d56e4ace371c74`
 - `SHEET_WEBHOOK_URL` — plain text var
+- `METRICOOL_TOKEN` — **secret**, for `/post-previews` (copy in `~/.secrets/metricool-token.txt`).
 - `ANTHROPIC_KEY` — **secret**, preserved automatically across deploys. Never
   put it in `wrangler.toml`.
 

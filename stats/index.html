@@ -1716,7 +1716,7 @@ Give exactly 5 recommendations, ordered High impact first.`;
             { lbl: 'Posts', val: String(g.totalContent || 0), delta: md(g.totalContent || 0, pg && pg.totalContent || 0) }
         ];
         const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 10)
-            .map(t => ({ title: t.title, platform: t.platform, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), totalEng: t.totalEng || 0 }));
+            .map(t => ({ title: t.title, platform: t.platform, format: t.format || '', date: t.date || '', img: t.img || null, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), likes: t.likes || 0, comments: t.comments || 0, shares: t.shares || 0, totalEng: t.totalEng || 0 }));
         // Per-platform reach/interactions for the client report's Platform Breakdown chart
         const platforms = (c.platforms || []).map(p => {
             const pd = (c.perPlatform && c.perPlatform[p]) || {};
@@ -1730,9 +1730,32 @@ Give exactly 5 recommendations, ordered High impact first.`;
             competitors: (() => { const l = this.localData(c); return l && (l.competitors.rank || l.competitors.ahead.length) ? l.competitors : null; })()
         };
     },
-    shareLink(i) {
+    // Find each top post's graphic in Metricool (the report itself only gives us captions), so the
+    // client page can show post previews like the weekly review emails. Matched once, kept on the audit.
+    async attachPreviews(c) {
+        const top = (c.topContent || []).filter(t => t.title && t.img === undefined);
+        if (!top.length) return;
+        const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 30000);
+        try {
+            const day = s => { const d = Date.parse(s); return isNaN(d) ? '' : new Date(d - new Date(d).getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+            const r = await mmAuth.fetch('https://calm-rice-eb6b.morgan-2bf.workers.dev/post-previews', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+                body: JSON.stringify({ client: c.name, start: day(c.periodStart), end: day(c.periodEnd), posts: top.map(t => ({ title: t.title, platform: t.platform })) })
+            });
+            if (!r.ok) return;
+            const j = await r.json();
+            top.forEach((t, k) => { t.img = (j.previews && j.previews[k]) || null; });
+            this.persist();
+        } catch (e) { /* no previews is fine: the report falls back to the text list */ }
+        finally { clearTimeout(timer); }
+    },
+    async shareLink(i) {
         const c = this.clients[i];
         if (!c.findings) { alert('Generate the Findings & Analysis first (open the audit and let it analyze), then share.'); return; }
+        if ((c.topContent || []).some(t => t.title && t.img === undefined)) {
+            this.showShareBusy();
+            await this.attachPreviews(c);
+        }
         // Save the report to the Apps Script store so the share link can be a short id.
         const id = this.shareSlug(c) + '-' + Math.random().toString(36).slice(2, 7);
         const fd = new FormData();
@@ -1744,6 +1767,12 @@ Give exactly 5 recommendations, ordered High impact first.`;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => this.showShare(url, true)).catch(() => this.showShare(url, false));
         } else this.showShare(url, false);
+    },
+    showShareBusy() {
+        let ov = document.getElementById('share-overlay');
+        if (!ov) { ov = document.createElement('div'); ov.id = 'share-overlay'; ov.className = 'confirm-overlay'; document.body.appendChild(ov); }
+        ov.innerHTML = `<div class="confirm-dialog" style="max-width:500px; text-align:left;"><h3 style="margin-bottom:0.4rem;">Client share link</h3><p style="font-size:0.82rem; color:var(--text-muted);"><span class="loader"></span>&nbsp; Finding post previews in Metricool&hellip;</p></div>`;
+        ov.style.display = 'flex';
     },
     showShare(url, copied) {
         let ov = document.getElementById('share-overlay');

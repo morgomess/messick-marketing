@@ -86,6 +86,21 @@
   .tc-num{flex-shrink:0;text-align:right;font-family:var(--fh);font-weight:700;font-size:1.5rem;color:var(--black);line-height:1;font-variant-numeric:tabular-nums}
   .tc-num span{display:block;font-family:var(--fb);font-size:.55rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 
+  /* top content with post previews (same layout as the weekly review page) */
+  .tp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:640px){.tp-grid{grid-template-columns:1fr}}
+  .tp{display:grid;grid-template-columns:96px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;break-inside:avoid}
+  .tp-media{position:relative;width:96px;height:120px}
+  .tp-media img{position:absolute;inset:0;width:96px;height:120px;object-fit:cover;border-radius:6px;background:var(--gray-mid);display:block}
+  .tp-rank{position:absolute;top:6px;left:6px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:rgba(17,17,17,.78);color:#fff;font-size:.68rem;font-weight:600;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  .tp-txt{width:96px;height:120px;border-radius:6px;background:var(--ink);color:#c9c5bf;font-size:.6rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px}
+  .tp-body{min-width:0}
+  .tp-where{font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .tp-what{font-size:.92rem;font-weight:400;line-height:1.4;color:var(--black);margin:4px 0 9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .tp-stats{display:flex;flex-wrap:wrap;gap:6px}
+  .tp-stat{background:var(--gray);border-radius:4px;padding:2px 8px;font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tp-stat b{font-weight:600;color:var(--black)}
+
   /* recommendations */
   .rec{display:flex;gap:1.2rem;padding:1.15rem 0;border-bottom:1px solid var(--line)}
   .rec:last-child{border-bottom:none}
@@ -133,7 +148,7 @@
     .hero::after,.fb::after{display:none}
     .rv{opacity:1;transform:none}
     .fb,.rpt-foot .fn{display:none}
-    .block,.story,.tc-row,.rec,.win,.chart-row{break-inside:avoid}
+    .block,.story,.tc-row,.tp,.rec,.win,.chart-row{break-inside:avoid}
     .chart-fill{transition:none}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   }
@@ -189,7 +204,22 @@
     var top = d.top||[];
     var hasImpr = top.some(function(t){ return (t.impressions||0)>0; });
     var unit = hasImpr ? 'views' : 'interactions';
-    var topHTML = top.map(function(t,i){
+    var withImg = top.some(function(t){ return t.img; });
+    var topHTML = withImg ? '<div class="tp-grid">'+top.map(function(t,i){
+      var stats = [];
+      if((t.impressions||0)>0) stats.push([fmt(t.impressions), 'views']);
+      if((t.likes||0)>0) stats.push([fmt(t.likes), t.likes===1?'like':'likes']);
+      if((t.comments||0)>0) stats.push([fmt(t.comments), t.comments===1?'comment':'comments']);
+      if((t.shares||0)>0) stats.push([fmt(t.shares), t.shares===1?'share':'shares']);
+      if(!stats.length && (t.totalEng||0)>0) stats.push([fmt(t.totalEng), 'interactions']);
+      // The text tile sits under the image, so a graphic that fails to load falls back to it.
+      var media = '<div class="tp-txt">'+esc(t.format||t.platform||'Post')+'</div>'+
+        (t.img ? '<img src="'+esc(t.img)+'" alt="" loading="lazy" onerror="this.remove()">' : '');
+      return '<div class="tp"><div class="tp-media">'+media+'<span class="tp-rank">'+(i+1)+'</span></div>'+
+        '<div class="tp-body"><div class="tp-where">'+esc([t.platform, t.format, t.date].filter(Boolean).join(' · '))+'</div>'+
+        '<div class="tp-what">'+esc(t.title)+'</div>'+
+        '<div class="tp-stats">'+stats.map(function(s){ return '<span class="tp-stat"><b>'+esc(s[0])+'</b> '+esc(s[1])+'</span>'; }).join('')+'</div></div></div>';
+    }).join('')+'</div>' : top.map(function(t,i){
       var vf = hasImpr ? (t.impressionsFmt||t.impressions||0) : (t.totalEng||0);
       return '<div class="tc-row"><span class="tc-rank">'+(i+1)+'</span>'+
         '<div class="tc-main"><div class="tc-title">'+esc(t.title)+'</div><div class="tc-plat">'+esc(t.platform)+'</div></div>'+
