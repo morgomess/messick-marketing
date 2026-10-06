@@ -82,6 +82,8 @@
   .q-t{font-family:var(--fh);font-size:1.18rem;font-weight:500;line-height:1.4;color:var(--black)}
   .q-t:before{content:'“';color:var(--steel-lt)}.q-t:after{content:'”';color:var(--steel-lt)}
   .q-c{font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:.7rem}
+  .q-r{margin-top:.85rem;background:var(--steel-pale);border-radius:6px;padding:.7rem .85rem;font-size:.86rem;line-height:1.5;color:var(--ink)}
+  .q-rl{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin-bottom:.3rem}
   .tc-row{display:flex;align-items:center;gap:1.1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
   .tc-row:last-child{border-bottom:none}
   .tc-rank{flex-shrink:0;width:2.2rem;font-family:var(--fh);font-size:1.75rem;font-weight:500;color:var(--steel);line-height:1;font-variant-numeric:tabular-nums}
@@ -258,7 +260,7 @@
     }
 
     var quotes = (d.quotes||[]).map(function(q){
-      return '<div class="q"><div class="q-t">'+esc(q.text)+'</div>'+(q.cite?'<div class="q-c">'+esc(q.cite)+'</div>':'')+'</div>';
+      return '<div class="q"><div class="q-t">'+esc(q.text)+'</div>'+(q.cite?'<div class="q-c">'+esc(q.cite)+'</div>':'')+(q.reply?'<div class="q-r"><div class="q-rl">Our reply</div>'+esc(q.reply)+'</div>':'')+'</div>';
     }).join('');
     var recs = (d.recs||[]).map(function(r,i){
       return '<div class="rec"><div class="rec-n">'+(i+1)+'</div><div><div class="rec-t">'+esc(r.title)+impactBadge(r.impact)+'</div>'+
