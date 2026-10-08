@@ -2180,19 +2180,20 @@ Format: ${ratios.join(' and ')}` });
     for (const ratio of ratios) {
       genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
       let b64 = await genThumbImage(prompt, ratio, refs);
-      // Messick: a generated face never reads as the host to her, so the real face always
-      // goes on top and the likeness check is skipped.
-      const alwaysReal = /messick/i.test(brand?.channelName || '');
-      let check = alwaysReal ? { score: 10, issues: '' } : await checkLikeness(identity, b64, anchor);
+      // Messick (2026-10-08): her face bank photos are REFERENCES for a new image that fits
+      // the prompt, never pasted in. "Decent covers but using my exact photos" was the verdict
+      // on the always-composite version. The composite stays a last resort for client channels.
+      const noComposite = /messick/i.test(brand?.channelName || '');
+      let check = await checkLikeness(identity, b64, anchor);
       let method = 'generated';
-      if (!alwaysReal && check.score < LIKENESS_PASS) {
+      if (check.score < LIKENESS_PASS) {
         genOut.innerHTML = spinner(`Likeness ${check.score}/10, re-rolling with corrections...`);
         const retry = await genThumbImage(`${prompt}\n\nA previous attempt drifted from the real person: ${check.issues || 'the face did not match'}. Match the face in the person photos exactly${anchor ? ', with the face shape of the unretouched photo' : ''}.`, ratio, refs);
         const retryCheck = await checkLikeness(identity, retry, anchor);
         if (retryCheck.score > check.score) { b64 = retry; check = retryCheck; }
       }
-      if (alwaysReal || check.score < LIKENESS_PASS) {
-        genOut.innerHTML = spinner('Compositing the real person onto the design...');
+      if (!noComposite && check.score < LIKENESS_PASS) {
+        genOut.innerHTML = spinner('Still drifting. Compositing the real person onto the design...');
         try {
           b64 = await compositeRealPerson(b64, identity[0], ratio);
           method = 'composite';
@@ -2202,7 +2203,7 @@ Format: ${ratios.join(' and ')}` });
       // dividers, outlines, hands, typos, pun props) get checked on the finished image
       // and fixed with one in-place edit, kept only if the face still passes.
       let fixes = [];
-      if (method === 'generated' && !alwaysReal && check.score >= LIKENESS_PASS) {
+      if (method === 'generated' && check.score >= LIKENESS_PASS) {
         genOut.innerHTML = spinner('Checking layout rules...');
         const qa = await checkLayout(b64, plan.outfit).catch(e => { console.warn('layout qa', e); return { fixes: [] }; });
         if (qa.fixes.length) {
@@ -2222,7 +2223,7 @@ Format: ${ratios.join(' and ')}` });
         try { b64 = await applySkinTone(b64, tone / 100); } catch (e) { console.warn('skin tone', e); }
       }
       try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
-      results.push({ ratio, b64, score: alwaysReal ? null : check.score, issues: check.issues, method, fixes });
+      results.push({ ratio, b64, score: check.score, issues: check.issues, method, fixes });
     }
 
     generatedThumbB64 = results[0].b64;
