@@ -2180,10 +2180,10 @@ Format: ${ratios.join(' and ')}` });
     for (const ratio of ratios) {
       genOut.innerHTML = spinner(`Rendering ${ratio} redesign...`);
       let b64 = await genThumbImage(prompt, ratio, refs);
-      // Messick (2026-10-08): her face bank photos are REFERENCES for a new image that fits
-      // the prompt, never pasted in. "Decent covers but using my exact photos" was the verdict
-      // on the always-composite version. The composite stays a last resort for client channels.
-      const noComposite = /messick/i.test(brand?.channelName || '');
+      // Every channel, Messick included, runs the same path as the approved 2026-09-26 batch:
+      // generate from the face bank, likeness check, one re-roll, and the real-face composite
+      // only if the face still drifts. (Oct 2 made Messick always composite, and a same-day
+      // 10-08 change made it never composite; she wants it exactly as before.)
       let check = await checkLikeness(identity, b64, anchor);
       let method = 'generated';
       if (check.score < LIKENESS_PASS) {
@@ -2192,7 +2192,7 @@ Format: ${ratios.join(' and ')}` });
         const retryCheck = await checkLikeness(identity, retry, anchor);
         if (retryCheck.score > check.score) { b64 = retry; check = retryCheck; }
       }
-      if (!noComposite && check.score < LIKENESS_PASS) {
+      if (check.score < LIKENESS_PASS) {
         genOut.innerHTML = spinner('Still drifting. Compositing the real person onto the design...');
         try {
           b64 = await compositeRealPerson(b64, identity[0], ratio);
