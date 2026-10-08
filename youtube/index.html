@@ -1632,7 +1632,7 @@ EXPRESSIONS:
 - curious: open, interested look straight at the camera, brows raised, eyes bright, a small open smile; never a side-glance or smirk. Questions, news, new tools, "what this means for you".
 3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
 4. From the VIDEO FRAMES, describe what the host wears on top in this video: color and type, e.g. "olive green crew-neck t-shirt" or "navy blazer over a white shirt". If there are no frames or the host is not in them, use the CURRENT thumbnail; if neither shows the host, leave it empty. The page adds this to the prompt, so do not describe clothing in the prompt yourself.
-5. Write the image prompt. The image model receives the chosen PERSON photos first, then the chosen TREND thumbnail last. The page adds a header that labels those images, so do not number or describe the images yourself.
+5. Write the image prompt. The image model receives ONLY the chosen PERSON photos and one unretouched photo of the same person. It never sees the TREND thumbnail (a stranger's face in the references pulled the host's face toward the stranger), so put the borrowed composition into words: where the host sits and how large, where the text sits, the graphic device, the energy. The page adds a header that labels the images, so do not number or describe the images yourself.
 
 PROMPT RULES:
 - Borrow the trend's composition: where the person sits, how large they are, where the text sits, the graphic device (arrow, circle, split, badge) and the energy. Never copy its people, its words, its logos or its brand colors.
@@ -1675,6 +1675,8 @@ FIXED LAYOUT RULES (follow exactly):
 - Hands: none in frame unless a person photo shows that exact hand pose. The prop is not held; it floats as a flat graphic.
 - Prop meaning: the prop shows what the video means, never a literal pun on a word (no virus or germ for "viral", no fire for "hot", no bomb for "blow up").
 - Palette: graphics, icons, charts, arrows and lines use the channel's colors (navy, blue, white) plus a real logo's own colors. At most one small signal-color accent (a red X, a green check or arrow) when it carries meaning; no other colors.
+- Host size: head and shoulders, the head about a quarter of the frame width and never more than 30%, with a little air above the hair. Not a tight close-up.
+- Teeth: when the mouth is open, the teeth are the person photos' teeth: small, even, square-edged, the upper row only, gums barely showing. Never pointed, fanged, oversized or too many.
 
 MOST IMPORTANT: the host's face must be the exact person in the person photos: the same face shape, eye color, nose, mouth, teeth, skin, hair color and style, glasses and age. If any other image shows a person, ignore that person completely.
 ALSO: no white outline, stroke, sticker border or glow around the host. Their hair and shoulders meet the background directly, as if photographed in that setting.`;
@@ -1716,6 +1718,7 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - a prop that is a literal pun on a word (a virus or germ for "viral")
 - a graphic whose message contradicts the headline (for example red X marks over the very thing the headline says works)
 - app icons or logos that are garbled, half-drawn or misspelled
+- teeth that look pointed, fanged, oversized, too many or too prominent (the fix: make the teeth small, even and square-edged, upper row only, as in the person photos)
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
@@ -1915,27 +1918,125 @@ function setSkinTone(v) {
   try { localStorage.setItem('mm_skin_tone_' + brand.channelId, String(Number(v) || 0)); } catch (e) { /* blocked */ }
 }
 
-async function compositeRealPerson(designB64, personRef, ratio) {
-  // 1. The same design with the person removed
-  const plateB64 = await genThumbImage('Remove the person from image 1 completely and fill the space with the surrounding background so it looks like no one was ever there. Keep every piece of text, every graphic, every color and the whole layout exactly unchanged.', ratio, [{ mimeType: b64Mime(designB64), data: designB64 }]);
-  // 2. Where the person sat in the design, and the real person
-  const [design, real] = await Promise.all([cutoutPerson(designB64), cutoutPerson(personRef.data)]);
+// Paints the design's person out of the plate locally when the image model left them in.
+// Verified 2026-10-08: the "remove the person" edit returned the plate with the fake host's
+// body still there, so every composite had pasted her face onto a stranger's shoulders.
+async function cleanPlate(plateB64, design) {
   const plate = await b64ToBitmap(plateB64);
-  const out = document.createElement('canvas'); out.width = plate.width; out.height = plate.height;
+  const PW = plate.width, PH = plate.height;
+  const out = document.createElement('canvas'); out.width = PW; out.height = PH;
+  const ctx = out.getContext('2d'); ctx.drawImage(plate, 0, 0);
+  let left = null;
+  try { left = await cutoutPerson(plateB64); } catch (e) { return { canvas: out, cleaned: false }; }
+  if (!(left.face.w > PW * 0.03)) return { canvas: out, cleaned: false };
+  // Union of the design person's silhouette and what the plate still shows, grown ~2.5% of width.
+  const m = document.createElement('canvas'); m.width = PW; m.height = PH;
+  const mctx = m.getContext('2d');
+  mctx.drawImage(design.canvas, 0, 0, design.W, design.H, 0, 0, PW, PH);
+  mctx.drawImage(left.canvas, 0, 0);
+  mctx.globalCompositeOperation = 'source-in'; mctx.fillStyle = '#fff'; mctx.fillRect(0, 0, PW, PH);
+  const dil = document.createElement('canvas'); dil.width = PW; dil.height = PH;
+  const dctx = dil.getContext('2d'); dctx.filter = `blur(${PW * 0.012}px)`; dctx.drawImage(m, 0, 0);
+  const md = dctx.getImageData(0, 0, PW, PH); const a = md.data;
+  for (let i = 3; i < a.length; i += 4) a[i] = a[i] > 20 ? 255 : 0;
+  dctx.putImageData(md, 0, 0);
+  const hard = dctx.getImageData(0, 0, PW, PH).data;
+  // Fill each masked run from the clean pixels on either side of it (the plates are blurred
+  // rooms, so a horizontal smear reads as more room), then blur the fill and feather its edge.
+  const img = ctx.getImageData(0, 0, PW, PH); const p = img.data;
+  for (let y = 0; y < PH; y++) {
+    let x = 0;
+    while (x < PW) {
+      if (hard[(y * PW + x) * 4 + 3]) {
+        let x1 = x; while (x1 < PW && hard[(y * PW + x1) * 4 + 3]) x1++;
+        const srcL = Math.max(0, x - 6), srcR = Math.min(PW - 1, x1 + 5);
+        const useL = x > 8, useR = x1 < PW - 8;
+        for (let xx = x; xx < x1; xx++) {
+          const iL = (y * PW + srcL) * 4, iR = (y * PW + srcR) * 4, i = (y * PW + xx) * 4;
+          const t = useL && useR ? (xx - x) / Math.max(1, x1 - x) : (useL ? 0 : 1);
+          for (let c = 0; c < 3; c++) p[i + c] = p[iL + c] * (1 - t) + p[iR + c] * t;
+        }
+        x = x1;
+      } else x++;
+    }
+  }
+  const filled = document.createElement('canvas'); filled.width = PW; filled.height = PH;
+  filled.getContext('2d').putImageData(img, 0, 0);
+  const soft = document.createElement('canvas'); soft.width = PW; soft.height = PH;
+  const sctx = soft.getContext('2d'); sctx.filter = `blur(${PW * 0.01}px)`; sctx.drawImage(filled, 0, 0);
+  const feather = document.createElement('canvas'); feather.width = PW; feather.height = PH;
+  const fctx = feather.getContext('2d'); fctx.filter = `blur(${PW * 0.006}px)`; fctx.drawImage(dil, 0, 0);
+  sctx.filter = 'none'; sctx.globalCompositeOperation = 'destination-in'; sctx.drawImage(feather, 0, 0);
+  ctx.drawImage(soft, 0, 0);
+  return { canvas: out, cleaned: true };
+}
+
+// The real-face composite, the fallback when the generated face still drifts after a re-roll.
+// Rebuilt 2026-10-08 after "I look like a total loser": the plate is verified and cleaned, the
+// face is matched to the designed face but capped at 16% of the width with air above the hair,
+// the sides the selfie frame cut are faded so no photo edge shows, and the cutout is lit into
+// the scene (tint toward the plate, a soft cool rim on the edge facing the type, a shadow behind).
+async function compositeRealPerson(designB64, personRef, ratio, hostSide) {
+  const rawPlate = await genThumbImage('Remove the person from image 1 completely and fill the space with the surrounding background so it looks like no one was ever there: no hair, no face, no shoulders, no clothing left anywhere. Keep every piece of text, every graphic, every color and the whole layout exactly unchanged.', ratio, [{ mimeType: b64Mime(designB64), data: designB64 }]);
+  const [design, real] = await Promise.all([cutoutPerson(designB64), cutoutPerson(personRef.data)]);
+  const plate = (await cleanPlate(rawPlate, design)).canvas;
+  const PW = plate.width, PH = plate.height;
+  const sx = PW / design.W, sy = PH / design.H;
+  const faceFrac = (design.face.w * sx) / PW;
+  if (!(faceFrac > 0.05 && faceFrac < 0.35)) throw new Error('design face size out of range (' + Math.round(faceFrac * 100) + '% of width)');
+  let scale = (design.face.w * sx) / real.face.w;
+  const maxFace = 0.16 * PW;
+  if (real.face.w * scale > maxFace) scale = maxFace / real.face.w;
+  const cw = real.box.w * scale, ch = real.box.h * scale;
+  let dx = design.face.cx * sx - (real.face.cx - real.box.x) * scale;
+  let dy = design.face.cy * sy - (real.face.cy - real.box.y) * scale;
+  dy = Math.max(dy, PH * 0.03);
+  const faceCy = dy + (real.face.cy - real.box.y) * scale;
+  if (faceCy < PH * 0.28) dy += PH * 0.28 - faceCy;
+  const hostRight = (hostSide || 'right') !== 'left';
+  if (hostRight && dx + cw < PW * 0.92) dx = PW * 0.92 - cw;
+  if (!hostRight && dx > PW * 0.08) dx = PW * 0.08;
+  // Which source edges cut the body: a side counts when the silhouette runs within 2% of it.
+  const touches = { left: real.box.x <= real.W * 0.02, right: real.box.x + real.box.w >= real.W * 0.98, bottom: real.box.y + real.box.h >= real.H * 0.98 };
+  const pc = document.createElement('canvas'); pc.width = PW; pc.height = PH;
+  const pctx = pc.getContext('2d');
+  pctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, cw, ch);
+  const fade = (x0, y0, x1, y1) => { const g = pctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); pctx.globalCompositeOperation = 'destination-in'; pctx.fillStyle = g; pctx.fillRect(0, 0, PW, PH); pctx.globalCompositeOperation = 'source-over'; };
+  const faceBottom = dy + (real.face.y + real.face.h - real.box.y) * scale;
+  if (touches.left && dx > -cw * 0.05) fade(dx + cw * 0.22, 0, dx, 0);
+  if (touches.right && dx + cw < PW * 1.02) fade(dx + cw * 0.78, 0, dx + cw, 0);
+  if (touches.bottom && dy + ch < PH * 1.02) fade(0, Math.max(faceBottom + ch * 0.06, dy + ch * 0.70), 0, dy + ch);
+  fade(0, PH * 0.80, 0, PH * 1.02);
+  // Tint toward the plate's average color so the photo's room light takes on the design's cast.
+  const sc = document.createElement('canvas'); sc.width = 8; sc.height = 8;
+  sc.getContext('2d').drawImage(plate, 0, 0, 8, 8);
+  const px = sc.getContext('2d').getImageData(0, 0, 8, 8).data;
+  let r = 0, g = 0, b = 0; for (let i = 0; i < px.length; i += 4) { r += px[i]; g += px[i + 1]; b += px[i + 2]; }
+  const n = px.length / 4; r /= n; g /= n; b /= n;
+  pctx.globalCompositeOperation = 'source-atop';
+  pctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},0.14)`; pctx.fillRect(0, 0, PW, PH);
+  pctx.globalCompositeOperation = 'source-over';
+  // Rim light: the silhouette shifted toward the type and up, minus itself, blurred, cool white.
+  const sil = document.createElement('canvas'); sil.width = PW; sil.height = PH;
+  const silctx = sil.getContext('2d');
+  silctx.drawImage(pc, 0, 0); silctx.globalCompositeOperation = 'source-in'; silctx.fillStyle = '#d6e6ff'; silctx.fillRect(0, 0, PW, PH);
+  const rim = document.createElement('canvas'); rim.width = PW; rim.height = PH;
+  const rctx = rim.getContext('2d');
+  const shift = Math.max(3, PW * 0.006) * (hostRight ? -1 : 1);
+  rctx.drawImage(sil, shift, -Math.abs(shift) * 0.6);
+  rctx.globalCompositeOperation = 'destination-out'; rctx.drawImage(sil, 0, 0);
+  rctx.globalCompositeOperation = 'source-over';
+  const rimBlur = document.createElement('canvas'); rimBlur.width = PW; rimBlur.height = PH;
+  const rbctx = rimBlur.getContext('2d'); rbctx.filter = `blur(${Math.max(1.5, PW * 0.0025)}px)`; rbctx.drawImage(rim, 0, 0);
+  // Assemble: plate, soft shadow falling toward the type, the person, the rim.
+  const out = document.createElement('canvas'); out.width = PW; out.height = PH;
   const ctx = out.getContext('2d');
   ctx.drawImage(plate, 0, 0);
-  // Match the real FACE to the designed face: same width, same center. The hair and the body
-  // run to wherever they run (usually off an edge), as in the design.
-  const sx = plate.width / design.W, sy = plate.height / design.H;
-  const faceFrac = (design.face.w * sx) / plate.width;
-  // A face in these designs runs about 8-25% of the width. Outside 5-35% the design's person
-  // was not read properly (text or a prop taken for the face), so refuse and keep the generated
-  // image rather than ship a broken composite.
-  if (!(faceFrac > 0.05 && faceFrac < 0.35)) throw new Error('design face size out of range (' + Math.round(faceFrac * 100) + '% of width)');
-  const scale = (design.face.w * sx) / real.face.w;
-  const dx = design.face.cx * sx - (real.face.cx - real.box.x) * scale;
-  const dy = design.face.cy * sy - (real.face.cy - real.box.y) * scale;
-  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scale, real.box.h * scale);
+  const dark = document.createElement('canvas'); dark.width = PW; dark.height = PH;
+  const dctx = dark.getContext('2d'); dctx.drawImage(sil, shift * 3, PH * 0.01); dctx.globalCompositeOperation = 'source-in'; dctx.fillStyle = '#000'; dctx.fillRect(0, 0, PW, PH);
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.filter = `blur(${PW * 0.012}px)`; ctx.globalAlpha = 0.6; ctx.drawImage(dark, 0, 0); ctx.restore();
+  ctx.save(); ctx.filter = 'contrast(1.05) saturate(0.96)'; ctx.drawImage(pc, 0, 0); ctx.restore();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(rimBlur, 0, 0); ctx.restore();
   return out.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
@@ -2158,14 +2259,18 @@ Format: ${ratios.join(' and ')}` });
     const plan = parseJSON(await callAI(buildSystem(REDESIGN_SYSTEM + REDESIGN_STYLE), content)) || {};
     if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
 
-    // Two retouched photos + one real anchor + the trend = the worker's four-image cap.
-    const picked = (plan.photos || []).map(n => people[n - 1]).filter(Boolean).slice(0, 2);
-    const identity = picked.length ? picked : people.slice(0, 2);
+    // Three retouched photos + one real anchor = the worker's four-image cap. The trend
+    // thumbnail stays out of the image refs since 2026-10-08: with it in, the generated face
+    // drifted toward the trend's creator (likeness 0/10 on the ChatGPT video); with it out and
+    // a third photo of her in, 9/10 first roll.
+    const picked = (plan.photos || []).map(n => people[n - 1]).filter(Boolean).slice(0, 3);
+    const identity = picked.length ? picked : people.slice(0, 3);
+    for (const p of people) { if (identity.length >= 3) break; if (!identity.includes(p)) identity.push(p); }
     // Anchor: the video frame that shows the host best (the real face in this very video),
     // else a REAL face bank photo. Retouched photos alone drift slimmer every pass.
     const anchor = frames[(plan.host_frame || 0) - 1] || (styled.length ? realPhotos[0] : null) || null;
     const trend = trends[(plan.trend || 0) - 1] || null;
-    const refs = [...identity, ...(anchor ? [anchor] : []), ...(trend ? [trend] : [])];
+    const refs = [...identity, ...(anchor ? [anchor] : [])];
     // Wardrobe goes last so it wins over the one outfit every face bank photo shares.
     // A typed shirt wins over the detected one.
     const typedOutfit = (document.getElementById('redesign-outfit')?.value || '').trim();
@@ -2174,7 +2279,7 @@ Format: ${ratios.join(' and ')}` });
     plan.expression = EXPRESSIONS[plan.expressionId];
     const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. It must read instantly at phone size, exaggerated for a thumbnail, never neutral or a faint smile. When teeth show, they are clean and naturally white, not yellowed, and keep their real shape. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
     const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.` : '';
-    const prompt = `${redesignRoleHeader(identity.length, !!trend, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
+    const prompt = `${redesignRoleHeader(identity.length, false, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
 
     const results = [];
     for (const ratio of ratios) {
@@ -2195,7 +2300,7 @@ Format: ${ratios.join(' and ')}` });
       if (check.score < LIKENESS_PASS) {
         genOut.innerHTML = spinner('Still drifting. Compositing the real person onto the design...');
         try {
-          b64 = await compositeRealPerson(b64, identity[0], ratio);
+          b64 = await compositeRealPerson(b64, identity[0], ratio, plan.host_side);
           method = 'composite';
         } catch (e) { console.warn('composite', e); method = 'generated (composite failed: ' + e.message + ')'; }
       }
@@ -2211,7 +2316,7 @@ Format: ${ratios.join(' and ')}` });
           try {
             const fixPrompt = 'Image 1 is a finished YouTube thumbnail. Make only these fixes and keep everything else exactly as it is, including all text, the layout and the person:\n- ' +
               qa.fixes.join('\n- ') + '\nThe other images show the real person; their face must keep matching them exactly.';
-            const fixed = await genThumbImage(fixPrompt, ratio, [{ mimeType: b64Mime(b64), data: b64 }, ...identity, ...(anchor ? [anchor] : [])].slice(0, 4));
+            const fixed = await genThumbImage(fixPrompt, ratio, [{ mimeType: b64Mime(b64), data: b64 }, ...identity.slice(0, anchor ? 2 : 3), ...(anchor ? [anchor] : [])]);
             const fixedCheck = await checkLikeness(identity, fixed, anchor);
             if (fixedCheck.score >= LIKENESS_PASS) { b64 = fixed; check = fixedCheck; fixes = qa.fixes; }
           } catch (e) { console.warn('layout fix', e); }
