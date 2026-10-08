@@ -1743,13 +1743,19 @@ async function getSegmenter() {
   return _segmenter;
 }
 
-// Cuts the person out of an image. Returns { canvas (transparent background), box }.
+// Cuts the person out of an image. Returns { canvas (transparent background), box, face }.
+// The FACE box comes from the segmenter's own face-skin class. It used to come from walking
+// the silhouette down "until it widened into the shoulders": on her photo that stopped at the
+// crown of the hair, read a 60 px tuft as the head, and the composite scaled her up until only
+// hair was in frame (episode 02, 2026-10-08). The 12-30% clamp could not catch it, because it
+// clamped the mismeasured number. Hair is left out on purpose: hair volume differs between a
+// generated head and her photo, the face does not.
 async function cutoutPerson(b64) {
   const seg = await getSegmenter();
   const bmp = await b64ToBitmap(b64);
   const result = seg.segment(bmp);
-  const bgMask = result.confidenceMasks[0];
-  const mw = bgMask.width, mh = bgMask.height, bg = bgMask.getAsFloat32Array();
+  const bgMask = result.confidenceMasks[0], faceMask = result.confidenceMasks[3];
+  const mw = bgMask.width, mh = bgMask.height, bg = bgMask.getAsFloat32Array(), fs = faceMask.getAsFloat32Array();
   // Alpha from 1 - background confidence, with a tight ramp so edges stay crisp.
   const maskCanvas = document.createElement('canvas'); maskCanvas.width = mw; maskCanvas.height = mh;
   const md = maskCanvas.getContext('2d').createImageData(mw, mh);
@@ -1758,7 +1764,17 @@ async function cutoutPerson(b64) {
     md.data[i * 4 + 3] = Math.round(a * 255);
   }
   maskCanvas.getContext('2d').putImageData(md, 0, 0);
+  // Face box: the span holding the middle 96% of the face-skin mass on each axis, so a few
+  // stray pixels (an ear, a hand near the cheek) cannot stretch it.
+  const colSum = new Float32Array(mw), rowSum = new Float32Array(mh);
+  let faceMass = 0;
+  for (let i = 0; i < fs.length; i++) if (fs[i] > 0.5) { colSum[i % mw] += fs[i]; rowSum[(i / mw) | 0] += fs[i]; faceMass += fs[i]; }
   result.close();
+  const span = (sums, total) => {
+    let acc = 0, lo = -1, hi = -1;
+    for (let i = 0; i < sums.length; i++) { acc += sums[i]; if (lo < 0 && acc >= total * 0.02) lo = i; if (acc >= total * 0.98) { hi = i; break; } }
+    return [lo, hi];
+  };
   const W = bmp.width, H = bmp.height;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
@@ -1773,26 +1789,13 @@ async function cutoutPerson(b64) {
     if (d[(y * W + x) * 4 + 3] > 128) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   }
   if (x1 <= x0 || y1 <= y0) throw new Error('No person found to cut out.');
-  // Head: walk down from the top until the silhouette widens into the shoulders.
-  // Bodies get cropped differently in each image, so heads are what we align.
-  const rows = [];
-  for (let y = y0; y <= y1; y += 2) {
-    let a = -1, b = -1;
-    for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 128) { if (a < 0) a = x; b = x; }
-    if (a >= 0) rows.push({ y, a, b, w: b - a });
-  }
-  let end = rows.length;
-  for (let i = 8; i < rows.length; i++) {
-    const prior = rows.slice(Math.max(0, i - 8), i).map(r => r.w).sort((p, q) => p - q);
-    if (rows[i].w > prior[prior.length >> 1] * 1.45) { end = i; break; }
-  }
-  const band = rows.slice(Math.floor(end * 0.3), Math.max(Math.floor(end * 0.7), Math.floor(end * 0.3) + 1));
-  const head = {
-    top: y0,
-    w: band.map(r => r.w).sort((p, q) => p - q)[band.length >> 1],
-    cx: band.reduce((s, r) => s + (r.a + r.b) / 2, 0) / band.length
-  };
-  return { canvas: c, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, head, W, H };
+  // The face must be a real face, not a smear: at least 0.2% of the image.
+  if (faceMass < mw * mh * 0.002) throw new Error('No face found to align.');
+  const [fx0, fx1] = span(colSum, faceMass), [fy0, fy1] = span(rowSum, faceMass);
+  if (fx1 <= fx0 || fy1 <= fy0) throw new Error('No face found to align.');
+  const kx = W / mw, ky = H / mh;
+  const face = { x: fx0 * kx, y: fy0 * ky, w: (fx1 - fx0 + 1) * kx, h: (fy1 - fy0 + 1) * ky, cx: (fx0 + fx1 + 1) / 2 * kx, cy: (fy0 + fy1 + 1) / 2 * ky };
+  return { canvas: c, box: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, face, W, H };
 }
 
 // Face landmarks (MediaPipe FaceLandmarker, Apache-2.0): used to keep the eyes out of the
@@ -1921,18 +1924,18 @@ async function compositeRealPerson(designB64, personRef, ratio) {
   const out = document.createElement('canvas'); out.width = plate.width; out.height = plate.height;
   const ctx = out.getContext('2d');
   ctx.drawImage(plate, 0, 0);
-  // Match the real head to the designed head: same width, same center, same top.
-  // The body below simply runs to wherever it runs (usually off the bottom edge).
+  // Match the real FACE to the designed face: same width, same center. The hair and the body
+  // run to wherever they run (usually off an edge), as in the design.
   const sx = plate.width / design.W, sy = plate.height / design.H;
-  const scale = (design.head.w * sx) / real.head.w;
-  // A bad head measurement (text or props read as the person, or a shoulder-width "head")
-  // once scaled the cutout until only hair was left in frame. Heads in these designs run
-  // 12-30% of the width, so clamp to that range rather than ship a broken composite.
-  const headFrac = (real.head.w * scale) / plate.width;
-  const scaleFixed = Math.min(0.3, Math.max(0.12, headFrac)) * plate.width / real.head.w;
-  const dx = design.head.cx * sx - (real.head.cx - real.box.x) * scaleFixed;
-  const dy = design.head.top * sy - (real.head.top - real.box.y) * scaleFixed;
-  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scaleFixed, real.box.h * scaleFixed);
+  const faceFrac = (design.face.w * sx) / plate.width;
+  // A face in these designs runs about 8-25% of the width. Outside 5-35% the design's person
+  // was not read properly (text or a prop taken for the face), so refuse and keep the generated
+  // image rather than ship a broken composite.
+  if (!(faceFrac > 0.05 && faceFrac < 0.35)) throw new Error('design face size out of range (' + Math.round(faceFrac * 100) + '% of width)');
+  const scale = (design.face.w * sx) / real.face.w;
+  const dx = design.face.cx * sx - (real.face.cx - real.box.x) * scale;
+  const dy = design.face.cy * sy - (real.face.cy - real.box.y) * scale;
+  ctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, real.box.w * scale, real.box.h * scale);
   return out.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
