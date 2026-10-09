@@ -2045,6 +2045,336 @@ async function compositeRealPerson(designB64, personRef, ratio, hostSide) {
   return out.toDataURL('image/jpeg', 0.92).split(',')[1];
 }
 
+// --- Real frame: pull the host from the video itself (2026-10-09) ---
+// Her channel grid read as "a different near-me in every tile" with generated faces. The fix
+// she asked for: build thumbnails from a real pull of the video. The browser decodes the local
+// MP4 (the no-FX export she drops in Downloads), steps through it, reads each frame's face
+// with MediaPipe blendshapes, and offers the sharpest frame per expression. The chosen frame
+// is cut out and placed on a generated no-person plate with the light wrap. No generated face.
+
+let _exprLandmarker = null;
+async function getExpressionLandmarker() {
+  if (_exprLandmarker) return _exprLandmarker;
+  const base = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1';
+  const vision = await import(`${base}/+esm`);
+  const fileset = await vision.FilesetResolver.forVisionTasks(`${base}/wasm`);
+  _exprLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task' },
+    runningMode: 'IMAGE', numFaces: 1, outputFaceBlendshapes: true
+  });
+  return _exprLandmarker;
+}
+
+// Expression scores from blendshapes. Every class wants eyes open, eyes on the lens and a
+// frontal head; skeptic allows a little turn. Scores are relative, the top 3 per class win.
+const FRAME_CLASSES = ['grin', 'curious', 'shock', 'skeptic', 'worried', 'lean', 'neutral'];
+function scoreExpressions(bs) {
+  const g = n => bs[n] || 0;
+  const smile = (g('mouthSmileLeft') + g('mouthSmileRight')) / 2;
+  const jaw = g('jawOpen');
+  const browIn = g('browInnerUp');
+  const browOut = (g('browOuterUpLeft') + g('browOuterUpRight')) / 2;
+  const browAsym = Math.abs(g('browOuterUpLeft') - g('browOuterUpRight'));
+  const browDown = (g('browDownLeft') + g('browDownRight')) / 2;
+  const eyeWide = (g('eyeWideLeft') + g('eyeWideRight')) / 2;
+  const frown = (g('mouthFrownLeft') + g('mouthFrownRight')) / 2;
+  const press = (g('mouthPressLeft') + g('mouthPressRight')) / 2;
+  return {
+    grin: smile * 1.2 + g('eyeSquintLeft') * 0.1 + g('eyeSquintRight') * 0.1,
+    curious: browIn * 0.6 + browOut * 0.6 + smile * 0.4 + eyeWide * 0.3 - jaw * 0.4,
+    shock: jaw * 0.8 + eyeWide * 0.8 + browIn * 0.6 - smile * 0.5,
+    skeptic: browAsym * 1.5 + g('mouthClose') * 0.3 + press * 0.3 - smile * 0.3 - jaw * 0.5,
+    worried: browIn * 0.8 + browDown * 0.3 + frown * 0.5 - smile * 0.6,
+    lean: Math.max(0, 1 - Math.abs(jaw - 0.3) / 0.3) * 0.8 + eyeWide * 0.2 - smile * 0.2,
+    neutral: Math.max(0, 1 - (smile + jaw + browIn + browOut + eyeWide))
+  };
+}
+
+// Steps through a video file and returns candidate frames per expression.
+// opts.step seconds between samples (default 0.5), opts.onProgress(fraction, text).
+async function pullFramesFromVideo(file, opts = {}) {
+  const step = opts.step || 0.5;
+  const lm = await getExpressionLandmarker();
+  const url = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.muted = true; video.playsInline = true; video.preload = 'auto'; video.src = url;
+  await new Promise((res, rej) => { video.onloadedmetadata = res; video.onerror = () => rej(new Error('Could not open that video in the browser (try an H.264 MP4).')); });
+  const W = video.videoWidth, H = video.videoHeight, dur = video.duration;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  const small = document.createElement('canvas'); small.width = Math.round(W / 4); small.height = Math.round(H / 4);
+  const sctx = small.getContext('2d', { willReadFrequently: true });
+  const seekTo = t => new Promise((res, rej) => { const done = () => { video.removeEventListener('seeked', done); res(); }; video.addEventListener('seeked', done); video.onerror = () => rej(new Error('seek failed')); video.currentTime = t; });
+  const samples = [];
+  for (let t = 1; t < dur - 1; t += step) {
+    await seekTo(t);
+    ctx.drawImage(video, 0, 0, W, H);
+    const r = lm.detect(c);
+    const face = r.faceLandmarks?.[0];
+    const bsList = r.faceBlendshapes?.[0]?.categories;
+    if (!face || !bsList) continue;
+    const bs = {}; bsList.forEach(b => { bs[b.categoryName] = b.score; });
+    // eyes open, eyes on the lens, head roughly frontal
+    const blink = Math.max(bs.eyeBlinkLeft || 0, bs.eyeBlinkRight || 0);
+    const gaze = (iris, inner, outer) => Math.abs((face[iris].x - face[inner].x) / ((face[outer].x - face[inner].x) || 1e-3) - 0.5);
+    const gazeOff = (gaze(468, 133, 33) + gaze(473, 362, 263)) / 2;
+    const eyeMid = (face[33].x + face[263].x) / 2, eyeSpan = Math.abs(face[263].x - face[33].x) || 1e-3;
+    const turn = Math.abs(face[1].x - eyeMid) / eyeSpan;   // nose tip off the eye midline
+    // sharpness on the face box, at quarter size
+    const xs = face.map(p => p.x * W), ys = face.map(p => p.y * H);
+    const fx0 = Math.max(0, Math.min(...xs)), fx1 = Math.min(W, Math.max(...xs)), fy0 = Math.max(0, Math.min(...ys)), fy1 = Math.min(H, Math.max(...ys));
+    sctx.drawImage(c, fx0, fy0, fx1 - fx0, fy1 - fy0, 0, 0, small.width, small.height);
+    const d = sctx.getImageData(0, 0, small.width, small.height).data;
+    let sharp = 0, n = 0;
+    for (let y = 1; y < small.height - 1; y += 2) for (let x = 1; x < small.width - 1; x += 2) {
+      const i = (y * small.width + x) * 4, l = (y * small.width + x - 1) * 4, u = ((y - 1) * small.width + x) * 4;
+      const gx = d[i] - d[l], gy = d[i] - d[u]; sharp += gx * gx + gy * gy; n++;
+    }
+    sharp /= n;
+    const faceW = (fx1 - fx0) / W;
+    samples.push({ t, bs, blink, gazeOff, turn, sharp, faceW, scores: scoreExpressions(bs), faceBox: { x: fx0, y: fy0, w: fx1 - fx0, h: fy1 - fy0 } });
+    if (opts.onProgress) opts.onProgress(t / dur, `Reading frames... ${Math.round(t)}s of ${Math.round(dur)}s`);
+  }
+  if (!samples.length) throw new Error('No face found in that video.');
+  const sharpMed = samples.map(s => s.sharp).sort((a, b) => a - b)[samples.length >> 1];
+  const usable = samples.filter(s => s.blink < 0.35 && s.gazeOff < 0.18 && s.sharp >= sharpMed * 0.7 && s.faceW > 0.06);
+  const picks = {};
+  for (const cls of FRAME_CLASSES) {
+    const pool = usable.filter(s => cls === 'skeptic' ? s.turn < 0.6 : s.turn < 0.3);
+    const ranked = pool.map(s => ({ s, v: s.scores[cls] * (0.7 + 0.3 * Math.min(1, s.sharp / sharpMed)) })).sort((a, b) => b.v - a.v);
+    const chosen = [];
+    for (const r of ranked) { if (chosen.every(c => Math.abs(c.t - r.s.t) > 2)) chosen.push(r.s); if (chosen.length >= 3) break; }
+    picks[cls] = chosen;
+  }
+  // Render the chosen frames at full size, head-and-shoulders crop around the face.
+  const out = [];
+  for (const cls of FRAME_CLASSES) {
+    for (const s of picks[cls]) {
+      await seekTo(s.t);
+      ctx.drawImage(video, 0, 0, W, H);
+      const fb = s.faceBox;
+      // crop: 2.6 face widths wide, face a third of the way down, 4:5 portrait, inside the frame
+      let cw = Math.min(W, fb.w * 2.6), ch = Math.min(H, cw * 1.25); cw = Math.min(cw, ch / 1.25);
+      let cx0 = Math.max(0, Math.min(W - cw, fb.x + fb.w / 2 - cw / 2));
+      let cy0 = Math.max(0, Math.min(H - ch, fb.y - ch * 0.22));
+      const pc = document.createElement('canvas'); pc.width = Math.round(cw); pc.height = Math.round(ch);
+      pc.getContext('2d').drawImage(c, cx0, cy0, cw, ch, 0, 0, pc.width, pc.height);
+      const fc = document.createElement('canvas'); fc.width = W; fc.height = H; fc.getContext('2d').drawImage(c, 0, 0);
+      out.push({ cls, t: s.t, mimeType: 'image/jpeg', data: pc.toDataURL('image/jpeg', 0.92).split(',')[1], full: fc.toDataURL('image/jpeg', 0.92).split(',')[1], scores: s.scores });
+    }
+  }
+  URL.revokeObjectURL(url);
+  return { frames: out, sampled: samples.length, usable: usable.length, width: W, height: H };
+}
+
+// UI: the frames panel under the generate row.
+window._videoFrames = null;   // { frames, ... } from pullFramesFromVideo
+window._hostFrame = null;     // the frame chosen for the Real frame mode
+async function pullFramesUI(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const panel = document.getElementById('frames-panel');
+  if (!panel) return;
+  panel.style.display = 'block';
+  panel.innerHTML = '<div class="fb-status" style="font-size:12px;color:var(--text-dim);">Opening the video...</div>';
+  try {
+    const res = await pullFramesFromVideo(file, { onProgress: (f, text) => { panel.innerHTML = `<div class="fb-status" style="font-size:12px;color:var(--text-dim);">${esc(text)} (${Math.round(f * 100)}%)</div>`; } });
+    window._videoFrames = res;
+    renderFramesPanel();
+  } catch (e) {
+    panel.innerHTML = errHtml(e.message || 'Could not read frames from that file.');
+  }
+  input.value = '';
+}
+function renderFramesPanel() {
+  const panel = document.getElementById('frames-panel');
+  const res = window._videoFrames;
+  if (!panel || !res) return;
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  panel.innerHTML = `
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-weight:600;margin-bottom:6px;">Frames from your video (${res.usable} usable of ${res.sampled} read). Click one to use it; it becomes the host for Real frame mode.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;">
+      ${res.frames.map((f, i) => `
+        <div style="position:relative;cursor:pointer;border:2px solid ${window._hostFrame === f ? 'var(--blue-light)' : 'transparent'};border-radius:6px;overflow:hidden;" onclick="chooseHostFrame(${i})" title="${f.cls} at ${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, '0')}">
+          <img src="data:image/jpeg;base64,${f.data}" style="width:100%;display:block;">
+          <div style="position:absolute;top:2px;left:2px;background:rgba(0,0,0,0.75);color:#ffd84d;font:600 11px/1 var(--font-body);padding:3px 5px;border-radius:3px;">${letters[i] || i} ${f.cls} ${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, '0')}</div>
+          <button onclick="event.stopPropagation(); addFrameToFaceBank(${i}, false)" title="Add to the face bank as a retouched-grade photo" style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.75);color:#fff;border:none;border-radius:3px;font-size:10px;cursor:pointer;padding:2px 5px;">+ bank</button>
+          <button onclick="event.stopPropagation(); addFrameToFaceBank(${i}, true)" title="Add as the unretouched REAL anchor" style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.75);color:#fff;border:none;border-radius:3px;font-size:10px;cursor:pointer;padding:2px 5px;">+ real</button>
+        </div>`).join('')}
+    </div>
+    <div id="frames-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;">${window._hostFrame ? 'Host frame chosen: ' + esc(window._hostFrame.cls) + '. Pick Real frame in the mode menu and Generate.' : 'No host frame chosen yet.'}</div>`;
+}
+function chooseHostFrame(i) {
+  const f = window._videoFrames?.frames?.[i];
+  if (!f) return;
+  window._hostFrame = f;
+  const mode = document.getElementById('thumb-mode-select');
+  if (mode && [...mode.options].some(o => o.value === 'realframe')) mode.value = 'realframe';
+  renderFramesPanel();
+}
+async function addFrameToFaceBank(i, real) {
+  const f = window._videoFrames?.frames?.[i];
+  const brand = getActive();
+  if (!f || !brand?.channelId) return;
+  const st = document.getElementById('frames-status');
+  if (st) st.textContent = 'Adding to the face bank...';
+  try {
+    await faceBankCall({ action: 'add', channel: brand.channelId, mimeType: f.mimeType, data: f.data, real: !!real });
+    const faces = await getFaceBank(brand.channelId, true);
+    // remember the expression for the planner; keys carry none
+    try {
+      const k = 'mm_fb_expr_' + brand.channelId;
+      const map = JSON.parse(localStorage.getItem(k) || '{}');
+      const newest = faces.slice().sort((a, b) => (b.key > a.key ? 1 : -1))[0];
+      if (newest) { map[newest.key] = f.cls; localStorage.setItem(k, JSON.stringify(map)); }
+    } catch (e) { /* no label, no harm */ }
+    if (st) st.textContent = `Added to the face bank${real ? ' as the real anchor' : ''} (${faces.length} photos now).`;
+  } catch (e) {
+    if (st) st.textContent = 'Face bank add failed: ' + (e.message || e);
+  }
+}
+function faceBankExpression(channelId, key) {
+  try { return JSON.parse(localStorage.getItem('mm_fb_expr_' + channelId) || '{}')[key] || ''; } catch (e) { return ''; }
+}
+
+// Places a real cutout on a plate: face 15% of the width, on the host side, with the
+// edge fades, tint, rim and shadow of the composite. Returns a canvas.
+async function placeRealCutout(plateBmp, frameB64, side) {
+  const real = await cutoutPerson(frameB64);
+  const PW = plateBmp.width, PH = plateBmp.height;
+  const hostRight = side !== 'left';
+  const scale = (0.15 * PW) / real.face.w;
+  const cw = real.box.w * scale, ch = real.box.h * scale;
+  const faceCx = hostRight ? PW * 0.76 : PW * 0.24, faceCy = PH * 0.42;
+  let dx = faceCx - (real.face.cx - real.box.x) * scale;
+  let dy = faceCy - (real.face.cy - real.box.y) * scale;
+  dy = Math.max(dy, PH * 0.03);
+  const touches = { left: real.box.x <= real.W * 0.02, right: real.box.x + real.box.w >= real.W * 0.98, bottom: real.box.y + real.box.h >= real.H * 0.98 };
+  const pc = document.createElement('canvas'); pc.width = PW; pc.height = PH;
+  const pctx = pc.getContext('2d');
+  pctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, cw, ch);
+  const fade = (x0, y0, x1, y1) => { const g = pctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); pctx.globalCompositeOperation = 'destination-in'; pctx.fillStyle = g; pctx.fillRect(0, 0, PW, PH); pctx.globalCompositeOperation = 'source-over'; };
+  const faceBottom = dy + (real.face.y + real.face.h - real.box.y) * scale;
+  if (touches.left && dx > -cw * 0.05) fade(dx + cw * 0.22, 0, dx, 0);
+  if (touches.right && dx + cw < PW * 1.02) fade(dx + cw * 0.78, 0, dx + cw, 0);
+  if (touches.bottom && dy + ch < PH * 1.02) fade(0, Math.max(faceBottom + ch * 0.06, dy + ch * 0.70), 0, dy + ch);
+  fade(0, PH * 0.80, 0, PH * 1.02);
+  const sc = document.createElement('canvas'); sc.width = 8; sc.height = 8;
+  sc.getContext('2d').drawImage(plateBmp, 0, 0, 8, 8);
+  const px = sc.getContext('2d').getImageData(0, 0, 8, 8).data;
+  let r = 0, g = 0, b = 0; for (let i = 0; i < px.length; i += 4) { r += px[i]; g += px[i + 1]; b += px[i + 2]; }
+  const n = px.length / 4; r /= n; g /= n; b /= n;
+  pctx.globalCompositeOperation = 'source-atop';
+  pctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},0.14)`; pctx.fillRect(0, 0, PW, PH);
+  pctx.globalCompositeOperation = 'source-over';
+  const sil = document.createElement('canvas'); sil.width = PW; sil.height = PH;
+  const silctx = sil.getContext('2d');
+  silctx.drawImage(pc, 0, 0); silctx.globalCompositeOperation = 'source-in'; silctx.fillStyle = '#d6e6ff'; silctx.fillRect(0, 0, PW, PH);
+  const rim = document.createElement('canvas'); rim.width = PW; rim.height = PH;
+  const rctx = rim.getContext('2d');
+  const shift = Math.max(3, PW * 0.006) * (hostRight ? -1 : 1);
+  rctx.drawImage(sil, shift, -Math.abs(shift) * 0.6);
+  rctx.globalCompositeOperation = 'destination-out'; rctx.drawImage(sil, 0, 0);
+  rctx.globalCompositeOperation = 'source-over';
+  const rimBlur = document.createElement('canvas'); rimBlur.width = PW; rimBlur.height = PH;
+  const rbctx = rimBlur.getContext('2d'); rbctx.filter = `blur(${Math.max(1.5, PW * 0.0025)}px)`; rbctx.drawImage(rim, 0, 0);
+  const out = document.createElement('canvas'); out.width = PW; out.height = PH;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(plateBmp, 0, 0);
+  const dark = document.createElement('canvas'); dark.width = PW; dark.height = PH;
+  const dctx = dark.getContext('2d'); dctx.drawImage(sil, shift * 3, PH * 0.01); dctx.globalCompositeOperation = 'source-in'; dctx.fillStyle = '#000'; dctx.fillRect(0, 0, PW, PH);
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.filter = `blur(${PW * 0.012}px)`; ctx.globalAlpha = 0.6; ctx.drawImage(dark, 0, 0); ctx.restore();
+  ctx.save(); ctx.filter = 'contrast(1.05) saturate(0.96)'; ctx.drawImage(pc, 0, 0); ctx.restore();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(rimBlur, 0, 0); ctx.restore();
+  return out;
+}
+
+const REAL_FRAME_PLATE_RULE = side => `\n\nTHE HOST IS ADDED LATER: leave the ${side} 40% of the frame EMPTY, with only the background continuing there: no person, no object, no text, no graphic, no light burst there. All text and graphics sit in the other 60%. ${NO_PERSON_RULE}`;
+
+// Real frame mode: a no-person plate from the planner, then the chosen video frame placed on it.
+async function redesignRealFrame(fmt) {
+  const frame = window._hostFrame;
+  const genOut = document.getElementById('thumb-gen-out');
+  if (!genOut) return;
+  if (!frame) { genOut.innerHTML = errHtml('Pull frames from the video first (the Pull frames button), then click the frame to use.'); return; }
+  const ratios = fmt === 'both' ? ['16:9', '9:16'] : [fmt];
+  const btn = document.getElementById('gen-thumb-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Designing...'; }
+  const video = currentVideoData;
+  const sn = video?.snippet || {};
+  const brand = getActive();
+  const token = sessionTokens[brand?.channelId];
+  try {
+    genOut.innerHTML = spinner('Loading the current thumbnail...');
+    const thumbUrl = sn.thumbnails?.maxres?.url || sn.thumbnails?.high?.url || '';
+    const current = await fetchVideoThumbRef(video?.id, thumbUrl);
+    genOut.innerHTML = spinner('Pulling top-ranking thumbnails for this topic...');
+    const query = (await callAI('Return only a 2-5 word YouTube search query for the general topic of this video, in the words a viewer would type. No quotes, no punctuation, nothing else.',
+      `Title: ${sn.title}\nDescription: ${(sn.description || '').slice(0, 300)}`).catch(() => '')).trim().split('\n')[0].slice(0, 80) || sn.title;
+    const trends = await fetchTrendThumbs(query, token, brand?.channelId).catch(e => { console.warn('trends', e); return []; });
+    genOut.innerHTML = spinner('Reading the video captions...');
+    const transcript = await fetchVideoTranscript(video?.id, token);
+    genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
+    const recentKey = 'mm_redesign_recent_' + (brand?.channelId || '');
+    let recent = [];
+    try { recent = JSON.parse(localStorage.getItem(recentKey) || '[]'); } catch (e) { /* none yet */ }
+    // alternate the host side against the last redesign
+    const lastSide = recent.find(r => r.side)?.side;
+    const side = lastSide === 'right' ? 'left' : 'right';
+    const content = [];
+    if (current) { content.push({ type: 'text', text: 'CURRENT THUMBNAIL (for house colors and type only; ignore any person in it)' }); content.push(refForClaude(current)); }
+    trends.forEach((t, i) => { content.push({ type: 'text', text: `TREND ${i + 1}: "${t.title}" by ${t.channel}` }); content.push(refForClaude(t)); });
+    content.push({ type: 'text', text: `Video title: "${sn.title}"
+Full description: ${(sn.description || '').slice(0, 2000)}
+${transcript ? 'TRANSCRIPT: ' + transcript : 'No transcript available; use the description and the current thumbnail text for what the video says.'}
+Channel: ${brand?.channelName || ''}
+${brandColorsLine(brand)}
+Format: ${ratios.join(' and ')}
+IMPORTANT: a real photo of the host will be placed on the ${side.toUpperCase()} 40% of the frame after you. Design the other 60% only: headline, subline, one prop at most. Say in the prompt that the ${side} 40% stays empty background.` });
+    content.push({ type: 'text', text: recent.length
+      ? 'RECENT REDESIGNS on this channel (make this one look different):\n' + recent.map(r => `- "${r.headline}": ${r.hero || r.expression || ''}`).join('\n')
+      : 'RECENT REDESIGNS: none yet.' });
+    const plan = parseJSON(await callAI(buildSystem(REDESIGN_NO_PERSON_SYSTEM), content)) || {};
+    if (!plan.prompt) throw new Error('The layout step returned no prompt. Try again.');
+    const trend = trends[(plan.trend || 0) - 1] || null;
+    const refs = trend ? [trend] : [];
+    const header = trend ? 'Image 1 is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors. Where it shows a person, leave empty background.' : '';
+    const prompt = `${header}${header ? '\n\n' : ''}${plan.prompt}${REAL_FRAME_PLATE_RULE(side)}`;
+    const results = [];
+    for (const ratio of ratios) {
+      genOut.innerHTML = spinner(`Rendering the ${ratio} plate...`);
+      let plateB64 = await genThumbImage(prompt, ratio, refs);
+      genOut.innerHTML = spinner('Checking layout rules...');
+      const qa = await checkLayout(plateB64, '', true).catch(e => { console.warn('layout qa', e); return { fixes: [] }; });
+      let fixes = [];
+      if (qa.fixes.length) {
+        genOut.innerHTML = spinner(`Fixing ${qa.fixes.length} layout issue${qa.fixes.length === 1 ? '' : 's'}...`);
+        try {
+          plateB64 = await genThumbImage('Image 1 is a finished YouTube thumbnail background. Make only these fixes and keep everything else exactly as it is, including all text and the layout:\n- ' + qa.fixes.join('\n- ') + REAL_FRAME_PLATE_RULE(side), ratio, [{ mimeType: b64Mime(plateB64), data: plateB64 }]);
+          fixes = qa.fixes;
+        } catch (e) { console.warn('layout fix', e); }
+      }
+      genOut.innerHTML = spinner('Placing your frame on the design...');
+      const design = await cutoutPerson(plateB64).catch(() => null);
+      const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
+      const outCanvas = await placeRealCutout(plateBmp, frame.full, side);
+      let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+      try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
+      results.push({ ratio, b64, plate: plateB64, method: 'real-frame', fixes, side });
+    }
+    generatedThumbB64 = results[0].b64;
+    window._redesign = { results, identity: [], anchor: null, prompt, fmt, plan, trend, realFrame: true, hostFrame: frame, side };
+    try {
+      recent = [{ headline: plan.headline || '', hero: plan.hero || '', expression: frame.cls, side }, ...recent].slice(0, 6);
+      localStorage.setItem(recentKey, JSON.stringify(recent));
+    } catch (e) { /* storage blocked; variety just resets */ }
+    renderRedesign(plan, trend, results, video);
+  } catch (e) {
+    genOut.innerHTML = errHtml(e.message || 'Real frame design failed. Try again.');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Thumbnail'; }
+}
+
 // The video's own captions as plain text, or '' when there are none or the channel was
 // connected before the captions permission was added (reconnect to grant it).
 async function fetchVideoTranscript(videoId, token) {
@@ -2243,7 +2573,7 @@ async function redesignThumbnail(fmt) {
 
     genOut.innerHTML = spinner('Choosing a layout and writing the prompt...');
     const content = [];
-    people.forEach((p, i) => { content.push({ type: 'text', text: `PERSON ${i + 1}` }); content.push(refForClaude(p)); });
+    people.forEach((p, i) => { const ex = faceBankExpression(brand?.channelId, p.key); content.push({ type: 'text', text: `PERSON ${i + 1}${ex ? ' (' + ex + ')' : ''}` }); content.push(refForClaude(p)); });
     if (source && faces.length) { content.push({ type: 'text', text: `CURRENT THUMBNAIL${shortsFrame ? ' (vertical Short frame)' : ''}` }); content.push(refForClaude(source)); }
     frames.forEach((f, i) => { content.push({ type: 'text', text: `VIDEO FRAME ${i + 1} (what the host wears in this video)` }); content.push(refForClaude(f)); });
     // Scheduled and private videos have no public frames: point Claude at the current thumbnail.
@@ -2357,7 +2687,9 @@ function renderRedesign(plan, trend, results, video) {
   const newImg = document.getElementById('new-thumb-img');
   const newPreview = document.getElementById('new-thumb-preview');
   if (newImg && newPreview) { newImg.src = `data:${b64Mime(results[0].b64)};base64,${results[0].b64}`; newPreview.style.display = 'block'; }
-  const badge = r => r.method === 'no-person'
+  const badge = r => r.method === 'real-frame'
+    ? `<span style="color:var(--blue-light);">Real frame from your video</span> (${esc(window._redesign?.hostFrame?.cls || '')}, host on the ${esc(r.side || '')})${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`
+    : r.method === 'no-person'
     ? `No-person design${r.fixes?.length ? '<br>Auto-fixed: ' + r.fixes.map(esc).join('; ') : ''}`
     : r.method === 'composite'
     ? `<span style="color:var(--blue-light);">Real-face composite</span> ${r.score == null ? ' (always used for this channel)' : ' (generated face scored ' + r.score + '/10)'}`
@@ -2401,6 +2733,27 @@ async function refineRedesign() {
   const st = window._redesign;
   const genOut = document.getElementById('thumb-gen-out');
   if (!st || !notes) return;
+  if (st.realFrame) {
+    try {
+      const results = [];
+      for (const r of st.results) {
+        genOut.innerHTML = spinner(`Applying changes to the ${r.ratio} design...`);
+        const plateB64 = await genThumbImage(`Image 1 is a finished YouTube thumbnail background. Change only this: ${notes}. Keep everything else exactly as it is.${REAL_FRAME_PLATE_RULE(r.side || st.side)}`, r.ratio, [{ mimeType: b64Mime(r.plate), data: r.plate }]);
+        const design = await cutoutPerson(plateB64).catch(() => null);
+        const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
+        const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side);
+        let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+        try { b64 = await whitenTeeth(b64); } catch (e) { /* keep */ }
+        results.push({ ratio: r.ratio, b64, plate: plateB64, method: 'real-frame', side: r.side || st.side });
+      }
+      st.results = results;
+      generatedThumbB64 = results[0].b64;
+      renderRedesign(st.plan, st.trend, results, currentVideoData);
+    } catch (e) {
+      genOut.innerHTML = errHtml(e.message || 'Refine failed.');
+    }
+    return;
+  }
   const prompt = st.noPerson
     ? `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. ${NO_PERSON_RULE}`
     : `Image 1 is a finished YouTube thumbnail. Change only this: ${notes}. Keep everything else exactly as it is. The other images show the real person in it; their face must keep matching those photos exactly${st.anchor ? ', with the face shape of the last, unretouched photo' : ''}.`;
@@ -4249,21 +4602,25 @@ function renderThumbAudit(json) {
       <select id="thumb-mode-select" title="Touch up keeps the current design; Redesign builds a new layout from top-ranking thumbnails" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;cursor:pointer;outline:none;">
         <option value="touchup">Touch up current design</option>
         <option value="redesign">Redesign from top thumbnails</option>
+        <option value="realframe">Real frame from the video (your real face, cut out)</option>
       </select>
       <label title="On: thumbnails keep the host's real face. Off: no person in the thumbnail, for clients who don't want AI people. Saved per channel." style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);cursor:pointer;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;">
         <input type="checkbox" id="keep-face-toggle" ${keepFace(getActive()) ? 'checked' : ''} onchange="setKeepFace(this.checked)" style="cursor:pointer;"> Keep host's face
       </label>
       <input id="redesign-outfit" type="text" placeholder="Shirt in this video (optional)" title="Redesign reads your shirt from the video. Type it here to override, e.g. royal blue tee." style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;outline:none;min-width:190px;${keepFace(getActive()) ? '' : 'display:none;'}">
       <button class="btn-copy" id="facebank-btn" onclick="toggleFaceBank()" style="${keepFace(getActive()) ? '' : 'display:none;'}">Face bank</button>
+      <label class="btn-copy" id="pull-frames-btn" title="Open the video file (the no-FX export is best): the page reads it here in the browser, finds the sharpest frame per expression, and lets you pick one as the host or add it to the face bank" style="display:${keepFace(getActive()) ? 'inline-block' : 'none'};cursor:pointer;">Pull frames<input type="file" accept="video/mp4,video/quicktime,video/*" style="display:none" onchange="pullFramesUI(this)"></label>
       <button class="btn-gen-thumb" id="gen-thumb-btn" onclick="generateThumbnail()">✦ Generate Thumbnail</button>
     </div>
-    <div id="facebank-panel" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;"></div>`;
+    <div id="facebank-panel" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;"></div>
+    <div id="frames-panel" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;"></div>`;
 }
 
 async function generateThumbnail(format, reusePrompt) {
   // format: '16:9' | '9:16' | 'both' — defaults to '16:9' if not passed
   // reusePrompt: true after a refinement, so the refined prompt is rendered as-is
   const fmt = format || document.getElementById('thumb-format-select')?.value || '16:9';
+  if (!reusePrompt && document.getElementById('thumb-mode-select')?.value === 'realframe') return redesignRealFrame(fmt);
   if (!reusePrompt && document.getElementById('thumb-mode-select')?.value === 'redesign') return redesignThumbnail(fmt);
   const bothFormats = fmt === 'both';
   const ratios = bothFormats ? ['16:9', '9:16'] : [fmt];
