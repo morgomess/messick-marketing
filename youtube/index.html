@@ -1624,11 +1624,11 @@ You receive PERSON photos (the host), optionally the CURRENT thumbnail, and TREN
 2. Rank the EXPRESSIONS menu below for this headline's emotion, best first (all seven ids). The page uses your top choice unless a recent Redesign used it. Then pick up to 3 PERSON photos, the first being the closest to your top expression and a good angle.
 EXPRESSIONS:
 - shock: wide-eyed shock, brows high, mouth open. Only for a genuine reveal.
-- skeptic: skeptical side-eye, one brow raised, lips pressed to one side. Myths, bad advice, doubtful claims.
+- skeptic: doubtful look straight at the camera, one brow raised, lips closed and relaxed; never a side glance or smirk. Myths, bad advice, doubtful claims.
 - grin: big open-mouth grin, eyes bright and crinkled. Wins, good news, easy fixes.
 - worried: concerned look, brows pulled up and together, eyes wide, lips slightly parted (no teeth-baring wince). Warnings, mistakes, costs.
 - lean: "listen to me" look, brows raised, lips parted mid-word, leaning toward the camera. Tips, how-tos, frameworks.
-- confused: confused squint, head tilted, one brow up, mouth pulled to one side. Confusing topics, mixed messages.
+- confused: puzzled look at the camera, head tilted a little, brows drawn together, lips parted; never a side glance or a twisted mouth. Confusing topics, mixed messages.
 - curious: open, interested look straight at the camera, brows raised, eyes bright, a small open smile; never a side-glance or smirk. Questions, news, new tools, "what this means for you".
 3. Work out what the video actually says: from the TRANSCRIPT when there is one, otherwise from the full description and the CURRENT thumbnail's text. Write a 2-4 word headline that names that core idea or its hook. It may only state what the video says. The title can supply wording, but when the title and the content point different ways, follow the content.
 4. From the VIDEO FRAMES, describe what the host wears on top in this video: color and type, e.g. "olive green crew-neck t-shirt" or "navy blazer over a white shirt". If there are no frames or the host is not in them, use the CURRENT thumbnail; if neither shows the host, leave it empty. The page adds this to the prompt, so do not describe clothing in the prompt yourself.
@@ -1719,6 +1719,9 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - a graphic whose message contradicts the headline (for example red X marks over the very thing the headline says works)
 - app icons or logos that are garbled, half-drawn or misspelled
 - teeth that look pointed, fanged, oversized, too many or too prominent (the fix: make the teeth small, even and square-edged, upper row only, as in the person photos)
+- the host's head wider than about 30% of the frame, or so close that the top of the frame cuts into the hair (the fix: scale the host down so the head is about a quarter of the frame width, head and shoulders, with air above the hair)
+- the host glancing sideways, smirking, or with a pursed or twisted mouth (the fix: eyes to the camera, mouth relaxed, keep the brows as they are)
+- the host's top a different color or type from the one named in the check request
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
@@ -2079,11 +2082,11 @@ async function fetchVideoFrames(videoId) {
 // prompt kept drifting to the same shocked face, then to flat closed-mouth smiles.
 const EXPRESSIONS = {
   shock: 'wide-eyed shock: brows high, eyes wide, mouth open',
-  skeptic: 'a skeptical side-eye: one brow raised high, eyes cut to the side, lips pressed to one side',
+  skeptic: 'a doubtful look straight at the camera: one brow raised, the other level, eyes on the lens, lips closed and relaxed; never a side glance, never a smirk, never a pursed or twisted mouth',
   grin: 'a big, genuine, happy open-mouth grin straight at the camera: teeth showing, eyes bright and crinkled',
   worried: 'a concerned look: brows pulled up and together, eyes wide and serious, lips slightly parted; not a grimace or wince, no bared teeth',
   lean: 'a "listen to me" look: brows raised, lips parted mid-word, leaning toward the camera',
-  confused: 'a confused squint: head tilted, one brow up, mouth pulled to one side',
+  confused: 'a puzzled look at the camera: head tilted a little, brows drawn together, lips parted slightly; never a side glance, never a smirk, never a pursed or twisted mouth',
   curious: 'an open, interested look straight at the camera: brows raised, eyes bright and wide, a small open smile; never a side-glance, never a smirk'
 };
 
@@ -2278,7 +2281,9 @@ Format: ${ratios.join(' and ')}` });
     plan.expressionId = pickExpression(plan.expressions, recent);
     plan.expression = EXPRESSIONS[plan.expressionId];
     const expressionLine = plan.expression ? `\nEXPRESSION: the host's face shows ${plan.expression}. It must read instantly at phone size, exaggerated for a thumbnail, never neutral or a faint smile. When teeth show, they are clean and naturally white, not yellowed, and keep their real shape. If the person photos show a different expression, change only the expression; the face itself stays exactly theirs.` : '';
-    const wardrobe = plan.outfit ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.` : '';
+    const wardrobe = plan.outfit
+      ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video, in exactly that color: not olive, not green, not grey, not any other color unless named here. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.`
+      : `\nWARDROBE: the host wears the same plain top, in the same color, as in the person photos. Do not invent a different garment or color.`;
     const prompt = `${redesignRoleHeader(identity.length, false, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
 
     const results = [];
