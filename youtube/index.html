@@ -2249,24 +2249,70 @@ async function placeRealCutout(plateBmp, frameB64, side, opts = {}) {
     real.box.h = Math.max(1, cropAt - real.box.y);
     real.croppedBottom = true;
   }
+  // Hard matte ("don't like the feathered edges", 2026-10-09): the segmenter's soft ramp is
+  // steepened so hair and shoulders end in a crisp sticker edge, not a blur.
+  { const rc = real.canvas.getContext('2d'); const id = rc.getImageData(0, 0, real.W, real.H); const a = id.data;
+    for (let i = 3; i < a.length; i += 4) { const v = (a[i] / 255 - 0.45) * 5 + 0.5; a[i] = v <= 0 ? 0 : v >= 1 ? 255 : Math.round(v * 255); }
+    rc.putImageData(id, 0, 0); }
+  // Keep only the largest connected shape: on-screen cards, hands at the frame edge and
+  // caption fragments otherwise survive as stray blobs with their own outline, and a blob
+  // below the body throws off the box the shirt extension samples from.
+  { const rc = real.canvas.getContext('2d'); const id = rc.getImageData(0, 0, real.W, real.H); const a = id.data;
+    const s = 4, mw = Math.ceil(real.W / s), mh = Math.ceil(real.H / s);
+    const m = new Uint8Array(mw * mh);
+    for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) { let on = 0; for (let yy = y * s; yy < Math.min(real.H, y * s + s) && !on; yy++) for (let xx = x * s; xx < Math.min(real.W, x * s + s); xx++) if (a[(yy * real.W + xx) * 4 + 3] > 128) { on = 1; break; } m[y * mw + x] = on; }
+    const label = new Int32Array(mw * mh); let best = 0, bestN = 0, n = 0; const stack = [];
+    for (let i = 0; i < m.length; i++) { if (!m[i] || label[i]) continue; n++; let cnt = 0; stack.push(i); label[i] = n;
+      while (stack.length) { const p = stack.pop(); cnt++; const px = p % mw, py = (p / mw) | 0;
+        const nb = [p - 1, p + 1, p - mw, p + mw]; const ok = [px > 0, px < mw - 1, py > 0, py < mh - 1];
+        for (let k = 0; k < 4; k++) if (ok[k] && m[nb[k]] && !label[nb[k]]) { label[nb[k]] = n; stack.push(nb[k]); } }
+      if (cnt > bestN) { bestN = cnt; best = n; } }
+    if (n > 1) {
+      let x0 = real.W, y0 = real.H, x1 = 0, y1 = 0;
+      for (let y = 0; y < real.H; y++) for (let x = 0; x < real.W; x++) { const i = (y * real.W + x) * 4 + 3; if (!a[i]) continue;
+        if (label[((y / s) | 0) * mw + ((x / s) | 0)] !== best) { a[i] = 0; continue; }
+        if (a[i] > 128) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+      rc.putImageData(id, 0, 0);
+      if (x1 > x0 && y1 > y0) real.box = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+    } }
   const PW = plateBmp.width, PH = plateBmp.height;
   const hostRight = side !== 'left';
-  const scale = (0.15 * PW) / real.face.w;
+  const scale = ((opts.faceFrac || 0.17) * PW) / real.face.w;
   const cw = real.box.w * scale, ch = real.box.h * scale;
-  const faceCx = hostRight ? PW * 0.76 : PW * 0.24, faceCy = PH * 0.42;
+  const faceCx = hostRight ? PW * 0.76 : PW * 0.24, faceCy = PH * (opts.faceCy || 0.46);
   let dx = faceCx - (real.face.cx - real.box.x) * scale;
   let dy = faceCy - (real.face.cy - real.box.y) * scale;
   dy = Math.max(dy, PH * 0.03);
   const touches = { left: real.box.x <= real.W * 0.02, right: real.box.x + real.box.w >= real.W * 0.98, bottom: real.croppedBottom || real.box.y + real.box.h >= real.H * 0.98 };
+  // A side the source frame cut goes off the canvas edge, never a fade inside the frame.
+  if (hostRight && touches.right) dx = Math.max(dx, PW + 6 - cw);
+  if (!hostRight && touches.left) dx = Math.min(dx, -6);
   const pc = document.createElement('canvas'); pc.width = PW; pc.height = PH;
   const pctx = pc.getContext('2d');
   pctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, cw, ch);
+  // Anchor to the frame: a real cutout is cropped by the bottom edge, never fading out above
+  // it ("the floating is the issue", 2026-10-09). When the body ends above the edge, the last
+  // strip of the shirt is stretched down past it, as the Epic retouch did.
+  const extended = dy + ch < PH + 2;
+  if (extended) {
+    // sample a clean band of shirt a little above the cut (the cut row itself can carry the
+    // caption box's soft edge), and stretch it from there to past the bottom of the frame
+    const faceBottomSrc = real.face.y + real.face.h;
+    // the strip: the shirt rows just above the cut. As thick as 6% of the body when there is
+    // room; when the host is close to the lens and the caption cut sits just under the chin,
+    // whatever rows exist between chin and cut (a few are enough to stretch a plain shirt).
+    const room = real.box.y + real.box.h - faceBottomSrc;
+    const stripSrc = Math.max(4, Math.min(Math.round(real.box.h * 0.06), Math.round(room * 0.6)));
+    const lowest = real.box.y + real.box.h - stripSrc;
+    const srcY = room > real.face.h * 0.3 ? Math.min(lowest, Math.max(faceBottomSrc + real.face.h * 0.55, lowest - Math.round(real.box.h * 0.10))) : lowest;
+    if (room > real.face.h * 0.05) {
+      const dstY = dy + (srcY - real.box.y) * scale;
+      pctx.clearRect(0, dstY, PW, PH - dstY + 4);
+      pctx.drawImage(real.canvas, real.box.x, srcY, real.box.w, stripSrc, dx, dstY, cw, PH + 4 - dstY);
+    }
+  }
   const fade = (x0, y0, x1, y1) => { const g = pctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); pctx.globalCompositeOperation = 'destination-in'; pctx.fillStyle = g; pctx.fillRect(0, 0, PW, PH); pctx.globalCompositeOperation = 'source-over'; };
-  const faceBottom = dy + (real.face.y + real.face.h - real.box.y) * scale;
-  if (touches.left && dx > -cw * 0.05) fade(dx + cw * 0.22, 0, dx, 0);
-  if (touches.right && dx + cw < PW * 1.02) fade(dx + cw * 0.78, 0, dx + cw, 0);
-  if (touches.bottom && dy + ch < PH * 1.02) fade(0, Math.max(faceBottom + ch * 0.06, dy + ch * 0.70), 0, dy + ch);
-  fade(0, PH * 0.80, 0, PH * 1.02);
+  void fade;
   const sc = document.createElement('canvas'); sc.width = 8; sc.height = 8;
   sc.getContext('2d').drawImage(plateBmp, 0, 0, 8, 8);
   const px = sc.getContext('2d').getImageData(0, 0, 8, 8).data;
@@ -2292,8 +2338,21 @@ async function placeRealCutout(plateBmp, frameB64, side, opts = {}) {
   const dark = document.createElement('canvas'); dark.width = PW; dark.height = PH;
   const dctx = dark.getContext('2d'); dctx.drawImage(sil, shift * 3, PH * 0.01); dctx.globalCompositeOperation = 'source-in'; dctx.fillStyle = '#000'; dctx.fillRect(0, 0, PW, PH);
   ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.filter = `blur(${PW * 0.012}px)`; ctx.globalAlpha = 0.6; ctx.drawImage(dark, 0, 0); ctx.restore();
+  // White sticker outline ("so I don't look like a floating ghost", 2026-10-09): the silhouette
+  // grown by opts.outline of the width, in white, behind the person. Built from the faded
+  // silhouette, so it fades out with the body at the bottom instead of ending in a hard line.
+  if (opts.outline) {
+    const r = Math.max(2, PW * opts.outline);
+    const white = document.createElement('canvas'); white.width = PW; white.height = PH;
+    const wctx = white.getContext('2d');
+    wctx.drawImage(sil, 0, 0); wctx.globalCompositeOperation = 'source-in'; wctx.fillStyle = '#ffffff'; wctx.fillRect(0, 0, PW, PH);
+    const grown = document.createElement('canvas'); grown.width = PW; grown.height = PH;
+    const gctx = grown.getContext('2d');
+    for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; gctx.drawImage(white, Math.cos(a) * r, Math.sin(a) * r); gctx.drawImage(white, Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5); }
+    ctx.drawImage(grown, 0, 0);
+  }
   ctx.save(); ctx.filter = 'contrast(1.05) saturate(0.96)'; ctx.drawImage(pc, 0, 0); ctx.restore();
-  ctx.save(); ctx.globalAlpha = 0.45; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(rimBlur, 0, 0); ctx.restore();
+  if (!opts.outline) { ctx.save(); ctx.globalAlpha = 0.45; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(rimBlur, 0, 0); ctx.restore(); }
   return out;
 }
 
@@ -2365,7 +2424,7 @@ IMPORTANT: a real photo of the host will be placed on the ${side.toUpperCase()} 
       genOut.innerHTML = spinner('Placing your frame on the design...');
       const design = await cutoutPerson(plateB64).catch(() => null);
       const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
-      const outCanvas = await placeRealCutout(plateBmp, frame.full, side, { cropBottom: 0.82 });
+      const outCanvas = await placeRealCutout(plateBmp, frame.full, side, { cropBottom: 0.80, outline: 0.009 });
       let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
       try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
       results.push({ ratio, b64, plate: plateB64, method: 'real-frame', fixes, side });
@@ -2749,7 +2808,7 @@ async function refineRedesign() {
         const plateB64 = await genThumbImage(`Image 1 is a finished YouTube thumbnail background. Change only this: ${notes}. Keep everything else exactly as it is.${REAL_FRAME_PLATE_RULE(r.side || st.side)}`, r.ratio, [{ mimeType: b64Mime(r.plate), data: r.plate }]);
         const design = await cutoutPerson(plateB64).catch(() => null);
         const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
-        const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side, { cropBottom: 0.82 });
+        const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side, { cropBottom: 0.80, outline: 0.009 });
         let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
         try { b64 = await whitenTeeth(b64); } catch (e) { /* keep */ }
         results.push({ ratio: r.ratio, b64, plate: plateB64, method: 'real-frame', side: r.side || st.side });
