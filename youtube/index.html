@@ -2239,8 +2239,16 @@ function faceBankExpression(channelId, key) {
 
 // Places a real cutout on a plate: face 15% of the width, on the host side, with the
 // edge fades, tint, rim and shadow of the composite. Returns a canvas.
-async function placeRealCutout(plateBmp, frameB64, side) {
+async function placeRealCutout(plateBmp, frameB64, side, opts = {}) {
   const real = await cutoutPerson(frameB64);
+  // Video frames carry burned-in captions in the bottom fifth. Cut the cutout above that
+  // band and let the bottom fade land on the cut, so no caption rides on her chest.
+  const cropAt = opts.cropBottom ? Math.round(real.H * opts.cropBottom) : real.H;
+  if (cropAt < real.box.y + real.box.h) {
+    real.canvas.getContext('2d').clearRect(0, cropAt, real.W, real.H - cropAt);
+    real.box.h = Math.max(1, cropAt - real.box.y);
+    real.croppedBottom = true;
+  }
   const PW = plateBmp.width, PH = plateBmp.height;
   const hostRight = side !== 'left';
   const scale = (0.15 * PW) / real.face.w;
@@ -2249,7 +2257,7 @@ async function placeRealCutout(plateBmp, frameB64, side) {
   let dx = faceCx - (real.face.cx - real.box.x) * scale;
   let dy = faceCy - (real.face.cy - real.box.y) * scale;
   dy = Math.max(dy, PH * 0.03);
-  const touches = { left: real.box.x <= real.W * 0.02, right: real.box.x + real.box.w >= real.W * 0.98, bottom: real.box.y + real.box.h >= real.H * 0.98 };
+  const touches = { left: real.box.x <= real.W * 0.02, right: real.box.x + real.box.w >= real.W * 0.98, bottom: real.croppedBottom || real.box.y + real.box.h >= real.H * 0.98 };
   const pc = document.createElement('canvas'); pc.width = PW; pc.height = PH;
   const pctx = pc.getContext('2d');
   pctx.drawImage(real.canvas, real.box.x, real.box.y, real.box.w, real.box.h, dx, dy, cw, ch);
@@ -2357,7 +2365,7 @@ IMPORTANT: a real photo of the host will be placed on the ${side.toUpperCase()} 
       genOut.innerHTML = spinner('Placing your frame on the design...');
       const design = await cutoutPerson(plateB64).catch(() => null);
       const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
-      const outCanvas = await placeRealCutout(plateBmp, frame.full, side);
+      const outCanvas = await placeRealCutout(plateBmp, frame.full, side, { cropBottom: 0.82 });
       let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
       try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
       results.push({ ratio, b64, plate: plateB64, method: 'real-frame', fixes, side });
@@ -2741,7 +2749,7 @@ async function refineRedesign() {
         const plateB64 = await genThumbImage(`Image 1 is a finished YouTube thumbnail background. Change only this: ${notes}. Keep everything else exactly as it is.${REAL_FRAME_PLATE_RULE(r.side || st.side)}`, r.ratio, [{ mimeType: b64Mime(r.plate), data: r.plate }]);
         const design = await cutoutPerson(plateB64).catch(() => null);
         const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
-        const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side);
+        const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side, { cropBottom: 0.82 });
         let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
         try { b64 = await whitenTeeth(b64); } catch (e) { /* keep */ }
         results.push({ ratio: r.ratio, b64, plate: plateB64, method: 'real-frame', side: r.side || st.side });
