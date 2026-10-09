@@ -47,6 +47,7 @@
   .top .what{font-size:15px;margin:3px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .stats{display:flex;flex-wrap:wrap;gap:6px}
   .stat{background:var(--well);border-radius:6px;padding:3px 8px;font-size:13px}
+  .follows .stat{font-size:15px;padding:6px 12px}
   .stat b{font-weight:600}
   .why{font-size:13px;color:var(--steel);margin-top:8px}
   .txt-tile{width:96px;height:120px;border-radius:8px;background:var(--ink);color:#c9c5bf;font-size:11px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center}
@@ -239,6 +240,7 @@ function renderInsights(ins){
       <div class="stats">${(t.stats || []).map(s => `<span class="stat"><b>${esc(s[0])}</b> ${esc(s[1])}</span>`).join('')}</div>
       ${t.why ? `<div class="why">${esc(t.why)}</div>` : ''}
     </div></div>`).join('') + `</div>`;
+  if (ins.follows && ins.follows.length) h += `<h3 class="sub">New followers</h3><div class="stats follows">` + ins.follows.map(f => `<span class="stat"><b>+${esc(Number(f[1]).toLocaleString('en-US'))}</b> on ${esc(f[0])}</span>`).join('') + `</div>`;
   if (ins.quotes && ins.quotes.length) h += `<h3 class="sub">What people said</h3><div class="quotes">` + ins.quotes.map(q => `<blockquote><p>"${esc(q.text)}"</p><cite>${esc(q.cite)}</cite></blockquote>`).join('') + `</div>`;
   if (ins.audience && ins.audience.length) h += `<h3 class="sub">Who's following</h3><div class="aud">` + ins.audience.map(a => {
     const max = Math.max(...a.bars.map(b => b[1]), 1);
