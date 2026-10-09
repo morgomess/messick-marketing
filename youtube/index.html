@@ -1636,7 +1636,7 @@ EXPRESSIONS:
 
 PROMPT RULES:
 - Borrow the trend's composition: where the person sits, how large they are, where the text sits, the graphic device (arrow, circle, split, badge) and the energy. Never copy its people, its words, its logos or its brand colors.
-- The host fills a large share of the frame (face at least a quarter of the frame height), with the expression from the first chosen PERSON photo. Do not describe their face, hair, skin or body; the photos carry that.
+- The host is framed head and shoulders: the head about a quarter of the frame width (never over 30%), the shoulders staying inside the host's half of the frame, with the expression from the first chosen PERSON photo. Do not describe their face, hair, skin or body; the photos carry that.
 - Replace the photos' messy room backgrounds with a clean designed background in the channel's brand colors.
 - Clean cutout: sharp edges on hair, glasses, skin and clothing, with no halo, glow, fringe, outline, sticker border or background color bleeding into the person.
 - Headline written as a quoted string with exact placement, bold condensed sans-serif, high contrast. Keep text and face inside the center 80% of the frame.
@@ -1658,7 +1658,7 @@ HOUSE LOOK, HIGH ENERGY. Build a bold, high-CTR thumbnail that is unmistakably t
 - Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style (for example deep navy, white and a steel or bright blue). The design lives in that palette plus the photo. One exception: a single small signal-color accent when it carries meaning, such as a red X on the wrong way or a green check or arrow on the right way.
 - Headline: 2-5 words, huge, heavy, condensed sans-serif, all caps, filling about half the frame. Mostly white with one or two key words in the channel's accent color, each letter with a crisp dark outline or strong drop shadow so it pops. End with "?" or "!" only when the title supports it.
 - Subline: 3-6 words in small, widely spaced white caps under a thin accent-color divider line, the way the channel's own thumbnails do it. It only restates the title.
-- The host is big, head and shoulders filling one side, often cropped by the frame edge, with a clear facial expression that fits the headline's emotion (see step 2). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
+- The host is head and shoulders on one side, the head about a quarter of the frame width, shoulders inside their half of the frame, cropped by the bottom edge only, with a clear facial expression that fits the headline's emotion (see step 2). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
 - One prop that shows the topic, drawn simply and large as a flat graphic tinted to the palette: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. It floats beside the host, slightly tilted with a soft shadow; nobody holds it. When the title names a company, product or platform, the prop may carry its real logo.
 - Background: a softly blurred real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), color-graded into the channel's navy and blue, darker at the edges so the text pops.
 - Still only claims the title makes.
@@ -1687,8 +1687,8 @@ ALSO: no white outline, stroke, sticker border or glow around the host. Their ha
 function redesignRoleHeader(nPeople, hasTrend, hasAnchor) {
   const people = nPeople > 1 ? `Images 1-${nPeople} are retouched photos of the same real person` : 'Image 1 is a retouched photo of the real person';
   const anchorIdx = nPeople + 1, trendIdx = nPeople + (hasAnchor ? 2 : 1);
-  return `${people}. Use them only for identity: the thumbnail must show this exact person, with the same face shape, eyes, nose, mouth, teeth, skin tone, hair, glasses, age and build. Do not beautify, slim, de-age or blend them with anyone else. Ignore the rooms behind them. Do not add any white outline, stroke, sticker border or glow around the person; their edge meets the background directly.` +
-    (hasAnchor ? ` Image ${anchorIdx} is an unretouched photo of the same person and is the authority on their real face: match its face shape, cheek and jaw fullness, nose width and eye size exactly. Take only skin finish, grooming and styling from the retouched photos; never make the face narrower, longer or smaller-featured than in image ${anchorIdx}. Also match image ${anchorIdx}'s camera: shot the way this person is filmed, from close and slightly below eye level like a webcam at desk height, so the lower face, jaw and chin keep the length and fullness they have there. Not an eye-level studio headshot. Ignore its background, lighting, clothing and any text on it.` : '') +
+  return `${people}. Use them only for identity: the thumbnail must show this exact person, with the same face shape, eyes, nose, mouth, teeth, skin tone, hair, glasses, age, sex and build. The same sex as in the photos, read from the photos. The same build: the neck, shoulders and torso exactly as in the photos, never broader, heavier, thicker-necked or more muscular, and never slimmer either. Do not beautify, slim, bulk up, de-age or blend them with anyone else. Ignore the rooms behind them. Do not add any white outline, stroke, sticker border or glow around the person; their edge meets the background directly.` +
+    (hasAnchor ? ` Image ${anchorIdx} is an unretouched photo of the same person and is the authority on their real face: match its face shape, cheek and jaw fullness, nose width and eye size exactly, neither narrower nor fuller, neither longer nor shorter. Take only skin finish, grooming and styling from the retouched photos. Camera at eye level, as in the person photos. Ignore its background, lighting, clothing and any text on it.` : '') +
     (hasTrend ? ` Image ${trendIdx} is a layout reference only: copy its composition, scale and energy, never its people, faces, text, logos or colors.` : '');
 }
 
@@ -1699,8 +1699,9 @@ async function checkLikeness(identity, b64, anchor) {
   content.push({ type: 'text', text: 'GENERATED THUMBNAIL' });
   content.push({ type: 'image', source: { type: 'base64', media_type: b64Mime(b64), data: b64 } });
   content.push({ type: 'text', text: 'Compare the host in the generated thumbnail with the reference photos.' });
-  const system = `You check whether the person in a GENERATED THUMBNAIL is recognizably the same real person as in the REFERENCE photos. Judge face shape, eyes, nose, mouth, teeth, skin tone, hairline and hair, glasses, apparent age and build. Ignore pose, expression, lighting, color grade, background and clothing, and ignore skin smoothing and makeup.
-When a REAL PHOTO is given, judge face shape against it: a face that is noticeably narrower, longer or slimmer in the cheeks and jaw than the real photo, or with a slimmer nose or bigger eyes, is drift and scores 6 at most, so it gets re-rolled.
+  const system = `You check whether the person in a GENERATED THUMBNAIL is recognizably the same real person as in the REFERENCE photos. Judge face shape, eyes, nose, mouth, teeth, skin tone, hairline and hair, glasses, apparent age, apparent sex and build (neck, shoulders, torso). Ignore pose, expression, lighting, color grade, background and clothing, and ignore skin smoothing and makeup.
+A host who reads as a different sex than the references, or who is clearly broader, heavier, thicker-necked or more muscular than them, is a different person: score 3 at most, and say so in issues.
+When a REAL PHOTO is given, judge face shape against it: a face noticeably narrower, longer or slimmer in the cheeks and jaw than the real photo, OR noticeably fuller, wider or heavier than it, or with a different nose width or eye size, is drift and scores 6 at most, so it gets re-rolled.
 Scores: 9-10 unmistakably the same person; 7-8 same person with minor drift; 4-6 a lookalike or relative; 0-3 a different person.
 Return ONLY JSON: {"score": <0-10>, "issues": "<what differs, short; empty if nothing>"}`;
   const json = parseJSON(await callAI(system, content)) || {};
@@ -1722,6 +1723,7 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - the host's head wider than about 30% of the frame, or so close that the top of the frame cuts into the hair (the fix: scale the host down so the head is about a quarter of the frame width, head and shoulders, with air above the hair)
 - the host glancing sideways, smirking, or with a pursed or twisted mouth (the fix: eyes to the camera, mouth relaxed, keep the brows as they are)
 - the host's top a different color or type from the one named in the check request
+- the host's shoulders or torso spilling past their half of the frame, or a neck and shoulders far heavier than a head-and-shoulders portrait of the person in the other images (the fix: redraw the host to match the person photos' build and scale them down)
 For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
