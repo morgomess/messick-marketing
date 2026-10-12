@@ -539,7 +539,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
       <div class="stage" id="stage">
         <p class="s-cue" id="sCue">It starts with a search.</p>
         <div class="panel" id="panel">
-          <div class="panel-bar"><i></i><i></i><i></i><span class="url">search &middot; healthcare near me</span></div>
+          <div class="panel-bar"><i></i><i></i><i></i><span class="url">search &middot; GAE for knee pain near me</span></div>
           <div class="search-row">
             <svg class="search-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <div class="search-text"><span id="typed"></span><span class="caret" id="caret"></span></div>
@@ -556,8 +556,8 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
           </div>
         </div>
         <div class="hero-resolve" id="resolve">
-          <h1 class="hero-headline">Your patients are searching.<br>Let's make sure they find <em>you.</em></h1>
-          <p class="hero-body">Content marketing, websites, social media, and patient education built for specialty healthcare practices.</p>
+          <h1 class="hero-headline">Content that reaches the patients<br>your practice was <em>built for.</em></h1>
+          <p class="hero-body">Specialty practices don't need everyone. They need the patients who qualify for what they do, and most of those patients don't know the treatment exists yet. We create the social, video, blog and web content that reaches them and earns their trust before they book.</p>
           <div class="hero-actions">
             <a href="#contact" class="btn btn-steel">Book My Growth Assessment</a>
             <a href="#visibility" class="btn btn-ghost">View Services</a>
@@ -609,8 +609,8 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 <section id="specialties">
   <div class="inner">
     <p class="eyebrow light fu">Specialty Expertise</p>
-    <h2 class="sh on-dark fu">We write about the procedures most agencies have to Google.</h2>
-    <p class="sub on-dark fu" style="color:var(--steel-light)">UFE, GAE, PAE, kyphoplasty, DVT, CVI, embolization - this is our daily vocabulary, not a learning curve.</p>
+    <h2 class="sh on-dark fu">Different specialties. Same challenge.</h2>
+    <p class="sub on-dark fu" style="color:var(--steel-light)">Every practice we work with treats a specific patient who often doesn't know the treatment exists. The procedures change. The job doesn't: find those patients, explain it clearly, earn their trust. And we write about the procedures most agencies have to Google.</p>
     <div class="spec-flip-grid fu">
 
       <div class="spec-flip">
@@ -627,12 +627,6 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
         </div>
       </div>
 
-      <div class="spec-flip">
-        <div class="spec-flip-inner">
-          <div class="spec-flip-front"><span>Brain Health</span></div>
-          <div class="spec-flip-back"><span>Neurology meets narrative - content that builds trust before the first appointment</span></div>
-        </div>
-      </div>
 
       <div class="spec-flip">
         <div class="spec-flip-inner">
@@ -703,9 +697,9 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 
 <section id="visibility" class="insight-section">
   <div class="inner">
-    <p class="eyebrow light fu">One Connected System</p>
-    <h2 class="sh on-dark fu" style="max-width:860px;line-height:1.15">One connected healthcare <em>visibility system.</em></h2>
-    <p class="insight-lead fu on-dark">Strategy, social, content, web, and search working together as one system, built to make specialty practices easy to find and easy to trust.</p>
+    <p class="eyebrow light fu">Content, Not Ads</p>
+    <h2 class="sh on-dark fu" style="max-width:860px;line-height:1.15">Ads rent attention. <em>Content earns trust.</em></h2>
+    <p class="insight-lead fu on-dark">An ad stops working the day the budget runs out. A procedure explainer, a patient story or a clear answer to a hard question keeps working for months, reaching patients while they research and giving them a reason to choose you. We build that content across social, blogs, video and your website, all pointed at the patients you actually treat.</p>
 
     <div class="svc-card-unified fu">
 
@@ -1174,7 +1168,7 @@ document.getElementById('contactForm').addEventListener('submit', async function
 <script>
 (function(){
 /* SCROLL-DRIVEN SEARCH HERO */
-const QUERY="healthcare specialists near me";
+const QUERY="GAE for knee pain near me";
 const track=document.getElementById('track');
 const sticky=document.querySelector('.hero-sticky');
 const typed=document.getElementById('typed'),caret=document.getElementById('caret');
@@ -1195,7 +1189,7 @@ function setRisen(on){
 function render(p){
   const t0=0.06,t1=0.30;
   if(p<t1){const k=Math.max(0,Math.min(1,(p-t0)/(t1-t0)));typed.textContent=QUERY.slice(0,Math.round(k*QUERY.length));caret.style.display='';}
-  else{typed.innerHTML='healthcare specialists <span class="near">near me</span>';caret.style.display='none';}
+  else{typed.innerHTML='GAE for knee pain <span class="near">near me</span>';caret.style.display='none';}
   panel.classList.toggle('ring',p>0.06&&p<0.34);
   go.classList.toggle('hit',p>=0.32&&p<0.42);
   const showRes=p>=0.38;results.classList.toggle('show',showRes);
@@ -1217,7 +1211,7 @@ function onScroll(){
 }
 if(reduce){track.style.height='100vh';measure();
   document.querySelectorAll('.r-card').forEach(c=>c.style.transition='none');
-  typed.innerHTML='healthcare specialists <span class="near">near me</span>';caret.style.display='none';
+  typed.innerHTML='GAE for knee pain <span class="near">near me</span>';caret.style.display='none';
   results.classList.add('show');setRisen(true);resolve.classList.add('in');panel.style.opacity='.5';panel.style.transform='translateY(-104px) scale(.82)';sCue.style.opacity='0';
 }else{
   addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',()=>{rowStep=0;risenState=null;onScroll();});
