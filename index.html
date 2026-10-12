@@ -1197,7 +1197,7 @@ function render(p){
   setRisen(p>=0.56);
   const r=p>=0.76;
   resolve.classList.toggle('in',r);
-  panel.style.transform=r?'translateY(-104px) scale(.82)':'';panel.style.opacity=r?'.5':'1';
+  panel.style.transform=r?'translateY(-104px) scale(.82)':'';panel.style.opacity=r?'0':'1';
   sCue.style.opacity=p>0.05?'0':'1';
   scrollCue.classList.toggle('in',p>0.01&&p<0.72);
 }
@@ -1212,7 +1212,7 @@ function onScroll(){
 if(reduce){track.style.height='100vh';measure();
   document.querySelectorAll('.r-card').forEach(c=>c.style.transition='none');
   typed.innerHTML='GAE for knee pain <span class="near">near me</span>';caret.style.display='none';
-  results.classList.add('show');setRisen(true);resolve.classList.add('in');panel.style.opacity='.5';panel.style.transform='translateY(-104px) scale(.82)';sCue.style.opacity='0';
+  results.classList.add('show');setRisen(true);resolve.classList.add('in');panel.style.opacity='0';panel.style.transform='translateY(-104px) scale(.82)';sCue.style.opacity='0';
 }else{
   addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',()=>{rowStep=0;risenState=null;onScroll();});
   addEventListener('load',()=>{measure();onScroll();});onScroll();
