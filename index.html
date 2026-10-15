@@ -463,7 +463,10 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
 .hero-headline em{font-style:italic;color:var(--steel-light);font-weight:400}
 .hero-body{font-family:var(--body);font-size:clamp(1.12rem,1.75vw,1.38rem);font-weight:400;color:rgba(232,228,222,.9);max-width:640px;margin:0 auto 2rem;line-height:1.75}
 .hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-.scroll-cue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:5;font-family:var(--ui);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(250,248,245,.42);display:flex;flex-direction:column;align-items:center;gap:7px;opacity:0;transition:opacity .5s}
+.scroll-cue{position:absolute;bottom:30px;bottom:max(30px,calc(100vh - 100svh + 24px));left:50%;transform:translateX(-50%);z-index:5;font-family:var(--ui);font-size:.72rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:rgba(250,248,245,.78);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;transition:opacity .5s;white-space:nowrap}
+.scroll-cue span{font-size:1.15rem;color:var(--steel-light)}
+.search-ph{color:#a59f97}
+.panel{cursor:pointer}
 .scroll-cue.in{opacity:1}
 .scroll-cue span{animation:bob 1.6s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(5px)}}
@@ -544,7 +547,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
           <div class="panel-bar"><i></i><i></i><i></i><span class="url">search &middot; GAE for knee pain near me</span></div>
           <div class="search-row">
             <svg class="search-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <div class="search-text"><span id="typed"></span><span class="caret" id="caret"></span></div>
+            <div class="search-text"><span class="caret" id="caretPh"></span><span class="search-ph" id="ph">Scroll to search</span><span id="typed"></span><span class="caret" id="caret"></span></div>
             <div class="enter-key" id="go" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg></div>
           </div>
           <div class="results" id="results">
@@ -566,7 +569,7 @@ footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center
           </div>
         </div>
       </div>
-      <div class="scroll-cue" id="scrollCue">Scroll<span>&#8595;</span></div>
+      <div class="scroll-cue" id="scrollCue"><b id="cueLabel" style="font-weight:inherit">Scroll to search</b><span>&#8595;</span></div>
     </div>
   </div>
 </section>
@@ -1178,6 +1181,8 @@ const panel=document.getElementById('panel'),go=document.getElementById('go');
 const results=document.getElementById('results'),resolve=document.getElementById('resolve');
 const sCue=document.getElementById('sCue'),scrollCue=document.getElementById('scrollCue');
 const youCard=document.getElementById('youCard');
+const ph=document.getElementById('ph'),caretPh=document.getElementById('caretPh');
+if(matchMedia('(hover:none)').matches){ph.textContent='Swipe up to search';document.getElementById('cueLabel').textContent='Swipe up to search';}
 const comps=[...document.querySelectorAll('.r-card.comp')];
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 let rowStep=0,risenState=null;
@@ -1201,7 +1206,8 @@ function render(p){
   resolve.classList.toggle('in',r);
   panel.style.transform=r?'translateY(-104px) scale(.82)':'';panel.style.opacity=r?'0':'1';
   sCue.style.opacity=p>0.05?'0':'1';
-  scrollCue.classList.toggle('in',p>0.01&&p<0.72);
+  const empty=typed.textContent==='';ph.style.display=empty?'':'none';caretPh.style.display=empty?'':'none';if(empty)caret.style.display='none';
+  scrollCue.classList.toggle('in',p<0.72);
 }
 function onScroll(){
   const rect=track.getBoundingClientRect();
@@ -1214,10 +1220,11 @@ function onScroll(){
 if(reduce){track.style.height='100vh';measure();
   document.querySelectorAll('.r-card').forEach(c=>c.style.transition='none');
   typed.innerHTML='GAE for knee pain <span class="near">near me</span>';caret.style.display='none';
-  results.classList.add('show');setRisen(true);resolve.classList.add('in');panel.style.opacity='0';panel.style.transform='translateY(-104px) scale(.82)';sCue.style.opacity='0';
+  ph.style.display='none';caretPh.style.display='none';results.classList.add('show');setRisen(true);resolve.classList.add('in');panel.style.opacity='0';panel.style.transform='translateY(-104px) scale(.82)';sCue.style.opacity='0';
 }else{
   addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',()=>{rowStep=0;risenState=null;onScroll();});
   addEventListener('load',()=>{measure();onScroll();});onScroll();
+  panel.addEventListener('click',()=>{if(-track.getBoundingClientRect().top<8)scrollTo({top:track.offsetTop+track.offsetHeight-innerHeight,behavior:'smooth'});});
 }
 })();
 </script>
