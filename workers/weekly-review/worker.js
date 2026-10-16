@@ -1,7 +1,7 @@
 // Weekly review worker. Serves the client weekly review page at messickmarketing.com/review/?c=<code>.
 //
 // Public (the code is the only key; it is unguessable and never appears in the public repo):
-//   GET  /api/week?c=         posts for the review week (Status = Done only), approved insights, review state
+//   GET  /api/week?c=         posts for the review week (Status = Done, plus Edits Needed flagged), approved insights, review state
 //   POST /api/approve         {c, post, name, approved}   -> Airtable record comment + state
 //   POST /api/comment         {c, post, name, text}       -> Airtable record comment + state
 //   POST /api/submit          {c, name}                   -> Telegram summary to Morgan + state
@@ -120,7 +120,9 @@ async function loadPosts(env, client, start, end) {
         if (!d || d < ymd(start) || d > ymd(end)) continue;
         const status = f.status && v[f.status.id];
         const statusName = typeof status === 'string' ? status : status?.name;
-        if (statusName !== 'Done') { unfinished++; continue; }
+        // "Edits Needed" rows stay on the page with a banner (Morgan, 2026-10-16).
+        const editsNeeded = /^edits needed$/i.test(String(statusName || '').trim());
+        if (statusName !== 'Done' && !editsNeeded) { unfinished++; continue; }
         const plats = f.platforms ? (v[f.platforms.id] || []).map(x => (typeof x === 'string' ? x : x.name)) : [];
         const media = (f.media ? v[f.media.id] || [] : []).map(a => ({
           url: a.url, type: a.type || '', w: a.width, h: a.height,
@@ -130,7 +132,7 @@ async function loadPosts(env, client, start, end) {
           id: `${t.id}:${r.id}`, date: d,
           title: f.title ? String(v[f.title.id] || '') : '',
           caption: f.caption ? v[f.caption.id] || '' : '', hashtags: f.tags ? v[f.tags.id] || '' : '',
-          platforms: plats, media,
+          platforms: plats, media, editsNeeded,
         });
       }
       offset = page.offset;

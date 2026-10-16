@@ -78,6 +78,8 @@
   .day span{font-family:Jost,sans-serif;font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
   .plats{display:flex;gap:5px;flex-wrap:wrap}
   .plat{font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 8px;border-radius:999px;background:var(--well);color:var(--ink)}
+  .edits{display:flex;gap:10px;align-items:baseline;margin:0 16px 12px;padding:10px 12px;border-radius:10px;background:#fdf3e1;border:1px solid #e9c98b;color:#7a5410;font-size:13.5px;line-height:1.45}
+  .edits b{font:600 11px Jost,sans-serif;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
   .post .title{padding:0 16px 12px;font-weight:500;font-size:15px;color:var(--steel)}
   .media{background:var(--well)}
   .media img{display:block;width:100%;height:auto}
@@ -278,6 +280,7 @@ function render(){
     const tags = String(p.hashtags || '').split(/\s+/).filter(Boolean);
     h += `<article class="post" data-id="${esc(p.id)}">
       <div class="post-top"><div class="day">${esc(p.day)} <span>${esc(p.dateLabel)}</span></div><div class="plats">${p.platforms.map(x => `<span class="plat">${esc(x)}</span>`).join('')}</div></div>
+      ${p.editsNeeded ? `<div class="edits"><b>Edits needed</b><span>Our team is updating this post. The new version will appear here once it's ready.</span></div>` : ''}
       ${p.title ? `<div class="title">${esc(p.title)}</div>` : ''}
       ${mediaHtml(p)}
       <div class="body">
