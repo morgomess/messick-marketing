@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Finder - Gentle Hour Wellness</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter+Tight:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+/* Mirror of the session finder on gentlehourwellness.com/services (js/site.js PICKS). Keep prices in sync with the live menu. */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --olive:#4F523A;--ink:#0e100f;--bone:#ECE8DF;--bone-2:#e2ded5;--bone-dim:#d2cec5;--sage:#CECEBD;--btn:#ACAD97;
+  --line:rgba(236,232,223,.14);
+  --serif:"Cinzel",Georgia,serif;--sans:"Inter Tight",system-ui,sans-serif;
+}
+html,body{min-height:100%}
+body{background:var(--olive);color:var(--bone);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding:30px 28px}
+:focus-visible{outline:2px solid var(--sage);outline-offset:3px;border-radius:4px}
+button{font:inherit}
+.grid{display:grid;gap:1.4rem;max-width:62rem;margin:0 auto}
+@media (min-width:760px){.grid{grid-template-columns:.8fr 1.2fr;gap:3.5rem;align-items:start}}
+.label{font-weight:600;text-transform:uppercase;letter-spacing:.2em;font-size:.68rem;color:var(--sage)}
+h1{margin-top:.6rem;font-family:var(--serif);font-weight:700;font-size:clamp(1.55rem,3.6vw,2.3rem);line-height:1.1}
+.intro{margin-top:.7rem;color:var(--bone-2);font-size:.98rem;max-width:22rem}
+.pick{border-top:1px solid var(--line)}
+.pick-count{padding-top:1rem;font-weight:600;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-dim)}
+.pick h2{margin-top:.4rem;font-family:var(--serif);font-weight:600;font-size:1.3rem}
+.pick-opts{margin-top:.6rem}
+.pick-opts button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--bone-2);font-weight:500;font-size:1rem;text-align:left;cursor:pointer;transition:color .25s}
+.pick-opts button svg,.btn svg{width:1rem;height:1rem;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pick-opts button svg{opacity:.5;transition:opacity .25s}
+.pick-opts button:hover{color:var(--bone)}
+.pick-opts button:hover svg{opacity:1}
+.pick-step:not([hidden]),.pick-result:not([hidden]){animation:softIn .6s ease}
+@keyframes softIn{from{opacity:0}to{opacity:1}}
+.pick-top{margin-top:.4rem;display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.pick-top h2{margin-top:0}
+.pick-price{font-weight:800;font-size:1.4rem;letter-spacing:-.02em;color:var(--sage);white-space:nowrap}
+.pick-result p{margin-top:.5rem;color:var(--bone-2);max-width:32rem}
+.pick-result .pick-note{color:var(--bone-dim);font-size:.93rem}
+.ctas{margin-top:1.2rem;display:flex;flex-wrap:wrap;gap:.75rem 1.2rem;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:.6rem;font-weight:600;font-size:.95rem;padding:.8rem 1.4rem;border-radius:999px;background:var(--btn);color:var(--ink);text-decoration:none;transition:background .2s,transform .2s}
+.btn:hover{background:var(--bone);transform:translateY(-2px)}
+.textlink{font-weight:600;color:var(--bone-2);text-decoration:none;border-bottom:1px solid rgba(236,232,223,.35);padding-bottom:2px}
+.textlink:hover{color:var(--bone)}
+.pick-back{margin-top:1.2rem;background:none;border:0;padding:0;color:var(--bone-dim);font-weight:600;font-size:.88rem;cursor:pointer;border-bottom:1px solid rgba(236,232,223,.3)}
+.pick-back:hover{color:var(--bone)}
+@media (max-width:480px){body{padding:22px 18px}.intro{display:none}}
+@media (prefers-reduced-motion:reduce){.pick-step:not([hidden]),.pick-result:not([hidden]){animation:none}}
+</style>
+</head>
+<body>
+<div class="grid">
+  <div>
+    <div class="label">Gentle Hour Wellness</div>
+    <h1>Which massage should I book?</h1>
+    <p class="intro">Answer three short questions for a recommendation.</p>
+  </div>
+  <div class="pick" id="picker">
+    <div class="pick-step" data-step="1">
+      <div class="pick-count">1 of 3</div>
+      <h2>What&rsquo;s going on?</h2>
+      <div class="pick-opts">
+        <button type="button" data-q="need" data-v="train"><span>Sore or tight from training</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="need" data-v="spot"><span>One spot that won&rsquo;t let go</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="need" data-v="stress"><span>Stress, or my first massage</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="need" data-v="prenatal"><span>I&rsquo;m pregnant</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="need" data-v="face"><span>I want to look refreshed</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="pick-step" data-step="2" hidden>
+      <div class="pick-count">2 of 3</div>
+      <h2>Where?</h2>
+      <div class="pick-opts">
+        <button type="button" data-q="where" data-v="studio"><span>At the studio</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="where" data-v="mobile"><span>At my place</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="pick-step" data-step="3" hidden>
+      <div class="pick-count">3 of 3</div>
+      <h2>How much time?</h2>
+      <div class="pick-opts">
+        <button type="button" data-q="time" data-v="30"><span>About 30 minutes</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="time" data-v="60"><span>About 60 minutes</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button type="button" data-q="time" data-v="90"><span>90 minutes or more</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="pick-result" hidden aria-live="polite">
+      <div class="pick-count">Your pick</div>
+      <div class="pick-top"><h2 id="pick-name"></h2><span class="pick-price" id="pick-price"></span></div>
+      <p id="pick-why"></p>
+      <p class="pick-note" id="pick-note" hidden></p>
+      <div class="ctas">
+        <a class="btn" href="https://gentlehourwellness.com/booking" target="_blank" rel="noopener">Book it <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="textlink" id="pick-menu" href="https://gentlehourwellness.com/services#menu" target="_blank" rel="noopener">See it on the menu</a>
+      </div>
+    </div>
+    <button type="button" class="pick-back" id="pick-back" hidden>Start over</button>
+  </div>
+</div>
+<script>
+(function(){
+  var SV={
+    quick:['Quick Fix, 30 min','$60','Thirty minutes on the one area that needs it.','svc-quick'],
+    deep60:['Deep Tissue, 60 min','$95','Slow, firm work for the knots training leaves behind.','svc-deep'],
+    deep90:['Deep Tissue, 90 min','$140','Time to work legs, hips and back properly.','svc-deep'],
+    ther90:['Therapeutic, 90 min','$150','Focused work on your problem spot, plus full-body.','svc-therapeutic'],
+    swe60:['Swedish, 60 min','$95','Long, gliding strokes. The classic place to start.','svc-swedish'],
+    swe90:['Swedish, 90 min','$130','A longer, slower reset.','svc-swedish'],
+    pre60:['Prenatal, 60 min','$135','Fully supported and comfortable.','svc-prenatal'],
+    pre90:['Prenatal, 90 min','$190','Fully supported, with extra time.','svc-prenatal'],
+    face:['Korean Face Sculpting','$65','Lifts and de-puffs. No needles.','svc-face'],
+    mdeep60:['Travel Deep Tissue, 60 min','$140','Firm, focused work without leaving home.','svc-m-deep'],
+    mdeep90:['Travel Deep Tissue, 90 min','$210','Firm, focused work, with time to cover it all.','svc-m-deep'],
+    mther90:['Travel Therapeutic, 90 min','$225','Your problem spot plus full-body, at home.','svc-m-therapeutic'],
+    mswe60:['Travel Swedish, 60 min','$140','The classic, at your place.','svc-m-swedish'],
+    mswe90:['Travel Swedish, 90 min','$195','A longer reset, at your place.','svc-m-swedish'],
+    mpre60:['Travel Prenatal, 60 min','$200','Fully supported, no driving.','svc-m-prenatal'],
+    mpre90:['Travel Prenatal, 90 min','$285','Fully supported, no driving, extra time.','svc-m-prenatal']
+  };
+  var PICKS={
+    studio:{train:{30:'quick',60:'deep60',90:'deep90'},spot:{30:'quick',60:'deep60',90:'ther90'},stress:{30:'quick',60:'swe60',90:'swe90'},prenatal:{30:'pre60',60:'pre60',90:'pre90'},face:{30:'face',60:'face',90:'face'}},
+    mobile:{train:{30:'mdeep60',60:'mdeep60',90:'mdeep90'},spot:{30:'mdeep60',60:'mdeep60',90:'mther90'},stress:{30:'mswe60',60:'mswe60',90:'mswe90'},prenatal:{30:'mpre60',60:'mpre60',90:'mpre90'},face:{30:'face',60:'face',90:'face'}}
+  };
+  var picker=document.getElementById('picker');
+  var ans={}, steps=picker.querySelectorAll('.pick-step'), result=picker.querySelector('.pick-result'), back=document.getElementById('pick-back');
+  var show=function(n){
+    [].forEach.call(steps,function(st){st.hidden=+st.dataset.step!==n;});
+    result.hidden=n!==4; back.hidden=n===1;
+    var target=n===4?result:steps[n-1];
+    var first=target.querySelector('button, a'); if(first&&n>1) first.focus({preventScroll:true});
+  };
+  var note=function(){
+    if(ans.need==='prenatal') return 'Victor calls you for a quick 5-minute consult first.';
+    if(ans.need==='face'&&ans.where==='mobile') return 'Face sculpting is done at the studio.';
+    if(ans.where==='mobile'&&ans.time==='30') return 'Mobile sessions start at 60 minutes. Per-mile fee outside Statesboro.';
+    if(ans.where==='mobile') return 'Per-mile fee outside Statesboro.';
+    if(ans.need==='stress') return 'Pair it with the salt room: 45 quiet minutes, $70.';
+    return '';
+  };
+  picker.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-q]'); if(!b) return;
+    ans[b.dataset.q]=b.dataset.v;
+    if(b.dataset.q==='need') show(ans.need==='face'?4:2);
+    else if(b.dataset.q==='where') show(3);
+    else show(4);
+    if(!result.hidden){
+      var sv=SV[PICKS[ans.where||'studio'][ans.need][ans.time||'60']];
+      document.getElementById('pick-name').textContent=sv[0];
+      document.getElementById('pick-price').textContent=sv[1];
+      document.getElementById('pick-why').textContent=sv[2];
+      document.getElementById('pick-menu').setAttribute('href','https://gentlehourwellness.com/services#'+sv[3]);
+      var n=note(), ne=document.getElementById('pick-note'); ne.textContent=n; ne.hidden=!n;
+    }
+  });
+  back.addEventListener('click',function(){ans={};show(1);steps[0].querySelector('button').focus({preventScroll:true});});
+})();
+</script>
+</body>
+</html>

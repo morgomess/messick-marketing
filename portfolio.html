@@ -449,7 +449,9 @@
     .tool-embed-head .te-title { font-family: var(--font-editorial); font-size: 1.05rem; color: var(--black); }
     .tool-embed-head .te-type { font-family: var(--font-body); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); font-weight: 600; }
     .tool-frame { width: 100%; border: 0; display: block; height: 560px; background: #fff; }
-    @media(max-width:760px){ .tools-section { padding: 70px 24px; } .tool-embed-head .te-type { display: none; } .tool-embeds { grid-template-columns: 1fr; } .tool-frame { height: 520px; } }
+    .tool-embed--wide { grid-column: 1 / -1; }
+    .tool-embed--wide .tool-frame { height: 400px; background: #4F523A; }
+    @media(max-width:760px){ .tools-section { padding: 70px 24px; } .tool-embed-head .te-type { display: none; } .tool-embeds { grid-template-columns: 1fr; } .tool-frame { height: 520px; } .tool-embed--wide .tool-frame { height: 560px; } }
     .blog-section .section-header {
       text-align: center;
       margin-bottom: 60px;
@@ -1282,9 +1284,13 @@ src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
   <div class="section-header">
     <span class="section-label" style="color:var(--blue-light)">Interactive Tools</span>
     <h2>Customized Patient Education Tools</h2>
-    <p>Interactive tools built into each practice's site that help patients work out whether a treatment fits them before they ever call: a filterable procedure library, a guided symptom checker, an animated procedure explainer and a life-stage care navigator. Each one is built around the practice and the way its patients actually search. Try them right here.</p>
+    <p>Interactive tools built into each practice's site that help patients work out whether a treatment fits them before they ever call: a filterable procedure library, a guided symptom checker, an animated procedure explainer, a life-stage care navigator, and a session finder that is live on a massage studio's site today. Each one is built around the practice and the way its patients actually search. Try them right here.</p>
   </div>
   <div class="tool-embeds">
+    <div class="tool-embed tool-embed--wide">
+      <div class="tool-embed-head"><span class="te-title">Session Finder &middot; Gentle Hour Wellness</span><span class="te-type">Massage &amp; Wellness &middot; Live</span></div>
+      <iframe class="tool-frame" src="/websites/tools/ghw-session-finder" title="Gentle Hour Wellness massage session finder" loading="lazy"></iframe>
+    </div>
     <div class="tool-embed">
       <div class="tool-embed-head"><span class="te-title">Procedure Library</span><span class="te-type">Interventional Radiology</span></div>
       <iframe class="tool-frame" src="/websites/tools/lumen-library" title="Interactive procedure library" loading="lazy"></iframe>
