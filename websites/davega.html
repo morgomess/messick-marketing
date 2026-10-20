@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Da'Vega Fragrances | Luxury scent, honest price</title>
+<meta name="description" content="Concept site for Da'Vega Fragrances: long-wearing luxury fragrances under $50."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0b0a08;--ink:#151310;--panel:#1b1814;--line:rgba(212,168,74,.22);
+  --gold:#d4a84a;--gold-hi:#f6dc8c;--gold-lo:#8a6018;--cream:#f4ead8;--cream-2:#e9dcc3;--text:#efe6d4;--muted:#b9ab90;
+  --gold-grad:linear-gradient(180deg,#fbe7a6 0%,#e2b85a 38%,#a87526 70%,#e6c46f 100%);
+  --display:'Cinzel',Georgia,serif;--serif:'Cormorant Garamond',Georgia,serif;--body:'Jost','Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--text);font-family:var(--body);font-weight:300;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.gold-text{background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{font-family:var(--body);font-size:.7rem;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.04em;line-height:1.12}
+h2{font-size:clamp(1.7rem,3.4vw,2.6rem)}
+.rule{display:flex;align-items:center;gap:14px;justify-content:center;margin:14px auto 0;max-width:360px}
+.rule::before,.rule::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.rule i{width:8px;height:8px;transform:rotate(45deg);background:var(--gold-grad);display:block}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.95rem 1.8rem;font-family:var(--body);font-size:.78rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;border:0;border-radius:2px;transition:transform .2s,box-shadow .2s,background .2s,color .2s}
+.btn-gold{background:var(--gold-grad);color:#1a1206;box-shadow:0 10px 30px rgba(212,168,74,.25)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(212,168,74,.38)}
+.btn-line{background:transparent;color:var(--gold-hi);box-shadow:inset 0 0 0 1px var(--gold)}
+.btn-line:hover{background:rgba(212,168,74,.1)}
+
+/* top */
+.announce{background:var(--gold-grad);color:#1a1206;text-align:center;font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:.55rem 1rem}
+header{position:sticky;top:0;z-index:50;background:rgba(11,10,8,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px;gap:1rem}
+.brand{display:flex;align-items:center;gap:.7rem}
+.brand img{width:46px;height:42px;object-fit:cover;object-position:50% 30%;mix-blend-mode:screen}
+.brand b{font-family:var(--display);font-size:1.25rem;letter-spacing:.06em;font-weight:700}
+.brand span{display:block;font-size:.52rem;letter-spacing:.42em;color:var(--muted);text-transform:uppercase;margin-top:-2px}
+.links{display:flex;gap:1.8rem;list-style:none;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500}
+.links a{color:var(--cream-2);transition:color .2s}
+.links a:hover{color:var(--gold-hi)}
+.bag{position:relative;display:flex;align-items:center;gap:.45rem;background:none;border:1px solid var(--line);color:var(--gold-hi);padding:.55rem .85rem;border-radius:2px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+.bag svg{width:17px;height:17px}
+.bag em{font-style:normal;background:var(--gold-grad);color:#1a1206;border-radius:20px;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;padding:0 5px}
+.bag.pop{animation:pop .4s ease}
+@keyframes pop{50%{transform:scale(1.08)}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(70% 80% at 72% 40%,#2a1f0d 0%,#120f0a 45%,var(--black) 75%)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 35%,rgba(246,220,140,.16),transparent 40%);pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:2rem;min-height:640px;padding:70px 22px}
+.hero h1{font-size:clamp(2.4rem,5.2vw,4.3rem);margin:1rem 0 1.2rem}
+.hero p{font-size:clamp(1.02rem,1.4vw,1.18rem);color:var(--cream-2);max-width:520px;margin-bottom:2rem}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.hero-proof{display:flex;gap:1.8rem;flex-wrap:wrap;margin-top:2.4rem;padding-top:1.6rem;border-top:1px solid var(--line);max-width:520px}
+.hero-proof div{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hero-proof strong{display:block;font-family:var(--display);font-size:1.35rem;letter-spacing:.04em;color:var(--gold-hi);font-weight:600}
+.hero-art{position:relative;display:flex;justify-content:center}
+.hero-art img{width:min(470px,100%);mix-blend-mode:screen}
+.sparkle{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff6d6;box-shadow:0 0 12px 4px rgba(246,220,140,.7);animation:twinkle 3.6s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1)}}
+
+/* marquee */
+.marquee{border-block:1px solid var(--line);background:var(--ink);overflow:hidden;white-space:nowrap}
+.marquee div{display:inline-block;padding:1rem 0;animation:scroll 32s linear infinite;font-family:var(--display);font-size:.82rem;letter-spacing:.3em;color:var(--gold)}
+.marquee span{margin:0 2rem;color:var(--muted)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* sections */
+section{padding:96px 0}
+.head{text-align:center;margin-bottom:3rem}
+.head p{color:var(--muted);max-width:620px;margin:1rem auto 0;font-size:1.02rem}
+
+/* shop */
+.chips{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.4rem}
+.chip{background:transparent;border:1px solid var(--line);color:var(--cream-2);padding:.55rem 1.1rem;border-radius:30px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;transition:all .2s}
+.chip:hover{border-color:var(--gold)}
+.chip.on{background:var(--gold-grad);color:#1a1206;border-color:transparent;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.3rem}
+.card{background:linear-gradient(180deg,var(--panel),var(--ink));border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;transition:transform .25s,border-color .25s,box-shadow .25s}
+.card:hover{transform:translateY(-5px);border-color:rgba(246,220,140,.55);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.card.hide{display:none}
+.card-art{position:relative;aspect-ratio:1/1.05;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6%;background:radial-gradient(60% 55% at 50% 58%,rgba(212,168,74,.2),transparent 70%)}
+.card-art svg{width:52%;filter:drop-shadow(0 18px 22px rgba(0,0,0,.6))}
+.tag{position:absolute;top:12px;left:12px;font-size:.58rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;background:var(--gold-grad);color:#1a1206;padding:.32rem .6rem;border-radius:2px}
+.card-body{padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.35rem;flex:1;border-top:1px solid var(--line)}
+.fam{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.card h3{font-size:1.06rem;letter-spacing:.06em;color:var(--cream)}
+.notes{font-family:var(--serif);font-style:italic;font-size:1.02rem;color:var(--muted);line-height:1.35;flex:1}
+.buy{display:flex;align-items:center;justify-content:space-between;margin-top:.6rem}
+.price{font-family:var(--display);font-size:1.15rem;color:var(--gold-hi)}
+.price small{font-family:var(--body);font-size:.66rem;color:var(--muted);letter-spacing:.08em;margin-left:.25rem}
+.add{background:none;border:1px solid var(--gold);color:var(--gold-hi);padding:.5rem .8rem;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;border-radius:2px;transition:background .2s,color .2s}
+.add:hover,.add.done{background:var(--gold-grad);color:#1a1206;border-color:transparent}
+
+/* value */
+.value{background:var(--cream);color:#1d160b;position:relative;overflow:hidden}
+.value::before,.value::after{content:'';position:absolute;width:520px;height:120px;border-radius:50%;border-top:10px solid #b8862b;opacity:.35;filter:blur(1px)}
+.value::before{top:-60px;left:-140px;transform:rotate(-12deg)}
+.value::after{bottom:-70px;right:-160px;transform:rotate(-12deg)}
+.value .eyebrow{color:#8a6018}
+.value h2{color:#1d160b}
+.value .head p{color:#5b4c33}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;position:relative}
+.vcard{background:#fffaf0;border:1px solid #e3cf9f;border-radius:4px;padding:2rem 1.6rem;text-align:center}
+.vcard .ico{width:54px;height:54px;margin:0 auto 1rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1d160b;color:var(--gold-hi)}
+.vcard .ico svg{width:24px;height:24px}
+.vcard h3{font-size:1.02rem;margin-bottom:.5rem;color:#1d160b}
+.vcard p{color:#5b4c33;font-size:.95rem}
+.compare{margin:2.6rem auto 0;max-width:720px;display:grid;grid-template-columns:1fr 1fr;border:1px solid #d9c18b;border-radius:4px;overflow:hidden;position:relative}
+.compare div{padding:1.4rem 1.6rem}
+.compare div:first-child{background:#efe2c6}
+.compare div:last-child{background:#1d160b;color:var(--cream)}
+.compare b{display:block;font-family:var(--display);font-size:1.6rem;letter-spacing:.04em}
+.compare div:last-child b{color:var(--gold-hi)}
+.compare span{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+
+/* finder */
+.finder{background:radial-gradient(60% 70% at 50% 0%,#24190a,var(--black) 70%)}
+.quiz{max-width:760px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2.4rem 2.2rem;position:relative}
+.steps{display:flex;gap:.4rem;margin-bottom:1.6rem}
+.steps i{flex:1;height:3px;background:rgba(212,168,74,.2);border-radius:3px;transition:background .3s}
+.steps i.on{background:var(--gold-grad)}
+.q h3{font-size:1.3rem;margin-bottom:1.4rem;color:var(--cream);text-align:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.opt{background:var(--ink);border:1px solid var(--line);color:var(--text);padding:1.1rem 1rem;border-radius:4px;text-align:left;transition:border-color .2s,transform .2s}
+.opt:hover{border-color:var(--gold);transform:translateY(-2px)}
+.opt b{display:block;font-family:var(--display);font-size:.9rem;letter-spacing:.08em;color:var(--gold-hi);margin-bottom:.2rem}
+.opt span{font-size:.86rem;color:var(--muted)}
+.result{display:none;grid-template-columns:150px 1fr;gap:1.6rem;align-items:center}
+.result.show{display:grid}
+.result svg{width:100%;filter:drop-shadow(0 16px 20px rgba(0,0,0,.6))}
+.result h3{font-size:1.6rem;margin:.3rem 0 .4rem}
+.result p{color:var(--muted);margin-bottom:1.2rem}
+.again{background:none;border:0;color:var(--gold);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;margin-left:1rem}
+
+/* discovery */
+.disc{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
+.disc-art{position:relative;background:radial-gradient(55% 60% at 50% 55%,rgba(212,168,74,.22),transparent 70%);border:1px solid var(--line);border-radius:6px;padding:3rem 2rem 2.4rem;display:flex;justify-content:center;align-items:flex-end;gap:.4rem}
+.disc-art svg{width:15%}
+.disc h2{margin:.8rem 0 1rem}
+.disc p{color:var(--cream-2);margin-bottom:1.2rem}
+.disc ul{list-style:none;margin-bottom:1.8rem}
+.disc li{padding:.45rem 0 .45rem 1.6rem;position:relative;color:var(--cream-2);border-bottom:1px solid var(--line)}
+.disc li::before{content:'';position:absolute;left:2px;top:.95rem;width:7px;height:7px;transform:rotate(45deg);background:var(--gold-grad)}
+.disc .price{font-size:1.6rem;margin-right:1rem}
+
+/* reviews placeholder */
+.reviews{border-top:1px solid var(--line)}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem}
+.rcard{border:1px dashed rgba(212,168,74,.4);border-radius:4px;padding:1.8rem 1.6rem;text-align:center;color:var(--muted)}
+.rcard .stars{color:var(--gold-hi);letter-spacing:.2em;margin-bottom:.8rem}
+.rcard p{font-family:var(--serif);font-style:italic;font-size:1.15rem;line-height:1.4}
+
+/* join */
+.join{background:var(--gold-grad);color:#1a1206;text-align:center;padding:70px 0}
+.join h2{color:#1a1206}
+.join p{max-width:520px;margin:.8rem auto 1.6rem;font-weight:400}
+.join form{display:flex;max-width:480px;margin:0 auto;background:#1a1206;border-radius:3px;padding:5px}
+.join input{flex:1;background:transparent;border:0;color:var(--cream);padding:.8rem 1rem;font:inherit;font-size:.95rem;outline:none;min-width:0}
+.join input::placeholder{color:#a8977a}
+.join button{background:var(--gold-grad);border:0;color:#1a1206;font-weight:600;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;padding:0 1.3rem;border-radius:2px}
+.join small{display:block;margin-top:.8rem;font-size:.78rem;opacity:.8}
+
+footer{padding:60px 0 30px;border-top:1px solid var(--line)}
+.fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2rem}
+.fgrid img{width:200px;mix-blend-mode:screen;margin-bottom:.6rem}
+.fgrid h4{font-family:var(--display);font-size:.78rem;letter-spacing:.22em;color:var(--gold);margin-bottom:1rem;font-weight:600}
+.fgrid ul{list-style:none}
+.fgrid li{margin-bottom:.5rem;font-size:.9rem;color:var(--muted)}
+.fgrid li a:hover{color:var(--gold-hi)}
+.legal{margin-top:2.6rem;padding-top:1.4rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.74rem;color:#7d7262;letter-spacing:.06em}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,calc(100% + 40px));visibility:hidden;background:var(--panel);border:1px solid var(--gold);color:var(--cream);padding:.8rem 1.2rem;border-radius:3px;font-size:.86rem;z-index:80;transition:transform .35s ease;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+
+@media(max-width:980px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .links{display:none}
+  .hero-grid{grid-template-columns:1fr;text-align:center;min-height:auto;padding:36px 22px 64px}
+  .hero-art{order:-1}
+  .hero-art img{width:min(340px,80%)}
+  .hero p,.hero-proof{margin-left:auto;margin-right:auto}
+  .hero-actions,.hero-proof{justify-content:center}
+  .vgrid,.rgrid{grid-template-columns:1fr}
+  .disc{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  section{padding:70px 0}
+  .grid{gap:.8rem}
+  .card-body{padding:.9rem .85rem 1rem}
+  .card h3{font-size:.92rem}
+  .notes{font-size:.92rem}
+  .buy{flex-direction:column;align-items:flex-start;gap:.5rem}
+  .add{width:100%}
+  .opts{grid-template-columns:1fr}
+  .quiz{padding:1.8rem 1.2rem}
+  .result{grid-template-columns:1fr;text-align:center}
+  .result svg{width:110px;margin:0 auto}
+  .compare{grid-template-columns:1fr}
+  .brand b{font-size:1.05rem}
+  .hero .eyebrow{letter-spacing:.2em}
+  .bag .lbl{display:none}
+  .fgrid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.marquee div,.sparkle{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="announce">Free shipping on orders over $50 &nbsp;&middot;&nbsp; Every bottle under $50</div>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Da'Vega Fragrances home">
+      <img src="assets/davega/emblem-black.png" alt=""/>
+      <div><b class="gold-text">DA&rsquo;VEGA</b><span>Fragrances</span></div>
+    </a>
+    <ul class="links">
+      <li><a href="#shop">Shop</a></li>
+      <li><a href="#finder">Scent Finder</a></li>
+      <li><a href="#discovery">Discovery Set</a></li>
+      <li><a href="#why">Why Da&rsquo;Vega</a></li>
+    </ul>
+    <button class="bag" id="bag" type="button" aria-label="Shopping bag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span class="lbl">Bag</span><em id="count">0</em>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" style="padding:0">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Luxury scent &middot; Honest price</p>
+      <h1><span class="gold-text">Smell like a fortune.</span><br>Pay like you&rsquo;re smart.</h1>
+      <p>Rich, long-wearing fragrances in black and gold bottles that look at home on any vanity. Every scent is under $50, because a signature should not cost a paycheck.</p>
+      <div class="hero-actions">
+        <a class="btn btn-gold" href="#shop">Shop the collection</a>
+        <a class="btn btn-line" href="#finder">Find my scent</a>
+      </div>
+      <div class="hero-proof">
+        <div><strong>$29+</strong>Full 50 ml bottles</div>
+        <div><strong>8&ndash;10 hr</strong>Extrait wear</div>
+        <div><strong>$19</strong>Six-scent sampler</div>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img src="assets/davega/lockup-black.png" alt="Da'Vega Fragrances logo: a gold V with a fleur-de-lis and ribbon"/>
+      <i class="sparkle" style="top:12%;left:22%"></i>
+      <i class="sparkle" style="top:30%;right:16%;animation-delay:1.2s"></i>
+      <i class="sparkle" style="bottom:22%;left:12%;animation-delay:2.1s"></i>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true"><div>
+  WARM &amp; WOODY<span>&#9670;</span>SWEET &amp; GOURMAND<span>&#9670;</span>FRESH &amp; CLEAN<span>&#9670;</span>FLORAL &amp; SOFT<span>&#9670;</span>OUD &amp; SPICE<span>&#9670;</span>
+  WARM &amp; WOODY<span>&#9670;</span>SWEET &amp; GOURMAND<span>&#9670;</span>FRESH &amp; CLEAN<span>&#9670;</span>FLORAL &amp; SOFT<span>&#9670;</span>OUD &amp; SPICE<span>&#9670;</span>
+</div></div>
+
+<section id="shop">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">The Collection</p>
+      <h2 class="gold-text">Find your signature</h2>
+      <div class="rule"><i></i></div>
+      <p>Eight scents, four moods, one price ceiling. Filter by how you want to feel when you walk in the room.</p>
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip on" data-f="all">All scents</button>
+      <button class="chip" data-f="woody">Warm &amp; Woody</button>
+      <button class="chip" data-f="sweet">Sweet &amp; Gourmand</button>
+      <button class="chip" data-f="fresh">Fresh &amp; Clean</button>
+      <button class="chip" data-f="floral">Floral &amp; Soft</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<section class="value" id="why">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Why Da&rsquo;Vega</p>
+      <h2>Luxury you can actually wear every day</h2>
+      <div class="rule"><i></i></div>
+      <p>Designer fragrance prices pay for celebrity faces and glossy ads. We put that money into the bottle instead.</p>
+    </div>
+    <div class="vgrid">
+      <div class="vcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Made to last</h3>
+        <p>Extrait-strength concentrations built to carry from your morning coffee to your last plans of the night.</p>
+      </div>
+      <div class="vcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h3>Under $50, always</h3>
+        <p>Every full bottle sits under fifty dollars. No sale countdowns, no members-only prices, just the price.</p>
+      </div>
+      <div class="vcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg></div>
+        <h3>Gift-ready bottles</h3>
+        <p>Black glass, gold detail and a boxed finish that looks like it cost three times as much. Because it should.</p>
+      </div>
+    </div>
+    <div class="compare">
+      <div><span>Typical designer 50 ml</span><b>$120&ndash;$180</b></div>
+      <div><span>Da&rsquo;Vega 50 ml</span><b>$29&ndash;$42</b></div>
+    </div>
+  </div>
+</section>
+
+<section class="finder" id="finder">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Scent Finder</p>
+      <h2 class="gold-text">Three questions. One signature.</h2>
+      <div class="rule"><i></i></div>
+    </div>
+    <div class="quiz" id="quiz">
+      <div class="steps"><i class="on"></i><i></i><i></i></div>
+      <div class="q" id="q"></div>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+</section>
+
+<section id="discovery">
+  <div class="wrap disc">
+    <div class="disc-art" id="discArt"></div>
+    <div>
+      <p class="eyebrow">Not sure yet?</p>
+      <h2 class="gold-text">The Discovery Set</h2>
+      <p>Six 2 ml vials of our best sellers in a black and gold keepsake box. Wear each one for a day, then pick your full bottle.</p>
+      <ul>
+        <li>Six best-selling scents, about 30 sprays each</li>
+        <li>$19 credit toward your first full bottle</li>
+        <li>Fits in a clutch, a gym bag or a stocking</li>
+      </ul>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.8rem">
+        <span class="price">$19</span>
+        <button class="btn btn-gold" data-add="Discovery Set">Add the set</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="reviews">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Reviews</p>
+      <h2 class="gold-text">Worn and loved</h2>
+      <div class="rule"><i></i></div>
+      <p>Placeholder. This section pulls real customer reviews once the store is live.</p>
+    </div>
+    <div class="rgrid">
+      <div class="rcard"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>Customer review goes here</p></div>
+      <div class="rcard"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>Customer review goes here</p></div>
+      <div class="rcard"><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p>Customer review goes here</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="join">
+  <div class="wrap">
+    <h2>Join the Gold List</h2>
+    <p>New scent drops, restocks and 10% off your first order. One email a week, never more.</p>
+    <form id="join"><input type="email" placeholder="Your email address" aria-label="Email address" required/><button type="submit">Join</button></form>
+    <small>Concept site. This form does not collect anything.</small>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <img src="assets/davega/lockup-black.png" alt="Da'Vega Fragrances"/>
+        <p style="color:var(--muted);font-size:.9rem;max-width:280px">Luxury scent, honest price. Every bottle under $50.</p>
+      </div>
+      <div><h4>Shop</h4><ul><li><a href="#shop">All scents</a></li><li><a href="#discovery">Discovery Set</a></li><li><a href="#shop">Gift sets</a></li><li><a href="#finder">Scent Finder</a></li></ul></div>
+      <div><h4>Help</h4><ul><li>Shipping &amp; returns</li><li>Order tracking</li><li>How to apply</li><li>Contact us</li></ul></div>
+      <div><h4>Follow</h4><ul><li>Instagram</li><li>TikTok</li><li>Facebook</li></ul></div>
+    </div>
+    <div class="legal"><span>&copy; 2026 Da&rsquo;Vega Fragrances</span><span>Concept design by Messick Marketing</span></div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+const P=[
+ {n:'Noir Royale',f:'woody',fl:'Warm & Woody',notes:'Black pepper, leather, smoked vanilla',p:38,c:['#2a2016','#7a5512'],tag:'Best seller'},
+ {n:'Golden Hour',f:'sweet',fl:'Sweet & Gourmand',notes:'Honey, amber, toasted almond',p:34,c:['#d9a441','#8a5a12'],tag:''},
+ {n:'Vega Oud',f:'woody',fl:'Warm & Woody',notes:'Oud, saffron, rose, sandalwood',p:42,c:['#4a2a12','#1b0f06'],tag:'Signature'},
+ {n:'Velvet Fleur',f:'floral',fl:'Floral & Soft',notes:'Peony, white musk, pear',p:32,c:['#e6b9a6','#9c6a52'],tag:''},
+ {n:'Crème Vanille',f:'sweet',fl:'Sweet & Gourmand',notes:'Madagascar vanilla, tonka, caramel',p:32,c:['#e9cf9b','#a57a35'],tag:'New'},
+ {n:'Côte d’Or',f:'fresh',fl:'Fresh & Clean',notes:'Bergamot, sea salt, vetiver',p:29,c:['#c8d3c4','#6d8476'],tag:''},
+ {n:'Midnight Amber',f:'woody',fl:'Warm & Woody',notes:'Amber, patchouli, dark plum',p:36,c:['#7a2a1e','#2a0c08'],tag:''},
+ {n:'Blanc Lys',f:'floral',fl:'Floral & Soft',notes:'Lily, jasmine, clean cotton',p:30,c:['#f2ead8','#b9a77f'],tag:''}
+];
+let uid=0;
+function bottle(c){const id='g'+(uid++);return '<svg viewBox="0 0 100 150" aria-hidden="true"><defs><linearGradient id="'+id+'a" x1="0" x2="1"><stop offset="0" stop-color="#8a6018"/><stop offset=".35" stop-color="#f6dc8c"/><stop offset=".6" stop-color="#d4a84a"/><stop offset="1" stop-color="#6e4a10"/></linearGradient><linearGradient id="'+id+'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[1]+'"/></linearGradient></defs><rect x="38" y="4" width="24" height="26" rx="3" fill="url(#'+id+'a)"/><rect x="42" y="30" width="16" height="10" fill="#1a140c"/><rect x="14" y="40" width="72" height="104" rx="10" fill="#0d0b08" stroke="url(#'+id+'a)" stroke-width="2.5"/><rect x="20" y="70" width="60" height="68" rx="6" fill="url(#'+id+'b)" opacity=".92"/><rect x="22" y="46" width="8" height="90" rx="4" fill="#fff" opacity=".1"/><rect x="30" y="84" width="40" height="30" rx="2" fill="#0d0b08" stroke="url(#'+id+'a)" stroke-width="1.2"/><path d="M42 91l8 16 8-16" fill="none" stroke="url(#'+id+'a)" stroke-width="2.4" stroke-linejoin="round"/></svg>';}
+
+const grid=document.getElementById('grid');
+grid.innerHTML=P.map((x,i)=>'<article class="card" data-f="'+x.f+'"><div class="card-art">'+(x.tag?'<span class="tag">'+x.tag+'</span>':'')+bottle(x.c)+'</div><div class="card-body"><span class="fam">'+x.fl+'</span><h3>'+x.n+'</h3><p class="notes">'+x.notes+'</p><div class="buy"><span class="price">$'+x.p+'<small>50 ml</small></span><button class="add" data-add="'+x.n+'">Add to bag</button></div></div></article>').join('');
+
+document.getElementById('chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip');if(!b)return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b));
+  document.querySelectorAll('.card').forEach(c=>c.classList.toggle('hide',b.dataset.f!=='all'&&c.dataset.f!==b.dataset.f));
+});
+
+let n=0;const count=document.getElementById('count'),bag=document.getElementById('bag'),toast=document.getElementById('toast');let tt;
+function say(m){toast.textContent=m;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),2200);}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-add]');if(!b)return;
+  n++;count.textContent=n;bag.classList.remove('pop');void bag.offsetWidth;bag.classList.add('pop');
+  if(b.classList.contains('add')){b.classList.add('done');b.textContent='Added';setTimeout(()=>{b.classList.remove('done');b.textContent='Add to bag';},1600);}
+  say(b.dataset.add+' added to your bag');
+});
+document.getElementById('join').addEventListener('submit',e=>{e.preventDefault();e.target.reset();say('You are on the Gold List (concept only)');});
+
+document.getElementById('discArt').innerHTML=[0,2,1,4,6,3].map(i=>bottle(P[i].c)).join('');
+
+const Q=[
+ {q:'When do you want to wear it?',o:[['Every day','Office, errands, everywhere',{fresh:2,floral:1}],['Date night','Close, warm and memorable',{sweet:2,woody:1}],['Big moments','Events, weddings, nights out',{woody:2,sweet:1}],['All of the above','One scent, every setting',{woody:1,floral:1,sweet:1}]]},
+ {q:'Pick the scene that sounds like you.',o:[['A candlelit lounge','Leather chairs, low light',{woody:2}],['A bakery at dawn','Vanilla, honey, warmth',{sweet:2}],['A garden after rain','Petals and soft musk',{floral:2}],['An ocean terrace','Salt air and citrus',{fresh:2}]]},
+ {q:'How loud should it be?',o:[['A whisper','Only people close notice',{floral:1,fresh:1}],['A signature','Noticed when you walk by',{sweet:1,woody:1}],['Unforgettable','They ask what you are wearing',{woody:2}],['Depends on the day','Something that layers',{fresh:1,sweet:1}]]}
+];
+const pick={woody:[2,0,6],sweet:[1,4],floral:[3,7],fresh:[5]};
+let step=0,score={};const qEl=document.getElementById('q'),res=document.getElementById('result'),bars=[...document.querySelectorAll('.steps i')];
+function show(){
+  bars.forEach((b,i)=>b.classList.toggle('on',i<=step));
+  const s=Q[step];qEl.style.display='';res.classList.remove('show');
+  qEl.innerHTML='<h3>'+s.q+'</h3><div class="opts">'+s.o.map((o,i)=>'<button class="opt" data-i="'+i+'"><b>'+o[0]+'</b><span>'+o[1]+'</span></button>').join('')+'</div>';
+}
+qEl.addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b)return;
+  const w=Q[step].o[b.dataset.i][2];for(const k in w)score[k]=(score[k]||0)+w[k];
+  if(++step<Q.length)return show();
+  const fam=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];const list=pick[fam];const x=P[list[(score[fam]+list.length)%list.length]];
+  qEl.style.display='none';
+  res.innerHTML=bottle(x.c)+'<div><p class="eyebrow">Your signature</p><h3 class="gold-text">'+x.n+'</h3><p>'+x.notes+'. A '+x.fl.toLowerCase()+' scent made for the way you answered. $'+x.p+' for 50 ml.</p><button class="btn btn-gold" data-add="'+x.n+'">Add to bag</button><button class="again" id="again">Start over</button></div>';
+  res.classList.add('show');
+});
+res.addEventListener('click',e=>{if(e.target.id==='again'){step=0;score={};show();}});
+show();
+})();
+</script>
+</body>
+</html>
