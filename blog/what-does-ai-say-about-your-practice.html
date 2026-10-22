@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What Does AI Say About Your Practice? | Messick Marketing Blog</title>
+<meta name="description" content="Run a 20-minute AI visibility check on your specialty practice. Find out if ChatGPT, Gemini, and Perplexity mention you, and what they get wrong."/>
+<meta property="og:title" content="What Does AI Say About Your Practice?"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="https://messickmarketing.com/blog/what-does-ai-say-about-your-practice"/>
+<link rel="canonical" href="https://messickmarketing.com/blog/what-does-ai-say-about-your-practice"/>
+<meta property="og:site_name" content="Messick Marketing"/>
+<meta property="og:description" content="Run a 20-minute AI visibility check on your specialty practice. Find out if ChatGPT, Gemini, and Perplexity mention you, and what they get wrong."/>
+<meta property="og:image" content="https://messickmarketing.com/og-image.jpg"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="What Does AI Say About Your Practice?"/>
+<meta name="twitter:description" content="Run a 20-minute AI visibility check on your specialty practice. Find out if ChatGPT, Gemini, and Perplexity mention you, and what they get wrong."/>
+<meta name="twitter:image" content="https://messickmarketing.com/og-image.jpg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/tex-gyre-heros" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#111111;--white:#faf8f5;--gray:#f0eeeb;--steel:#3a6b8a;--steel-light:#5a9ab8;--steel-pale:#d4e8f2;--text-muted:#6b6560;--text-dark:#e8e4de;--text-muted-dark:#9a928c;
+  --font-heading:'TeX Gyre Heros','Helvetica Neue',Arial,sans-serif;
+  --font-body:'Roboto','Helvetica Neue',Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--white);color:var(--black);line-height:1.7;font-weight:300;overflow-x:hidden}
+img{max-width:100%;height:auto}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:88px;transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.nav-logo img{height:68px;width:auto;max-width:340px;object-fit:contain;display:block}
+.nav-links{display:flex;gap:1.7rem;list-style:none;align-items:center}
+.nav-links a{font-size:.72rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links .nav-cta{background:var(--steel);color:#fff!important;padding:.62rem 1rem;border-radius:2px;transition:background .2s,box-shadow .2s!important}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:#fff}
+@media(max-width:768px){.nav-links{display:none;position:fixed;top:88px;left:0;right:0;background:var(--black);flex-direction:column;align-items:flex-start;padding:1.5rem 5% 2rem;gap:1.2rem;border-top:1px solid rgba(255,255,255,.1)}.nav-links.open{display:flex}.hamburger{display:flex}}
+.post-hero{margin-top:88px;background:var(--black);padding:80px 5% 70px}
+.post-hero .inner{max-width:780px;margin:0 auto}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem}
+.breadcrumb a{font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted-dark);text-decoration:none}
+.breadcrumb a:hover{color:#fff}
+.breadcrumb span{font-size:.68rem;color:rgba(255,255,255,.25)}
+.post-category{display:inline-block;font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel-light);background:rgba(58,107,138,.25);padding:.3rem .75rem;border-radius:1px;margin-bottom:1.2rem}
+.post-hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,4vw,3.6rem);font-weight:300;color:#fff;line-height:1.15;margin-bottom:1.2rem}
+.post-hero h1 em{font-style:italic;color:var(--steel-light)}
+.post-meta{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.post-meta span{font-size:.72rem;font-weight:500;letter-spacing:.08em;color:rgba(255,255,255,.4);text-transform:uppercase}
+.post-meta .divider{width:1px;height:12px;background:rgba(255,255,255,.15)}
+.post-body{padding:72px 5% 80px}
+.post-body .inner{max-width:780px;margin:0 auto}
+.post-body p{font-size:1.05rem;line-height:1.9;color:#2a2a2a;margin-bottom:1.6rem;font-weight:300}
+.post-body h2{font-family:var(--font-heading);font-size:1.9rem;font-weight:400;color:var(--black);margin:3rem 0 1rem;line-height:1.2}
+.post-body h3{font-size:1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin:2.4rem 0 .8rem}
+.post-body strong{font-weight:600;color:var(--black)}
+.post-body ul,.post-body ol{margin:1rem 0 1.6rem 1.4rem}
+.post-body li{font-size:1.05rem;line-height:1.8;color:#2a2a2a;margin-bottom:.5rem;font-weight:300}
+.pull-quote{border-left:3px solid var(--steel);padding:1.2rem 1.6rem;margin:2.4rem 0;background:var(--gray)}
+.pull-quote p{font-family:var(--font-heading);font-size:1.5rem;font-weight:300;font-style:italic;color:var(--black);margin:0;line-height:1.5}
+.step-block{counter-reset:steps;margin:2.4rem 0}
+.step{display:flex;gap:1.4rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid #e2dfd9}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{flex-shrink:0;width:44px;height:44px;background:var(--steel);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:1.4rem;font-weight:300;border-radius:2px}
+.step-content h4{font-size:1rem;font-weight:600;color:var(--black);margin-bottom:.5rem}
+.step-content p{font-size:.95rem;line-height:1.85;color:#2a2a2a;margin:0;font-weight:300}
+.author-bar{border-top:1px solid #e2dfd9;padding-top:2.4rem;margin-top:3rem}
+.author-info .author-name{font-size:.88rem;font-weight:600;color:var(--black);margin-bottom:.2rem}
+.author-info .author-bio{font-size:.83rem;font-weight:300;color:var(--text-muted);line-height:1.65}
+.related-section{background:var(--gray);padding:64px 5%}
+.related-section .inner{max-width:1100px;margin:0 auto}
+.related-section .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--steel);margin-bottom:2rem}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+@media(max-width:768px){.related-grid{grid-template-columns:1fr}}
+.related-card{background:var(--white);border:1px solid #e2dfd9;padding:1.6rem;text-decoration:none;color:inherit;transition:transform .2s;display:block}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+.related-card .rc-cat{font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--steel);margin-bottom:.7rem}
+.related-card .rc-title{font-family:var(--font-heading);font-size:1.3rem;font-weight:400;line-height:1.3;color:var(--black);margin-bottom:.6rem}
+.related-card .rc-arrow{font-size:.85rem;color:var(--steel)}
+.cta-strip{background:var(--steel);padding:64px 5%;text-align:center}
+.cta-strip h2{font-family:var(--font-heading);font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:.8rem}
+.cta-strip h2 em{font-style:italic}
+.cta-strip p{font-size:.95rem;color:rgba(255,255,255,.8);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.8}
+.btn-white{display:inline-block;background:#fff;color:var(--steel);font-family:var(--font-body);font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:.85rem 2.2rem;border-radius:2px}
+footer{background:var(--black);padding:1.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo img{height:30px;width:auto;object-fit:contain;display:block}
+.footer-copy{font-size:.7rem;color:var(--text-muted-dark)}
+.footer-email a{font-size:.72rem;color:var(--steel-light);text-decoration:none}
+.footer-email a:hover{color:#fff}
+.footer-social{width:100%;display:flex;justify-content:center;gap:20px;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)}
+.footer-social a{display:flex;align-items:center;justify-content:center;color:var(--steel-light);transition:color .2s,transform .2s}
+.footer-social a:hover{color:var(--white);transform:translateY(-2px)}
+@media(max-width:600px){
+  nav{padding:0 6%}
+  .nav-logo img{height:56px;max-width:280px}
+  .blog-hero,.post-hero{padding:70px 6% 56px}
+  .blog-hero .inner,.post-hero .inner,.post-body .inner{width:100%;max-width:100%}
+  .blog-hero h1{font-size:clamp(2.05rem,12vw,2.55rem);line-height:1.08;overflow-wrap:break-word}
+  .post-hero h1{font-size:clamp(1.95rem,10vw,2.45rem);line-height:1.12;overflow-wrap:break-word}
+  .blog-hero p,.post-body p,.post-body li{font-size:1rem;max-width:100%;overflow-wrap:break-word}
+  .eyebrow{font-size:.62rem;letter-spacing:.18em}
+  .blog-section,.post-body{padding:64px 6%}
+  .card-body,.card-featured .card-body{padding:1.6rem 1.4rem 1.4rem}
+  .card-title,.card-featured .card-title{font-size:1.6rem}
+  .post-meta{gap:.85rem}
+  .post-meta .divider{display:none}
+}</style>
+  <!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xc2edikxg7");
+</script>
+<!-- End Microsoft Clarity -->
+  <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1294794672598859');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1294794672598859&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "What Does AI Say About Your Practice?",
+  "description": "Run a 20-minute AI visibility check on your specialty practice. Find out if ChatGPT, Gemini, and Perplexity mention you, and what they get wrong.",
+  "datePublished": "2026-10-22",
+  "dateModified": "2026-10-22",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://messickmarketing.com/blog/what-does-ai-say-about-your-practice"
+  },
+  "image": "https://messickmarketing.com/og-image.jpg",
+  "author": {
+    "@type": "Person",
+    "name": "Morgan Messick",
+    "jobTitle": "Founder",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Messick Marketing",
+      "url": "https://messickmarketing.com/"
+    }
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Messick Marketing",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://messickmarketing.com/logo.png"
+    }
+  }
+}
+</script>
+</head>
+<body>
+<nav id="mainNav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt="Messick Marketing"></a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/#specialties">Specialties</a></li>
+    <li><a href="/#visibility">Services</a></li>
+    <li><a href="/portfolio">Work</a></li>
+    <li><a href="/blog/" class="active">Blog</a></li>
+    <li><a href="/#contact" class="nav-cta">Growth Assessment</a></li>
+  </ul>
+</nav>
+
+<section class="post-hero">
+  <div class="inner">
+    <div class="breadcrumb"><a href="/blog/">Blog</a><span>/</span><span>AEO</span></div>
+    <span class="post-category">AEO</span>
+    <h1>What Does AI Say About Your Practice? <em>A 20 Minute Check You Can Run This Week</em></h1>
+    <div class="post-meta">
+      <span>Messick Marketing</span><span class="divider"></span>
+      <span>October 2026</span><span class="divider"></span>
+      <span>7 min read</span>
+    </div>
+  </div>
+</section>
+
+<article class="post-body">
+  <div class="inner">
+    <p>You read that AI search is changing how patients find care. You may have even adjusted some website copy. But here is the question most practice owners skip: what do these tools actually say about you today?</p>
+
+<p>Not in theory. Right now. This week.</p>
+
+<p>We built a simple check you can run in about twenty minutes. No agency required. No special tools to buy. Just a few searches, a notes doc, and honest eyes on the results.</p>
+
+<p>This post is the missing step between understanding what AI-enhanced search is and deciding what to do about it. If you want the foundational context first, start there.</p>
+
+<p><strong>Related:</strong> <a href="/blog/what-is-aeo-for-healthcare">What is AEO for healthcare and why it matters for your practice</a></p>
+
+<h2>Why This Check Matters Before You Do Anything Else</h2>
+
+<p>AI tools, including ChatGPT, Google Gemini, and Perplexity, synthesize answers from sources they find credible. When a patient asks a question, these tools respond with confidence. They name practices, cite hours, reference physician names, and describe services. Some of that information is current. Some of it is not.</p>
+
+<p>A four-provider general cardiology practice may be cited accurately in one tool and listed with a cardiologist who left eighteen months ago in another. A chiropractic clinic may not appear at all, while a broad directory listing fills the answer instead. A functional medicine practice may be named with the right specialties but linked to a location that closed after a consolidation.</p>
+
+<p>None of those practices know this is happening unless they look. This check helps you look.</p>
+
+<h2>Step One: Write Your Eight to Ten Questions</h2>
+
+<p>Start the way a real patient starts. Before anyone books an appointment, they ask something. Write down the questions your patients are most likely to type or speak. A general structure that works across most specialty practices:</p>
+
+<ul>
+<li><strong>The condition question:</strong> "What causes [symptom] and when should I see a doctor?"</li>
+<li><strong>The provider question:</strong> "Best [specialty] near [city]"</li>
+<li><strong>The coverage question:</strong> "Does insurance cover [service or procedure type]?"</li>
+<li><strong>The comparison question:</strong> "What is the difference between [option A] and [option B]?"</li>
+<li><strong>The process question:</strong> "What should I expect at a first appointment with a [specialist]?"</li>
+<li><strong>The credentials question:</strong> "How do I find a board-certified [specialty type] in [city]?"</li>
+<li><strong>The trust question:</strong> "Is [practice name] a good [specialty] practice?"</li>
+<li><strong>The direct lookup:</strong> "[Practice name] hours" or "[Practice name] accepting new patients"</li>
+</ul>
+
+<p>That last pair is the most revealing. If a tool pulls your direct information and gets it wrong, that is an active problem, not a passive gap.</p>
+
+<h2>Step Two: Run Each Question Across Four Surfaces</h2>
+
+<p>Open ChatGPT, Gemini, and Perplexity in separate tabs. Then run a standard Google search for the same query and screenshot any AI Overview that appears at the top. For each answer, record three things in your notes doc:</p>
+
+<ul>
+<li><strong>Is the practice named?</strong> Yes, no, or indirectly (via a directory or a review aggregator that lists you).</li>
+<li><strong>Is anything wrong?</strong> Check physician names, hours, location, services, and any factual claim.</li>
+<li><strong>What sources does the answer cite?</strong> A directory, a competitor, a health system, your own site, a news article?</li>
+</ul>
+
+<p>Do not worry about whether you rank first. That framing belongs to traditional SEO. Here you are looking for patterns across tools and across question types.</p>
+
+<h2>Step Three: Read What You Find</h2>
+
+<p>The results will fall into one of three patterns, and each calls for a different first move.</p>
+
+<p><strong>Named and accurate.</strong> The tools cite you, the facts are correct, and the sources they lean on include your own website or a well-maintained directory profile. This is the strongest position. Your next move is to run this check again in sixty days and make sure nothing drifts. Accuracy in AI tools is not permanent. It reflects whatever these systems ingested most recently.</p>
+
+<p><strong>Named with stale or wrong information.</strong> This is the most urgent situation. A departed physician listed as current, outdated hours, a service no longer offered, or a location that has changed can actively mislead a patient who is ready to book. Your first move is to update the primary sources these tools are pulling from: your Google Business Profile, your website, and any directory that appears in the cited sources. Then rerun the check.</p>
+
+<p><strong>Related:</strong> <a href="/blog/how-to-optimize-your-website-for-ai-search">How to optimize your website for AI search</a></p>
+
+<p><strong>Absent while a competitor or directory is cited.</strong> The tools are answering the question. They just are not using you to do it. This is a visibility gap, not a credibility crisis. Your first move is to look at what sources are being cited and assess whether your practice appears in those places at all. Often a missing or thin directory presence, a website that does not answer the question clearly, or a lack of structured information is what keeps a practice out of the synthesized answer.</p>
+
+<h2>A Simple Tracking Sheet You Can Copy</h2>
+
+<p>Set up a notes doc or spreadsheet with these seven columns before you start:</p>
+
+<ul>
+<li>Question</li>
+<li>ChatGPT named?</li>
+<li>Gemini named?</li>
+<li>Perplexity named?</li>
+<li>AI Overview named?</li>
+<li>Errors found</li>
+<li>Sources cited</li>
+</ul>
+
+<p>Fill it in as you run each query. Eight to ten rows takes about twenty minutes. What you end up with is not a score. It is a pattern. And patterns tell you where to focus.</p>
+
+<h2>What to Fix First</h2>
+
+<p><strong>If errors appear:</strong> fix the source, not just the symptom. Update your Google Business Profile, your website contact and team pages, and any directory that the tool cited. AI tools do not read your mind. They read your data.</p>
+
+<p><strong>If you are absent:</strong> read the cited sources the way a patient would. If a directory ranks well and lists your competitors but not you, claim and complete your profile there. If your website does not answer the kinds of questions you searched, that is a content gap worth closing.</p>
+
+<p><strong>If you are accurate but lightly cited:</strong> the content on your site likely answers questions in a general way rather than a specific, structured way. That is a longer conversation, and it is what the writing framework in our <a href="/blog/how-to-optimize-your-website-for-ai-search">AEO optimization post</a> addresses.</p>
+
+<h2>How Often to Rerun This Check</h2>
+
+<p>AI tools update continuously. The answer ChatGPT gives today is not guaranteed to match what it gives in eight weeks. We recommend running this check once a quarter at minimum, and any time something meaningful changes at the practice: a physician joins or departs, a service changes, a location opens or closes, hours shift.</p>
+
+<p>This is a pattern check, not a ranking. What you are watching for over time is whether your presence is growing, staying flat, or drifting into inaccuracy.</p>
+
+<h2>One More Thing Before You Start</h2>
+
+<p>Run the direct lookup query with your practice name first. It is the fastest signal. If a tool gets your own name wrong, everything else in the check becomes more urgent. If it gets your name right and the details match, you are starting from a better position than many specialty practices realize.</p>
+
+<p>Twenty minutes. A notes doc. Real answers.</p>
+
+<p>That is where this starts.</p>
+
+    <div class="author-bar">
+      <div class="author-info">
+        <div class="author-name">Messick Marketing</div>
+        <div class="author-bio">We build content strategies for healthcare practices and mission-driven businesses, then execute them. If you want content that goes beyond a calendar, let's talk about what that looks like for your practice.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<section class="related-section">
+  <div class="inner">
+    <p class="eyebrow">Keep Reading</p>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/what-is-aeo-for-healthcare">
+        <div class="rc-cat">AEO</div>
+        <div class="rc-title">What Is AEO for Healthcare?</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+      <a class="related-card" href="/blog/how-to-optimize-your-website-for-ai-search">
+        <div class="rc-cat">AEO</div>
+        <div class="rc-title">How to Optimize Your Website for AI Search</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+      <a class="related-card" href="/blog/google-business-profile-medical-practices-local-seo">
+        <div class="rc-cat">Local SEO</div>
+        <div class="rc-title">Google Business Profile for Medical Practices</div>
+        <div class="rc-arrow">&#x2197;</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <h2>Content that actually<br><em>moves the needle.</em></h2>
+  <p>We build your content strategy and handle the execution, so the right people find your practice. You focus on patients.</p>
+  <a href="/#contact" class="btn-white">Let's Get Started</a>
+</section>
+
+<footer>
+  <a href="/" class="footer-logo"><img src="/logo.png" alt="Messick Marketing"></a>
+  <div class="footer-email"><a href="mailto:morgan@messickmarketing.com">morgan@messickmarketing.com</a></div>
+  <div class="footer-copy">&copy; 2026 Messick Marketing. All rights reserved.</div>
+  <div class="footer-social">
+    <a href="https://www.facebook.com/profile.php?id=61588691457371" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+    <a href="https://www.instagram.com/messickmarketing" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+    <a href="https://www.linkedin.com/company/messick-marketing/" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on LinkedIn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+    <a href="https://www.youtube.com/@messickmarketing" target="_blank" rel="noopener noreferrer" aria-label="Messick Marketing on YouTube"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47a2.78 2.78 0 0 0-1.95 1.95A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" fill="currentColor"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#111111"/></svg></a>
+  </div>
+</footer>
+<script>
+const nav=document.getElementById('mainNav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>30));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+</script>
+</body>
+</html>
