@@ -1376,9 +1376,46 @@ async function callAI(system, userMsg, extraBody) {
 // ============================================================
 // THUMBNAIL IMAGES (reference-photo aware)
 // ============================================================
-// Thumbnails go to the Pro image model with the source photo attached, so the
+// Thumbnails go to the image model with the source photo attached, so the
 // real person and setting carry through instead of being re-invented from text.
+//
+// Engine (2026-10-23, Morgan: "Codex wins"): Codex first, through the local runner on her PC
+// (claude-memory/tools/codex-thumb-runner.mjs, 127.0.0.1:8777), which bills to the ChatGPT plan.
+// If the runner is not running (another computer, PC asleep) or a job fails, the same request goes
+// to Gemini Pro through the worker, so nothing breaks. The engine picker forces Gemini.
+const CODEX_RUNNER = 'http://127.0.0.1:8777';
+const imageEngine = () => { try { return localStorage.getItem('mm_image_engine') || 'codex'; } catch { return 'codex'; } };
+function setImageEngine(v) { try { localStorage.setItem('mm_image_engine', v); } catch {} window._runnerUp = undefined; }
+window._engineLog = [];
+async function codexRunnerUp() {
+  if (window._runnerUp !== undefined && Date.now() - window._runnerUp.t < 60000) return window._runnerUp.ok;
+  let ok = false;
+  try { ok = (await fetch(`${CODEX_RUNNER}/health`, { signal: AbortSignal.timeout(2000) })).ok; } catch {}
+  window._runnerUp = { ok, t: Date.now() };
+  return ok;
+}
+function engineNote() {
+  const log = window._engineLog || [];
+  if (!log.length) return '';
+  const n = (e) => log.filter((x) => x === e).length;
+  const parts = [n('codex') && `Codex x${n('codex')}`, n('gemini') && `Gemini x${n('gemini')}`, n('gemini-fallback') && `Gemini x${n('gemini-fallback')} (Codex runner ${window._runnerUp?.ok ? 'failed' : 'not running'})`].filter(Boolean);
+  return `Images: ${parts.join(', ')}<br>`;
+}
 async function genThumbImage(prompt, aspectRatio, refImages) {
+  if (imageEngine() === 'codex' && await codexRunnerUp()) {
+    try {
+      const r = await fetch(`${CODEX_RUNNER}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, aspectRatio, refImages: refImages || [] })
+      });
+      const d = await r.json();
+      if (d.b64) { window._engineLog.push('codex'); return d.b64; }
+      console.warn('Codex runner:', d.error);
+    } catch (e) { console.warn('Codex runner:', e); }
+    window._runnerUp = { ok: false, t: Date.now() };
+    window._engineLog.push('gemini-fallback');
+  } else window._engineLog.push(imageEngine() === 'codex' ? 'gemini-fallback' : 'gemini');
   const res = await mmAuth.fetch(`${WORKER_URL}/imagen`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2776,6 +2813,7 @@ function renderRedesign(plan, trend, results, video) {
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
         Headline: <strong>${esc(plan.headline || '')}</strong><br>
         ${plan.core_idea ? `Video is about: ${esc(plan.core_idea)}<br>` : ''}
+        ${engineNote()}
         ${plan.outfit ? `Wardrobe: ${esc(plan.outfit)}<br>` : ''}
         ${plan.expression ? `Expression: ${esc(plan.expression)}<br>` : ''}
         ${plan.hero ? `Main object: ${esc(plan.hero)}<br>` : ''}
@@ -4671,6 +4709,10 @@ function renderThumbAudit(json) {
         <option value="redesign">Redesign from top thumbnails</option>
         <option value="realframe">Real frame from the video (your real face, cut out)</option>
       </select>
+      <select id="thumb-engine-select" onchange="setImageEngine(this.value)" title="Codex runs on your PC through the ChatGPT plan (start it with the Codex thumb runner); when it isn't running, images fall back to Gemini automatically" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 12px;font-family:var(--font-body);font-size:13px;cursor:pointer;outline:none;">
+        <option value="codex" ${imageEngine() === 'codex' ? 'selected' : ''}>Images: Codex (Gemini if PC runner off)</option>
+        <option value="gemini" ${imageEngine() === 'gemini' ? 'selected' : ''}>Images: Gemini</option>
+      </select>
       <label title="On: thumbnails keep the host's real face. Off: no person in the thumbnail, for clients who don't want AI people. Saved per channel." style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);cursor:pointer;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;">
         <input type="checkbox" id="keep-face-toggle" ${keepFace(getActive()) ? 'checked' : ''} onchange="setKeepFace(this.checked)" style="cursor:pointer;"> Keep host's face
       </label>
@@ -4687,6 +4729,7 @@ async function generateThumbnail(format, reusePrompt) {
   // format: '16:9' | '9:16' | 'both' — defaults to '16:9' if not passed
   // reusePrompt: true after a refinement, so the refined prompt is rendered as-is
   const fmt = format || document.getElementById('thumb-format-select')?.value || '16:9';
+  window._engineLog = [];
   if (!reusePrompt && document.getElementById('thumb-mode-select')?.value === 'realframe') return redesignRealFrame(fmt);
   if (!reusePrompt && document.getElementById('thumb-mode-select')?.value === 'redesign') return redesignThumbnail(fmt);
   const bothFormats = fmt === 'both';
