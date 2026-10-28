@@ -1692,18 +1692,20 @@ Return ONLY this JSON, no markdown:
 const REDESIGN_STYLE = `
 
 HOUSE LOOK, HIGH ENERGY. Build a bold, high-CTR thumbnail that is unmistakably this channel's. Borrow the chosen trend's composition where it helps.
-- Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style (for example deep navy, white and a steel or bright blue). The design lives in that palette plus the photo. One exception: a single small signal-color accent when it carries meaning, such as a red X on the wrong way or a green check or arrow on the right way.
+- Channel colors: take them from the brand colors given below, or failing that from the CURRENT thumbnail's house style. The design lives in that palette plus the photo. One exception: a single small signal-color accent when it carries meaning, such as a red X on the wrong way or a green check or arrow on the right way.
 - Headline: 2-5 words, huge, heavy, condensed sans-serif, all caps, filling about half the frame. Mostly white with one or two key words in the channel's accent color, each letter with a crisp dark outline or strong drop shadow so it pops. End with "?" or "!" only when the title supports it.
 - Subline: 3-6 words in small, widely spaced white caps under a thin accent-color divider line, the way the channel's own thumbnails do it. It only restates the title.
 - The host is head and shoulders on one side, the head about a quarter of the frame width, shoulders inside their half of the frame, cropped by the bottom edge only, with a clear facial expression that fits the headline's emotion (see step 2). Pick the PERSON photo with the closest expression. Hands only if a PERSON photo shows hands in that pose; otherwise no hands in frame, since invented hands look wrong.
 - One prop that shows the topic, drawn simply and large as a flat graphic tinted to the palette: a phone screen, a search bar, a Q&A card, a rising chart arrow, a magnifying glass. It floats beside the host, slightly tilted with a soft shadow; nobody holds it. When the title names a company, product or platform, the prop may carry its real logo.
-- Background: a softly blurred real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), color-graded into the channel's navy and blue, darker at the edges so the text pops.
+- Background: a softly blurred real setting that fits the topic (a medical office, a clinic hallway, a desk with a laptop), color-graded into the channel's colors, darker at the edges so the text pops.
 - Still only claims the title makes.
 - The page appends fixed layout rules for the arrow and divider after your prompt; do not describe arrows, divider lines or hands yourself.`;
 
 // Fixed layout rules appended to every Redesign prompt. These kept coming out wrong
 // when left to the prompt writer (floating arrows, doubled dividers, pasted-on hands).
-const REDESIGN_LAYOUT_RULES = `
+// The palette line takes the channel's own colors; it once said navy/blue/white for
+// everyone, which turned every client's thumbnails into Messick's.
+const redesignLayoutRules = colors => `
 
 FIXED LAYOUT RULES (follow exactly):
 - Arrow: exactly one, in the accent color, with a single arrowhead. The tail is a plain blunt end touching the edge of the prop, with no head there; the one solid triangular head points at the nearest word of the headline and stops just short of it. Short and thick: no longer than a quarter of the frame width, a gentle curve, fully inside the frame, crossing no text and no face. Never a double-headed or looping arrow.
@@ -1711,7 +1713,7 @@ FIXED LAYOUT RULES (follow exactly):
 - Subline letters: small white caps with very wide letter spacing, clearly lighter and much smaller than the headline.
 - Hands: none in frame unless a person photo shows that exact hand pose. The prop is not held; it floats as a flat graphic.
 - Prop meaning: the prop shows what the video means, never a literal pun on a word (no virus or germ for "viral", no fire for "hot", no bomb for "blow up").
-- Palette: graphics, icons, charts, arrows and lines use the channel's colors (navy, blue, white) plus a real logo's own colors. At most one small signal-color accent (a red X, a green check or arrow) when it carries meaning; no other colors.
+- Palette: graphics, icons, charts, arrows and lines use the channel's colors (${colors || 'the colors of the current thumbnail'}) plus a real logo's own colors. At most one small signal-color accent (a red X, a green check or arrow) when it carries meaning; no other colors.
 - Host size: head and shoulders, the head about a quarter of the frame width and never more than 30%, with a little air above the hair. Not a tight close-up.
 - Teeth: when the mouth is open, the teeth are the person photos' teeth: small, even, square-edged, the upper row only, gums barely showing. Never pointed, fanged, oversized or too many.
 
@@ -1761,7 +1763,7 @@ const LAYOUT_QA_SYSTEM = `You check a finished YouTube thumbnail against fixed d
 - the host glancing sideways, smirking, or with a pursed or twisted mouth (the fix: eyes to the camera, mouth relaxed, keep the brows as they are)
 - the host's top a different color or type from the one named in the check request
 - the host's shoulders or torso spilling past their half of the frame, or a neck and shoulders far heavier than a head-and-shoulders portrait of the person in the other images (the fix: redraw the host to match the person photos' build and scale them down)
-For each violation write one short fix instruction, e.g. "recolor the red chart line to bright blue" or "reverse the arrow so its head points at the word HURTS".
+For each violation write one short fix instruction, e.g. "recolor the red chart line to the accent color" or "reverse the arrow so its head points at the word HURTS".
 Return ONLY JSON: {"fixes": ["..."]} with an empty list when nothing is wrong.`;
 
 async function checkLayout(b64, outfit, noPerson) {
@@ -2720,7 +2722,7 @@ Format: ${ratios.join(' and ')}` });
     const wardrobe = plan.outfit
       ? `\nWARDROBE: the host wears ${plan.outfit}, exactly as in this video, in exactly that color: not olive, not green, not grey, not any other color unless named here. This replaces the clothing in the person photos; change only the clothing, never the face. Never put a band, brand or other real logo or printed design on the clothing that the video doesn't show.`
       : `\nWARDROBE: the host wears the same plain top, in the same color, as in the person photos. Do not invent a different garment or color.`;
-    const prompt = `${redesignRoleHeader(identity.length, false, !!anchor)}\n\n${plan.prompt}${REDESIGN_LAYOUT_RULES}${expressionLine}${wardrobe}`;
+    const prompt = `${redesignRoleHeader(identity.length, false, !!anchor)}\n\n${plan.prompt}${redesignLayoutRules(brandColorsFor(brand))}${expressionLine}${wardrobe}`;
 
     const results = [];
     for (const ratio of ratios) {
@@ -2959,7 +2961,8 @@ function renderBrandTabs() {
 // Real palettes for clients whose colors are documented. These win over the niche
 // profile's guess, which infers from the industry (vascular reads as teal; SVV is navy).
 const BRAND_PALETTES = [
-  { match: /sound vascular/i, colors: 'navy blue, deep navy, light sky blue and white' }
+  { match: /sound vascular/i, colors: 'navy blue, deep navy, light sky blue and white' },
+  { match: /messick/i, colors: 'deep navy, white and a steel or bright blue' }
 ];
 function brandColorsFor(brand) {
   const known = BRAND_PALETTES.find(p => p.match.test(brand?.channelName || ''));
