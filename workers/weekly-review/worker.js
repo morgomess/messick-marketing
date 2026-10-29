@@ -201,12 +201,20 @@ async function action(env, kind, body) {
       text = `Client review, ${name}: ${msg}`;
     }
     await at(env, `${client.baseId}/${tableId}/${recordId}/comments`, { method: 'POST', body: JSON.stringify({ text }) });
+    // A comment flips the row to Edits Needed so the team sees it before queueing, not only in the
+    // comment thread (JVI 2026-10-23: three of four commented posts went out unchanged).
+    let flagged = false;
+    if (kind === 'comment') {
+      flagged = await at(env, `${client.baseId}/${tableId}/${recordId}`, { method: 'PATCH', body: JSON.stringify({ fields: { Status: 'Edits Needed' }, typecast: true }) }).then(() => true, () => false);
+      await env.REVIEW.delete(`posts:${client.baseId}:${ymd(start)}`);
+    }
     await env.REVIEW.put(key, JSON.stringify(state));
     // Text Morgan on every comment, not only on Send my review: clients often comment and never send
     // (Jessica at JVI and Lew at ECCO, 2026-10-16, never alerted).
     if (kind === 'comment') {
       const x = posts.find(y => y.id === body.post);
-      await telegram(env, [`Review page comment from ${client.name}`, `${name} on ${x ? `${x.day} ${x.dateLabel}, ${x.title}` : 'a post'}:`, `"${state.comments[state.comments.length - 1].text}"`, '', 'Also saved as a comment on the Airtable Preview row.'].join('\n').replace(/[—–]/g, ','));
+      const row = flagged ? 'Saved as a comment on the Airtable Preview row, and the row is now Edits Needed.' : 'Saved as a comment on the Airtable Preview row. Setting the row to Edits Needed FAILED, so set it by hand.';
+      await telegram(env, [`Review page comment from ${client.name}`, `${name} on ${x ? `${x.day} ${x.dateLabel}, ${x.title}` : 'a post'}:`, `"${state.comments[state.comments.length - 1].text}"`, '', row].join('\n').replace(/[—–]/g, ','));
     }
     return json({ ok: true, state });
   }
