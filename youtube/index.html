@@ -1922,9 +1922,10 @@ async function applySkinTone(b64, amount) {
 }
 
 // Lightly whitens teeth: inside the inner-lip outline only, and only bright, low-red pixels,
-// so gums, tongue and lips are left alone. Takes the yellow out and lifts brightness a touch.
+// so gums, tongue and lips are left alone. Takes some of the yellow out, never adds brightness.
+// Generated faces only: real frames keep her real teeth ("way too white", 2026-10-29).
 const INNER_LIPS = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95];
-async function whitenTeeth(b64, amount = 0.65) {
+async function whitenTeeth(b64, amount = 0.3) {
   const bmp = await b64ToBitmap(b64);
   const lm = (await getLandmarker()).detect(bmp).faceLandmarks?.[0];
   if (!lm) return b64;
@@ -1944,8 +1945,8 @@ async function whitenTeeth(b64, amount = 0.65) {
     const r = d[i], g = d[i + 1], b = d[i + 2], lum = 0.299 * r + 0.587 * g + 0.114 * b;
     const w = (mask[i + 3] / 255) * smooth(85, 150, lum) * (1 - smooth(30, 60, r - g)) * amount;
     if (w <= 0) continue;
-    const target = Math.min(255, lum * 1.08 + 6);  // neutral, slightly brighter
-    d[i] = r + (target - r) * w; d[i + 1] = g + (target - g) * w; d[i + 2] = b + (target + 4 - b) * w;
+    const target = lum;  // neutral at the same brightness
+    d[i] = r + (target - r) * w; d[i + 1] = g + (target - g) * w; d[i + 2] = b + (target - b) * w;
     changed++;
   }
   if (!changed) return b64;
@@ -2464,8 +2465,7 @@ IMPORTANT: a real photo of the host will be placed on the ${side.toUpperCase()} 
       const design = await cutoutPerson(plateB64).catch(() => null);
       const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
       const outCanvas = await placeRealCutout(plateBmp, frame.full, side, { cropBottom: 0.80, outline: 0.009 });
-      let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
-      try { b64 = await whitenTeeth(b64); } catch (e) { console.warn('teeth', e); }
+      const b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
       results.push({ ratio, b64, plate: plateB64, method: 'real-frame', fixes, side });
     }
     generatedThumbB64 = results[0].b64;
@@ -2849,8 +2849,7 @@ async function refineRedesign() {
         const design = await cutoutPerson(plateB64).catch(() => null);
         const plateBmp = design ? (await cleanPlate(plateB64, design)).canvas : await b64ToBitmap(plateB64);
         const outCanvas = await placeRealCutout(plateBmp, st.hostFrame.full, r.side || st.side, { cropBottom: 0.80, outline: 0.009 });
-        let b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
-        try { b64 = await whitenTeeth(b64); } catch (e) { /* keep */ }
+        const b64 = outCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
         results.push({ ratio: r.ratio, b64, plate: plateB64, method: 'real-frame', side: r.side || st.side });
       }
       st.results = results;
