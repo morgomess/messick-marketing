@@ -27,6 +27,8 @@
 import { aios } from './aios.js';
 
 const HELD_FROM = '2026-11-09';
+// A client record may carry its own heldFrom, to test held mode on one link without moving the rest.
+const isHeld = (client, start) => ymd(start) >= (client.heldFrom || HELD_FROM);
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
@@ -171,7 +173,7 @@ async function week(env, code, draftKey) {
     client: { name: client.name },
     draft: isDraft,
     deadline,
-    week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}`, held: ymd(start) >= HELD_FROM },
+    week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}`, held: isHeld(client, start) },
     posts, unfinished,
     insights: insights && insights.weekStart === ymd(start) ? insights : null,
     state,
@@ -188,7 +190,7 @@ async function action(env, kind, body) {
   const { start } = reviewWeek(client.tz);
   const key = `review:${body.c}:${ymd(start)}`;
   const state = (await env.REVIEW.get(key, 'json')) || { approvals: {}, comments: [], submitted: null };
-  const held = ymd(start) >= HELD_FROM;
+  const held = isHeld(client, start);
 
   // Writes one approval or comment to the Airtable Preview row and to state. Returns whether a
   // comment's Edits Needed flip worked; throws if the Airtable comment itself fails.
