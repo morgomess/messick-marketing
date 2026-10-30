@@ -4,7 +4,8 @@
 //   GET  /api/week?c=         posts for the review week (Status = Done, plus Edits Needed flagged), approved insights, review state
 //   POST /api/approve         {c, post, name, approved}   -> Airtable record comment + state
 //   POST /api/comment         {c, post, name, text}       -> Airtable record comment + state
-//   POST /api/submit          {c, name}                   -> Telegram summary to Morgan + state
+//   POST /api/submit          {c, name, approvals?, comments?} -> Telegram summary to Morgan + state
+//                             (held weeks: the approvals and comments ride in here, see HELD_FROM)
 //   GET  /img?c=&k=           highlight images stored by the weekly insights job
 // Admin (Bearer ADMIN_KEY):
 //   PUT  /admin/client?c=     {name, baseId, tz}
@@ -17,9 +18,15 @@
 // The review week flips to next week at Friday 6:00 AM Eastern for every client (Morgan, 2026-10-01):
 // highlights are drafted at 6, Morgan reviews at 7, the Friday emails go at 8. Before that the page
 // shows the current week.
+//
+// Held weeks (Morgan, 2026-10-30): from the week of Nov 9, approvals and comments stay on the
+// client's device until Send my review, which posts them all and texts Morgan once. Clients kept
+// adding a late comment after their first batch, and that one slipped past the alert window.
+// /api/approve and /api/comment refuse held weeks; earlier weeks keep posting each one at once.
 
 import { aios } from './aios.js';
 
+const HELD_FROM = '2026-11-09';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
@@ -164,7 +171,7 @@ async function week(env, code, draftKey) {
     client: { name: client.name },
     draft: isDraft,
     deadline,
-    week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}` },
+    week: { start: ymd(start), end: ymd(end), label: `${label(start)} to ${start.getUTCMonth() === end.getUTCMonth() ? end.getUTCDate() : label(end)}`, held: ymd(start) >= HELD_FROM },
     posts, unfinished,
     insights: insights && insights.weekStart === ymd(start) ? insights : null,
     state,
@@ -181,33 +188,37 @@ async function action(env, kind, body) {
   const { start } = reviewWeek(client.tz);
   const key = `review:${body.c}:${ymd(start)}`;
   const state = (await env.REVIEW.get(key, 'json')) || { approvals: {}, comments: [], submitted: null };
+  const held = ymd(start) >= HELD_FROM;
+
+  // Writes one approval or comment to the Airtable Preview row and to state. Returns whether a
+  // comment's Edits Needed flip worked; throws if the Airtable comment itself fails.
+  const record = async (k, post, value) => {
+    const [tableId, recordId] = post.split(':');
+    const text = k === 'comment' ? `Client review, ${name}: ${value}`
+      : value ? `Client review: approved by ${name}.` : `Client review: approval withdrawn by ${name}.`;
+    await at(env, `${client.baseId}/${tableId}/${recordId}/comments`, { method: 'POST', body: JSON.stringify({ text }) });
+    if (k === 'approve') {
+      if (value) state.approvals[post] = { by: name, at: new Date().toISOString() };
+      else delete state.approvals[post];
+      return false;
+    }
+    state.comments.push({ post, by: name, text: value, at: new Date().toISOString() });
+    // A comment flips the row to Edits Needed so the team sees it before queueing, not only in the
+    // comment thread (JVI 2026-10-23: three of four commented posts went out unchanged).
+    return at(env, `${client.baseId}/${tableId}/${recordId}`, { method: 'PATCH', body: JSON.stringify({ fields: { Status: 'Edits Needed' }, typecast: true }) }).then(() => true, () => false);
+  };
+  const validPost = id => /^tbl\w{14}:rec\w{14}$/.test(String(id || ''));
 
   if (kind === 'approve' || kind === 'comment') {
-    const [tableId, recordId] = String(body.post || '').split(':');
-    if (!/^tbl\w{14}$/.test(tableId || '') || !/^rec\w{14}$/.test(recordId || '')) return json({ error: 'bad post' }, 400);
+    if (held) return json({ error: 'held week: send with the review' }, 409);
+    if (!validPost(body.post)) return json({ error: 'bad post' }, 400);
     // Only posts that are actually on this week's page can be touched.
     const { posts } = await loadPosts(env, client, start, reviewWeek(client.tz).end);
     if (!posts.some(x => x.id === body.post)) return json({ error: 'post not in this week' }, 400);
-    let text;
-    if (kind === 'approve') {
-      const on = !!body.approved;
-      if (on) state.approvals[body.post] = { by: name, at: new Date().toISOString() };
-      else delete state.approvals[body.post];
-      text = on ? `Client review: approved by ${name}.` : `Client review: approval withdrawn by ${name}.`;
-    } else {
-      const msg = clean(body.text, 2000);
-      if (!msg) return json({ error: 'empty' }, 400);
-      state.comments.push({ post: body.post, by: name, text: msg, at: new Date().toISOString() });
-      text = `Client review, ${name}: ${msg}`;
-    }
-    await at(env, `${client.baseId}/${tableId}/${recordId}/comments`, { method: 'POST', body: JSON.stringify({ text }) });
-    // A comment flips the row to Edits Needed so the team sees it before queueing, not only in the
-    // comment thread (JVI 2026-10-23: three of four commented posts went out unchanged).
-    let flagged = false;
-    if (kind === 'comment') {
-      flagged = await at(env, `${client.baseId}/${tableId}/${recordId}`, { method: 'PATCH', body: JSON.stringify({ fields: { Status: 'Edits Needed' }, typecast: true }) }).then(() => true, () => false);
-      await env.REVIEW.delete(`posts:${client.baseId}:${ymd(start)}`);
-    }
+    const msg = kind === 'comment' ? clean(body.text, 2000) : !!body.approved;
+    if (kind === 'comment' && !msg) return json({ error: 'empty' }, 400);
+    const flagged = await record(kind, body.post, msg);
+    if (kind === 'comment') await env.REVIEW.delete(`posts:${client.baseId}:${ymd(start)}`);
     await env.REVIEW.put(key, JSON.stringify(state));
     // Text Morgan on every comment, not only on Send my review: clients often comment and never send
     // (Jessica at JVI and Lew at ECCO, 2026-10-16, never alerted).
@@ -221,18 +232,41 @@ async function action(env, kind, body) {
 
   if (kind === 'submit') {
     const { posts } = await loadPosts(env, client, start, reviewWeek(client.tz).end);
+    const where = id => { const x = posts.find(y => y.id === id); return x ? `${x.day} ${x.dateLabel}, ${x.title}` : 'A post'; };
+    // Held weeks: post this batch first. Each item stands alone, so one failed write is reported and
+    // handed back to the page to retry instead of losing the rest.
+    const failed = [], added = [], noFlag = [];
+    if (held) {
+      const onPage = id => validPost(id) && posts.some(x => x.id === id);
+      const ap = (Array.isArray(body.approvals) ? body.approvals : []).slice(0, 40).filter(a => onPage(a && a.post));
+      const cm = (Array.isArray(body.comments) ? body.comments : []).slice(0, 40)
+        .map(c => ({ post: c && c.post, text: clean(c && c.text, 2000) })).filter(c => c.text && onPage(c.post));
+      for (const a of ap) {
+        try { await record('approve', a.post, !!a.approved); } catch (e) { failed.push({ post: a.post, approved: !!a.approved }); }
+      }
+      for (const c of cm) {
+        try { (await record('comment', c.post, c.text)) || noFlag.push(c.post); added.push(c); } catch (e) { failed.push(c); }
+      }
+      if (cm.length) await env.REVIEW.delete(`posts:${client.baseId}:${ymd(start)}`);
+    }
     const approved = posts.filter(x => state.approvals[x.id]).length;
     const commented = new Set(state.comments.map(c => c.post)).size;
     const open = posts.filter(x => !state.approvals[x.id] && !state.comments.some(c => c.post === x.id)).length;
+    const again = !!state.submitted;
     state.submitted = { by: name, at: new Date().toISOString(), approved, commented, open };
     await env.REVIEW.put(key, JSON.stringify(state));
-    const lines = [`${client.name} weekly review sent by ${name}: ${approved} approved, ${commented} with comments, ${open} left open.`];
-    for (const c of state.comments) {
-      const x = posts.find(y => y.id === c.post);
-      lines.push('', `${x ? `${x.day} ${x.dateLabel}, ${x.title}` : 'A post'}`, `${c.by}: "${c.text}"`);
+    const lines = [`${client.name} weekly review ${again && held ? 'sent again' : 'sent'} by ${name}: ${approved} approved, ${commented} with comments, ${open} left open.`];
+    if (held) {
+      // Only what this send added, so a second send reads as new notes rather than a repeat.
+      lines.push(added.length ? `${added.length} new ${added.length === 1 ? 'comment' : 'comments'}, saved on the Airtable Preview rows and set to Edits Needed:` : 'No new comments in this send.');
+      for (const c of added) lines.push('', where(c.post), `${name}: "${c.text}"`);
+      if (noFlag.length) lines.push('', `Setting Edits Needed FAILED on ${noFlag.map(where).join('; ')}. Set it by hand.`);
+      if (failed.length) lines.push('', `${failed.length} ${failed.length === 1 ? 'item' : 'items'} did not save to Airtable; the page asked them to send again:`, ...failed.map(f => `${where(f.post)}${f.text ? `: "${f.text}"` : f.approved ? ': approval' : ': approval withdrawn'}`));
+    } else {
+      for (const c of state.comments) lines.push('', where(c.post), `${c.by}: "${c.text}"`);
     }
     await telegram(env, lines.join('\n').replace(/[—–]/g, ','));
-    return json({ ok: true, state });
+    return json({ ok: true, state, failed });
   }
   return json({ error: 'not found' }, 404);
 }

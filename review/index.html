@@ -105,6 +105,9 @@
   .thread .send{margin-top:8px;background:var(--steel);border-color:var(--steel);color:#fff}
   .msg{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14.5px;white-space:pre-wrap}
   .msg .who{font-size:12px;color:var(--muted);margin-bottom:2px;white-space:normal}
+  .msg.unsent{border-style:dashed;border-color:#e9c98b;background:#fffaf0}
+  .msg .unsent-tag{color:#7a5410;font-weight:600}
+  .msg .rm{background:none;border:0;padding:0 0 0 6px;color:var(--steel);font:500 12px Jost,sans-serif;cursor:pointer}
 
   .due{font-size:14px;color:var(--muted);margin:14px 0 0}
   .due b{color:var(--ink);font-weight:600}
@@ -193,6 +196,20 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 let data = null, state = null, reviewer = null, pending = null;
 try { reviewer = localStorage.getItem('mm_review_name') || null; } catch (e) {}
 
+// Held weeks (from Nov 9): approvals and comments wait on this device until Send my review.
+// queue.approvals maps post id -> true/false; queue.comments holds {post, text, at}.
+let held = false, queue = { approvals: {}, comments: [] };
+const qKey = () => `mm_review_q:${code}:${data.week.start}`;
+function saveQueue(){ try { localStorage.setItem(qKey(), JSON.stringify(queue)); } catch (e) {} }
+function loadQueue(){ try { const q = JSON.parse(localStorage.getItem(qKey()) || 'null'); if (q && q.approvals && Array.isArray(q.comments)) queue = q; } catch (e) {} }
+const unsent = () => Object.keys(queue.approvals).length + queue.comments.length;
+const approvedNow = id => held && id in queue.approvals ? (queue.approvals[id] ? { by: reviewer } : null) : state.approvals[id];
+window.addEventListener('beforeunload', e => {
+  if (!held || data.draft) return;
+  const typing = [...document.querySelectorAll('.thread textarea')].some(t => t.value.trim());
+  if (unsent() || typing) { e.preventDefault(); e.returnValue = ''; }
+});
+
 function toast(msg){ const t = $('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3500); }
 function needName(fn){ if (reviewer) return fn(); pending = fn; $('who').classList.add('open'); $('whoName').focus(); }
 $('whoOk').onclick = () => {
@@ -220,6 +237,8 @@ async function load(){
   catch (e) { $('client').textContent = 'Weekly Review'; return notice('We could not load this page', 'Please check your connection and try again.'); }
   if (!r.ok) { $('client').textContent = 'Weekly Review'; return notice('This link is not active', 'Please use the link from your most recent weekly email.'); }
   state = data.state;
+  held = !!data.week.held;
+  if (held && !data.draft) loadQueue();
   document.title = data.client.name + ' Weekly Review | Messick Marketing';
   $('client').textContent = data.client.name;
   const ins = data.insights;
@@ -288,7 +307,7 @@ function render(){
         ${tags.length ? `<div class="tags"><div class="lab">Hashtags</div><div>${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>` : ''}
       </div>
       <div class="actions"><button class="approve">Approve</button><button class="cbtn">Comment</button></div>
-      <div class="thread"><div class="msgs"></div><textarea placeholder="Suggest a change or ask a question about this post" maxlength="2000"></textarea><button class="send">Send to Messick team</button></div>
+      <div class="thread"><div class="msgs"></div><textarea placeholder="Suggest a change or ask a question about this post" maxlength="2000"></textarea><button class="send">${held ? 'Add comment' : 'Send to Messick team'}</button></div>
       <button class="collapse">Show less</button>
     </article>`;
   }
@@ -296,29 +315,32 @@ function render(){
   if (data.unfinished) h += `<p class="pending">${data.unfinished === 1 ? '1 more post this week is' : data.unfinished + ' more posts this week are'} still being finished. ${data.unfinished === 1 ? 'It' : 'They'} will appear here once ready.</p>`;
   h += `<div class="finish" id="finish"><div class="finish-msg" id="finishMsg"></div><button class="submit" id="submit">Send my review</button></div>
     <div class="thanks" id="thanks"><div class="eyebrow">Review sent</div><h2>Thank you!</h2><p id="thanksSum"></p>
-    <p class="small">Our team has your notes. If you think of anything else, you can reopen this page and add it.</p>
+    <p class="small">Our team has your notes. If you think of anything else, you can reopen this page and add it${held ? ', then send again' : ''}.</p>
     <button class="cbtn" id="reopen">Add something else</button></div></section>`;
   $('main').innerHTML = h;
   wire();
   paint();
 }
 
-const isReviewed = id => !!state.approvals[id] || state.comments.some(c => c.post === id);
+const isReviewed = id => !!approvedNow(id) || state.comments.some(c => c.post === id) || queue.comments.some(c => c.post === id);
 
 function paint(){
   const posts = data.posts, n = posts.filter(p => isReviewed(p.id)).length, total = posts.length;
   $('progress').innerHTML = `<b>${n}</b> of ${total} reviewed`;
   document.querySelectorAll('.post').forEach(el => {
-    const id = el.dataset.id, a = state.approvals[id], btn = el.querySelector('.approve');
+    const id = el.dataset.id, a = approvedNow(id), btn = el.querySelector('.approve');
     btn.classList.toggle('done', !!a); btn.textContent = a ? (el.classList.contains('open') ? 'Approved by ' + a.by : 'Approved') : 'Approve'; btn.title = a ? 'Approved by ' + a.by : '';
-    const msgs = state.comments.filter(c => c.post === id);
-    el.querySelector('.msgs').innerHTML = msgs.map(c => `<div class="msg"><div class="who">${esc(c.by)} · ${new Date(c.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>${esc(c.text)}</div>`).join('');
-    if (msgs.length) el.querySelector('.thread').classList.add('open');
+    const msgs = state.comments.filter(c => c.post === id), mine = queue.comments.map((c, i) => ({ ...c, i })).filter(c => c.post === id);
+    el.querySelector('.msgs').innerHTML = msgs.map(c => `<div class="msg"><div class="who">${esc(c.by)} · ${new Date(c.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>${esc(c.text)}</div>`).join('')
+      + mine.map(c => `<div class="msg unsent"><div class="who"><span class="unsent-tag">Not sent yet</span> · ${esc(reviewer)}<button class="rm" data-i="${c.i}">Remove</button></div>${esc(c.text)}</div>`).join('');
+    el.querySelectorAll('.rm').forEach(b => b.onclick = () => { queue.comments.splice(+b.dataset.i, 1); saveQueue(); paint(); });
+    if (msgs.length || mine.length) el.querySelector('.thread').classList.add('open');
   });
-  const all = n === total, f = $('finish');
-  f.classList.toggle('ready', all); $('submit').classList.toggle('soft', !all);
-  $('finishMsg').textContent = all ? "All reviewed. Send it so our team knows you're done."
-    : n === 0 ? 'Approve or comment on each post, then send.' : `${total - n} of ${total} posts still need a look.`;
+  const all = n === total, f = $('finish'), u = held ? unsent() : 0;
+  f.classList.toggle('ready', all); $('submit').classList.toggle('soft', !all && !u);
+  $('finishMsg').textContent = u ? `${u} ${u === 1 ? 'note is' : 'notes are'} not sent yet.${all ? '' : ` ${total - n} of ${total} posts still need a look.`} Send your review so our team gets ${u === 1 ? 'it' : 'them'}.`
+    : all ? "All reviewed. Send it so our team knows you're done."
+    : n === 0 ? `Approve or comment on each post, then send.${held ? ' Nothing reaches our team until you send.' : ''}` : `${total - n} of ${total} posts still need a look.`;
   if (all && !f.dataset.nudged && !state.submitted) { f.dataset.nudged = 1; f.scrollIntoView({ behavior: 'smooth', block: 'end' }); }
 }
 
@@ -337,6 +359,11 @@ function wire(){
     }));
     el.querySelector('.collapse').onclick = () => setOpen(false);
     ap.onclick = () => needName(async () => {
+      if (held) {
+        const want = !approvedNow(id);
+        if (want === !!state.approvals[id]) delete queue.approvals[id]; else queue.approvals[id] = want;
+        saveQueue(); paint(); return;
+      }
       ap.disabled = true;
       try { state = (await post('/api/approve', { post: id, approved: !state.approvals[id] })).state; paint(); }
       catch (e) { toast('That did not save. Please try again.'); }
@@ -345,6 +372,10 @@ function wire(){
     el.querySelector('.cbtn').onclick = () => needName(() => { if (!el.classList.contains('open')) { setOpen(true); th.classList.add('open'); th.querySelector('textarea').focus(); return; } th.classList.toggle('open'); if (th.classList.contains('open')) th.querySelector('textarea').focus(); });
     th.querySelector('.send').onclick = () => needName(async () => {
       const ta = th.querySelector('textarea'), t = ta.value.trim(); if (!t) return;
+      if (held) {
+        queue.comments.push({ post: id, text: t.slice(0, 2000), at: new Date().toISOString() });
+        saveQueue(); ta.value = ''; paint(); toast('Added. Tap Send my review when you are done.'); return;
+      }
       const b = th.querySelector('.send'); b.disabled = true;
       try { state = (await post('/api/comment', { post: id, text: t })).state; ta.value = ''; paint(); toast('Sent to the Messick team.'); }
       catch (e) { toast('That did not send. Please try again.'); }
@@ -352,10 +383,26 @@ function wire(){
     });
   });
   $('submit').onclick = () => needName(async () => {
+    if (held && state.submitted && !unsent()) return toast('Nothing new to send. Approve or comment, then send again.');
     const open = data.posts.filter(p => !isReviewed(p.id)).length;
     if (open && !confirm(`${open} ${open === 1 ? 'post has' : 'posts have'} no approval or comment yet. Send anyway? We'll treat ${open === 1 ? 'it' : 'those'} as still open.`)) return;
     $('submit').disabled = true;
-    try { state = (await post('/api/submit', {})).state; showThanks(); }
+    try {
+      if (!held) { state = (await post('/api/submit', {})).state; showThanks(); }
+      else {
+        const sending = queue, r = await post('/api/submit', {
+          approvals: Object.entries(sending.approvals).map(([p, on]) => ({ post: p, approved: on })),
+          comments: sending.comments.map(c => ({ post: c.post, text: c.text })),
+        });
+        state = r.state;
+        // Anything Airtable refused stays queued for another try; the rest is now on our side.
+        queue = { approvals: {}, comments: [] };
+        for (const f of r.failed || []) f.text ? queue.comments.push({ ...f, at: new Date().toISOString() }) : (queue.approvals[f.post] = f.approved);
+        saveQueue(); paint();
+        if (unsent()) toast(`${unsent() === 1 ? '1 note' : unsent() + ' notes'} did not send. Please tap Send my review again.`);
+        else showThanks();
+      }
+    }
     catch (e) { toast('That did not send. Please try again.'); }
     $('submit').disabled = false;
   });
