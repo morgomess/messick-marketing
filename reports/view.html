@@ -44,7 +44,38 @@
   .metric{background:var(--ink);padding:1.35rem 1.15rem 1.25rem}
   .metric-val{font-family:var(--fh);font-size:clamp(1.7rem,3.6vw,2.4rem);font-weight:700;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
   .metric-lbl{font-size:.57rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(250,248,245,.55);margin-top:.65rem}
-  @media(max-width:640px){.mband{grid-template-columns:repeat(2,1fr)}}
+  .metric-sub{font-size:.68rem;font-weight:400;color:var(--steel-lt);margin-top:.35rem;font-variant-numeric:tabular-nums}
+  @media(max-width:640px){.mband{grid-template-columns:repeat(2,1fr)}.metric{padding:1.1rem .9rem 1rem}}
+
+  /* per-platform table */
+  .pt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1.5rem;padding:0 1.5rem}
+  .pt{width:100%;border-collapse:collapse;min-width:620px;font-variant-numeric:tabular-nums}
+  .pt th{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 .6rem .7rem;border-bottom:1px solid var(--line);white-space:nowrap}
+  .pt th:first-child,.pt td:first-child{text-align:left;padding-left:0}
+  .pt th:last-child,.pt td:last-child{padding-right:0}
+  .pt td{padding:.85rem .6rem;border-bottom:1px solid var(--line);text-align:right;font-size:.95rem;color:var(--black);white-space:nowrap}
+  .pt tr:last-child td{border-bottom:none}
+  .pt .pt-plat{font-weight:500}
+  .pt .pt-na{color:var(--muted);opacity:.55}
+  .pt .pt-net{display:inline-block;margin-left:.4rem;font-size:.7rem;font-weight:500;padding:1px 6px;border-radius:3px}
+  .pt .pt-up{color:var(--green);background:rgba(45,122,79,.1)}
+  .pt .pt-down{color:var(--red);background:rgba(176,73,47,.1)}
+  .pt .pt-flat{color:var(--muted);background:var(--gray)}
+  .pt-note{font-size:.72rem;color:var(--muted);margin-top:1rem;line-height:1.6}
+
+  /* against the plan */
+  .plan{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .plan-i{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;gap:.8rem;align-items:flex-start}
+  .plan-mark{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;margin-top:2px}
+  .plan-met,.plan-pace{background:var(--green)}
+  .plan-watch{background:var(--amber)}
+  .plan-l{font-size:.9rem;font-weight:500;color:var(--black);line-height:1.35}
+  .plan-v{font-size:.78rem;color:var(--muted);margin-top:.25rem;font-variant-numeric:tabular-nums}
+  .plan-v b{font-weight:600;color:var(--black)}
+  .plan-s{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-top:.35rem}
+  .plan-s.s-met,.plan-s.s-pace{color:var(--green)}.plan-s.s-watch{color:var(--amber)}
+
+  .next-month{font-family:var(--fh);font-size:1.6rem;font-weight:500;color:var(--black);margin:-.6rem 0 1.2rem}
 
   /* ── STORY + HIGHLIGHTS (deep steel band) ── */
   .story{background:linear-gradient(158deg,#1a3244 0%,#23485e 100%);color:#fff;padding:3.2rem 1.5rem}
@@ -107,6 +138,10 @@
   .tp-stats{display:flex;flex-wrap:wrap;gap:6px}
   .tp-stat{background:var(--gray);border-radius:4px;padding:2px 8px;font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
   .tp-stat b{font-weight:600;color:var(--black)}
+  .tp-why,.tc-why{font-size:.82rem;line-height:1.5;color:var(--muted);margin-top:.6rem;padding-top:.55rem;border-top:1px solid var(--line)}
+  .tp-why b,.tc-why b{font-weight:600;color:var(--steel);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:.15rem}
+  .tc-row{flex-wrap:wrap}
+  .tc-why{flex-basis:100%;margin-top:.2rem;padding-left:3.3rem;border-top:none}
 
   /* recommendations */
   .rec{display:flex;gap:1.2rem;padding:1.15rem 0;border-bottom:1px solid var(--line)}
@@ -155,7 +190,8 @@
     .hero::after,.fb::after{display:none}
     .rv{opacity:1;transform:none}
     .fb,.rpt-foot .fn{display:none}
-    .block,.story,.tc-row,.tp,.rec,.win,.chart-row{break-inside:avoid}
+    .block,.story,.tc-row,.tp,.rec,.win,.chart-row,.plan-i,.pt tr{break-inside:avoid}
+    .pt{min-width:0}
     .chart-fill{transition:none}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   }
@@ -187,8 +223,49 @@
     document.title = (d.name ? d.name + ' | ' : '') + 'Report | Messick Marketing';
 
     var metrics = (d.metrics||[]).map(function(m){
-      return '<div class="metric"><div class="metric-val"><span class="cv" data-val="'+esc(m.val)+'">'+esc(m.val)+'</span></div><div class="metric-lbl">'+esc(m.lbl)+'</div></div>';
+      return '<div class="metric"><div class="metric-val"><span class="cv" data-val="'+esc(m.val)+'">'+esc(m.val)+'</span></div><div class="metric-lbl">'+esc(m.lbl)+'</div>'+
+        (m.sub?'<div class="metric-sub">'+esc(m.sub)+'</div>':'')+'</div>';
     }).join('');
+
+    // Per-platform table. Only payloads that carry follower start/end have it; a null cell is a
+    // metric the platform does not serve and prints as a dash, never 0.
+    var rows = (d.platforms||[]).filter(function(p){ return !p.local && p.followersStart!=null; });
+    var tableHTML='';
+    if(rows.length){
+      var showClicks = rows.some(function(p){ return (p.clicks||0)>0; });
+      var cell = function(v, f){ return v==null ? '<span class="pt-na">&ndash;</span>' : (f||fmt)(v); };
+      var pct = function(v){ return (Number(v)||0).toFixed(1).replace(/\.0$/,'')+'%'; };
+      tableHTML = '<div class="pt-wrap"><table class="pt"><thead><tr><th>Platform</th><th>Posts</th><th>Impressions &amp; Views</th><th>Interactions</th>'+
+        (showClicks?'<th>Clicks</th>':'')+'<th>Eng. Rate</th><th>Followers Start</th><th>Followers End</th></tr></thead><tbody>'+
+        rows.map(function(p){
+          var net = Number(p.followersNet)||0;
+          var chip = net>0 ? '<span class="pt-net pt-up">+'+fmt(net)+'</span>' : net<0 ? '<span class="pt-net pt-down">'+fmt(net)+'</span>' : '<span class="pt-net pt-flat">0</span>';
+          return '<tr><td class="pt-plat">'+esc(p.platform)+'</td><td>'+cell(p.posts)+'</td><td>'+cell(p.impressions)+'</td><td>'+cell(p.interactions)+'</td>'+
+            (showClicks?'<td>'+cell(p.clicks)+'</td>':'')+'<td>'+cell(p.engRate, pct)+'</td><td>'+cell(p.followersStart)+'</td><td>'+cell(p.followers)+chip+'</td></tr>';
+        }).join('')+'</tbody></table></div>'+
+        '<p class="pt-note">A dash means the platform does not report that figure. Engagement rate is interactions as a share of impressions and views.</p>';
+    }
+
+    // Against the plan: a compact scoreboard, only when the audit carries targets
+    var plan = (d.planTargets||[]).filter(function(t){ return t && t.label; });
+    var planHTML = plan.map(function(t){
+      var s = (t.status||'watch').toLowerCase();
+      var cls = s==='met' ? 'met' : s==='on pace' ? 'pace' : 'watch';
+      var mark = cls==='watch' ? '!' : '&#10003;';
+      return '<div class="plan-i"><span class="plan-mark plan-'+cls+'">'+mark+'</span><div><div class="plan-l">'+esc(t.label)+'</div>'+
+        '<div class="plan-v">Target <b>'+esc(t.target)+'</b> &middot; Actual <b>'+esc(t.actual)+'</b></div>'+
+        '<div class="plan-s s-'+cls+'">'+esc(s)+'</div></div></div>';
+    }).join('');
+
+    // "What's next" names the month after the reporting period when the period ends in a known month
+    var nextMonth = (function(){
+      var M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var end = String(d.period||'').split(/\s[\u2013-]\s|\u2013|\u2014/).pop();
+      var m = end.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\b/i);
+      if(!m) return '';
+      var idx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[1].slice(0,3).toLowerCase());
+      return idx<0 ? '' : M[(idx+1)%12];
+    })();
 
     var wins = (d.wins||[]).map(function(w){ return '<div class="win"><span class="win-dot"></span><span class="win-txt">'+esc(w)+'</span></div>'; }).join('');
 
@@ -227,12 +304,14 @@
       return '<div class="tp"><div class="tp-media">'+media+'<span class="tp-rank">'+(i+1)+'</span></div>'+
         '<div class="tp-body"><div class="tp-where">'+esc([t.platform, t.format, t.date].filter(Boolean).join(' · '))+'</div>'+
         '<div class="tp-what">'+esc(t.title)+'</div>'+
-        '<div class="tp-stats">'+stats.map(function(s){ return '<span class="tp-stat"><b>'+esc(s[0])+'</b> '+esc(s[1])+'</span>'; }).join('')+'</div></div></div>';
+        '<div class="tp-stats">'+stats.map(function(s){ return '<span class="tp-stat"><b>'+esc(s[0])+'</b> '+esc(s[1])+'</span>'; }).join('')+'</div>'+
+        (t.why?'<div class="tp-why"><b>Why it worked</b>'+esc(t.why)+'</div>':'')+'</div></div>';
     }).join('')+'</div>' : top.map(function(t,i){
       var vf = hasImpr ? (t.impressionsFmt||t.impressions||0) : (t.totalEng||0);
       return '<div class="tc-row"><span class="tc-rank">'+(i+1)+'</span>'+
         '<div class="tc-main"><div class="tc-title">'+esc(t.title)+'</div><div class="tc-plat">'+esc(t.platform)+'</div></div>'+
-        '<div class="tc-num">'+esc(vf)+'<span>'+unit+'</span></div></div>';
+        '<div class="tc-num">'+esc(vf)+'<span>'+unit+'</span></div>'+
+        (t.why?'<div class="tc-why"><b>Why it worked</b>'+esc(t.why)+'</div>':'')+'</div>';
     }).join('');
 
     // Local search rankings (Google Business audits)
@@ -282,6 +361,12 @@
         (wins?'<div class="wins">'+wins+'</div>':'')+
         '</div></section>';
     }
+    if(tableHTML){
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">By Platform</p><p class="chart-note">Every channel we managed this period, with where the audience started and ended.</p>'+tableHTML+'</div></section>';
+    }
+    if(planHTML){
+      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Against the Plan</p><p class="chart-note">What we set out to do this period, and where it landed.</p><div class="plan">'+planHTML+'</div></div></section>';
+    }
     if(quotes){
       html += '<section class="block rv"><div class="inner"><p class="eyebrow">What People Are Saying</p><p class="chart-note">Real comments left on our posts this period.</p><div class="q-grid">'+quotes+'</div></div></section>';
     }
@@ -289,10 +374,10 @@
       html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Top Content</p>'+topHTML+'</div></section>';
     }
     if(recs){
-      html += '<section class="block rv"><div class="inner"><p class="eyebrow">Recommendations</p>'+recs+'</div></section>';
+      html += '<section class="block rv"><div class="inner"><p class="eyebrow">What\'s Next</p>'+(nextMonth?'<h2 class="next-month">Our plan for '+nextMonth+'</h2>':'')+recs+'</div></section>';
     }
     if(chartHTML){
-      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Platform Breakdown</p><p class="chart-note">Share of reach by platform this period.</p>'+chartHTML+'</div></section>';
+      html += '<section class="block block-alt rv"><div class="inner"><p class="eyebrow">Platform Breakdown</p><p class="chart-note">Share of impressions by platform. The lead channel is by design.</p>'+chartHTML+'</div></section>';
     }
     if(kwHTML){
       html += '<section class="block rv"><div class="inner"><p class="eyebrow">Where You Show Up In Search</p>'+

@@ -912,8 +912,13 @@ ${JSON.stringify(extractShape, null, 2)}` }
                 ${this.localSectionHTML(platforms, d._local)}
                 <div style="margin-top:1rem;">
                     <label>Top Content ${(d._topContent && d._topContent.length) ? '<span style="color:var(--green); text-transform:none; letter-spacing:0; font-weight:600;">&#10003; ' + (d._source === 'metricool' ? 'read directly from the Metricool PDF' : 'auto-pulled from the report') + ' &mdash; edit if needed</span>' : '(auto-pulled when available; one per line)'}</label>
-                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions</p>
+                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Title | Platform | Format (Reel/Short/Carousel/Image...) | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions | Why it worked (optional, shows under the post on the client page)</p>
                     <textarea id="content-entries" rows="6" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. 5 Signs You Need Vein Treatment | Instagram | Jun 18, 2026 | 6951 | 342 | 28 | 15 | 4200">${this.topContentToLines(d._topContent)}</textarea>
+                </div>
+                <div style="margin-top:1rem;">
+                    <label>Against the plan <span style="color:var(--text-muted); text-transform:none; letter-spacing:0; font-weight:500;">(optional; one target per line, shown as a scoreboard on the client page)</span></label>
+                    <p style="font-size:0.68rem; color:var(--text-muted); margin:-2px 0 6px;">Columns: Label | Target | Actual | met / on pace / watch</p>
+                    <textarea id="plan-targets" rows="3" style="width:100%; padding:0.7rem; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.82rem; resize:vertical;" placeholder="e.g. LinkedIn posts | 12 | 14 | met&#10;New followers | 50 | 38 | on pace"></textarea>
                 </div>
                 <button class="btn btn-primary" onclick="app.saveAudit()" style="width:100%; margin-top:1.25rem;">Generate Audit</button>
             </div>`;
@@ -1047,7 +1052,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         if (contentText) {
             contentText.split('\n').forEach((line, idx) => {
                 if (!line.trim()) return;
-                // Columns: Title | Platform | Format | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions
+                // Columns: Title | Platform | Format | Date | Impressions | Likes | Comments | Shares | Reach | Clicks | Interactions | Why it worked
                 // Interactions is the report's own total for the post; when blank it is the sum of the split.
                 const parts = line.split('|').map(s => s.trim());
                 if (parts.length < 2) return;
@@ -1057,8 +1062,22 @@ ${JSON.stringify(extractShape, null, 2)}` }
                     rank: idx + 1, title: parts[0] || 'Untitled', platform: parts[1] || '',
                     format: parts[2] || '', date: parts[3] || '', impressions: num(parts[4]),
                     likes, comments, shares, clicks, reach: num(parts[8]),
-                    totalEng: num(parts[10]) || (likes + comments + shares + clicks)
+                    totalEng: num(parts[10]) || (likes + comments + shares + clicks),
+                    why: parts[11] || ''
                 });
+            });
+        }
+
+        // Against the plan: Label | Target | Actual | met / on pace / watch
+        const planTargets = [];
+        const planEl = document.getElementById('plan-targets');
+        if (planEl && planEl.value.trim()) {
+            planEl.value.trim().split('\n').forEach(line => {
+                const p = line.split('|').map(s => s.trim());
+                if (p.length < 3 || !p[0]) return;
+                const st = (p[3] || '').toLowerCase().replace(/[^a-z ]/g, '').trim();
+                const status = st === 'met' ? 'met' : st === 'on pace' ? 'on pace' : 'watch';
+                planTargets.push({ label: p[0], target: p[1] || '', actual: p[2] || '', status });
             });
         }
 
@@ -1069,7 +1088,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         const priorSame = [...this.clients].reverse().find(x => (x.name||'').trim().toLowerCase() === (this.tempData._name||'').trim().toLowerCase());
         const priorGoal = (priorSame && priorSame.goal) || '';
         const local = this.readLocalSection(platforms);
-        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, context, goal, priorGoal, global, perPlatform, granular, topContent, deltas, local, findings: null });
+        this.clients.push({ name: this.tempData._name, platforms, date: new Date().toLocaleDateString(), periodStart, periodEnd, channels, context, goal, priorGoal, global, perPlatform, granular, topContent, planTargets, deltas, local, findings: null });
         this.persist();
         this.view('profile', this.clients.length - 1);
     },
@@ -1081,7 +1100,7 @@ ${JSON.stringify(extractShape, null, 2)}` }
         return list.map(x => [
             esc(x.title), esc(x.platform), esc(x.format || ''), esc(x.date || ''),
             x.impressions || 0, x.likes || 0, x.comments || 0, x.shares || 0, x.reach || 0, x.clicks || 0, x.interactions || x.totalEng || 0
-        ].join(' | ')).join('\n');
+        ].concat(x.why ? [esc(x.why)] : []).join(' | ')).join('\n');
     },
 
     /* ══════════════════════════════════════ HEALTH SCORE */
@@ -1992,23 +2011,44 @@ Give exactly 5 recommendations, ordered High impact first.`;
             { lbl: 'Calls', val: fmt(g.calls || 0), delta: md(g.calls || 0, pg && pg.calls || 0) },
             { lbl: 'Direction Requests', val: fmt(g.directions || 0), delta: md(g.directions || 0, pg && pg.directions || 0) },
             { lbl: 'Website Clicks', val: fmt(g.clicks || 0), delta: md(g.clicks || 0, pg && pg.clicks || 0) }
-        ] : [
-            { lbl: 'Followers', val: fmt(g.followers || 0), delta: md(g.followers || 0, pg && pg.followers || 0) },
-            { lbl: 'Impressions & Views', val: fmt(g.impressions || 0), delta: md(g.impressions || 0, pg && pg.impressions || 0) },
-            { lbl: 'Interactions', val: fmt(g.totalInteractions || 0), delta: md(g.totalInteractions || 0, pg && pg.totalInteractions || 0) },
-            { lbl: 'Posts', val: String(g.totalContent || 0), delta: md(g.totalContent || 0, pg && pg.totalContent || 0) }
-        ];
+        ] : (() => {
+            // Growth band: followers with the net gain, reach, interactions (or clicks when the audit has them), engagement rate against the healthcare norm
+            const net = (g.followersGained || 0) - (g.followersLost || 0);
+            const netTxt = net > 0 ? '+' + fmt(net) + ' this period' : net < 0 ? fmt(net) + ' this period' : '';
+            const useClicks = (g.clicks || 0) > 0;
+            return [
+                { lbl: 'Followers', val: fmt(g.followers || 0), sub: netTxt, delta: md(g.followers || 0, pg && pg.followers || 0) },
+                { lbl: 'Impressions & Views', val: fmt(g.impressions || 0), delta: md(g.impressions || 0, pg && pg.impressions || 0) },
+                useClicks
+                    ? { lbl: 'Clicks', val: fmt(g.clicks || 0), delta: md(g.clicks || 0, pg && pg.clicks || 0) }
+                    : { lbl: 'Interactions', val: fmt(g.totalInteractions || 0), delta: md(g.totalInteractions || 0, pg && pg.totalInteractions || 0) },
+                { lbl: 'Engagement Rate', val: (g.engRate || 0) + '%', sub: 'typical ~2%', delta: md(g.engRate || 0, pg && pg.engRate || 0) }
+            ];
+        })();
         const top = (c.topContent || []).slice().sort((a, b) => (b.impressions || 0) - (a.impressions || 0) || (b.totalEng || 0) - (a.totalEng || 0)).slice(0, 10)
-            .map(t => ({ title: t.title, platform: t.platform, format: t.format || '', date: t.date || '', img: t.img || null, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), likes: t.likes || 0, comments: t.comments || 0, shares: t.shares || 0, clicks: t.clicks || 0, totalEng: t.totalEng || 0 }));
-        // Per-platform reach/interactions for the client report's Platform Breakdown chart
+            .map(t => ({ title: t.title, platform: t.platform, format: t.format || '', date: t.date || '', img: t.img || null, impressions: t.impressions || 0, impressionsFmt: fmt(t.impressions || 0), likes: t.likes || 0, comments: t.comments || 0, shares: t.shares || 0, clicks: t.clicks || 0, totalEng: t.totalEng || 0, why: t.why || '' }));
+        // Per-platform rows for the client report's table and reach chart. A metric the platform
+        // does not serve is null (never 0) so the page can show a dash for it.
         const platforms = (c.platforms || []).map(p => {
             const pd = (c.perPlatform && c.perPlatform[p]) || {};
-            return { platform: platShort(p), impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd) };
+            const fields = PLATFORM_FIELDS[p] || [], has = f => fields.includes(f), local = isLocal(p);
+            const gained = pd.followersGained || 0, lost = pd.followersLost || 0;
+            return {
+                platform: platShort(p), local,
+                impressions: this.platImpressions(pd), interactions: this.platInteractions(pd), posts: this.platPosts(pd),
+                reach: has('reach') ? (pd.reach || 0) : null,
+                clicks: has('clicks') ? (pd.clicks || 0) : null,
+                engRate: local ? null : (pd.engRate || null),
+                followers: local ? null : (pd.followers || 0),
+                followersStart: local ? null : Math.max(0, (pd.followers || 0) - gained + lost),
+                followersNet: local ? null : gained - lost
+            };
         }).filter(x => x.impressions > 0 || x.interactions > 0);
         const recs = f ? this.normalizeRecs(f).filter((_, idx) => this.selectedRecSet(c).includes(idx)).map(r => ({ title: r.title, detail: r.detail, impact: r.impact, target: r.target })) : [];
         return {
             name: c.name, slug: this.shareSlug(c), period: ([c.periodStart, c.periodEnd].filter(Boolean).join(' – ') || c.date || ''), channels: c.channels || '',
             metrics, lead: f ? (f.clientSummary || f.executiveSummary || '') : '', wins: f ? (f.wins || []) : [], top, recs, platforms, quotes: (c.quotes || []).slice(0, 12),
+            planTargets: Array.isArray(c.planTargets) ? c.planTargets : [],
             keywords: (() => { const l = this.localData(c); return l ? l.keywords.filter(k => k.position).sort((a,b) => a.position - b.position).slice(0, 8) : []; })(),
             competitors: (() => { const l = this.localData(c); return l && (l.competitors.rank || l.competitors.ahead.length) ? l.competitors : null; })()
         };
@@ -2200,8 +2240,10 @@ Output ONLY compact JSON on one line, nothing else: {"title":"short plain-langua
         ] : [
             { lbl:'Followers', val:fmt(g.followers||0), d: pg ? this.momPct(g.followers||0, pg.followers||0) : null },
             { lbl:'Impressions &amp; Views', val:fmt(g.impressions||0), d: pg ? this.momPct(g.impressions||0, pg.impressions||0) : null },
-            { lbl:'Interactions', val:fmt(g.totalInteractions||0), d: pg ? this.momPct(g.totalInteractions||0, pg.totalInteractions||0) : null },
-            { lbl:'Posts', val:g.totalContent||0, d: pg ? this.momPct(g.totalContent||0, pg.totalContent||0) : null }
+            (g.clicks||0) > 0
+                ? { lbl:'Clicks', val:fmt(g.clicks||0), d: pg ? this.momPct(g.clicks||0, pg.clicks||0) : null }
+                : { lbl:'Interactions', val:fmt(g.totalInteractions||0), d: pg ? this.momPct(g.totalInteractions||0, pg.totalInteractions||0) : null },
+            { lbl:'Engagement Rate', val:(g.engRate||0)+'%', d: pg ? this.momPct(g.engRate||0, pg.engRate||0) : null }
         ];
         const heroHTML = heroTiles.map(t => {
             const chip = (t.d != null && isFinite(t.d)) ? `<span class="cr-win-delta" style="color:${t.d>=0?'#8fe0b0':'#ffb3b3'}">${t.d>=0?'+':''}${t.d.toFixed(0)}%</span>` : '';
