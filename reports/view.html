@@ -234,6 +234,7 @@
     if(rows.length){
       var showClicks = rows.some(function(p){ return (p.clicks||0)>0; });
       var cell = function(v, f){ return v==null ? '<span class="pt-na">&ndash;</span>' : (f||fmt)(v); };
+      var whole = function(v){ return Math.round(Number(v)||0).toLocaleString(); };
       var pct = function(v){ return (Number(v)||0).toFixed(1).replace(/\.0$/,'')+'%'; };
       tableHTML = '<div class="pt-wrap"><table class="pt"><thead><tr><th>Platform</th><th>Posts</th><th>Impressions &amp; Views</th><th>Interactions</th>'+
         (showClicks?'<th>Clicks</th>':'')+'<th>Eng. Rate</th><th>Followers Start</th><th>Followers End</th></tr></thead><tbody>'+
@@ -241,7 +242,7 @@
           var net = Number(p.followersNet)||0;
           var chip = net>0 ? '<span class="pt-net pt-up">+'+fmt(net)+'</span>' : net<0 ? '<span class="pt-net pt-down">'+fmt(net)+'</span>' : '<span class="pt-net pt-flat">0</span>';
           return '<tr><td class="pt-plat">'+esc(p.platform)+'</td><td>'+cell(p.posts)+'</td><td>'+cell(p.impressions)+'</td><td>'+cell(p.interactions)+'</td>'+
-            (showClicks?'<td>'+cell(p.clicks)+'</td>':'')+'<td>'+cell(p.engRate, pct)+'</td><td>'+cell(p.followersStart)+'</td><td>'+cell(p.followers)+chip+'</td></tr>';
+            (showClicks?'<td>'+cell(p.clicks)+'</td>':'')+'<td>'+cell(p.engRate, pct)+'</td><td>'+cell(p.followersStart, whole)+'</td><td>'+cell(p.followers, whole)+chip+'</td></tr>';
         }).join('')+'</tbody></table></div>'+
         '<p class="pt-note">A dash means the platform does not report that figure. Engagement rate is interactions as a share of impressions and views.</p>';
     }
