@@ -274,9 +274,14 @@ function renderInsights(ins){
 
 function mediaHtml(p){
   if (!p.media.length) return `<div class="textonly">Text post, no graphic</div>`;
-  const extra = p.media.length > 1 ? `<span class="badge-n">1 of ${p.media.length}</span>` : '';
-  return p.media.map((m, i) => m.type.startsWith('video/')
-    ? `<div class="media vid"><video playsinline muted preload="metadata" src="${esc(m.url)}#t=0.5"></video><span class="badge-play"></span>${i ? '' : extra}</div>`
+  // One video plus one image means the image is the video's cover: show it as the poster, not as a second slide.
+  const vids = p.media.filter(m => m.type.startsWith('video/'));
+  const imgs = p.media.filter(m => !m.type.startsWith('video/'));
+  const cover = vids.length === 1 && imgs.length === 1 ? imgs[0] : null;
+  const media = cover ? vids : p.media;
+  const extra = media.length > 1 ? `<span class="badge-n">1 of ${media.length}</span>` : '';
+  return media.map((m, i) => m.type.startsWith('video/')
+    ? `<div class="media vid"><video playsinline muted preload="metadata"${cover ? ` poster="${esc(cover.url)}"` : ''} src="${esc(m.url)}#t=0.5"></video><span class="badge-play"></span>${i ? '' : extra}</div>`
     : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy">${i ? '' : extra}</div>`).join('');
 }
 
