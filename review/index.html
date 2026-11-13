@@ -281,7 +281,7 @@ function mediaHtml(p){
   const media = cover ? vids : p.media;
   const extra = media.length > 1 ? `<span class="badge-n">1 of ${media.length}</span>` : '';
   return media.map((m, i) => m.type.startsWith('video/')
-    ? `<div class="media vid"><video playsinline muted preload="metadata"${cover ? ` poster="${esc(cover.url)}"` : ''} src="${esc(m.url)}#t=0.5"></video><span class="badge-play"></span>${i ? '' : extra}</div>`
+    ? `<div class="media vid"><video playsinline muted ${cover ? `preload="none" poster="${esc(cover.url)}" src="${esc(m.url)}"` : `preload="metadata" src="${esc(m.url)}#t=0.5"`}></video><span class="badge-play"></span>${i ? '' : extra}</div>`
     : `<div class="media"><img src="${esc(m.url)}" alt="Post graphic" loading="lazy">${i ? '' : extra}</div>`).join('');
 }
 
